@@ -16,45 +16,29 @@ builder.Services.AddSingleton<GradeCertaintyService>();
 builder.Services.AddSingleton<ImplementationValidationService>();
 builder.Services.AddSingleton<ImplementationExportService>();
 builder.Services.AddSingleton<PdfAnalysisService>();
+builder.Services.AddSingleton<DocumentAnalysisService>();
 
 var implementationConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ImplementationDbContext>(options =>
 {
-    if (!string.IsNullOrWhiteSpace(implementationConnection))
-        options.UseSqlServer(implementationConnection);
-    else
-        options.UseSqlite("Data Source=implementation.db");
+    if (!string.IsNullOrWhiteSpace(implementationConnection)) options.UseSqlServer(implementationConnection);
+    else options.UseSqlite("Data Source=implementation.db");
 });
 builder.Services.AddScoped<ImplementationPersistenceService>();
 builder.Services.AddScoped<ProjectOverviewService>();
-
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
-
+builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("LocalReactFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod();
-    });
-});
+builder.Services.AddCors(options => options.AddPolicy("LocalReactFrontend", policy => policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ImplementationDbContext>();
     await db.Database.EnsureCreatedAsync();
 }
 
-if (app.Environment.IsDevelopment())
-    app.MapOpenApi();
-else
-    app.UseExceptionHandler();
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
+else app.UseExceptionHandler();
 
 app.Use(async (context, next) =>
 {
@@ -62,10 +46,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Frame-Options"] = "DENY";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-
-    if (!app.Environment.IsDevelopment())
-        context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
-
+    if (!app.Environment.IsDevelopment()) context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
     await next();
 });
 
@@ -78,11 +59,9 @@ app.MapGet("/api", () => Results.Ok(new
     application = "Evidence Appraisal Tool API",
     status = "Research tool / prototype",
     modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis" },
-    methodologicalNotice = "The API validates and calculates documented researcher inputs. Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
-    implementationNotice = "CFIR 2.0 is used for implementation determinants and KTA is represented as an iterative action cycle. Neither is converted into an unsupported scientific quality score.",
+    methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
     securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint and are not persisted by that endpoint."
 }));
-
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
 
 app.MapGet("/api/instruments", () => Results.Ok(new object[]
@@ -111,7 +90,6 @@ app.MapGet("/api/cfir2/metadata", (ImplementationValidationService service) => R
     domains = Enum.GetNames<CfirDomain>(), constructs = service.GetCfirConstructs(), officialGuide = "https://cfirguide.org/constructs",
     methodologicalNotice = "CFIR 2.0 must be fully operationalized for the specific project. The application exposes the 48 constructs as a catalogue, while project-specific selection, subconstructs, coding and rating guidance remain researcher responsibilities."
 }));
-
 app.MapGet("/api/kta/metadata", (ImplementationValidationService service) => Results.Ok(new
 {
     framework = "Knowledge-to-Action Framework", frameworkVersion = "Graham et al., 2006", phases = service.GetKtaPhases(),
@@ -124,36 +102,24 @@ app.MapPost("/api/agree2/calculate", (Agree2Assessment assessment, Agree2Scoring
 app.MapPost("/api/grade/evaluate", (GradeOutcomeAssessment assessment, GradeCertaintyService service) => Results.Ok(service.Evaluate(assessment)));
 app.MapPost("/api/cfir2/validate", (CfirAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
 app.MapPost("/api/kta/validate", (KtaAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
-app.MapPost("/api/implementation/validate", (ImplementationAssessment assessment, ImplementationValidationService service) =>
-    Results.Ok(service.ValidateImplementation(assessment.Cfir, assessment.Kta)));
+app.MapPost("/api/implementation/validate", (ImplementationAssessment assessment, ImplementationValidationService service) => Results.Ok(service.ValidateImplementation(assessment.Cfir, assessment.Kta)));
 
-async Task<IResult> AnalyzeResearchDocument(HttpRequest request, PdfAnalysisService service, CancellationToken cancellationToken)
+async Task<IResult> AnalyzeResearchDocument(HttpRequest request, DocumentAnalysisService service, CancellationToken cancellationToken)
 {
-    if (!request.HasFormContentType)
-        return Results.BadRequest(new { error = "multipart/form-data is required." });
-
+    if (!request.HasFormContentType) return Results.BadRequest(new { error = "multipart/form-data is required." });
     var form = await request.ReadFormAsync(cancellationToken);
     var file = form.Files.GetFile("file");
-    if (file is null)
-        return Results.BadRequest(new { error = "Upload a supported research document using the 'file' field." });
-
+    if (file is null) return Results.BadRequest(new { error = "Upload a supported research document using the 'file' field." });
     var instruments = form["instruments"].SelectMany(value => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)).ToArray();
-    var includePageText = string.Equals(form["includePageText"].FirstOrDefault(), "true", StringComparison.OrdinalIgnoreCase);
-
-    try
-    {
-        var result = await service.AnalyzeAsync(file, instruments, includePageText, cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (ArgumentException exception)
-    {
-        return Results.BadRequest(new { error = exception.Message });
-    }
+    var includeSourceText = string.Equals(form["includePageText"].FirstOrDefault(), "true", StringComparison.OrdinalIgnoreCase);
+    try { return Results.Ok(await service.AnalyzeAsync(file, instruments, includeSourceText, cancellationToken)); }
+    catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
 }
 
-// Keep the original route for backwards compatibility and expose the clearer document route for new clients.
-app.MapPost("/api/evidence/pdf/analyze", AnalyzeResearchDocument);
 app.MapPost("/api/evidence/analyze", AnalyzeResearchDocument);
+
+// Backwards-compatible endpoint for existing PDF clients.
+app.MapPost("/api/evidence/pdf/analyze", AnalyzeResearchDocument);
 
 app.MapPost("/api/implementation/save", async (ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
 {
@@ -162,16 +128,9 @@ app.MapPost("/api/implementation/save", async (ImplementationAssessment assessme
     var id = await persistenceService.SaveAsync(assessment, cancellationToken);
     return Results.Ok(new { id, saved = true, methodologicalNotice = "Stored records remain researcher-entered implementation documentation; persistence does not imply methodological validity." });
 });
-
-app.MapGet("/api/project-overview", async (ProjectOverviewService service, CancellationToken cancellationToken) =>
-    Results.Ok(await service.GetAsync(cancellationToken)));
-
-app.MapGet("/api/project-overview/{cfirId:guid}/audit", async (Guid cfirId, ImplementationPersistenceService service, CancellationToken cancellationToken) =>
-    Results.Ok(await service.GetAuditAsync(cfirId, cancellationToken: cancellationToken)));
-
-app.MapGet("/api/implementation/cfir/{constructKey}/actions", async (string constructKey, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
-    Results.Ok(await persistenceService.GetActionsForCfirAsync(Uri.UnescapeDataString(constructKey), cancellationToken)));
-
+app.MapGet("/api/project-overview", async (ProjectOverviewService service, CancellationToken cancellationToken) => Results.Ok(await service.GetAsync(cancellationToken)));
+app.MapGet("/api/project-overview/{cfirId:guid}/audit", async (Guid cfirId, ImplementationPersistenceService service, CancellationToken cancellationToken) => Results.Ok(await service.GetAuditAsync(cfirId, cancellationToken: cancellationToken)));
+app.MapGet("/api/implementation/cfir/{constructKey}/actions", async (string constructKey, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) => Results.Ok(await persistenceService.GetActionsForCfirAsync(Uri.UnescapeDataString(constructKey), cancellationToken)));
 app.MapGet("/api/implementation/{cfirId:guid}/{ktaId:guid}", async (Guid cfirId, Guid ktaId, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
 {
     var snapshot = await persistenceService.GetAsync(cfirId, ktaId, cancellationToken);
@@ -184,7 +143,6 @@ app.MapPost("/api/implementation/export/{format}", (string format, Implementatio
     if (!validation.IsValid) return Results.BadRequest(validation);
     return CreateExportResult(exportService.ExportJson(assessment), assessment.Cfir.Id, format);
 });
-
 app.MapPost("/api/amstar2/export/{format}", (string format, Amstar2Assessment assessment, Amstar2ValidationService validationService, AssessmentReportFactory reportFactory, AssessmentExportService exportService) =>
 {
     var validation = validationService.Validate(assessment);
@@ -196,11 +154,8 @@ app.MapPost("/api/amstar2/export/{format}", (string format, Amstar2Assessment as
         return Results.File(file.Content, file.ContentType, $"amstar2-{assessment.Id}.{file.Extension}");
     }
     catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
-    {
-        return Results.BadRequest(new { error = exception.Message });
-    }
+    { return Results.BadRequest(new { error = exception.Message }); }
 });
-
 app.MapPost("/api/implementation/export/{format}/file", (string format, ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationExportService exportService) =>
 {
     var validation = validationService.ValidateImplementation(assessment.Cfir, assessment.Kta);
@@ -219,8 +174,7 @@ app.Run();
 
 static IResult CreateExportResult(ExportFile jsonFile, Guid id, string format)
 {
-    if (!string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
-        return Results.BadRequest(new { error = "Use /api/implementation/export/{format}/file for json, csv, xlsx, docx or pdf file downloads." });
+    if (!string.Equals(format, "json", StringComparison.OrdinalIgnoreCase)) return Results.BadRequest(new { error = "Use /api/implementation/export/{format}/file for json, csv, xlsx, docx or pdf file downloads." });
     return Results.File(jsonFile.Content, jsonFile.ContentType, $"cfir-kta-{id}.json");
 }
 
