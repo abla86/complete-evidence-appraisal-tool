@@ -77,10 +77,10 @@ app.MapGet("/api", () => Results.Ok(new
 {
     application = "Evidence Appraisal Tool API",
     status = "Research tool / prototype",
-    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "PDF Evidence Analysis" },
-    methodologicalNotice = "The API validates and calculates documented researcher inputs. PDF analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
+    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis" },
+    methodologicalNotice = "The API validates and calculates documented researcher inputs. Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
     implementationNotice = "CFIR 2.0 is used for implementation determinants and KTA is represented as an iterative action cycle. Neither is converted into an unsupported scientific quality score.",
-    securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded PDFs are processed in memory by the analysis endpoint and are not persisted by that endpoint."
+    securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint and are not persisted by that endpoint."
 }));
 
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
@@ -127,7 +127,7 @@ app.MapPost("/api/kta/validate", (KtaAssessment assessment, ImplementationValida
 app.MapPost("/api/implementation/validate", (ImplementationAssessment assessment, ImplementationValidationService service) =>
     Results.Ok(service.ValidateImplementation(assessment.Cfir, assessment.Kta)));
 
-app.MapPost("/api/evidence/pdf/analyze", async (HttpRequest request, PdfAnalysisService service, CancellationToken cancellationToken) =>
+async Task<IResult> AnalyzeResearchDocument(HttpRequest request, PdfAnalysisService service, CancellationToken cancellationToken)
 {
     if (!request.HasFormContentType)
         return Results.BadRequest(new { error = "multipart/form-data is required." });
@@ -135,7 +135,7 @@ app.MapPost("/api/evidence/pdf/analyze", async (HttpRequest request, PdfAnalysis
     var form = await request.ReadFormAsync(cancellationToken);
     var file = form.Files.GetFile("file");
     if (file is null)
-        return Results.BadRequest(new { error = "Upload a PDF using the 'file' field." });
+        return Results.BadRequest(new { error = "Upload a supported research document using the 'file' field." });
 
     var instruments = form["instruments"].SelectMany(value => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)).ToArray();
     var includePageText = string.Equals(form["includePageText"].FirstOrDefault(), "true", StringComparison.OrdinalIgnoreCase);
@@ -149,7 +149,11 @@ app.MapPost("/api/evidence/pdf/analyze", async (HttpRequest request, PdfAnalysis
     {
         return Results.BadRequest(new { error = exception.Message });
     }
-});
+}
+
+// Keep the original route for backwards compatibility and expose the clearer document route for new clients.
+app.MapPost("/api/evidence/pdf/analyze", AnalyzeResearchDocument);
+app.MapPost("/api/evidence/analyze", AnalyzeResearchDocument);
 
 app.MapPost("/api/implementation/save", async (ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
 {
