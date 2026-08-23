@@ -3,167 +3,332 @@
 [![CI](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/ci.yml/badge.svg)](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/codeql.yml/badge.svg)](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/codeql.yml)
 
-## Live demo
+## Live application
 
 [Open Evidence Appraisal Tool](https://evidence-appraisal-tool.onrender.com)
 
-A full-stack research application for transparent, structured and traceable critical appraisal. It supports AMSTAR 2, CASP, AGREE II, GRADE and an implementation-science extension using CFIR 2.0 and the Knowledge-to-Action (KTA) framework.
+A full-stack research workspace for transparent, structured and traceable critical appraisal. It supports AMSTAR 2, CASP, AGREE II, GRADE and an implementation-science extension using CFIR 2.0 and the Knowledge-to-Action (KTA) framework.
 
-## Research workspace
+The application is designed to **support researchers, not replace researcher judgement**. Automated document analysis produces candidate findings only. It must never be interpreted as an automatic scientific conclusion.
 
-The frontend is organised as an academic research workspace rather than a generic application menu:
+## Research workflow
 
-- dashboard with project and implementation status
-- critical-appraisal workspace for AMSTAR 2, CASP, AGREE II and GRADE
+The intended workflow is:
+
+```text
+Document
+  ↓
+Document classification
+  ↓
+Evidence extraction
+  ↓
+Evidence Map
+  ↓
+Instrument suitability
+  ↓
+Candidate findings
+  ↓
+Researcher verification
+  ↓
+Reviewer appraisal
+  ↓
+Second reviewer
+  ↓
+Disagreement / consensus
+  ↓
+Final appraisal
+  ↓
+Audit trail
+  ↓
+Export
+```
+
+The application is organised as an academic research workspace rather than a generic application menu:
+
+- dashboard and project overview
+- critical appraisal for AMSTAR 2, CASP, AGREE II and GRADE
 - CFIR 2.0 + KTA implementation workspace
-- project overview with reviewer roles, consensus status and audit trail
-- evidence and traceability workspace for source location and rationale documentation
-- PDF evidence analysis with selectable appraisal instruments
-- responsive navigation for desktop and smaller screens
+- reviewer and consensus information
+- evidence and traceability workspace
+- research-document upload and analysis
+- manual evidence entry when automated extraction is incomplete
+- responsive navigation for desktop, laptop, tablet and smaller screens
 
-## PDF evidence analysis
+## Research document analysis
 
-A research article or systematic review can be uploaded as a PDF from **Evidence & traceability**. The user selects the appraisal instruments that are relevant to the document, and the application extracts selectable PDF text and creates an evidence map with:
+From **Evidence & traceability**, the user can select **+ Legg til forskningsdokument** and upload supported research material.
 
-- page number
-- matched term
-- topic/instrument area
-- short source excerpt
-- SHA-256 document hash
-- extraction status and warnings
+Supported formats:
 
-The current implementation is deliberately **researcher-controlled**. It identifies candidate passages; it does not automatically answer AMSTAR 2, CASP, AGREE II or GRADE questions. Each candidate must be checked against the original document and the authorised instrument before being accepted into a final appraisal. Recent benchmarking has found that AI-assisted AMSTAR 2 assessment can disagree with expert assessment, particularly for complex methodological and critical-domain judgements.
+- PDF
+- DOCX
+- TXT
+- HTML / HTM
+- XML / JATS XML where supplied by the publisher
 
-Scanned/image-only PDFs are detected when no selectable text can be extracted. Such documents require OCR before reliable text-based analysis; the application does not silently treat missing extracted text as missing evidence.
+The current upload limit is 25 MB.
 
-The upload-analysis endpoint processes the PDF in memory and does not persist the uploaded file. The public deployment must not be used for identifiable patient information or confidential research material.
+The application validates the file type/signature where applicable, calculates a SHA-256 hash and extracts text without modifying the original document. PDF files are analysed page by page. DOCX, TXT, HTML and XML are converted into source units for analysis.
+
+For XML/JATS, text is extracted from the XML structure. Detailed section/table/figure semantics are still treated conservatively and must be verified against the original article.
+
+### What the analysis does
+
+The analysis can:
+
+- classify a document type heuristically
+- report classification confidence and signals
+- assess whether a selected instrument appears suitable, unsuitable or requires caution
+- locate potentially relevant passages
+- report source page/kildenhet where reliably available
+- show matched terms and excerpts
+- calculate and display the document SHA-256 hash
+- flag missing selectable text
+- warn when no candidate passage is found
+- identify candidate evidence for the selected instrument areas
+
+### What the analysis does NOT do
+
+It does not automatically decide:
+
+- AMSTAR 2 answers
+- CASP answers
+- AGREE II ratings
+- GRADE certainty
+- overall study quality
+- clinical recommendations
+- policy recommendations.
+
+A text match is **candidate evidence**, not a final judgement.
+
+## Non-negotiable research-safety rules
+
+### Not found is not No
+
+If the application cannot find information, it must not convert that absence into a negative answer.
+
+For example:
+
+> "No protocol information was identified in the available document. This does not establish that no protocol exists. Check the article, supplement, registry or protocol manually."
+
+The researcher can then add the evidence manually.
+
+### Uncertainty is preserved
+
+The application explicitly distinguishes candidate, uncertain and verified information. If context cannot be interpreted reliably, the researcher is asked to inspect the original source.
+
+The application must never invent:
+
+- evidence
+- page numbers
+- DOI
+- authors
+- methods
+- source locations
+- study characteristics.
+
+If information cannot be determined reliably, the application reports that limitation rather than guessing.
+
+### Manual evidence
+
+Researchers can use **+ Legg til evidens manuelt** when information is found in:
+
+- the main article
+- supplementary material
+- protocol
+- registry
+- author correspondence
+- external source
+- a manual research note.
+
+Manual evidence is labelled **Manually added** and is persisted with:
+
+- document hash
+- instrument
+- item/domain
+- evidence text
+- source type
+- page/section/table/figure where supplied
+- DOI/URL where supplied
+- reviewer
+- rationale
+- timestamp.
+
+This keeps researcher-added evidence distinguishable from automated candidate findings.
+
+## Document version identity
+
+Every analysed document receives a SHA-256 hash. The hash identifies the exact file version used for the analysis. Existing appraisal data must not be silently mixed with a different document version.
+
+## Instrument safeguards
+
+### AMSTAR 2
+
+- 16 items
+- critical-domain handling
+- evidence location and rationale
+- researcher-controlled final judgement
+- **no numerical total score**
+
+AMSTAR 2 is a critical-appraisal instrument for systematic reviews of healthcare interventions. The application does not turn it into a generic quality score.
+
+### CASP
+
+CASP is design-specific. The researcher must select or confirm the appropriate checklist for the study design. The application does not use one generic CASP score across unrelated designs.
+
+### AGREE II
+
+- 23 items
+- six domains
+- 1–7 response scale
+- standardised domain calculations
+- rationale and evidence location
+- separate overall assessment
+
+The application does not invent an unsupported single aggregate quality score.
+
+### GRADE
+
+GRADE is outcome/evidence-base oriented. It is not treated as a generic quality score for a single article.
+
+The intended workflow is outcome-based and includes the relevant certainty domains, rationale and supporting evidence. If the evidence base is insufficient, the certainty assessment can remain undetermined.
 
 ## CFIR 2.0 + KTA
 
 The implementation module is integrated into the main application and supports:
 
-- five CFIR 2.0 domains and the structured 48-construct catalogue
-- researcher-entered determinant judgements with rationale and evidence location
-- multi-reviewer fields and consensus documentation
-- seven KTA action-cycle phases represented as an iterative/bidirectional process
-- implementation actions with owner, deadline, status and explicit CFIR links
-- EF Core persistence for CFIR assessments, KTA phases, actions and links
-- persistent project audit events recording reviewer, field, old/new value, reason and timestamp
-- JSON, CSV, XLSX, DOCX and PDF export for implementation records
-- project overview endpoints and reviewer/audit-trail UI
-- validation before persistence and export
+- CFIR 2.0 construct catalogue
+- researcher-entered determinant judgements
+- rationale and evidence location
+- reviewer and consensus fields
+- seven KTA action-cycle phases
+- implementation actions
+- owner, deadline and status
+- explicit CFIR links
+- EF Core persistence
+- project audit events
+- JSON, CSV, XLSX, DOCX and PDF export
+- project overview and audit endpoints.
 
-**Methodological boundary:** CFIR is a determinant framework and KTA is a knowledge-to-action/action-cycle framework. The application does not calculate a CFIR quality score or an implementation-effectiveness percentage, and it does not infer that a selected KTA action will solve a determinant.
+**Methodological boundary:** CFIR is a determinant framework and KTA is a knowledge-to-action/action-cycle framework. The application does not calculate a CFIR quality score or claim that a KTA action will solve a determinant.
 
-**CFIR scope limitation:** the application exposes the structured 48-construct catalogue. CFIR 2.0 includes project-specific operationalization and subconstruct considerations; researchers must document these where relevant. The application must not be described as a validated CFIR questionnaire.
+The application should not be described as a validated CFIR questionnaire.
 
 ## Persistence and database configuration
 
-Implementation persistence uses EF Core. If `ConnectionStrings:DefaultConnection` is supplied, SQL Server/Azure SQL is used. When no connection string is supplied, the application uses a local SQLite database (`implementation.db`) so the prototype can run without LocalDB or an external database.
+Implementation and manually entered evidence use EF Core. If `ConnectionStrings:DefaultConnection` is supplied, SQL Server/Azure SQL is used. When no connection string is supplied, local SQLite databases are used so the application can run without LocalDB or an external database.
 
-The SQLite fallback is suitable for local/prototype use and should not be treated as a durable production research-data store. A production deployment requires an appropriate managed database, authentication, authorization, encryption and research-data governance.
+The public prototype is not a substitute for an institutionally governed research-data environment. Production research use requires appropriate authentication, authorisation, encryption, access control, backup, retention and institutional governance.
 
 ## Export
 
-The implementation module provides server-side JSON, CSV, XLSX, DOCX and PDF exports. Export is performed only after structural validation. Exports are documentation of entered data, not automated scientific conclusions.
+The implementation module provides server-side JSON, CSV, XLSX, DOCX and PDF exports. Existing AMSTAR 2 reporting/export remains available.
 
-## Other research modules
+Research-document/evidence reporting is intended to distinguish:
 
-### AMSTAR 2
-- all 16 items
-- critical-domain prespecification and rationale
-- evidence location and researcher rationale
-- researcher-confirmed overall confidence
-- Word, PDF, Excel and JSON export
-- no prohibited numerical total score
-
-### CASP
-- researcher-selected authorised design-specific checklist
-- checklist title, version and official source URL
-- Yes/No/Cannot tell responses with rationale and evidence location
-- structural completeness validation without an automatic quality total
-
-### AGREE II
-- 23 item ratings on the 1–7 scale
-- item rationale and evidence location
-- six standardised domain scores
-- overall quality and recommendation recorded separately
-- no unsupported single aggregate quality score
-
-### GRADE
-- outcome-level certainty assessment
-- PICO, effects, studies and participants
-- downgrade and upgrade domains
-- provisional certainty category kept separate from researcher confirmation
-
-GRADE assessments are outcome-level judgements about a body of evidence. The GRADE Book is the current official, progressively updated source from the GRADE Working Group and is replacing the older GRADE Handbook during 2026.
+- automated candidate findings
+- researcher-verified evidence
+- final judgements
+- disagreements
+- consensus
+- unresolved items
+- methodological warnings.
 
 ## Methodological safeguards
 
-The application validates structure and documentation. It does not read articles and declare them high- or low-quality automatically. PDF analysis is an evidence-location aid, not an appraisal engine. Researchers must use the authorised instrument and current official guidance alongside the application.
+The application validates structure and documentation. It does not read articles and declare them high- or low-quality automatically.
 
-For GRADE, the final certainty judgement depends on domain judgements in context; it is not a simple one-to-one arithmetic conversion of domain flags.
+Researchers must verify candidate findings against:
 
-Do not enter personal health information, confidential research data or directly identifying information into the public demo. Use pseudonymous reviewer codes and an appropriately governed database for real research data.
+1. the original document
+2. surrounding context
+3. supplementary material when relevant
+4. protocol/registry when relevant
+5. the authorised appraisal instrument
+6. current official methodological guidance.
+
+A missing text match must never be interpreted as evidence that an activity did not occur.
+
+## AI boundary
+
+If an AI layer is added, it must operate as an assistant only. AI output must remain a candidate finding with evidence, location, confidence and uncertainty. It must be possible to accept, edit, reject or comment on the finding.
+
+AI must never be presented as having completed or validated a scientific appraisal automatically.
+
+The application must not send research documents to an external AI service without an explicitly controlled server-side integration, appropriate data-processing information and protection of API credentials.
 
 ## Security and DevSecOps
 
-- CodeQL analysis for C# and JavaScript/TypeScript
-- Dependabot monitoring for NuGet, npm and GitHub Actions
+- CodeQL for C# and JavaScript/TypeScript
+- Dependabot monitoring
 - automated backend build and tests
 - automated frontend tests, lint and production build
 - least-privilege GitHub Actions permissions
-- local secret exclusion through `.gitignore`
+- secret exclusion through `.gitignore`
 - published security policy
-- production browser security headers
-- SHA-256 verification for exported AMSTAR 2 reports
-- strict repository audit script
-- PDF upload size/type/signature validation
-- in-memory PDF processing rather than persistent public file storage
+- production security headers
+- upload type/signature/size validation
+- SHA-256 document identity
+- in-memory document analysis rather than automatic persistence of uploaded source files
+- explicit manual-evidence persistence rather than silent storage of uploaded files
+- safe error handling.
 
-## Strict local audit
+Do not place API keys, database passwords or deployment secrets in source code, frontend code or the public repository.
 
-Run from PowerShell at the repository root:
+## Ownership and licence
 
-    .\tools\audit-and-build.ps1
+Copyright © 2026 Anne Beth Andersen. All rights reserved.
 
-A passing audit means the configured software checks passed on the machine where the audit was run. It does not establish methodological validity, clinical validity, security certification or production readiness.
+The repository is publicly visible as a professional portfolio. The author's original source code, architecture, implementation and documentation are proprietary. No open-source licence is granted. Viewing the public repository does not grant permission to copy, modify, redistribute, rebrand, sublicense or commercially exploit the author's original work without written permission.
 
-## Technology
+See [`LICENSE`](LICENSE) for the complete ownership and usage terms. Third-party appraisal instruments, trademarks, libraries and other third-party material remain subject to their respective rights and licences.
 
-Frontend: React, Vite, JavaScript, Vitest, Testing Library and ESLint.
-
-Backend: ASP.NET Core, .NET 9, C#, xUnit, EF Core SQL Server/SQLite, Open XML SDK, PDFsharp and MigraDoc, PdfPig for PDF text extraction.
-
-## Run locally
+## Local development
 
 Backend:
 
-    dotnet run --project .\backend\EvidenceAppraisal.Api\EvidenceAppraisal.Api.csproj
+```powershell
+dotnet run --project .\backend\EvidenceAppraisal.Api\EvidenceAppraisal.Api.csproj
+```
 
 Frontend:
 
-    Set-Location .\frontend
-    npm install
-    npm run dev
+```powershell
+Set-Location .\frontend
+npm install
+npm run dev
+```
 
-Frontend: http://localhost:5173
-API: http://localhost:5237
+Frontend: `http://localhost:5173`
+
+API: `http://localhost:5237`
 
 ## Verification
 
 Backend:
 
-    dotnet build EvidenceAppraisalTool.sln
-    dotnet test EvidenceAppraisalTool.sln --no-build
+```powershell
+dotnet build EvidenceAppraisalTool.sln
+dotnet test EvidenceAppraisalTool.sln --no-build
+```
 
 Frontend:
 
-    Set-Location .\frontend
-    npm ci
-    npm test
-    npm run lint
-    npm run build
+```powershell
+Set-Location .\frontend
+npm ci
+npm test
+npm run lint
+npm run build
+```
+
+Strict repository audit:
+
+```powershell
+.\tools\audit-and-build.ps1
+```
+
+A passing software audit does not establish methodological validity, clinical validity, security certification or regulatory approval.
 
 ## Methodological sources
 
@@ -179,10 +344,6 @@ GRADE Working Group. (2026). *GRADE Book*. https://book.gradepro.org/
 
 Shea, B. J., Reeves, B. C., Wells, G., Thuku, M., Hamel, C., Moran, J., Moher, D., Tugwell, P., Welch, V., Kristjansson, E., & Henry, D. A. (2017). AMSTAR 2: A critical appraisal tool for systematic reviews that include randomised or non-randomised studies of healthcare interventions, or both. *BMJ, 358*, j4008. https://doi.org/10.1136/bmj.j4008
 
-## Ownership and licence
+## Scope statement
 
-Copyright © 2026 Anne Beth Andersen. All rights reserved.
-
-The repository is publicly visible as a professional portfolio. The author's original source code, architecture, implementation and documentation are proprietary. No open-source licence is granted. Viewing the public repository does not grant permission to copy, modify, redistribute, rebrand, sublicense or commercially exploit the author's original work without written permission.
-
-See [`LICENSE`](LICENSE) for the complete ownership and usage terms. Third-party appraisal instruments, trademarks, libraries and other third-party material remain subject to their respective rights and licences.
+Evidence Appraisal Tool is a research-support application. It is not itself a validated measurement instrument, medical device, clinical decision-support system or guarantee of methodological correctness. Researchers remain responsible for confirming source evidence, selecting the correct appraisal instrument, applying current guidance and making the final scientific judgement.
