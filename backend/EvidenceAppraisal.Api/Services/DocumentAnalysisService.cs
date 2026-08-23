@@ -82,6 +82,7 @@ public sealed class DocumentAnalysisService
         if (!hasText) warnings.Add("No selectable text was extracted. The document may be scanned/image-only and may require OCR before reliable analysis.");
         if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase)) warnings.Add("XML/JATS structure is used for text extraction, but section/table semantics are not yet preserved as structured fields. Verify context in the original article.");
         if (findings.Count > 0) warnings.Add("Findings are candidate text locations, not completed appraisal judgements. Verify the cited source and surrounding context.");
+        if (findings.Count == 0) warnings.Add("No candidate passage was identified. This is not evidence that the criterion is absent; inspect the original document and supplementary material manually.");
         foreach (var item in suitability.Where(x => x.Status is "Caution" or "Not suitable")) warnings.Add($"{item.Instrument}: {item.Reason}");
 
         return new DocumentAnalysisResult(
@@ -97,7 +98,7 @@ public sealed class DocumentAnalysisService
             warnings.Distinct().ToArray(),
             classification,
             suitability,
-            "Document analysis locates potentially relevant passages and flags possible instrument mismatches. It does not decide AMSTAR 2, CASP, AGREE II or GRADE judgements and must not be treated as an automatic scientific appraisal.");
+            "Automated analysis identifies candidate evidence locations only. It never converts a missing text match into a No judgement. The researcher must verify the original source, context, supplement/protocol where relevant, and the authorised instrument before making a final appraisal.");
     }
 
     private static List<DocumentSourceUnit> ExtractSourceUnits(string extension, byte[] bytes, CancellationToken cancellationToken)
