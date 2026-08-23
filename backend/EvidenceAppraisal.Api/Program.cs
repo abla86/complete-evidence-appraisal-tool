@@ -152,6 +152,8 @@ app.MapPost("/api/evidence/manual", async (ManualEvidenceRequest request, Eviden
     return Results.Created($"/api/evidence/manual/{entity.DocumentHashSha256}", ToEvidenceDto(entity));
 });
 
+app.MapEvidenceVerificationEndpoints();
+
 app.MapPost("/api/implementation/save", async (ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
 {
     var validation = validationService.ValidateImplementation(assessment.Cfir, assessment.Kta);
@@ -219,7 +221,7 @@ static List<string> ValidateManualEvidence(ManualEvidenceRequest request)
 static EvidenceRecordDto ToEvidenceDto(EvidenceRecordEntity entity) => new(
     entity.Id, entity.DocumentHashSha256, entity.Instrument, entity.ItemOrDomain, entity.EvidenceText, entity.SourceType,
     entity.Page, entity.Section, entity.Table, entity.Figure, entity.Url, entity.Doi, entity.Reviewer, entity.Rationale,
-    entity.Status, entity.CreatedAtUtc);
+    entity.Status, entity.VerificationNote, entity.VerifiedBy, entity.VerifiedAtUtc, entity.CreatedAtUtc);
 
 static IResult CreateExportResult(ExportFile jsonFile, Guid id, string format)
 {
