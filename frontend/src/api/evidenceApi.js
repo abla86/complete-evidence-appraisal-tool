@@ -6,7 +6,7 @@ export async function analyzeEvidenceDocument(file, instruments, includePageText
   form.append('instruments', instruments.join(','));
   form.append('includePageText', String(includePageText));
 
-  const response = await fetch(`${API_BASE_URL}/api/evidence/pdf/analyze`, {
+  const response = await fetch(`${API_BASE_URL}/api/evidence/analyze`, {
     method: 'POST',
     body: form,
   });
