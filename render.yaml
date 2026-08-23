@@ -4,5 +4,6 @@ services:
     runtime: docker
     plan: free
     branch: main
+    autoDeploy: true
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
