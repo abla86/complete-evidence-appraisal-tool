@@ -33,7 +33,7 @@ public sealed class DocumentAnalysisService
                 ["Methods"] = ["methods", "methodology", "study design"],
                 ["Recruitment"] = ["recruitment", "participants", "sample"],
                 ["Results"] = ["results", "findings", "outcome"],
-                ["Limitations"] = ["limitations", "strengths and limitations"],
+                ["Limitations"] = ["limitations", "limitations of the study", "strengths and limitations"],
                 ["Conflicts/funding"] = ["conflict of interest", "funding", "sponsor"]
             },
             ["agree2"] = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
@@ -41,7 +41,7 @@ public sealed class DocumentAnalysisService
                 ["Scope and purpose"] = ["scope", "purpose", "objectives", "health question"],
                 ["Stakeholder involvement"] = ["stakeholder", "patient", "user involvement", "target population"],
                 ["Rigour of development"] = ["systematic literature search", "evidence review", "recommendation development", "external review"],
-                ["Clarity of presentation"] = ["recommendation", "clearly presented"],
+                ["Clarity of presentation"] = ["recommendation", "recommendations", "clearly presented"],
                 ["Applicability"] = ["barriers", "facilitators", "resources", "implementation"],
                 ["Editorial independence"] = ["editorial independence", "funding", "conflict of interest"]
             },
@@ -66,54 +66,56 @@ public sealed class DocumentAnalysisService
         await using var input = new MemoryStream();
         await file.CopyToAsync(input, cancellationToken);
         var bytes = input.ToArray();
+        ValidateSignature(extension, bytes);
         var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         var selected = instruments.Where(Rules.ContainsKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if (selected.Length == 0) throw new ArgumentException("Select at least one supported appraisal instrument.");
 
         var warnings = new List<string>();
-        var pages = new List<DocumentSourceUnit>();
+        var sourceUnits = ExtractSourceUnits(extension, bytes, cancellationToken);
+        var combinedText = string.Join("\n", sourceUnits.Select(x => x.Text));
+        var classification = ClassifyDocument(file.FileName, combinedText);
+        var suitability = EvaluateSuitability(selected, classification.DocumentType);
+        var findings = FindEvidence(sourceUnits, selected);
+        var hasText = sourceUnits.Any(x => !string.IsNullOrWhiteSpace(x.Text));
+
+        if (!hasText) warnings.Add("No selectable text was extracted. The document may be scanned/image-only and may require OCR before reliable analysis.");
+        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase)) warnings.Add("XML/JATS structure is used for text extraction, but section/table semantics are not yet preserved as structured fields. Verify context in the original article.");
+        if (findings.Count > 0) warnings.Add("Findings are candidate text locations, not completed appraisal judgements. Verify the cited source and surrounding context.");
+        foreach (var item in suitability.Where(x => x.Status is "Caution" or "Not suitable")) warnings.Add($"{item.Instrument}: {item.Reason}");
+
+        return new DocumentAnalysisResult(
+            file.FileName,
+            classification.DocumentType,
+            sourceUnits.Count,
+            file.Length,
+            hash,
+            hasText ? "Text extracted" : "No selectable text",
+            selected,
+            findings,
+            includeSourceText ? sourceUnits : Array.Empty<DocumentSourceUnit>(),
+            warnings.Distinct().ToArray(),
+            classification,
+            suitability,
+            "Document analysis locates potentially relevant passages and flags possible instrument mismatches. It does not decide AMSTAR 2, CASP, AGREE II or GRADE judgements and must not be treated as an automatic scientific appraisal.");
+    }
+
+    private static List<DocumentSourceUnit> ExtractSourceUnits(string extension, byte[] bytes, CancellationToken cancellationToken)
+    {
         if (extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
         {
             using var document = PdfDocument.Open(new MemoryStream(bytes, writable: false));
+            var pages = new List<DocumentSourceUnit>();
             foreach (var page in document.GetPages())
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 pages.Add(new DocumentSourceUnit(page.Number, ContentOrderTextExtractor.GetText(page)?.Trim() ?? string.Empty));
             }
-        }
-        else
-        {
-            var text = ExtractText(bytes, extension);
-            pages.Add(new DocumentSourceUnit(1, text.Trim()));
+            return pages;
         }
 
-        var findings = new List<EvidenceFinding>();
-        foreach (var unit in pages)
-        {
-            foreach (var instrument in selected)
-            {
-                foreach (var rule in Rules[instrument])
-                {
-                    foreach (var term in rule.Value)
-                    {
-                        if (!unit.Text.Contains(term, StringComparison.OrdinalIgnoreCase)) continue;
-                        findings.Add(new EvidenceFinding(instrument, rule.Key, unit.Page, term, BuildExcerpt(unit.Text, term)));
-                        break;
-                    }
-                }
-            }
-        }
-
-        var hasText = pages.Any(x => !string.IsNullOrWhiteSpace(x.Text));
-        if (!hasText) warnings.Add("No selectable text was extracted. The document may be scanned/image-only and may require OCR before reliable analysis.");
-        if (findings.Count > 0) warnings.Add("Findings are candidate text locations, not completed appraisal judgements. Verify the cited source and surrounding context.");
-        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase)) warnings.Add("XML/JATS structure is preserved only as extracted text in this first-pass analysis; validate article metadata and section semantics before appraisal.");
-
-        return new DocumentAnalysisResult(
-            file.FileName, extension.TrimStart('.').ToUpperInvariant(), pages.Count, file.Length, hash,
-            hasText ? "Text extracted" : "No selectable text", selected, findings,
-            includeSourceText ? pages : Array.Empty<DocumentSourceUnit>(), warnings,
-            "Document analysis locates potentially relevant passages. It does not decide AMSTAR 2, CASP, AGREE II or GRADE judgements and must not be treated as an automatic scientific appraisal.");
+        var text = ExtractText(bytes, extension);
+        return [new DocumentSourceUnit(1, text.Trim())];
     }
 
     private static string ExtractText(byte[] bytes, string extension) => extension.ToLowerInvariant() switch
@@ -143,6 +145,81 @@ public sealed class DocumentAnalysisService
     {
         var withoutScripts = Regex.Replace(html, @"<(script|style)[^>]*>.*?</\1>", " ", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         return System.Net.WebUtility.HtmlDecode(Regex.Replace(withoutScripts, "<[^>]+>", " "));
+    }
+
+    private static DocumentClassification ClassifyDocument(string fileName, string text)
+    {
+        var corpus = $"{fileName}\n{text}";
+        var signals = new List<string>();
+        var systematicReview = ContainsAny(corpus, "systematic review", "systematic literature review", "meta-analysis", "meta analysis", "PRISMA");
+        var guideline = ContainsAny(corpus, "clinical practice guideline", "practice guideline", "clinical guideline", "guideline development", "recommendation development", "AGREE II");
+        var protocol = ContainsAny(corpus, "study protocol", "protocol for", "protocol registration", "PROSPERO") && !systematicReview;
+        var qualitative = ContainsAny(corpus, "qualitative study", "thematic analysis", "phenomenological", "grounded theory", "focus group");
+        var primaryTrial = ContainsAny(corpus, "randomized controlled trial", "randomised controlled trial", "randomized trial", "randomised trial", "RCT");
+        var diagnostic = ContainsAny(corpus, "diagnostic accuracy", "sensitivity and specificity", "QUADAS-2");
+
+        if (systematicReview) signals.Add("systematic-review/meta-analysis terminology detected");
+        if (guideline) signals.Add("guideline terminology detected");
+        if (protocol) signals.Add("protocol terminology detected");
+        if (qualitative) signals.Add("qualitative-research terminology detected");
+        if (primaryTrial) signals.Add("randomized-trial terminology detected");
+        if (diagnostic) signals.Add("diagnostic-accuracy terminology detected");
+
+        string type;
+        string confidence;
+        if (guideline && systematicReview) { type = "Guideline with evidence review"; confidence = "Moderate"; }
+        else if (guideline) { type = "Clinical practice guideline"; confidence = "High"; }
+        else if (systematicReview) { type = "Systematic review / meta-analysis"; confidence = "High"; }
+        else if (protocol) { type = "Research protocol"; confidence = "Moderate"; }
+        else if (diagnostic) { type = "Diagnostic accuracy study"; confidence = "Moderate"; }
+        else if (qualitative) { type = "Qualitative research"; confidence = "Moderate"; }
+        else if (primaryTrial) { type = "Randomized trial"; confidence = "Moderate"; }
+        else { type = "Research document (type not confidently classified)"; confidence = "Low"; }
+
+        var notice = "Document type is a heuristic classification based on filename and extracted text. The researcher must confirm the study/document design before selecting or interpreting an appraisal instrument.";
+        return new DocumentClassification(type, confidence, signals, notice);
+    }
+
+    private static IReadOnlyCollection<InstrumentSuitability> EvaluateSuitability(IEnumerable<string> instruments, string documentType)
+    {
+        return instruments.Select(instrument => instrument.ToLowerInvariant() switch
+        {
+            "amstar2" when documentType.Contains("Systematic review", StringComparison.OrdinalIgnoreCase)
+                => new InstrumentSuitability("AMSTAR 2", "Suitable", "Document classification is consistent with a systematic review/meta-analysis, the intended document type for AMSTAR 2."),
+            "amstar2" => new InstrumentSuitability("AMSTAR 2", "Not suitable", "AMSTAR 2 is intended for systematic reviews of healthcare interventions. Confirm that the document is a systematic review before appraisal."),
+            "agree2" when documentType.Contains("Guideline", StringComparison.OrdinalIgnoreCase)
+                => new InstrumentSuitability("AGREE II", "Suitable", "Document classification is consistent with a clinical practice guideline."),
+            "agree2" => new InstrumentSuitability("AGREE II", "Not suitable", "AGREE II is intended for clinical practice guidelines. The selected document was not confidently classified as a guideline."),
+            "grade" => new InstrumentSuitability("GRADE", "Caution", "GRADE assesses certainty for outcomes within a body of evidence; a single document does not by itself establish the complete GRADE assessment."),
+            "casp" => new InstrumentSuitability("CASP", "Caution", "CASP uses design-specific checklists. The researcher must select the checklist matching the confirmed study design; the current classifier does not select a CASP checklist automatically."),
+            _ => new InstrumentSuitability(instrument, "Unknown", "No suitability rule is defined for this instrument.")
+        }).ToArray();
+    }
+
+    private static List<EvidenceFinding> FindEvidence(IEnumerable<DocumentSourceUnit> units, IEnumerable<string> selected)
+    {
+        var findings = new List<EvidenceFinding>();
+        foreach (var unit in units)
+        foreach (var instrument in selected)
+        foreach (var rule in Rules[instrument])
+        {
+            var match = rule.Value.FirstOrDefault(term => unit.Text.Contains(term, StringComparison.OrdinalIgnoreCase));
+            if (match is null) continue;
+            findings.Add(new EvidenceFinding(instrument, rule.Key, unit.Page, match, BuildExcerpt(unit.Text, match)));
+        }
+        return findings;
+    }
+
+    private static bool ContainsAny(string value, params string[] terms) => terms.Any(term => value.Contains(term, StringComparison.OrdinalIgnoreCase));
+
+    private static void ValidateSignature(string extension, byte[] bytes)
+    {
+        if (extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            if (bytes.Length < 5 || Encoding.ASCII.GetString(bytes, 0, 5) != "%PDF-") throw new ArgumentException("The uploaded file does not have a valid PDF signature.");
+            return;
+        }
+        if (extension.Equals(".docx", StringComparison.OrdinalIgnoreCase) && (bytes.Length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B)) throw new ArgumentException("The uploaded DOCX file is not a valid Office package.");
     }
 
     private static string BuildExcerpt(string text, string term)
