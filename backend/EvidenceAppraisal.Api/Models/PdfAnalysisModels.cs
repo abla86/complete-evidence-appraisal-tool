@@ -12,6 +12,17 @@ public sealed record EvidenceFinding(
     string Excerpt,
     string Status = "Candidate evidence - researcher verification required");
 
+public sealed record DocumentClassification(
+    string DocumentType,
+    string Confidence,
+    IReadOnlyCollection<string> Signals,
+    string MethodologicalNotice);
+
+public sealed record InstrumentSuitability(
+    string Instrument,
+    string Status,
+    string Reason);
+
 public sealed record PdfAnalysisResult(
     string FileName,
     int PageCount,
@@ -37,6 +48,8 @@ public sealed record DocumentAnalysisResult(
     IReadOnlyCollection<EvidenceFinding> Findings,
     IReadOnlyCollection<DocumentSourceUnit> SourceUnits,
     IReadOnlyCollection<string> Warnings,
+    DocumentClassification Classification,
+    IReadOnlyCollection<InstrumentSuitability> InstrumentSuitability,
     string MethodologicalNotice);
 
 public sealed record DocumentSourceUnit(int Page, string Text);
