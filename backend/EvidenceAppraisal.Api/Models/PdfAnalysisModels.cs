@@ -10,7 +10,9 @@ public sealed record EvidenceFinding(
     int Page,
     string MatchedTerm,
     string Excerpt,
-    string Status = "Candidate evidence - researcher verification required");
+    string Status = "Candidate",
+    string Confidence = "Uncertain",
+    string Uncertainty = "Text matching identifies a potentially relevant passage; the researcher must verify the criterion and surrounding context.");
 
 public sealed record DocumentClassification(
     string DocumentType,
@@ -53,3 +55,36 @@ public sealed record DocumentAnalysisResult(
     string MethodologicalNotice);
 
 public sealed record DocumentSourceUnit(int Page, string Text);
+
+public sealed record ManualEvidenceRequest(
+    string DocumentHashSha256,
+    string Instrument,
+    string ItemOrDomain,
+    string EvidenceText,
+    string SourceType,
+    string? Page,
+    string? Section,
+    string? Table,
+    string? Figure,
+    string? Url,
+    string? Doi,
+    string Reviewer,
+    string Rationale);
+
+public sealed record EvidenceRecordDto(
+    Guid Id,
+    string DocumentHashSha256,
+    string Instrument,
+    string ItemOrDomain,
+    string EvidenceText,
+    string SourceType,
+    string? Page,
+    string? Section,
+    string? Table,
+    string? Figure,
+    string? Url,
+    string? Doi,
+    string Reviewer,
+    string Rationale,
+    string Status,
+    DateTime CreatedAtUtc);
