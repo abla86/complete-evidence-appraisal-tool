@@ -12,7 +12,7 @@ namespace EvidenceAppraisal.Api.Services;
 public sealed class DocumentAnalysisService
 {
     public const long MaxFileSizeBytes = 25 * 1024 * 1024;
-    private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase) { ".pdf", ".docx", ".txt", ".html", ".htm", ".xml" };
+    private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase) { ".pdf", ".docx", ".txt", ".html", ".htm", ".xml", ".jats" };
 
     private static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string[]>> Rules =
         new Dictionary<string, IReadOnlyDictionary<string, string[]>>(StringComparer.OrdinalIgnoreCase)
@@ -60,6 +60,7 @@ public sealed class DocumentAnalysisService
     {
         if (file is null || file.Length == 0) throw new ArgumentException("A non-empty research document is required.");
         if (file.Length > MaxFileSizeBytes) throw new ArgumentException("The document exceeds the 25 MB upload limit.");
+
         var extension = Path.GetExtension(file.FileName);
         if (!SupportedExtensions.Contains(extension)) throw new ArgumentException("Supported formats: PDF, DOCX, TXT, HTML and XML/JATS.");
 
@@ -67,6 +68,7 @@ public sealed class DocumentAnalysisService
         await file.CopyToAsync(input, cancellationToken);
         var bytes = input.ToArray();
         ValidateSignature(extension, bytes);
+
         var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         var selected = instruments.Where(Rules.ContainsKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if (selected.Length == 0) throw new ArgumentException("Select at least one supported appraisal instrument.");
@@ -80,7 +82,8 @@ public sealed class DocumentAnalysisService
         var hasText = sourceUnits.Any(x => !string.IsNullOrWhiteSpace(x.Text));
 
         if (!hasText) warnings.Add("No selectable text was extracted. The document may be scanned/image-only and may require OCR before reliable analysis.");
-        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase)) warnings.Add("XML/JATS structure is used for text extraction, but section/table semantics are not yet preserved as structured fields. Verify context in the original article.");
+        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jats", StringComparison.OrdinalIgnoreCase))
+            warnings.Add("XML/JATS structure is used for text extraction, but section/table semantics are not yet preserved as structured fields. Verify context in the original article.");
         if (findings.Count > 0) warnings.Add("Findings are candidate text locations, not completed appraisal judgements. Verify the cited source and surrounding context.");
         if (findings.Count == 0) warnings.Add("No candidate passage was identified. This is not evidence that the criterion is absent; inspect the original document and supplementary material manually.");
         foreach (var item in suitability.Where(x => x.Status is "Caution" or "Not suitable")) warnings.Add($"{item.Instrument}: {item.Reason}");
@@ -124,7 +127,7 @@ public sealed class DocumentAnalysisService
         ".txt" => Encoding.UTF8.GetString(bytes),
         ".docx" => ExtractDocx(bytes),
         ".html" or ".htm" => StripMarkup(Encoding.UTF8.GetString(bytes)),
-        ".xml" => ExtractXml(bytes),
+        ".xml" or ".jats" => ExtractXml(bytes),
         _ => throw new ArgumentException("Unsupported document format.")
     };
 
@@ -221,6 +224,19 @@ public sealed class DocumentAnalysisService
             return;
         }
         if (extension.Equals(".docx", StringComparison.OrdinalIgnoreCase) && (bytes.Length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B)) throw new ArgumentException("The uploaded DOCX file is not a valid Office package.");
+        if ((extension.Equals(".xml", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jats", StringComparison.OrdinalIgnoreCase)) && !LooksLikeXml(bytes))
+            throw new ArgumentException("The uploaded XML/JATS file is not valid XML content.");
+    }
+
+    private static bool LooksLikeXml(byte[] bytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(bytes, writable: false);
+            _ = XDocument.Load(stream);
+            return true;
+        }
+        catch (Exception) { return false; }
     }
 
     private static string BuildExcerpt(string text, string term)
