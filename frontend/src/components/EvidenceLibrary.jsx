@@ -25,6 +25,12 @@ export default function EvidenceLibrary() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  function handleFile(event) {
+    setFile(event.target.files?.[0] ?? null);
+    setResult(null);
+    setError('');
+  }
+
   function toggleInstrument(id) {
     setSelected((current) => current.includes(id)
       ? current.filter((item) => item !== id)
@@ -52,15 +58,21 @@ export default function EvidenceLibrary() {
     <section className="assessment-card evidence-analyser">
       <p className="eyebrow">Dokumentanalyse</p>
       <h3>Analyser forskningsdokument</h3>
-      <p className="muted">Støttede formater: PDF, DOCX, TXT, HTML/HTM og XML/JATS. Maksimal filstørrelse er 25 MB.</p>
+      <p className="muted">Legg inn PDF eller annet forskningsmateriale. Støttede formater: PDF, DOCX, TXT, HTML/HTM og XML/JATS. Maksimal filstørrelse er 25 MB.</p>
 
-      <label htmlFor="evidence-document">Velg dokument</label>
-      <input
-        id="evidence-document"
-        type="file"
-        accept={acceptedFormats}
-        onChange={(event) => { setFile(event.target.files?.[0] ?? null); setResult(null); setError(''); }}
-      />
+      <div className="document-upload-box">
+        <input
+          id="evidence-document"
+          className="document-file-input"
+          type="file"
+          accept={acceptedFormats}
+          onChange={handleFile}
+        />
+        <label htmlFor="evidence-document" className="upload-button">
+          + Legg til forskningsdokument
+        </label>
+        <p className="upload-help">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB</p>
+      </div>
 
       {file && <div className="notice" aria-live="polite">
         <strong>Valgt dokument:</strong> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)
