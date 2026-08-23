@@ -87,4 +87,12 @@ public sealed record EvidenceRecordDto(
     string Reviewer,
     string Rationale,
     string Status,
+    string? VerificationNote,
+    string? VerifiedBy,
+    DateTime? VerifiedAtUtc,
     DateTime CreatedAtUtc);
+
+public sealed record EvidenceVerificationRequest(
+    string Status,
+    string Reviewer,
+    string? VerificationNote);
