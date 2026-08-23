@@ -20,12 +20,11 @@ ASP.NET Core API (.NET 9)
    |      +--> PDF / DOCX / TXT / HTML / XML
    |      +--> heuristic document classification
    |      +--> instrument suitability warnings
-   |      +--> candidate Evidence Map
-   |      +--> manual evidence entry
+   |      +--> candidate evidence findings
    |      +--> SHA-256 document identity
    |
    +--> structural and methodological-boundary validation
-   +--> EF Core persistence
+   +--> EF Core persistence for CFIR/KTA implementation records
    +--> reviewer / audit / project overview
    +--> Word / PDF / Excel / CSV / JSON export
 ```
@@ -41,30 +40,13 @@ The document-analysis service is deliberately conservative:
 5. assess instrument suitability
 6. locate candidate passages
 7. report uncertainty and methodological warnings
-8. allow researcher verification and manual evidence entry.
+8. require researcher verification.
 
 A candidate text match is never a final appraisal judgement.
 
-If no relevant passage is found, the result explicitly states that this does not establish that the information is absent from the source. The researcher is asked to inspect the original document and relevant supplementary/protocol/registry material.
+If no relevant passage is found, the result explicitly states that this does not establish that the information is absent from the source. The researcher must inspect the original document and relevant supplementary/protocol/registry material.
 
-## Evidence lifecycle
-
-```text
-Candidate finding
-      |
-      +---- verified by researcher
-      |
-      +---- rejected
-      |
-      +---- uncertain / not found
-      |
-      +---- manually added evidence
-      |
-      v
-Research appraisal
-```
-
-Manual evidence is persisted with document hash, instrument, item/domain, source information, reviewer, rationale and timestamp. Uploaded source files themselves are not persisted by the analysis endpoint.
+Uploaded source files are processed in memory by the analysis endpoint and are not persisted by that endpoint.
 
 ## Frontend
 
@@ -78,8 +60,9 @@ React and Vite provide:
 - evidence/traceability workspace
 - visible research-document upload
 - candidate evidence display
-- manual evidence workflow
 - export initiation.
+
+A dedicated persistent Evidence Map/manual-evidence workflow is planned but is not currently implemented.
 
 ## Backend
 
@@ -88,10 +71,9 @@ ASP.NET Core provides:
 - REST endpoints
 - instrument-specific validation/calculation services
 - document analysis and text extraction
-- evidence candidate generation
-- manual evidence persistence
+- candidate evidence generation
 - CFIR/KTA implementation validation
-- EF Core persistence
+- EF Core persistence for implementation records
 - audit-event recording
 - project overview queries
 - implementation and appraisal export generation.
@@ -108,19 +90,7 @@ CFIR/KTA implementation records are persisted through `ImplementationDbContext` 
 - CFIR-to-action links
 - implementation audit events
 
-Research evidence records are persisted through `EvidenceDbContext` with:
-
-- document hash
-- instrument
-- item/domain
-- evidence text
-- source type
-- page/section/table/figure where supplied
-- DOI/URL where supplied
-- reviewer
-- rationale
-- status
-- timestamp.
+Research-document uploads are not persisted by the analysis endpoint. Persistent evidence-map records are a future extension.
 
 When no `DefaultConnection` is configured, SQLite is used for local/prototype operation. This is not a production research-data governance solution. Production use requires appropriate authentication, authorization, encryption, backup, retention and institutional research-data governance.
 
@@ -130,7 +100,6 @@ When no `DefaultConnection` is configured, SQLite is used for local/prototype op
 - Uncertain classification remains visible.
 - Instrument suitability is advisory.
 - Automated findings require source verification.
-- Manual evidence is explicitly labelled.
 - AMSTAR 2 is not reduced to a numerical total.
 - CASP remains design-specific.
 - AGREE II retains its six-domain/23-item/7-point structure.
@@ -147,7 +116,6 @@ The repository demonstrates:
 - SHA-256 document identity
 - upload size/type/signature validation
 - in-memory processing of uploaded source files
-- explicit persistence of manually submitted evidence only
 - automated backend and frontend checks
 - security headers.
 
@@ -179,6 +147,7 @@ The repository must not claim production research-data readiness until the follo
 - dedicated end-to-end browser testing
 - operational monitoring and incident response
 - OCR for scanned documents
-- richer structured extraction for tables, figures and JATS sections.
+- richer structured extraction for tables, figures and JATS sections
+- persistent Evidence Map/manual evidence workflow.
 
 These limitations are intentionally documented rather than hidden.
