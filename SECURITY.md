@@ -1,25 +1,25 @@
 # Security Policy
 
-## Supported versions
+## Scope
 
-Security updates are applied to the latest version on the `main` branch.
+This repository contains the Evidence Appraisal Tool and its supporting source code.
 
 ## Reporting a vulnerability
 
-Please do not disclose suspected vulnerabilities in a public issue.
+Do not disclose suspected vulnerabilities in a public issue.
 
-Use GitHub's **Report a vulnerability** feature under the repository's
-**Security** tab to submit a private vulnerability report. Include:
+Use GitHub's **Report a vulnerability** feature under the repository's **Security** tab to submit a private vulnerability report. Include the affected component or file, reproduction steps, potential impact, and suggested remediation when available.
 
-- a clear description of the issue;
-- the affected component or file;
-- steps to reproduce;
-- the potential impact; and
-- a suggested remediation, if available.
+If private vulnerability reporting is unavailable, contact the repository owner through the GitHub profile without publishing sensitive exploit details.
 
-If private vulnerability reporting is unavailable, contact the repository
-owner through the contact information on the GitHub profile without including
-sensitive exploit details in the first message.
+## Security controls
 
-You can normally expect an acknowledgement within seven days. A confirmed
-issue will be assessed, remediated, and disclosed according to its severity.
+The repository uses CI, CodeQL and Dependabot. Secrets, credentials, API keys and sensitive research data must not be committed.
+
+Do not place identifiable participant information, patient information, unpublished confidential research data, credentials, API keys or other sensitive information in source files, issues, pull requests or example datasets.
+
+## Intellectual property
+
+The Evidence Appraisal Tool, its source code, architecture, original implementation, documentation and original content are the author's work unless a file explicitly identifies another copyright holder or license.
+
+The repository may remain publicly visible as part of a professional portfolio. Public visibility does **not** grant permission to copy, modify, redistribute, rebrand, sublicense or commercially exploit the author's original work. No open-source license is granted unless one is explicitly included in the repository.

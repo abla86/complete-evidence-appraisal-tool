@@ -1,158 +1,65 @@
 import { useEffect, useState } from 'react';
-import {
-  getAmstar2Metadata,
-  getHealth,
-} from './api/amstarApi';
+import { getAmstar2Metadata, getHealth } from './api/amstarApi';
 import AssessmentForm from './components/AssessmentForm';
+import EvidenceLibrary from './components/EvidenceLibrary';
+import ImplementationModule from './components/ImplementationModule';
 import PreAppraisalSetup from './components/PreAppraisalSetup';
+import ProjectOverview from './components/ProjectOverview';
+import ResearchDashboard from './components/ResearchDashboard';
 import ResearchModuleHub from './components/ResearchModuleHub';
 import './App.css';
+import './workspace.css';
+
+const navItems = [
+  ['dashboard', 'Dashboard', 'Oversikt og arbeidsstatus'],
+  ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
+  ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
+  ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
+  ['evidence', 'Evidence & sporbarhet', 'Kilder, dokumentasjon og begrunnelser'],
+];
 
 function App() {
   const [metadata, setMetadata] = useState(null);
   const [apiStatus, setApiStatus] = useState('Checking');
   const [error, setError] = useState('');
   const [assessmentSetup, setAssessmentSetup] = useState(null);
+  const [activePage, setActivePage] = useState('dashboard');
 
   useEffect(() => {
     let active = true;
-
-    async function loadApplicationData() {
-      try {
-        const [health, instrumentMetadata] = await Promise.all([
-          getHealth(),
-          getAmstar2Metadata(),
-        ]);
-
-        if (!active) return;
-        setApiStatus(health.status);
-        setMetadata(instrumentMetadata);
-      } catch {
-        if (!active) return;
-        setApiStatus('Unavailable');
-        setError(
-          'Kunne ikke koble til API-et. Kontroller at backend kjører på port 5237.',
-        );
-      }
-    }
-
-    loadApplicationData();
+    Promise.all([getHealth(), getAmstar2Metadata()]).then(([health, instrumentMetadata]) => {
+      if (!active) return;
+      setApiStatus(health.status); setMetadata(instrumentMetadata);
+    }).catch((e) => {
+      if (!active) return;
+      setApiStatus('Unavailable'); setError(e.message || 'Kunne ikke koble til API-et.');
+    });
     return () => { active = false; };
   }, []);
 
-  return (
-    <main className="app-shell">
-      <header className="hero">
-        <div>
-          <p className="eyebrow">Forskningsverktøy</p>
-          <h1>Evidence Appraisal Tool</h1>
-          <p className="hero-text">
-            Transparent og etterprøvbar støtte for kritisk vurdering,
-            retningslinjevurdering og vurdering av sikkerhet i dokumentasjonen.
-          </p>
-        </div>
-        <div
-          className={`status status-${apiStatus.toLowerCase()}`}
-          role="status"
-          aria-live="polite"
-        >
-          <span aria-hidden="true" />
-          API: {apiStatus}
-        </div>
-      </header>
+  function renderPage() {
+    if (!metadata) return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
+    if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
+    if (activePage === 'projects') return <ProjectOverview />;
+    if (activePage === 'evidence') return <EvidenceLibrary />;
+    if (activePage === 'implementation') return <ImplementationModule />;
 
-      {error && (
-        <section className="message message-error" role="alert">
-          <h2>Tilkoblingsfeil</h2>
-          <p>{error}</p>
-        </section>
-      )}
+    return <>
+      <section className="instrument-card"><div><p className="eyebrow">Systematiske oversikter</p><h2>{metadata.instrumentName} <span>({metadata.instrumentVersion})</span></h2><p>Instrumentet inneholder <strong>{metadata.totalItems} punkter</strong>.</p></div><div className="critical-domains"><h3>Foreslåtte kritiske standarddomener</h3><ul>{metadata.proposedDefaultCriticalDomains.map((item) => <li key={item}>Punkt {item}</li>)}</ul></div></section>
+      <section className="notice notice-warning"><h2>Metodisk avgrensning</h2><p>{metadata.criticalDomainNotice}</p><p><strong>Viktig:</strong> {metadata.scoringNotice}</p></section>
+      <PreAppraisalSetup defaultCriticalDomains={metadata.proposedDefaultCriticalDomains} onConfirmed={setAssessmentSetup} />
+      {assessmentSetup && <AssessmentForm setup={assessmentSetup} />}
+      <ResearchModuleHub />
+    </>;
+  }
 
-      {!metadata && !error && (
-        <section className="message" aria-live="polite">
-          <p>Laster metodeinformasjon …</p>
-        </section>
-      )}
-
-      {metadata && (
-        <>
-          <section className="instrument-card">
-            <div>
-              <p className="eyebrow">Systematiske oversikter</p>
-              <h2>
-                {metadata.instrumentName}{' '}
-                <span>({metadata.instrumentVersion})</span>
-              </h2>
-              <p>
-                Instrumentet inneholder{' '}
-                <strong>{metadata.totalItems} punkter</strong>.
-              </p>
-            </div>
-            <div className="critical-domains">
-              <h3>Foreslåtte kritiske standarddomener</h3>
-              <ul aria-label="Foreslåtte kritiske domener">
-                {metadata.proposedDefaultCriticalDomains.map((item) => (
-                  <li key={item}>Punkt {item}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          <section className="notice notice-warning">
-            <h2>Metodisk avgrensning</h2>
-            <p>{metadata.criticalDomainNotice}</p>
-            <p><strong>Viktig:</strong> {metadata.scoringNotice}</p>
-          </section>
-
-          <div className="capability-grid">
-            <section className="capability-card">
-              <h2>Tilgjengelig nå</h2>
-              <ul>
-                {metadata.currentCapabilities.map((capability) => (
-                  <li key={capability}>
-                    <span className="icon icon-available" aria-hidden="true">✓</span>
-                    {capability}
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section className="capability-card">
-              <h2>Ikke tilgjengelig ennå</h2>
-              <ul>
-                {metadata.unavailableCapabilities.map((capability) => (
-                  <li key={capability}>
-                    <span className="icon icon-unavailable" aria-hidden="true">—</span>
-                    {capability}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
-
-          <PreAppraisalSetup
-            defaultCriticalDomains={metadata.proposedDefaultCriticalDomains}
-            onConfirmed={setAssessmentSetup}
-          />
-          {assessmentSetup && <AssessmentForm setup={assessmentSetup} />}
-
-          <ResearchModuleHub />
-
-          <section className="notice">
-            <h2>Forskningsmessig sikkerhet</h2>
-            <p>
-              Appen strukturerer, validerer og dokumenterer forskerens vurderinger.
-              Den avgjør ikke studiekvalitet automatisk og erstatter ikke autoriserte
-              instrumenter, metodeveiledning eller forskerens faglige skjønn.
-            </p>
-            <p>
-              Ikke registrer personopplysninger, helseopplysninger eller konfidensielle
-              forskningsdata før godkjent lagringsløsning og tilgangsstyring er etablert.
-            </p>
-          </section>
-        </>
-      )}
-    </main>
-  );
+  return <div className="app-shell">
+    <header className="hero"><div><p className="eyebrow">Forskningsverktøy</p><h1>Evidence Appraisal Tool</h1><p className="hero-text">Transparent og etterprøvbar støtte for kritisk vurdering, implementeringsarbeid og forskningsmessig sporbarhet.</p></div><div className={`status status-${apiStatus.toLowerCase()}`} role="status" aria-live="polite"><span aria-hidden="true" /> API: {apiStatus}</div></header>
+    <div className="workspace-layout">
+      <aside className="research-sidebar" aria-label="Forskningsnavigasjon"><div className="sidebar-title">Research workspace</div><nav>{navItems.map(([id, label, description]) => <button key={id} type="button" className={activePage === id ? 'nav-item active' : 'nav-item'} onClick={() => setActivePage(id)}><strong>{label}</strong><span>{description}</span></button>)}</nav><div className="sidebar-notice"><strong>Metodisk prinsipp</strong><p>Programmet strukturerer og validerer registrerte data. Det avgjør ikke forskningskvalitet eller implementeringseffekt automatisk.</p></div></aside>
+      <main className="main-content">{error && <section className="message message-error" role="alert"><h2>Kunne ikke koble til API-et</h2><p>{error}</p></section>}{renderPage()}</main>
+    </div>
+  </div>;
 }
 
 export default App;
