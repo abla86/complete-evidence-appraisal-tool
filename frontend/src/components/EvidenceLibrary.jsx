@@ -99,7 +99,7 @@ export default function EvidenceLibrary() {
     <div className="research-grid">
       <article className="assessment-card"><h3>Kildereferanse</h3><p>Behold DOI, full referanse eller offisiell URL sammen med vurderingen.</p></article>
       <article className="assessment-card"><h3>Evidenslokasjon</h3><p>Bruk side, tabell, figur, avsnitt eller vedlegg. Dokumentanalysen foreslår lokasjoner som må verifiseres.</p></article>
-      <article className="assessment-card"><h3>Forskerens begrunnelse</h3><p>Den endelige begrunnelsen skal komme fra forskeren, ikke fra en automatisk teksttreff.</p></article>
+      <article className="assessment-card"><h3>Forskerens begrunnelse</h3><p>Den endelige begrunnelsen skal komme fra forskeren, ikke fra et automatisk teksttreff.</p></article>
       <article className="assessment-card"><h3>Sporbarhet</h3><p>Dokumenthash og lokasjonsdata gjør det mulig å kontrollere hvilket dokument som ble analysert.</p></article>
     </div>
 
