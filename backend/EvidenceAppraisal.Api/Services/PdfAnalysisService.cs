@@ -1,11 +1,15 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using DocumentFormat.OpenXml.Packaging;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using EvidenceAppraisal.Api.Models;
 
 namespace EvidenceAppraisal.Api.Services;
 
+// Retained name for API compatibility; the service now analyses supported research-document formats.
 public sealed class PdfAnalysisService
 {
     public const long MaxFileSizeBytes = 25 * 1024 * 1024;
@@ -55,17 +59,19 @@ public sealed class PdfAnalysisService
     public async Task<PdfAnalysisResult> AnalyzeAsync(IFormFile file, IReadOnlyCollection<string> instruments, bool includePageText, CancellationToken cancellationToken)
     {
         if (file is null || file.Length == 0)
-            throw new ArgumentException("A non-empty PDF file is required.");
+            throw new ArgumentException("A non-empty research document is required.");
         if (file.Length > MaxFileSizeBytes)
-            throw new ArgumentException("PDF exceeds the 25 MB upload limit.");
-        if (!string.Equals(Path.GetExtension(file.FileName), ".pdf", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Only PDF files are accepted.");
+            throw new ArgumentException("The document exceeds the 25 MB upload limit.");
+
+        var extension = Path.GetExtension(file.FileName);
+        var supported = new[] { ".pdf", ".docx", ".txt", ".html", ".htm", ".xml" };
+        if (!supported.Contains(extension, StringComparer.OrdinalIgnoreCase))
+            throw new ArgumentException("Supported document formats: PDF, DOCX, TXT, HTML/HTM and XML/JATS.");
 
         await using var input = new MemoryStream();
         await file.CopyToAsync(input, cancellationToken);
         var bytes = input.ToArray();
-        if (bytes.Length < 5 || Encoding.ASCII.GetString(bytes, 0, 5) != "%PDF-")
-            throw new ArgumentException("The uploaded file does not have a valid PDF signature.");
+        ValidateSignature(extension, bytes);
 
         var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         var selected = instruments
@@ -76,50 +82,94 @@ public sealed class PdfAnalysisService
         if (selected.Length == 0)
             warnings.Add("No supported appraisal instrument was selected.");
 
-        var pages = new List<PdfPageText>();
-        var findings = new List<EvidenceFinding>();
-        using var document = PdfDocument.Open(new MemoryStream(bytes, writable: false));
+        var pages = ExtractPages(extension, bytes);
+        var findings = FindEvidence(pages, selected);
 
-        foreach (var page in document.GetPages())
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var text = ContentOrderTextExtractor.GetText(page) ?? string.Empty;
-            var normalized = text.Trim();
-            if (includePageText)
-                pages.Add(new PdfPageText(page.Number, normalized));
-
-            foreach (var instrument in selected)
-            {
-                foreach (var rule in Rules[instrument])
-                {
-                    var match = rule.Value.FirstOrDefault(term => normalized.Contains(term, StringComparison.OrdinalIgnoreCase));
-                    if (match is null) continue;
-                    findings.Add(new EvidenceFinding(
-                        instrument,
-                        rule.Key,
-                        page.Number,
-                        match,
-                        BuildExcerpt(normalized, match)));
-                }
-            }
-        }
-
-        if (pages.Count == 0 && findings.Count == 0)
-            warnings.Add("No selectable text was extracted. The PDF may be scanned/image-only and may require OCR before reliable document analysis.");
+        if (pages.Count == 0 || pages.All(x => string.IsNullOrWhiteSpace(x.Text)))
+            warnings.Add("No selectable text was extracted. A scanned/image-only document may require OCR before reliable analysis.");
+        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
+            warnings.Add("XML/JATS structure is preserved only as extracted text in this version; verify section/table context in the source document.");
         if (findings.Count > 0)
-            warnings.Add("Findings are text-location candidates, not completed appraisal judgements. A researcher must verify the cited page and context.");
+            warnings.Add("Findings are text-location candidates, not completed appraisal judgements. A researcher must verify the cited location and context.");
 
         return new PdfAnalysisResult(
             file.FileName,
-            document.NumberOfPages,
+            pages.Count,
             file.Length,
             hash,
-            findings.Count == 0 && pages.Count == 0 ? "No selectable text" : "Text extracted",
+            pages.Any(x => !string.IsNullOrWhiteSpace(x.Text)) ? "Text extracted" : "No selectable text",
             selected,
             findings,
-            pages,
+            includePageText ? pages : Array.Empty<PdfPageText>(),
             warnings,
             "Document analysis locates potentially relevant passages. It does not decide AMSTAR 2, CASP, AGREE II or GRADE judgements and must not be treated as an automatic scientific appraisal.");
+    }
+
+    private static List<PdfPageText> ExtractPages(string extension, byte[] bytes)
+    {
+        if (extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            using var document = PdfDocument.Open(new MemoryStream(bytes, writable: false));
+            return document.GetPages()
+                .Select(page => new PdfPageText(page.Number, ContentOrderTextExtractor.GetText(page)?.Trim() ?? string.Empty))
+                .ToList();
+        }
+
+        var text = extension.Equals(".docx", StringComparison.OrdinalIgnoreCase)
+            ? ExtractDocx(bytes)
+            : extension.Equals(".xml", StringComparison.OrdinalIgnoreCase)
+                ? ExtractXml(bytes)
+                : Encoding.UTF8.GetString(bytes);
+
+        if (extension.Equals(".html", StringComparison.OrdinalIgnoreCase) || extension.Equals(".htm", StringComparison.OrdinalIgnoreCase))
+            text = Regex.Replace(text, "<[^>]+>", " ");
+
+        text = Regex.Replace(text, @"\s+", " ").Trim();
+        return string.IsNullOrWhiteSpace(text) ? new List<PdfPageText>() : [new PdfPageText(1, text)];
+    }
+
+    private static string ExtractDocx(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes, writable: false);
+        using var document = WordprocessingDocument.Open(stream, false);
+        return string.Join("\n", document.MainDocumentPart?.Document.Body?.Descendants<DocumentFormat.OpenXml.Wordprocessing.Text>().Select(x => x.Text) ?? []);
+    }
+
+    private static string ExtractXml(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes, writable: false);
+        var xml = XDocument.Load(stream, LoadOptions.PreserveWhitespace);
+        return string.Join(" ", xml.DescendantNodes().OfType<XText>().Select(x => x.Value));
+    }
+
+    private static List<EvidenceFinding> FindEvidence(IEnumerable<PdfPageText> pages, IEnumerable<string> selected)
+    {
+        var findings = new List<EvidenceFinding>();
+        foreach (var page in pages)
+        {
+            var text = page.Text;
+            foreach (var instrument in selected)
+            foreach (var rule in Rules[instrument])
+            {
+                var match = rule.Value.FirstOrDefault(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
+                if (match is null) continue;
+                findings.Add(new EvidenceFinding(instrument, rule.Key, page.Page, match, BuildExcerpt(text, match)));
+            }
+        }
+        return findings;
+    }
+
+    private static void ValidateSignature(string extension, byte[] bytes)
+    {
+        if (extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            if (bytes.Length < 5 || Encoding.ASCII.GetString(bytes, 0, 5) != "%PDF-")
+                throw new ArgumentException("The uploaded file does not have a valid PDF signature.");
+            return;
+        }
+
+        if (extension.Equals(".docx", StringComparison.OrdinalIgnoreCase) && (bytes.Length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B))
+            throw new ArgumentException("The uploaded DOCX file is not a valid Office package.");
     }
 
     private static string BuildExcerpt(string text, string term)
