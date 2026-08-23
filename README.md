@@ -32,7 +32,7 @@ A research article or systematic review can be uploaded as a PDF from **Evidence
 - SHA-256 document hash
 - extraction status and warnings
 
-The current implementation is deliberately **researcher-controlled**. It identifies candidate passages; it does not automatically answer AMSTAR 2, CASP, AGREE II or GRADE questions. Each candidate must be checked against the original document and the authorised instrument before being accepted into a final appraisal. This boundary is important because recent benchmarking shows that AI-assisted AMSTAR 2 assessment can disagree with expert assessment, particularly for complex methodological and critical-domain judgements. citeturn0search2
+The current implementation is deliberately **researcher-controlled**. It identifies candidate passages; it does not automatically answer AMSTAR 2, CASP, AGREE II or GRADE questions. Each candidate must be checked against the original document and the authorised instrument before being accepted into a final appraisal. Recent benchmarking has found that AI-assisted AMSTAR 2 assessment can disagree with expert assessment, particularly for complex methodological and critical-domain judgements.
 
 Scanned/image-only PDFs are detected when no selectable text can be extracted. Such documents require OCR before reliable text-based analysis; the application does not silently treat missing extracted text as missing evidence.
 
@@ -96,13 +96,13 @@ The implementation module provides server-side JSON, CSV, XLSX, DOCX and PDF exp
 - downgrade and upgrade domains
 - provisional certainty category kept separate from researcher confirmation
 
-GRADE assessments are outcome-level judgements about a body of evidence. The current GRADE Book is the official, progressively updated source from the GRADE Working Group and is replacing the older GRADE Handbook during 2026. citeturn0search1turn0search4
+GRADE assessments are outcome-level judgements about a body of evidence. The GRADE Book is the current official, progressively updated source from the GRADE Working Group and is replacing the older GRADE Handbook during 2026.
 
 ## Methodological safeguards
 
 The application validates structure and documentation. It does not read articles and declare them high- or low-quality automatically. PDF analysis is an evidence-location aid, not an appraisal engine. Researchers must use the authorised instrument and current official guidance alongside the application.
 
-For GRADE, the final certainty judgement depends on domain judgements in context; it is not a simple one-to-one arithmetic conversion of domain flags. citeturn0search0turn0search3
+For GRADE, the final certainty judgement depends on domain judgements in context; it is not a simple one-to-one arithmetic conversion of domain flags.
 
 Do not enter personal health information, confidential research data or directly identifying information into the public demo. Use pseudonymous reviewer codes and an appropriately governed database for real research data.
 
