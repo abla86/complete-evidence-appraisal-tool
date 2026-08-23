@@ -55,6 +55,21 @@ if (app.Environment.IsDevelopment())
 else
     app.UseExceptionHandler();
 
+// Baseline browser security headers. These do not expose application data and
+// are compatible with the existing React/Vite static frontend.
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+
+    if (!app.Environment.IsDevelopment())
+        context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+
+    await next();
+});
+
 app.UseCors("LocalReactFrontend");
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -62,10 +77,11 @@ app.UseStaticFiles();
 app.MapGet("/api", () => Results.Ok(new
 {
     application = "Evidence Appraisal Tool API",
-    status = "Research prototype",
+    status = "Research tool / prototype",
     modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA" },
     methodologicalNotice = "The API validates and calculates documented researcher inputs. It does not appraise evidence automatically, invent evidence, or replace methodological expertise.",
-    implementationNotice = "CFIR 2.0 is used for implementation determinants and KTA is represented as an iterative action cycle. Neither is converted into an unsupported scientific quality score."
+    implementationNotice = "CFIR 2.0 is used for implementation determinants and KTA is represented as an iterative action cycle. Neither is converted into an unsupported scientific quality score.",
+    securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment."
 }));
 
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
