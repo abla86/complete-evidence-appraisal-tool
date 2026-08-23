@@ -18,7 +18,25 @@ The frontend is organised as an academic research workspace rather than a generi
 - CFIR 2.0 + KTA implementation workspace
 - project overview with reviewer roles, consensus status and audit trail
 - evidence and traceability workspace for source location and rationale documentation
+- PDF evidence analysis with selectable appraisal instruments
 - responsive navigation for desktop and smaller screens
+
+## PDF evidence analysis
+
+A research article or systematic review can be uploaded as a PDF from **Evidence & traceability**. The user selects the appraisal instruments that are relevant to the document, and the application extracts selectable PDF text and creates an evidence map with:
+
+- page number
+- matched term
+- topic/instrument area
+- short source excerpt
+- SHA-256 document hash
+- extraction status and warnings
+
+The current implementation is deliberately **researcher-controlled**. It identifies candidate passages; it does not automatically answer AMSTAR 2, CASP, AGREE II or GRADE questions. Each candidate must be checked against the original document and the authorised instrument before being accepted into a final appraisal. This boundary is important because recent benchmarking shows that AI-assisted AMSTAR 2 assessment can disagree with expert assessment, particularly for complex methodological and critical-domain judgements. citeturn0search2
+
+Scanned/image-only PDFs are detected when no selectable text can be extracted. Such documents require OCR before reliable text-based analysis; the application does not silently treat missing extracted text as missing evidence.
+
+The upload-analysis endpoint processes the PDF in memory and does not persist the uploaded file. The public deployment must not be used for identifiable patient information or confidential research material.
 
 ## CFIR 2.0 + KTA
 
@@ -78,9 +96,13 @@ The implementation module provides server-side JSON, CSV, XLSX, DOCX and PDF exp
 - downgrade and upgrade domains
 - provisional certainty category kept separate from researcher confirmation
 
+GRADE assessments are outcome-level judgements about a body of evidence. The current GRADE Book is the official, progressively updated source from the GRADE Working Group and is replacing the older GRADE Handbook during 2026. citeturn0search1turn0search4
+
 ## Methodological safeguards
 
-The application validates structure and documentation. It does not read articles, infer answers, determine research quality automatically or replace methodological judgement. Researchers must use the authorised instrument and current official guidance alongside the application.
+The application validates structure and documentation. It does not read articles and declare them high- or low-quality automatically. PDF analysis is an evidence-location aid, not an appraisal engine. Researchers must use the authorised instrument and current official guidance alongside the application.
+
+For GRADE, the final certainty judgement depends on domain judgements in context; it is not a simple one-to-one arithmetic conversion of domain flags. citeturn0search0turn0search3
 
 Do not enter personal health information, confidential research data or directly identifying information into the public demo. Use pseudonymous reviewer codes and an appropriately governed database for real research data.
 
@@ -96,6 +118,8 @@ Do not enter personal health information, confidential research data or directly
 - production browser security headers
 - SHA-256 verification for exported AMSTAR 2 reports
 - strict repository audit script
+- PDF upload size/type/signature validation
+- in-memory PDF processing rather than persistent public file storage
 
 ## Strict local audit
 
@@ -109,7 +133,7 @@ A passing audit means the configured software checks passed on the machine where
 
 Frontend: React, Vite, JavaScript, Vitest, Testing Library and ESLint.
 
-Backend: ASP.NET Core, .NET 9, C#, xUnit, EF Core SQL Server/SQLite, Open XML SDK, PDFsharp and MigraDoc.
+Backend: ASP.NET Core, .NET 9, C#, xUnit, EF Core SQL Server/SQLite, Open XML SDK, PDFsharp and MigraDoc, PdfPig for PDF text extraction.
 
 ## Run locally
 
@@ -151,7 +175,7 @@ Damschroder, L. J., Reardon, C. M., Opra Widerquist, M. A., & Lowery, J. (2022).
 
 Graham, I. D., Logan, J., Harrison, M. B., Straus, S. E., Tetroe, J., Caswell, W., & Robinson, N. (2006). Lost in knowledge translation: Time for a map? *Journal of Continuing Education in the Health Professions, 26*(1), 13–24. https://doi.org/10.1002/chp.47
 
-GRADE Working Group. (n.d.). *GRADE*. https://www.gradeworkinggroup.org/
+GRADE Working Group. (2026). *GRADE Book*. https://book.gradepro.org/
 
 Shea, B. J., Reeves, B. C., Wells, G., Thuku, M., Hamel, C., Moran, J., Moher, D., Tugwell, P., Welch, V., Kristjansson, E., & Henry, D. A. (2017). AMSTAR 2: A critical appraisal tool for systematic reviews that include randomised or non-randomised studies of healthcare interventions, or both. *BMJ, 358*, j4008. https://doi.org/10.1136/bmj.j4008
 
