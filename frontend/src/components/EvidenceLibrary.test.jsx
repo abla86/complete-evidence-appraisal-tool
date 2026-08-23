@@ -1,15 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import EvidenceLibrary from './EvidenceLibrary';
-import { analyzePdfEvidence } from '../api/evidenceApi';
+import { analyzeEvidenceDocument } from '../api/evidenceApi';
 
 vi.mock('../api/evidenceApi', () => ({
-  analyzePdfEvidence: vi.fn(),
+  analyzeEvidenceDocument: vi.fn(),
 }));
 
-describe('EvidenceLibrary PDF analysis', () => {
-  it('requires a selected instrument and sends the PDF to the analysis endpoint', async () => {
-    analyzePdfEvidence.mockResolvedValue({
+describe('EvidenceLibrary research-document analysis', () => {
+  it('shows the upload control and sends a supported research document with selected instruments', async () => {
+    analyzeEvidenceDocument.mockResolvedValue({
       fileName: 'review.pdf',
       pageCount: 2,
       extractionStatus: 'Text extracted',
@@ -23,11 +23,13 @@ describe('EvidenceLibrary PDF analysis', () => {
     const file = new File(['%PDF-1.7'], 'review.pdf', { type: 'application/pdf' });
     render(<EvidenceLibrary />);
 
-    fireEvent.change(screen.getByLabelText(/forskningsartikkel/i), { target: { files: [file] } });
+    const input = screen.getByLabelText(/velg dokument/i);
+    expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml');
+    fireEvent.change(input, { target: { files: [file] } });
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
     expect(await screen.findByText('review.pdf')).toBeInTheDocument();
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
-    expect(analyzePdfEvidence).toHaveBeenCalledWith(file, ['amstar2'], false);
+    expect(analyzeEvidenceDocument).toHaveBeenCalledWith(file, ['amstar2'], false);
   });
 });
