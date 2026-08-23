@@ -82,7 +82,7 @@ The implementation module provides server-side JSON, CSV, XLSX, DOCX and PDF exp
 
 The application validates structure and documentation. It does not read articles, infer answers, determine research quality automatically or replace methodological judgement. Researchers must use the authorised instrument and current official guidance alongside the application.
 
-Do not enter personal health information, confidential research data or directly identifying information. Use pseudonymous reviewer codes.
+Do not enter personal health information, confidential research data or directly identifying information into the public demo. Use pseudonymous reviewer codes and an appropriately governed database for real research data.
 
 ## Security and DevSecOps
 
@@ -93,6 +93,7 @@ Do not enter personal health information, confidential research data or directly
 - least-privilege GitHub Actions permissions
 - local secret exclusion through `.gitignore`
 - published security policy
+- production browser security headers
 - SHA-256 verification for exported AMSTAR 2 reports
 - strict repository audit script
 
@@ -158,4 +159,6 @@ Shea, B. J., Reeves, B. C., Wells, G., Thuku, M., Hamel, C., Moran, J., Moher, D
 
 Copyright © 2026 Anne Beth Andersen. All rights reserved.
 
-The repository is publicly visible as a professional portfolio. No open-source licence is granted for the author's original source code, architecture, implementation or documentation. Third-party appraisal instruments, trademarks and copyrighted methodological content remain subject to their respective rights and licences.
+The repository is publicly visible as a professional portfolio. The author's original source code, architecture, implementation and documentation are proprietary. No open-source licence is granted. Viewing the public repository does not grant permission to copy, modify, redistribute, rebrand, sublicense or commercially exploit the author's original work without written permission.
+
+See [`LICENSE`](LICENSE) for the complete ownership and usage terms. Third-party appraisal instruments, trademarks, libraries and other third-party material remain subject to their respective rights and licences.
