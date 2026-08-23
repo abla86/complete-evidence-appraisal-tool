@@ -10,6 +10,13 @@ const instruments = [
 
 const acceptedFormats = '.pdf,.docx,.txt,.html,.htm,.xml';
 
+function statusClass(status) {
+  if (status === 'Suitable') return 'status-success';
+  if (status === 'Not suitable') return 'status-error';
+  if (status === 'Caution') return 'status-warning';
+  return '';
+}
+
 export default function EvidenceLibrary() {
   const [file, setFile] = useState(null);
   const [selected, setSelected] = useState(['amstar2']);
@@ -40,11 +47,11 @@ export default function EvidenceLibrary() {
   return <section className="research-hub" aria-labelledby="evidence-heading">
     <p className="eyebrow">Sporbarhet</p>
     <h2 id="evidence-heading">Evidence &amp; traceability</h2>
-    <p>Last opp en forskningsartikkel, systematisk oversikt, retningslinje eller annet støttet forskningsdokument. Programmet lokaliserer tekstpassasjer som kan være relevante for valgte vurderingsinstrumenter.</p>
+    <p>Last opp en forskningsartikkel, systematisk oversikt, retningslinje eller annet støttet forskningsdokument. Programmet ekstraherer tekst, klassifiserer dokumenttypen heuristisk og lokaliserer kandidatpassasjer for valgte vurderingsinstrumenter.</p>
 
     <section className="assessment-card evidence-analyser">
       <p className="eyebrow">Dokumentanalyse</p>
-      <h3>Last opp forskningsdokument</h3>
+      <h3>Analyser forskningsdokument</h3>
       <p className="muted">Støttede formater: PDF, DOCX, TXT, HTML/HTM og XML/JATS. Maksimal filstørrelse er 25 MB.</p>
 
       <label htmlFor="evidence-document">Velg dokument</label>
@@ -61,7 +68,7 @@ export default function EvidenceLibrary() {
 
       <fieldset>
         <legend>Vurderingsinstrumenter</legend>
-        <p className="muted">Velg ett eller flere instrumenter. Samme dokument kan analyseres mot flere instrumenter samtidig.</p>
+        <p className="muted">Velg ett eller flere instrumenter. Instrumentegnethet blir kontrollert etter dokumentanalysen, men forskeren må bekrefte dokumenttype og valg av instrument.</p>
         <div className="research-grid">
           {instruments.map(([id, label]) => <label key={id} className="checkbox-card">
             <input type="checkbox" checked={selected.includes(id)} onChange={() => toggleInstrument(id)} />
@@ -85,15 +92,29 @@ export default function EvidenceLibrary() {
     {result && <section className="assessment-card" aria-live="polite">
       <p className="eyebrow">Dokumentanalyse</p>
       <h3>{result.fileName}</h3>
-      <p>{result.pageCount} sider · {result.extractionStatus} · SHA-256: <code>{result.documentHashSha256}</code></p>
-      <div className="notice notice-warning"><strong>Forskerkontroll kreves.</strong> {result.methodologicalNotice}</div>
+      <p><strong>Dokumenttype:</strong> {result.classification?.documentType ?? result.documentType} · <strong>Klassifiseringsgrad:</strong> {result.classification?.confidence ?? 'Ikke oppgitt'} · {result.sourceUnitCount ?? result.pageCount} kildenheter · {result.extractionStatus}</p>
+      <p className="muted">SHA-256: <code>{result.documentHashSha256}</code></p>
+
+      <div className="notice notice-warning">
+        <strong>Forskerkontroll kreves.</strong> {result.methodologicalNotice}
+      </div>
+
+      {result.classification?.signals?.length > 0 && <div>
+        <h4>Klassifiseringssignaler</h4>
+        <ul>{result.classification.signals.map((signal) => <li key={signal}>{signal}</li>)}</ul>
+      </div>}
+
+      {result.instrumentSuitability?.length > 0 && <section>
+        <h4>Instrumentegnethet</h4>
+        <div className="evidence-table-wrap"><table><thead><tr><th>Instrument</th><th>Status</th><th>Begrunnelse</th></tr></thead><tbody>{result.instrumentSuitability.map((item) => <tr key={item.instrument}><td>{item.instrument}</td><td><strong className={statusClass(item.status)}>{item.status}</strong></td><td>{item.reason}</td></tr>)}</tbody></table></div>
+      </section>}
 
       {result.warnings?.length > 0 && <div><h4>Varsler</h4><ul>{result.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
 
-      <h4>Evidence map</h4>
-      {result.findings?.length === 0 ? <p>Ingen kandidatpassasjer ble identifisert. Dette betyr ikke at informasjonen mangler i dokumentet.</p> : <div className="evidence-table-wrap"><table><thead><tr><th>Instrument</th><th>Område</th><th>Side</th><th>Treff</th><th>Passasje</th></tr></thead><tbody>{result.findings.map((finding, index) => <tr key={`${finding.instrument}-${finding.topic}-${finding.page}-${index}`}><td>{finding.instrument.toUpperCase()}</td><td>{finding.topic}</td><td>{finding.page}</td><td><code>{finding.matchedTerm}</code></td><td>{finding.excerpt}</td></tr>)}</tbody></table></div>}
+      <h4>Evidence map – kandidatfunn</h4>
+      {result.findings?.length === 0 ? <p>Ingen kandidatpassasjer ble identifisert. Dette betyr ikke at informasjonen mangler i dokumentet.</p> : <div className="evidence-table-wrap"><table><thead><tr><th>Instrument</th><th>Område</th><th>Side/kildenhet</th><th>Treff</th><th>Passasje</th></tr></thead><tbody>{result.findings.map((finding, index) => <tr key={`${finding.instrument}-${finding.topic}-${finding.page}-${index}`}><td>{finding.instrument.toUpperCase()}</td><td>{finding.topic}</td><td>{finding.page}</td><td><code>{finding.matchedTerm}</code></td><td>{finding.excerpt}</td></tr>)}</tbody></table></div>}
 
-      {result.pages?.length > 0 && <details><summary>Ekstrahert dokumenttekst</summary>{result.pages.map((page) => <article key={page.page}><h5>Side {page.page}</h5><pre>{page.text}</pre></article>)}</details>}
+      {result.sourceUnits?.length > 0 && <details><summary>Ekstrahert dokumenttekst</summary>{result.sourceUnits.map((unit) => <article key={unit.page}><h5>Kildenhet {unit.page}</h5><pre>{unit.text}</pre></article>)}</details>}
     </section>}
 
     <div className="research-grid">
