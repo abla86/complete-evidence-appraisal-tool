@@ -24,6 +24,11 @@ builder.Services.AddDbContext<ImplementationDbContext>(options =>
     if (!string.IsNullOrWhiteSpace(implementationConnection)) options.UseSqlServer(implementationConnection);
     else options.UseSqlite("Data Source=implementation.db");
 });
+builder.Services.AddDbContext<EvidenceDbContext>(options =>
+{
+    if (!string.IsNullOrWhiteSpace(implementationConnection)) options.UseSqlServer(implementationConnection);
+    else options.UseSqlite("Data Source=evidence.db");
+});
 builder.Services.AddScoped<ImplementationPersistenceService>();
 builder.Services.AddScoped<ProjectOverviewService>();
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -33,8 +38,10 @@ builder.Services.AddCors(options => options.AddPolicy("LocalReactFrontend", poli
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ImplementationDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    var implementationDb = scope.ServiceProvider.GetRequiredService<ImplementationDbContext>();
+    await implementationDb.Database.EnsureCreatedAsync();
+    var evidenceDb = scope.ServiceProvider.GetRequiredService<EvidenceDbContext>();
+    await evidenceDb.Database.EnsureCreatedAsync();
 }
 
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
@@ -60,7 +67,8 @@ app.MapGet("/api", () => Results.Ok(new
     status = "Research tool / prototype",
     modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis" },
     methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
-    securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint and are not persisted by that endpoint."
+    safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.",
+    securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted."
 }));
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
 
@@ -117,9 +125,32 @@ async Task<IResult> AnalyzeResearchDocument(HttpRequest request, DocumentAnalysi
 }
 
 app.MapPost("/api/evidence/analyze", AnalyzeResearchDocument);
-
-// Backwards-compatible endpoint for existing PDF clients.
 app.MapPost("/api/evidence/pdf/analyze", AnalyzeResearchDocument);
+
+app.MapGet("/api/evidence/manual/{documentHash}", async (string documentHash, EvidenceDbContext db, CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(documentHash)) return Results.BadRequest(new { error = "Document hash is required." });
+    var records = await db.EvidenceRecords.AsNoTracking().Where(x => x.DocumentHashSha256 == documentHash).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
+    return Results.Ok(records.Select(ToEvidenceDto));
+});
+
+app.MapPost("/api/evidence/manual", async (ManualEvidenceRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
+{
+    var errors = ValidateManualEvidence(request);
+    if (errors.Count > 0) return Results.BadRequest(new { error = "Manual evidence is incomplete.", details = errors });
+    if (!request.DocumentHashSha256.All(Uri.IsHexDigit) || request.DocumentHashSha256.Length != 64) return Results.BadRequest(new { error = "DocumentHashSha256 must be a 64-character SHA-256 hexadecimal hash." });
+
+    var entity = new EvidenceRecordEntity
+    {
+        DocumentHashSha256 = request.DocumentHashSha256.ToLowerInvariant(), Instrument = request.Instrument.Trim(), ItemOrDomain = request.ItemOrDomain.Trim(),
+        EvidenceText = request.EvidenceText.Trim(), SourceType = request.SourceType.Trim(), Page = request.Page?.Trim(), Section = request.Section?.Trim(),
+        Table = request.Table?.Trim(), Figure = request.Figure?.Trim(), Url = request.Url?.Trim(), Doi = request.Doi?.Trim(), Reviewer = request.Reviewer.Trim(),
+        Rationale = request.Rationale.Trim(), Status = "Manually added", CreatedAtUtc = DateTime.UtcNow
+    };
+    db.EvidenceRecords.Add(entity);
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.Created($"/api/evidence/manual/{entity.DocumentHashSha256}", ToEvidenceDto(entity));
+});
 
 app.MapPost("/api/implementation/save", async (ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
 {
@@ -171,6 +202,24 @@ app.MapPost("/api/implementation/export/{format}/file", (string format, Implemen
 
 app.MapFallbackToFile("index.html");
 app.Run();
+
+static List<string> ValidateManualEvidence(ManualEvidenceRequest request)
+{
+    var errors = new List<string>();
+    if (string.IsNullOrWhiteSpace(request.DocumentHashSha256)) errors.Add("Document hash is required.");
+    if (string.IsNullOrWhiteSpace(request.Instrument)) errors.Add("Instrument is required.");
+    if (string.IsNullOrWhiteSpace(request.ItemOrDomain)) errors.Add("Item/domain is required.");
+    if (string.IsNullOrWhiteSpace(request.EvidenceText)) errors.Add("Evidence text is required.");
+    if (string.IsNullOrWhiteSpace(request.SourceType)) errors.Add("Source type is required.");
+    if (string.IsNullOrWhiteSpace(request.Reviewer)) errors.Add("Reviewer is required.");
+    if (string.IsNullOrWhiteSpace(request.Rationale)) errors.Add("Rationale is required.");
+    return errors;
+}
+
+static EvidenceRecordDto ToEvidenceDto(EvidenceRecordEntity entity) => new(
+    entity.Id, entity.DocumentHashSha256, entity.Instrument, entity.ItemOrDomain, entity.EvidenceText, entity.SourceType,
+    entity.Page, entity.Section, entity.Table, entity.Figure, entity.Url, entity.Doi, entity.Reviewer, entity.Rationale,
+    entity.Status, entity.CreatedAtUtc);
 
 static IResult CreateExportResult(ExportFile jsonFile, Guid id, string format)
 {
