@@ -25,3 +25,18 @@ public sealed record PdfAnalysisResult(
     string MethodologicalNotice);
 
 public sealed record PdfPageText(int Page, string Text);
+
+public sealed record DocumentAnalysisResult(
+    string FileName,
+    string DocumentType,
+    int SourceUnitCount,
+    long FileSizeBytes,
+    string DocumentHashSha256,
+    string ExtractionStatus,
+    IReadOnlyCollection<string> SelectedInstruments,
+    IReadOnlyCollection<EvidenceFinding> Findings,
+    IReadOnlyCollection<DocumentSourceUnit> SourceUnits,
+    IReadOnlyCollection<string> Warnings,
+    string MethodologicalNotice);
+
+public sealed record DocumentSourceUnit(int Page, string Text);
