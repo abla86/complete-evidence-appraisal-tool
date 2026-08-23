@@ -12,11 +12,22 @@ describe('EvidenceLibrary research-document analysis', () => {
     analyzeEvidenceDocument.mockResolvedValue({
       fileName: 'review.pdf',
       pageCount: 2,
+      sourceUnitCount: 2,
+      documentType: 'Systematic review / meta-analysis',
+      classification: {
+        documentType: 'Systematic review / meta-analysis',
+        confidence: 'High',
+        signals: ['systematic-review/meta-analysis terminology detected'],
+      },
       extractionStatus: 'Text extracted',
       documentHashSha256: 'abc123',
+      instrumentSuitability: [
+        { instrument: 'AMSTAR 2', status: 'Suitable', reason: 'Systematic review detected.' },
+        { instrument: 'AGREE II', status: 'Not suitable', reason: 'Guideline not detected.' },
+      ],
       findings: [{ instrument: 'amstar2', topic: 'Search strategy', page: 1, matchedTerm: 'PROSPERO', excerpt: 'PROSPERO registration' }],
       warnings: ['Findings are text-location candidates.'],
-      pages: [],
+      sourceUnits: [],
       methodologicalNotice: 'Researcher verification required.',
     });
 
@@ -29,6 +40,9 @@ describe('EvidenceLibrary research-document analysis', () => {
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
     expect(await screen.findByText('review.pdf')).toBeInTheDocument();
+    expect(screen.getByText('Systematic review / meta-analysis')).toBeInTheDocument();
+    expect(screen.getByText('Suitable')).toBeInTheDocument();
+    expect(screen.getByText('Not suitable')).toBeInTheDocument();
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
     expect(analyzeEvidenceDocument).toHaveBeenCalledWith(file, ['amstar2'], false);
   });
