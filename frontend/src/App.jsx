@@ -9,6 +9,7 @@ import ResearchDashboard from './components/ResearchDashboard';
 import ResearchModuleHub from './components/ResearchModuleHub';
 import './App.css';
 import './workspace.css';
+import './components/EvidenceLibrary.css';
 
 const navItems = [
   ['dashboard', 'Dashboard', 'Oversikt og arbeidsstatus'],
