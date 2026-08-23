@@ -26,7 +26,10 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
             b.Property(x => x.Rationale).HasMaxLength(4000).IsRequired();
             b.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            b.Property(x => x.VerificationNote).HasMaxLength(4000);
+            b.Property(x => x.VerifiedBy).HasMaxLength(100);
             b.HasIndex(x => new { x.DocumentHashSha256, x.Instrument });
+            b.HasIndex(x => new { x.DocumentHashSha256, x.Status });
         });
     }
 }
@@ -48,5 +51,8 @@ public sealed class EvidenceRecordEntity
     public string Reviewer { get; set; } = string.Empty;
     public string Rationale { get; set; } = string.Empty;
     public string Status { get; set; } = "Manually added";
+    public string? VerificationNote { get; set; }
+    public string? VerifiedBy { get; set; }
+    public DateTime? VerifiedAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
