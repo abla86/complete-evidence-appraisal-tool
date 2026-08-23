@@ -11,9 +11,28 @@ A full-stack research workspace for transparent, structured and traceable critic
 
 The application is designed to **support researchers, not replace researcher judgement**. Automated document analysis produces candidate findings only. It must never be interpreted as an automatic scientific conclusion.
 
+## Current implementation status
+
+| Area | Status | Verified scope |
+|---|---|---|
+| AMSTAR 2 | Implemented | 16-item workflow, critical-domain handling, validation and export; no numerical total score |
+| CASP | Implemented | Design-specific checklist workflow with structural validation; no generic quality total |
+| AGREE II | Implemented | 23 items, six domains, 1–7 scale and domain calculations |
+| GRADE | Implemented | Outcome-level assessment workflow; final certainty remains a researcher judgement |
+| CFIR 2.0 | Implemented | Integrated construct catalogue and researcher-entered implementation assessment |
+| KTA | Implemented | Seven-phase action-cycle documentation integrated with CFIR |
+| CFIR → KTA links | Implemented | Explicit links between CFIR constructs and implementation actions |
+| Research-document analysis | Implemented | PDF, DOCX, TXT, HTML/HTM and XML extraction with heuristic classification and candidate findings |
+| Evidence Map persistence | **Not implemented** | Candidate findings are returned by analysis; persistent evidence-map records are not yet a separate database model |
+| Manual evidence-entry workflow | **Not implemented** | The UI does not currently provide the planned `+ Legg til evidens manuelt` workflow |
+| Authentication/authorization | **Not implemented** | Public prototype must not be used for identifiable/confidential research data |
+| Production research-data governance | **Not implemented** | Requires managed storage, access control, encryption, backup, retention and institutional governance |
+
+This table deliberately distinguishes implemented functionality from planned functionality. The README must not claim a feature is complete until it exists in the repository.
+
 ## Research workflow
 
-The intended workflow is:
+The intended research workflow is:
 
 ```text
 Document
@@ -22,11 +41,9 @@ Document classification
   ↓
 Evidence extraction
   ↓
-Evidence Map
+Candidate findings
   ↓
 Instrument suitability
-  ↓
-Candidate findings
   ↓
 Researcher verification
   ↓
@@ -51,7 +68,6 @@ The application is organised as an academic research workspace rather than a gen
 - reviewer and consensus information
 - evidence and traceability workspace
 - research-document upload and analysis
-- manual evidence entry when automated extraction is incomplete
 - responsive navigation for desktop, laptop, tablet and smaller screens
 
 ## Research document analysis
@@ -101,6 +117,8 @@ It does not automatically decide:
 
 A text match is **candidate evidence**, not a final judgement.
 
+The current analysis endpoint processes the uploaded source document in memory and does not persist the uploaded source file. Candidate findings are returned to the frontend; a dedicated persistent Evidence Map model and manual evidence-entry workflow are future work.
+
 ## Non-negotiable research-safety rules
 
 ### Not found is not No
@@ -111,11 +129,9 @@ For example:
 
 > "No protocol information was identified in the available document. This does not establish that no protocol exists. Check the article, supplement, registry or protocol manually."
 
-The researcher can then add the evidence manually.
-
 ### Uncertainty is preserved
 
-The application explicitly distinguishes candidate, uncertain and verified information. If context cannot be interpreted reliably, the researcher is asked to inspect the original source.
+The application explicitly distinguishes candidate findings and methodological warnings. If context cannot be interpreted reliably, the researcher must inspect the original source.
 
 The application must never invent:
 
@@ -128,33 +144,6 @@ The application must never invent:
 - study characteristics.
 
 If information cannot be determined reliably, the application reports that limitation rather than guessing.
-
-### Manual evidence
-
-Researchers can use **+ Legg til evidens manuelt** when information is found in:
-
-- the main article
-- supplementary material
-- protocol
-- registry
-- author correspondence
-- external source
-- a manual research note.
-
-Manual evidence is labelled **Manually added** and is persisted with:
-
-- document hash
-- instrument
-- item/domain
-- evidence text
-- source type
-- page/section/table/figure where supplied
-- DOI/URL where supplied
-- reviewer
-- rationale
-- timestamp.
-
-This keeps researcher-added evidence distinguishable from automated candidate findings.
 
 ## Document version identity
 
@@ -216,23 +205,17 @@ The application should not be described as a validated CFIR questionnaire.
 
 ## Persistence and database configuration
 
-Implementation and manually entered evidence use EF Core. If `ConnectionStrings:DefaultConnection` is supplied, SQL Server/Azure SQL is used. When no connection string is supplied, local SQLite databases are used so the application can run without LocalDB or an external database.
+The implementation module uses EF Core. If `ConnectionStrings:DefaultConnection` is supplied, SQL Server/Azure SQL is used. When no connection string is supplied, local SQLite is used so the prototype can run without LocalDB or an external database.
 
-The public prototype is not a substitute for an institutionally governed research-data environment. Production research use requires appropriate authentication, authorisation, encryption, access control, backup, retention and institutional governance.
+The current research-document analysis endpoint does **not** persist uploaded source documents. This is intentional for the public prototype and does not constitute a production research-data governance solution.
+
+Production research use requires appropriate authentication, authorisation, encryption, access control, backup, retention and institutional governance.
 
 ## Export
 
 The implementation module provides server-side JSON, CSV, XLSX, DOCX and PDF exports. Existing AMSTAR 2 reporting/export remains available.
 
-Research-document/evidence reporting is intended to distinguish:
-
-- automated candidate findings
-- researcher-verified evidence
-- final judgements
-- disagreements
-- consensus
-- unresolved items
-- methodological warnings.
+Exports must not be interpreted as independent validation of the underlying appraisal. They document researcher-entered assessment data and the calculations supported by the application.
 
 ## Methodological safeguards
 
@@ -270,10 +253,9 @@ The application must not send research documents to an external AI service witho
 - upload type/signature/size validation
 - SHA-256 document identity
 - in-memory document analysis rather than automatic persistence of uploaded source files
-- explicit manual-evidence persistence rather than silent storage of uploaded files
 - safe error handling.
 
-Do not place API keys, database passwords or deployment secrets in source code, frontend code or the public repository.
+**Production blocker:** authentication and authorization are not implemented in the current public prototype. Do not use it for patient-identifiable information, health information, confidential research data or other sensitive material.
 
 ## Ownership and licence
 
@@ -305,28 +287,13 @@ API: `http://localhost:5237`
 
 ## Verification
 
-Backend:
-
-```powershell
-dotnet build EvidenceAppraisalTool.sln
-dotnet test EvidenceAppraisalTool.sln --no-build
-```
-
-Frontend:
-
-```powershell
-Set-Location .\frontend
-npm ci
-npm test
-npm run lint
-npm run build
-```
-
-Strict repository audit:
+Run the repository audit from the repository root:
 
 ```powershell
 .\tools\audit-and-build.ps1
 ```
+
+The script performs repository checks, a configured secret-pattern scan, backend restore/build/tests, frontend dependency installation, tests, lint and production build. It stops on the first critical failure.
 
 A passing software audit does not establish methodological validity, clinical validity, security certification or regulatory approval.
 
