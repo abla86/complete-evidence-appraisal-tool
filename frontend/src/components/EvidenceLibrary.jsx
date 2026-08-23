@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { addManualEvidence, analyzeEvidenceDocument, getEvidenceSummary, getManualEvidence, verifyEvidence } from '../api/evidenceApi';
 
 const instruments = [['amstar2', 'AMSTAR 2'], ['casp', 'CASP'], ['agree2', 'AGREE II'], ['grade', 'GRADE']];
-const acceptedFormats = '.pdf,.docx,.txt,.html,.htm,.xml';
+const acceptedFormats = '.pdf,.docx,.txt,.html,.htm,.xml,.jats';
 const sourceTypes = ['Main article', 'Supplement', 'Protocol', 'Registry', 'Author correspondence', 'External source', 'Manual note'];
 const verificationStatuses = ['Needs review', 'Verified', 'Rejected', 'Uncertain', 'Not found'];
 
