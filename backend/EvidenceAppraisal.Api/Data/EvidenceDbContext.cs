@@ -1,5 +1,7 @@
+using System.Text.Json;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EvidenceAppraisal.Api.Data;
 
@@ -33,6 +35,10 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.HasIndex(x => new { x.DocumentHashSha256, x.Status });
         });
 
+        var authorsConverter = new ValueConverter<List<string>, string>(
+            value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
+            value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new());
+
         modelBuilder.Entity<StudyMetadata>(b =>
         {
             b.HasKey(x => x.Id);
@@ -44,6 +50,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Abstract).HasMaxLength(12000);
             b.Property(x => x.SourceDatabase).HasMaxLength(100);
             b.Property(x => x.ImportFingerprint).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Authors).HasConversion(authorsConverter);
             b.HasIndex(x => x.ImportFingerprint).IsUnique();
             b.HasIndex(x => x.Doi);
         });
