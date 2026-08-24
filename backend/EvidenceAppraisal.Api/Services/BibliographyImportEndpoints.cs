@@ -37,13 +37,49 @@ public static class BibliographyImportEndpoints
         {
             var parsed = importer.Parse(input.Content!, input.Extension!);
             if (parsed.Count == 0) return Results.BadRequest(new { error = "Ingen bibliografiske poster med lesbar tittel ble funnet." });
-            var fingerprints = parsed.Select(x => x.ImportFingerprint).Distinct().ToArray();
-            var existing = await db.Studies.AsNoTracking().Where(x => fingerprints.Contains(x.ImportFingerprint)).Select(x => x.ImportFingerprint).ToListAsync(cancellationToken);
+
+            var batchUnique = parsed
+                .Where(x => !string.IsNullOrWhiteSpace(x.ImportFingerprint))
+                .GroupBy(x => x.ImportFingerprint, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First())
+                .ToList();
+
+            var fingerprints = batchUnique.Select(x => x.ImportFingerprint).ToArray();
+            var existing = await db.Studies.AsNoTracking()
+                .Where(x => fingerprints.Contains(x.ImportFingerprint))
+                .Select(x => x.ImportFingerprint)
+                .ToListAsync(cancellationToken);
             var existingSet = existing.ToHashSet(StringComparer.OrdinalIgnoreCase);
-            var toAdd = parsed.Where(x => !existingSet.Contains(x.ImportFingerprint)).ToList();
-            foreach (var study in toAdd) { study.SourceDatabase = input.Format; study.ImportedAtUtc = DateTime.UtcNow; }
-            if (toAdd.Count > 0) { db.Studies.AddRange(toAdd); await db.SaveChangesAsync(cancellationToken); }
-            return Results.Ok(new { imported = toAdd.Count, skippedDuplicates = parsed.Count - toAdd.Count, totalInFile = parsed.Count, format = input.Format, studies = toAdd, methodologicalNotice = "Importerte poster er bibliografiske metadata. Inklusjon, kritisk vurdering og evidenssikkerhet må vurderes separat." });
+
+            var toAdd = batchUnique.Where(x => !existingSet.Contains(x.ImportFingerprint)).ToList();
+            foreach (var study in toAdd)
+            {
+                study.SourceDatabase = input.Format;
+                study.ImportedAtUtc = DateTime.UtcNow;
+            }
+
+            if (toAdd.Count > 0)
+            {
+                db.Studies.AddRange(toAdd);
+                await db.SaveChangesAsync(cancellationToken);
+            }
+
+            var duplicateCount = parsed.Count - batchUnique.Count;
+            var databaseDuplicateCount = batchUnique.Count - toAdd.Count;
+            return Results.Ok(new
+            {
+                imported = toAdd.Count,
+                skippedDuplicates = duplicateCount + databaseDuplicateCount,
+                totalInFile = parsed.Count,
+                uniqueInFile = batchUnique.Count,
+                format = input.Format,
+                studies = toAdd,
+                methodologicalNotice = "Importerte poster er bibliografiske metadata. Inklusjon, kritisk vurdering og evidenssikkerhet må vurderes separat."
+            });
+        }
+        catch (DbUpdateException)
+        {
+            return Results.Conflict(new { error = "Bibliografisk import kunne ikke lagres på grunn av en samtidig databaseendring. Kjør importen på nytt." });
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         { return Results.BadRequest(new { error = ex.Message }); }
