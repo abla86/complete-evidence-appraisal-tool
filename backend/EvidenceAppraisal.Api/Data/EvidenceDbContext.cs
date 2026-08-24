@@ -8,6 +8,7 @@ namespace EvidenceAppraisal.Api.Data;
 public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> options) : DbContext(options)
 {
     public DbSet<EvidenceRecordEntity> EvidenceRecords => Set<EvidenceRecordEntity>();
+    public DbSet<EvidenceRecordHistoryEntity> EvidenceRecordHistory => Set<EvidenceRecordHistoryEntity>();
     public DbSet<StudyMetadata> Studies => Set<StudyMetadata>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,6 +34,16 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.VerifiedBy).HasMaxLength(100);
             b.HasIndex(x => new { x.DocumentHashSha256, x.Instrument });
             b.HasIndex(x => new { x.DocumentHashSha256, x.Status });
+        });
+
+        modelBuilder.Entity<EvidenceRecordHistoryEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.VerificationNote).HasMaxLength(4000);
+            b.Property(x => x.Action).HasMaxLength(100).IsRequired();
+            b.HasIndex(x => new { x.EvidenceRecordId, x.Version }).IsUnique();
         });
 
         var authorsConverter = new ValueConverter<List<string>, string>(
