@@ -11,6 +11,7 @@ public sealed class StudyMetadata
     public string? Journal { get; set; }
     public string? Abstract { get; set; }
     public string? SourceDatabase { get; set; }
+    public string? RecordIdentifier { get; set; }
     public string ImportFingerprint { get; set; } = string.Empty;
     public DateTime ImportedAtUtc { get; set; } = DateTime.UtcNow;
 }
