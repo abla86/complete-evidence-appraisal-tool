@@ -36,4 +36,24 @@ public sealed class ResearchWorkflowServiceTests
         Assert.Equal(0.5, result.ExpectedAgreement, 6);
         Assert.Equal(0.5, result.Kappa, 6);
     }
+
+    [Fact]
+    public void Kappa_RejectsMissingRatings()
+    {
+        var input = new KappaInput(
+            new[] { "Yes", "", "No" },
+            new[] { "Yes", "No", "No" });
+
+        var exception = Assert.Throws<ArgumentException>(() => new ResearchWorkflowService().CalculateKappa(input));
+        Assert.Contains("missing", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Prisma_RejectsImpossibleRemovalCount()
+    {
+        var input = new PrismaFlowInput(10, 11, 0, 0, 0, 0, 0, 0, 0, 0);
+        var result = new ResearchWorkflowService().ValidatePrisma(input);
+        Assert.False(result.InternallyConsistent);
+        Assert.Contains(result.Warnings, warning => warning.Contains("removed before screening", StringComparison.OrdinalIgnoreCase));
+    }
 }
