@@ -4,7 +4,8 @@ namespace EvidenceAppraisal.Api.Services;
 
 public sealed record ValidationResult(
     bool IsValid,
-    IReadOnlyCollection<string> Errors
+    IReadOnlyCollection<string> Errors,
+    Amstar2RatingResult? AdvisoryRating = null
 );
 
 public sealed class Amstar2ValidationService
@@ -50,9 +51,14 @@ public sealed class Amstar2ValidationService
             );
         }
 
+        var advisoryRating = errors.Count == 0
+            ? new Amstar2RatingService().Calculate(assessment)
+            : null;
+
         return new ValidationResult(
             errors.Count == 0,
-            errors
+            errors,
+            advisoryRating
         );
     }
 

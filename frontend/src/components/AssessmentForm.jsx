@@ -118,7 +118,11 @@ export default function AssessmentForm({
 
       if (validation.isValid) {
         setResult(validation);
-        setValidatedAssessment(assessment);
+        setValidatedAssessment({
+          ...assessment,
+          advisoryRating:
+            validation.advisoryRating ?? null,
+        });
       } else {
         setServerErrors(
           validation.errors ?? [
@@ -158,8 +162,9 @@ export default function AssessmentForm({
       <div className="notice-inline">
         Bruk det autoriserte AMSTAR 2-instrumentet
         og tilhørende veiledning når hvert punkt
-        vurderes. Denne prototypen gjengir ikke
-        instrumentteksten og foretar ingen
+        vurderes. Prototypen registrerer dine
+        metodiske vurderinger og viser en rådgivende
+        konsistenskontroll, men foretar ingen
         automatisk faglig vurdering.
       </div>
 
@@ -459,6 +464,27 @@ export default function AssessmentForm({
         </button>
       </form>
 
+      {result?.isValid && result.advisoryRating && (
+        <div
+          className="notice-inline"
+          role="status"
+          aria-live="polite"
+        >
+          <strong>
+            Rådgivende AMSTAR 2-konsistenskontroll:{' '}
+            {result.advisoryRating.suggestedConfidence}
+          </strong>
+          <span>
+            {' '}({result.advisoryRating.criticalFlawCount}{' '}
+            kritiske svakheter,{' '}
+            {result.advisoryRating.nonCriticalWeaknessCount}{' '}
+            ikke-kritiske svakheter). Dette er ikke en
+            numerisk totalscore og ikke verktøyets
+            endelige faglige konklusjon.
+          </span>
+        </div>
+      )}
+
       {result?.isValid && (
         <div
           className="confirmation"
@@ -472,8 +498,8 @@ export default function AssessmentForm({
           <span>
             API-et har validert strukturen og de
             obligatoriske dokumentasjonsfeltene.
-            Dette er ikke en automatisk
-            kvalitetskonklusjon.
+            Sluttvurderingen skal fortsatt gjøres av
+            forskeren.
           </span>
         </div>
       )}

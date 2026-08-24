@@ -12,6 +12,7 @@ import ResearchModuleHub from './components/ResearchModuleHub';
 import ResearchMethods from './components/ResearchMethods';
 import ResearchCompleteness from './components/ResearchCompleteness';
 import RisUploader from './components/RisUploader';
+import Rob2Assessment from './components/Rob2Assessment';
 import './App.css';
 import './workspace.css';
 import './components/EvidenceLibrary.css';
@@ -23,6 +24,7 @@ const navItems = [
   ['research-workspace', 'Komplett forskningsflyt', 'Screening, dual extraction, syntese og EtD'],
   ['methods', 'Metoder & syntese', 'PRISMA, inter-rater og GRADE SoF'],
   ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
+  ['rob2', 'RoB 2', 'Risk of Bias 2 for randomiserte studier'],
   ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
   ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
   ['collaboration', 'Samarbeid', 'Aktive reviewere og feltlåser'],
@@ -50,7 +52,7 @@ function App() {
   }, []);
 
   function renderPage() {
-    if (!metadata) return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
+    if (!metadata && activePage !== 'rob2') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
     if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
     if (activePage === 'references') return <RisUploader />;
     if (activePage === 'research-workspace') return <ResearchCompleteness />;
@@ -60,6 +62,7 @@ function App() {
     if (activePage === 'audit') return <EvidenceAuditHistory />;
     if (activePage === 'evidence') return <EvidenceLibrary />;
     if (activePage === 'implementation') return <ImplementationModule />;
+    if (activePage === 'rob2') return <Rob2Assessment />;
 
     return <>
       <section className="instrument-card"><div><p className="eyebrow">Systematiske oversikter</p><h2>{metadata.instrumentName} <span>({metadata.instrumentVersion})</span></h2><p>Instrumentet inneholder <strong>{metadata.totalItems} punkter</strong>.</p></div><div className="critical-domains"><h3>Foreslåtte kritiske standarddomener</h3><ul>{metadata.proposedDefaultCriticalDomains.map((item) => <li key={item}>Punkt {item}</li>)}</ul></div></section>
