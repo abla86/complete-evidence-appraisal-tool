@@ -11,6 +11,8 @@ public static class EvidenceVerificationEndpoints
         "Needs review", "Verified", "Rejected", "Uncertain", "Not found", "Manually added"
     };
 
+    private static readonly ResearchCollaborationService Collaboration = new();
+
     public static void MapEvidenceVerificationEndpoints(this WebApplication app)
     {
         app.MapPatch("/api/evidence/manual/{id:guid}/verification", async (Guid id, EvidenceVerificationRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
@@ -49,6 +51,37 @@ public static class EvidenceVerificationEndpoints
                 methodologicalNotice = "Evidence status records researcher verification state; it does not constitute an appraisal judgement or quality score."
             });
         });
+
+        app.MapGet("/api/research/collaboration/{projectId}", (string projectId) => Results.Ok(new
+        {
+            projectId,
+            participants = Collaboration.GetParticipants(projectId),
+            locks = Collaboration.GetLocks(projectId),
+            mode = "polling",
+            notice = "Presence and field locks are convenience controls. They do not replace audit history or database concurrency protection."
+        }));
+
+        app.MapPost("/api/research/collaboration/{projectId}/heartbeat", (string projectId, CollaborationHeartbeat request) =>
+        {
+            Collaboration.Heartbeat(projectId, request.ReviewerId, request.DisplayName);
+            return Results.Ok(new { saved = true });
+        });
+
+        app.MapPost("/api/research/collaboration/{projectId}/lock", (string projectId, CollaborationLockRequest request) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.FieldId) || string.IsNullOrWhiteSpace(request.ReviewerId))
+                return Results.BadRequest(new { error = "FieldId and ReviewerId are required." });
+            var acquired = Collaboration.TryAcquire(projectId, request.FieldId, request.ReviewerId, request.DisplayName, out var fieldLock);
+            return acquired
+                ? Results.Ok(new { acquired = true, fieldLock })
+                : Results.Conflict(new { acquired = false, fieldLock, error = "Feltet redigeres av en annen reviewer akkurat nå." });
+        });
+
+        app.MapPost("/api/research/collaboration/{projectId}/unlock", (string projectId, CollaborationLockRequest request) =>
+        {
+            Collaboration.Release(projectId, request.FieldId, request.ReviewerId);
+            return Results.Ok(new { released = true });
+        });
     }
 
     private static EvidenceRecordDto ToDto(EvidenceRecordEntity entity) => new(
@@ -57,3 +90,6 @@ public static class EvidenceVerificationEndpoints
         entity.Reviewer, entity.Rationale, entity.Status, entity.VerificationNote, entity.VerifiedBy,
         entity.VerifiedAtUtc, entity.CreatedAtUtc);
 }
+
+public sealed record CollaborationHeartbeat(string ReviewerId, string DisplayName);
+public sealed record CollaborationLockRequest(string FieldId, string ReviewerId, string DisplayName);
