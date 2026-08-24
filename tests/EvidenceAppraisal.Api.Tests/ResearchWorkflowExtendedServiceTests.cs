@@ -39,11 +39,9 @@ public sealed class ResearchWorkflowAdditionalServiceTests
     public void Kappa_for_perfect_agreement_is_one()
     {
         var service = new ResearchWorkflowService();
-        var result = service.CalculateKappa(new KappaInput
-        {
-            Reviewer1 = new[] { "Yes", "No", "Yes", "No" },
-            Reviewer2 = new[] { "Yes", "No", "Yes", "No" }
-        });
+        var result = service.CalculateKappa(new KappaInput(
+            new[] { "Yes", "No", "Yes", "No" },
+            new[] { "Yes", "No", "Yes", "No" }));
 
         Assert.Equal(1d, result.Kappa, 10);
         Assert.Equal(1d, result.ObservedAgreement, 10);
@@ -54,32 +52,28 @@ public sealed class ResearchWorkflowAdditionalServiceTests
     {
         var service = new ResearchWorkflowService();
 
-        Assert.Throws<ArgumentException>(() => service.CalculateKappa(new KappaInput
-        {
-            Reviewer1 = new[] { "Yes", "No" },
-            Reviewer2 = new[] { "Yes" }
-        }));
+        Assert.Throws<ArgumentException>(() => service.CalculateKappa(new KappaInput(
+            new[] { "Yes", "No" },
+            new[] { "Yes" })));
     }
 
     [Fact]
     public void Prisma_validation_flags_reconciliation_error()
     {
         var service = new ResearchWorkflowService();
-        var result = service.ValidatePrisma(new PrismaFlowInput
-        {
-            RecordsIdentified = 10,
-            RecordsRemovedBeforeScreening = 2,
-            RecordsScreened = 7,
-            RecordsExcluded = 3,
-            ReportsSought = 4,
-            ReportsNotRetrieved = 0,
-            ReportsAssessed = 4,
-            ReportsExcludedWithReasons = 1,
-            StudiesIncluded = 3,
-            ReportsIncluded = 3
-        });
+        var result = service.ValidatePrisma(new PrismaFlowInput(
+            RecordsIdentified: 10,
+            RecordsRemovedBeforeScreening: 2,
+            RecordsScreened: 7,
+            RecordsExcluded: 3,
+            ReportsSought: 4,
+            ReportsNotRetrieved: 0,
+            ReportsAssessed: 4,
+            ReportsExcludedWithReasons: 1,
+            StudiesIncluded: 3,
+            ReportsIncluded: 3));
 
-        Assert.False(result.IsValid);
+        Assert.False(result.InternallyConsistent);
         Assert.Contains(result.Warnings, warning => warning.Contains("Identification", StringComparison.Ordinal));
     }
 }
