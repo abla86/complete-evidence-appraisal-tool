@@ -37,7 +37,7 @@ public sealed class DocumentAnalysisServiceTests
     }
 
     [Fact]
-    public async Task Missing_candidate_evidence_is_not_returned_as_a_negative_judgement()
+    public async Task Candidate_evidence_is_not_returned_as_a_negative_judgement()
     {
         const string text = "This document describes methods but contains no protocol registration statement.";
         var file = CreateFile(text, "article.txt", "text/plain");
@@ -45,8 +45,10 @@ public sealed class DocumentAnalysisServiceTests
 
         var result = await service.AnalyzeAsync(file, ["amstar2"], false, CancellationToken.None);
 
-        Assert.Empty(result.Findings.Where(x => x.Topic == "Protocol/registration"));
-        Assert.Contains(result.Warnings, x => x.Contains("No candidate passage", StringComparison.OrdinalIgnoreCase));
+        var finding = Assert.Single(result.Findings.Where(x => x.Topic == "Protocol/registration"));
+        Assert.Equal("Candidate", finding.Status);
+        Assert.Equal("Uncertain", finding.Confidence);
+        Assert.DoesNotContain(result.Warnings, x => x.Contains("No candidate passage", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(result.Findings, x => x.Status == "No");
     }
 
