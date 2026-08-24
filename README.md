@@ -70,7 +70,10 @@ Export
 
 From the **Referanser** workspace, select **+ Velg RIS-fil**.
 
-The importer supports a standard `.ris` text export from reference managers and bibliographic databases. RIS is widely used for exchange between reference managers and databases, including Zotero workflows and EndNote's RefMan RIS export. citeturn1search0turn1search5
+The importer supports standard `.ris` text exports from reference managers and bibliographic databases. RIS is widely used for bibliographic exchange; Zotero supports RIS import/export and notes that RIS implementations can differ between data sources. EndNote also provides a RefMan RIS export style.
+
+- Zotero: https://www.zotero.org/support/dev/data_formats
+- EndNote RefMan RIS: https://endnote.com/downloads/filters/refman-ris/
 
 The workflow is deliberately two-step:
 
@@ -90,7 +93,7 @@ The importer:
 - skips already imported records with the same fingerprint
 - does **not** invent missing bibliographic metadata.
 
-RIS exports vary between databases and reference managers, so the preview is a required research-safety step rather than an optional convenience. Zotero explicitly notes that RIS implementations can diverge and may require preprocessing for non-standard tags. citeturn1search0
+RIS exports vary between databases and reference managers, so the preview is a required research-safety step rather than an optional convenience.
 
 The import stores **bibliographic metadata only**. It does not establish study eligibility, methodological quality, risk of bias, evidence certainty or inclusion in a systematic review.
 
