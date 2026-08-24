@@ -1,3 +1,4 @@
+using System.Data;
 using EvidenceAppraisal.Api.Data;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,8 +25,14 @@ public static class EvidenceVerificationEndpoints
             if (request.Status.Equals("Verified", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(request.VerificationNote))
                 return Results.BadRequest(new { error = "A verification note is required when evidence is marked Verified." });
 
+            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
             var entity = await db.EvidenceRecords.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-            if (entity is null) return Results.NotFound(new { error = "Evidence record not found." });
+            if (entity is null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return Results.NotFound(new { error = "Evidence record not found." });
+            }
 
             entity.Status = request.Status.Trim();
             entity.VerifiedBy = request.Reviewer.Trim();
@@ -40,7 +47,7 @@ public static class EvidenceVerificationEndpoints
             db.EvidenceRecordHistory.Add(new EvidenceRecordHistoryEntity
             {
                 EvidenceRecordId = entity.Id,
-                Version = lastVersion + 1,
+                Version = checked(lastVersion + 1),
                 Status = entity.Status,
                 Reviewer = entity.VerifiedBy,
                 VerificationNote = entity.VerificationNote,
@@ -50,6 +57,7 @@ public static class EvidenceVerificationEndpoints
             });
 
             await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             return Results.Ok(ToDto(entity));
         });
 
@@ -72,14 +80,18 @@ public static class EvidenceVerificationEndpoints
 
         app.MapGet("/api/evidence/manual/{documentHash}/summary", async (string documentHash, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
+            if (string.IsNullOrWhiteSpace(documentHash) || documentHash.Length != 64 || !documentHash.All(Uri.IsHexDigit))
+                return Results.BadRequest(new { error = "documentHash must be a 64-character SHA-256 hexadecimal hash." });
+
+            var normalizedHash = documentHash.ToLowerInvariant();
             var records = await db.EvidenceRecords.AsNoTracking()
-                .Where(x => x.DocumentHashSha256 == documentHash)
+                .Where(x => x.DocumentHashSha256 == normalizedHash)
                 .ToListAsync(cancellationToken);
 
             var byStatus = records.GroupBy(x => x.Status).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
             return Results.Ok(new
             {
-                documentHashSha256 = documentHash,
+                documentHashSha256 = normalizedHash,
                 total = records.Count,
                 byStatus,
                 methodologicalNotice = "Evidence status records researcher verification state; it does not constitute an appraisal judgement or quality score."
@@ -97,15 +109,17 @@ public static class EvidenceVerificationEndpoints
 
         app.MapPost("/api/research/collaboration/{projectId}/heartbeat", (string projectId, CollaborationHeartbeat request) =>
         {
-            Collaboration.Heartbeat(projectId, request.ReviewerId, request.DisplayName);
+            if (string.IsNullOrWhiteSpace(projectId) || string.IsNullOrWhiteSpace(request.ReviewerId))
+                return Results.BadRequest(new { error = "ProjectId and ReviewerId are required." });
+            Collaboration.Heartbeat(projectId, request.ReviewerId.Trim(), request.DisplayName?.Trim() ?? string.Empty);
             return Results.Ok(new { saved = true });
         });
 
         app.MapPost("/api/research/collaboration/{projectId}/lock", (string projectId, CollaborationLockRequest request) =>
         {
-            if (string.IsNullOrWhiteSpace(request.FieldId) || string.IsNullOrWhiteSpace(request.ReviewerId))
-                return Results.BadRequest(new { error = "FieldId and ReviewerId are required." });
-            var acquired = Collaboration.TryAcquire(projectId, request.FieldId, request.ReviewerId, request.DisplayName, out var fieldLock);
+            if (string.IsNullOrWhiteSpace(projectId) || string.IsNullOrWhiteSpace(request.FieldId) || string.IsNullOrWhiteSpace(request.ReviewerId))
+                return Results.BadRequest(new { error = "ProjectId, FieldId and ReviewerId are required." });
+            var acquired = Collaboration.TryAcquire(projectId, request.FieldId.Trim(), request.ReviewerId.Trim(), request.DisplayName?.Trim() ?? string.Empty, out var fieldLock);
             return acquired
                 ? Results.Ok(new { acquired = true, fieldLock })
                 : Results.Conflict(new { acquired = false, fieldLock, error = "Feltet redigeres av en annen reviewer akkurat nå." });
@@ -113,7 +127,9 @@ public static class EvidenceVerificationEndpoints
 
         app.MapPost("/api/research/collaboration/{projectId}/unlock", (string projectId, CollaborationLockRequest request) =>
         {
-            Collaboration.Release(projectId, request.FieldId, request.ReviewerId);
+            if (string.IsNullOrWhiteSpace(projectId) || string.IsNullOrWhiteSpace(request.FieldId) || string.IsNullOrWhiteSpace(request.ReviewerId))
+                return Results.BadRequest(new { error = "ProjectId, FieldId and ReviewerId are required." });
+            Collaboration.Release(projectId, request.FieldId.Trim(), request.ReviewerId.Trim());
             return Results.Ok(new { released = true });
         });
     }
