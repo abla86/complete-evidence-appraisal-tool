@@ -94,13 +94,13 @@ public sealed class BibliographyImportService
     };
 
     private static IEnumerable<string> TagValues(string record, params string[] tags) => Regex.Matches(record, @"(?m)^([A-Z0-9]{2})\s*-\s*(.*)$").Cast<Match>().Where(m => tags.Contains(m.Groups[1].Value, StringComparer.OrdinalIgnoreCase)).Select(m => m.Groups[2].Value.Trim());
-    private static string BibValue(string body, string field) => Regex.Match(body, $@"(?im)^\s*{Regex.Escape(field)}\s*=\s*[\{{\""](?<v>.*?)[\}}\""]\s*,?\s*$").Groups["v"].Value.Trim();
+    private static string BibValue(string body, string field) => Regex.Match(body, $@"(?im)^\s*{Regex.Escape(field)}\s*=\s*(?:\{|\x22)(?<v>.*?)(?:\}|\x22)\s*,?\s*$").Groups["v"].Value.Trim();
     private static string PubmedValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(.*)$").Groups[1].Value.Trim();
     private static IEnumerable<string> PubmedValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
     private static string EndNoteValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Groups[1].Value.Trim();
     private static IEnumerable<string> EndNoteValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
     private static string NormalizeAuthor(string value) => value.Replace("  ", " ").Trim();
-    private static string? NormalizeDoi(string? value) { if (string.IsNullOrWhiteSpace(value)) return null; var m = Regex.Match(value, @"10\.\d{4,9}/[^\s<>\"']+", RegexOptions.IgnoreCase); return m.Success ? m.Value.TrimEnd('.', ',', ';', ')') : null; }
+    private static string? NormalizeDoi(string? value) { if (string.IsNullOrWhiteSpace(value)) return null; var m = Regex.Match(value, @"10\.\d{4,9}/[^\s<>\x22']+", RegexOptions.IgnoreCase); return m.Success ? m.Value.TrimEnd('.', ',', ';', ')') : null; }
     private static string Clean(string value) => Regex.Replace(value.Replace("\n", " "), @"\s+", " ").Trim();
     private static string? CleanNullable(string? value) => string.IsNullOrWhiteSpace(value) ? null : Clean(value);
     private static string Fingerprint(string title, IEnumerable<string> authors, string? year, string? doi) { var doiPart = NormalizeDoi(doi) ?? string.Empty; var raw = $"{doiPart}|{Clean(title).ToLowerInvariant()}|{string.Join("|", authors).ToLowerInvariant()}|{year}"; return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw))).ToLowerInvariant(); }
