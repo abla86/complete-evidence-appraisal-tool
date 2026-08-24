@@ -5,6 +5,7 @@ import EvidenceLibrary from './components/EvidenceLibrary';
 import ImplementationModule from './components/ImplementationModule';
 import PreAppraisalSetup from './components/PreAppraisalSetup';
 import ProjectOverview from './components/ProjectOverview';
+import ResearchCollaborationPanel from './components/ResearchCollaborationPanel';
 import ResearchDashboard from './components/ResearchDashboard';
 import ResearchModuleHub from './components/ResearchModuleHub';
 import ResearchMethods from './components/ResearchMethods';
@@ -23,6 +24,7 @@ const navItems = [
   ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
   ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
   ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
+  ['collaboration', 'Samarbeid', 'Aktive reviewere og feltlåser'],
   ['evidence', '📄 Analyser dokument', 'Last opp og spor forskningsmateriale'],
 ];
 
@@ -52,6 +54,7 @@ function App() {
     if (activePage === 'research-workspace') return <ResearchCompleteness />;
     if (activePage === 'methods') return <ResearchMethods />;
     if (activePage === 'projects') return <ProjectOverview />;
+    if (activePage === 'collaboration') return <ResearchCollaborationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
     if (activePage === 'evidence') return <EvidenceLibrary />;
     if (activePage === 'implementation') return <ImplementationModule />;
 
