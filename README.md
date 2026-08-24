@@ -23,6 +23,7 @@ The application supports researchers; it does not replace researcher judgement. 
 | KTA | Implemented | Seven-phase action-cycle documentation integrated with CFIR |
 | CFIR → KTA links | Implemented | Explicit links between determinants and implementation actions |
 | Research-document analysis | Implemented | PDF, DOCX, TXT, HTML/HTM and XML/JATS extraction, classification and candidate findings |
+| Document upload UI | Implemented | Upload control, local document preview where supported, analysis and traceability workflow |
 | RIS reference import | Implemented | Preview → researcher confirmation → metadata persistence with duplicate fingerprint protection |
 | Manual evidence | Implemented | Manual evidence entry with source, reviewer, rationale and document hash |
 | Evidence verification | Implemented | Candidate evidence can be reviewed and marked according to verification status |
@@ -33,9 +34,12 @@ The application supports researchers; it does not replace researcher judgement. 
 | Data-extraction workspace | Implemented | Study, field, value, unit, source location and reviewer fields |
 | PICO/PECO setup | Implemented | Population, intervention/exposure, comparison, outcome, timeframe and design fields |
 | Conflict comparison | Implemented | Reviewer comparison and explicit conflict listing before consensus |
+| Reviewer presence | Implemented | Project-scoped presence heartbeat with automatic expiry |
+| Field locking | Implemented | Server-authoritative 30-second reviewer locks with explicit release and expiry |
 | Final integrity marker | Implemented | Canonical submitted dataset receives SHA-256 integrity hash and finalization timestamp |
 | Local draft resilience | Implemented | Research workflow drafts are retained in browser local storage |
 | Persistent uploaded source files | Not implemented | Source files are analysed in memory; the analysis endpoint does not retain the original upload |
+| OCR for scanned PDFs | Not implemented | Scanned/image-only documents are detected and explicitly flagged for manual/OCR follow-up; no false text evidence is generated |
 | Authentication/authorization | Not implemented | Public prototype must not be used for identifiable/confidential research data |
 | Production research-data governance | Not implemented | Requires deployment-specific identity, access, encryption, backup, retention and institutional governance |
 
@@ -60,7 +64,7 @@ Full-text/document analysis
   ↓
 Candidate evidence
   ↓
-Researcher verification
+Researcher verification / manual evidence
   ↓
 Critical appraisal
   ↓
@@ -103,7 +107,7 @@ The application follows the explicit safety rule:
 
 > **AI/machine extraction proposes; the researcher verifies.**
 
-If a passage is not found, the application must not infer that the study did not perform the activity. The researcher can inspect the original article, supplement, protocol, registry or other source and add evidence manually.
+If a passage is not found, the application must not infer that the study did not perform the activity. The researcher is explicitly directed to inspect the original article, supplement, protocol, registry or other source and can add the evidence manually. A low-confidence or missing extraction is therefore a verification state, not a scientific conclusion.
 
 ## Reference import and deduplication
 
@@ -139,9 +143,11 @@ The application treats extraction as researcher-controlled data capture. It does
 
 The workspace provides structured Population, Intervention/Exposure, Comparison and Outcome fields, with optional timeframe, study design and research-question fields. This is a framing aid and does not determine eligibility automatically.
 
-## Inter-rater and conflict handling
+## Inter-rater, collaboration and conflict handling
 
 Cohen's kappa is calculated from paired reviewer ratings before consensus. Reviewer disagreement is separately exposed through a conflict comparison endpoint and workspace. Consensus must not be inserted into the pre-consensus kappa input.
+
+Reviewer collaboration includes project-scoped presence and temporary field locks. The collaboration layer uses polling rather than adding a frontend runtime dependency; locks expire automatically and are convenience controls only. They do not replace audit history, versioning or database concurrency protection.
 
 ## Evidence verification and manual evidence
 
