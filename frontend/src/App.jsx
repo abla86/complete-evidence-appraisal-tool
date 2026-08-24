@@ -5,6 +5,7 @@ import EvidenceAuditHistory from './components/EvidenceAuditHistory';
 import EvidenceLibrary from './components/EvidenceLibrary';
 import ImplementationModule from './components/ImplementationModule';
 import PreAppraisalSetup from './components/PreAppraisalSetup';
+import PrismaExportPanel from './components/PrismaExportPanel';
 import ProjectOverview from './components/ProjectOverview';
 import ResearchCollaborationPanel from './components/ResearchCollaborationPanel';
 import ResearchDashboard from './components/ResearchDashboard';
@@ -22,6 +23,7 @@ const navItems = [
   ['dashboard', 'Dashboard', 'Oversikt og arbeidsstatus'],
   ['references', 'Referanser', 'Importer RIS, BibTeX, PubMed, XML og EndNote'],
   ['research-workspace', 'Forskningsflyt', 'Screening, dataekstraksjon, syntese og EtD'],
+  ['prisma-export', 'PRISMA-eksport', 'Validerte flyttall til SVG og JSON'],
   ['methods', 'Metoder & syntese', 'PRISMA, inter-rater og GRADE'],
   ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
   ['rob2', 'RoB 2', 'Risk of Bias 2 for randomiserte studier'],
@@ -52,10 +54,11 @@ function App() {
   }, []);
 
   function renderPage() {
-    if (!metadata && activePage !== 'rob2' && activePage !== 'references') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
+    if (!metadata && activePage !== 'rob2' && activePage !== 'references' && activePage !== 'prisma-export') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
     if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
     if (activePage === 'references') return <BibliographyUploader />;
     if (activePage === 'research-workspace') return <ResearchCompleteness />;
+    if (activePage === 'prisma-export') return <PrismaExportPanel />;
     if (activePage === 'methods') return <ResearchMethods />;
     if (activePage === 'projects') return <ProjectOverview />;
     if (activePage === 'collaboration') return <ResearchCollaborationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
