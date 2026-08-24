@@ -17,6 +17,7 @@ builder.Services.AddSingleton<ImplementationValidationService>();
 builder.Services.AddSingleton<ImplementationExportService>();
 builder.Services.AddSingleton<PdfAnalysisService>();
 builder.Services.AddSingleton<DocumentAnalysisService>();
+builder.Services.AddSingleton<RisImportService>();
 
 var implementationConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ImplementationDbContext>(options =>
@@ -65,7 +66,7 @@ app.MapGet("/api", () => Results.Ok(new
 {
     application = "Evidence Appraisal Tool API",
     status = "Research tool / prototype",
-    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis" },
+    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis", "RIS Reference Import" },
     methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
     safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.",
     securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted."
@@ -91,7 +92,6 @@ app.MapGet("/api/amstar2/metadata", () => Results.Ok(new
     currentCapabilities = new[] { "Typed assessment submission", "Structural validation", "Required rationale validation", "Required evidence-location validation", "Critical-domain prespecification validation" },
     unavailableCapabilities = new[] { "Automatic professional judgement", "Multi-reviewer reconciliation", "Clinical or policy recommendation" }
 }));
-
 app.MapGet("/api/cfir2/metadata", (ImplementationValidationService service) => Results.Ok(new
 {
     framework = "CFIR 2.0", frameworkVersion = "Updated 2022 framework", constructCount = 48, subconstructCount = 19,
@@ -126,6 +126,7 @@ async Task<IResult> AnalyzeResearchDocument(HttpRequest request, DocumentAnalysi
 
 app.MapPost("/api/evidence/analyze", AnalyzeResearchDocument);
 app.MapPost("/api/evidence/pdf/analyze", AnalyzeResearchDocument);
+app.MapRisImportEndpoints();
 
 app.MapGet("/api/evidence/manual/{documentHash}", async (string documentHash, EvidenceDbContext db, CancellationToken cancellationToken) =>
 {
@@ -139,7 +140,6 @@ app.MapPost("/api/evidence/manual", async (ManualEvidenceRequest request, Eviden
     var errors = ValidateManualEvidence(request);
     if (errors.Count > 0) return Results.BadRequest(new { error = "Manual evidence is incomplete.", details = errors });
     if (!request.DocumentHashSha256.All(Uri.IsHexDigit) || request.DocumentHashSha256.Length != 64) return Results.BadRequest(new { error = "DocumentHashSha256 must be a 64-character SHA-256 hexadecimal hash." });
-
     var entity = new EvidenceRecordEntity
     {
         DocumentHashSha256 = request.DocumentHashSha256.ToLowerInvariant(), Instrument = request.Instrument.Trim(), ItemOrDomain = request.ItemOrDomain.Trim(),
@@ -153,7 +153,6 @@ app.MapPost("/api/evidence/manual", async (ManualEvidenceRequest request, Eviden
 });
 
 app.MapEvidenceVerificationEndpoints();
-
 app.MapPost("/api/implementation/save", async (ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationPersistenceService persistenceService, CancellationToken cancellationToken) =>
 {
     var validation = validationService.ValidateImplementation(assessment.Cfir, assessment.Kta);
