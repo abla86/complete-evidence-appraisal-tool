@@ -26,6 +26,15 @@ The application supports researchers; it does not replace researcher judgement. 
 | RIS reference import | Implemented | Preview → researcher confirmation → metadata persistence with duplicate fingerprint protection |
 | Manual evidence | Implemented | Manual evidence entry with source, reviewer, rationale and document hash |
 | Evidence verification | Implemented | Candidate evidence can be reviewed and marked according to verification status |
+| PRISMA validation | Implemented | Reconciliation checks for identification, screening, eligibility and inclusion counts |
+| Cohen's kappa | Implemented | Category-based observed/expected agreement calculation before consensus |
+| Deduplication | Implemented | DOI matching plus title/year/first-author similarity candidates |
+| Screening workspace | Implemented | Include/Exclude/Maybe, reviewer and exclusion-reason fields |
+| Data-extraction workspace | Implemented | Study, field, value, unit, source location and reviewer fields |
+| PICO/PECO setup | Implemented | Population, intervention/exposure, comparison, outcome, timeframe and design fields |
+| Conflict comparison | Implemented | Reviewer comparison and explicit conflict listing before consensus |
+| Final integrity marker | Implemented | Canonical submitted dataset receives SHA-256 integrity hash and finalization timestamp |
+| Local draft resilience | Implemented | Research workflow drafts are retained in browser local storage |
 | Persistent uploaded source files | Not implemented | Source files are analysed in memory; the analysis endpoint does not retain the original upload |
 | Authentication/authorization | Not implemented | Public prototype must not be used for identifiable/confidential research data |
 | Production research-data governance | Not implemented | Requires deployment-specific identity, access, encryption, backup, retention and institutional governance |
@@ -41,61 +50,34 @@ Reference preview and duplicate check
   ↓
 Study/reference library
   ↓
-Document upload
+PICO / PECO framing
   ↓
-Document classification
+Screening
   ↓
-Evidence extraction
+PRISMA reconciliation
   ↓
-Candidate findings
+Full-text/document analysis
   ↓
-Instrument suitability
+Candidate evidence
   ↓
 Researcher verification
   ↓
-Reviewer appraisal
+Critical appraisal
+  ↓
+Data extraction
   ↓
 Second reviewer / disagreement
   ↓
+Inter-rater reliability
+  ↓
 Consensus
   ↓
-Final appraisal
+GRADE / synthesis
   ↓
-Audit trail
+Final integrity marker
   ↓
 Export
 ```
-
-## RIS reference import
-
-From the **Referanser** workspace, select **+ Velg RIS-fil**.
-
-The importer supports standard `.ris` text exports from reference managers and bibliographic databases. RIS is widely used for bibliographic exchange; Zotero supports RIS import/export and notes that RIS implementations can differ between data sources. EndNote also provides a RefMan RIS export style.
-
-- Zotero: https://www.zotero.org/support/dev/data_formats
-- EndNote RefMan RIS: https://endnote.com/downloads/filters/refman-ris/
-
-The workflow is deliberately two-step:
-
-1. **Preview** — the file is parsed and the researcher sees title, authors, year, DOI and journal before anything is stored.
-2. **Confirm import** — only after confirmation are new records persisted.
-
-The importer:
-
-- accepts `.ris` only for this endpoint
-- supports multiple records in one file
-- supports repeated author tags
-- supports common title, year, DOI, journal and abstract tags
-- accepts common RIS variants such as `TI`/`T1`, `PY`/`Y1`, `JF`/`JO` and `AB`/`N2`
-- normalises DOI prefixes such as `https://doi.org/` and `doi:`
-- supports continuation lines for text fields
-- creates a SHA-256-based bibliographic fingerprint
-- skips already imported records with the same fingerprint
-- does **not** invent missing bibliographic metadata.
-
-RIS exports vary between databases and reference managers, so the preview is a required research-safety step rather than an optional convenience.
-
-The import stores **bibliographic metadata only**. It does not establish study eligibility, methodological quality, risk of bias, evidence certainty or inclusion in a systematic review.
 
 ## Research document analysis
 
@@ -109,61 +91,77 @@ Supported formats:
 - HTML / HTM
 - XML / JATS XML where supplied by the publisher
 
-Maximum upload size: 25 MB.
-
 The application validates uploads, calculates a SHA-256 document hash and extracts text without modifying the original source. PDF documents are analysed page by page; other supported formats are converted into source units.
 
-The analysis can:
-
-- classify document type heuristically
-- report confidence and classification signals
-- assess instrument suitability as suitable/caution/not suitable/unknown
-- locate candidate passages
-- show source location and excerpts where available
-- report SHA-256
-- warn about missing selectable text
-- identify candidate evidence.
+The analysis can classify document type heuristically, report confidence and signals, assess instrument suitability, locate candidate passages and report source locations where available.
 
 It does **not** automatically determine AMSTAR 2 answers, CASP answers, AGREE II ratings, GRADE certainty, overall study quality, clinical recommendations or policy recommendations.
 
+### Human verification rule
+
+The application follows the explicit safety rule:
+
+> **AI/machine extraction proposes; the researcher verifies.**
+
+If a passage is not found, the application must not infer that the study did not perform the activity. The researcher can inspect the original article, supplement, protocol, registry or other source and add evidence manually.
+
+## Reference import and deduplication
+
+The RIS workflow supports EndNote/Zotero-style `.ris` imports with preview and confirmation. DOI and bibliographic fingerprints prevent straightforward duplicate imports. The research workflow also exposes a second-stage deduplication service that identifies identical DOI records and high-similarity title/year/first-author candidates. Candidate duplicates are flagged for researcher confirmation rather than silently merged.
+
+## Screening and PRISMA
+
+The research workspace now provides an explicit screening table with:
+
+- Include
+- Exclude
+- Maybe
+- reviewer
+- exclusion reason
+- notes
+
+PRISMA validation reconciles identification → screening, screening → eligibility and eligibility → inclusion counts and reports inconsistencies instead of silently correcting them.
+
+## Data extraction
+
+Extraction records can capture:
+
+- study
+- field
+- value
+- unit
+- page/table/figure/source location
+- reviewer
+
+The application treats extraction as researcher-controlled data capture. It does not silently normalise, invent or correct numerical study data.
+
+## PICO / PECO
+
+The workspace provides structured Population, Intervention/Exposure, Comparison and Outcome fields, with optional timeframe, study design and research-question fields. This is a framing aid and does not determine eligibility automatically.
+
+## Inter-rater and conflict handling
+
+Cohen's kappa is calculated from paired reviewer ratings before consensus. Reviewer disagreement is separately exposed through a conflict comparison endpoint and workspace. Consensus must not be inserted into the pre-consensus kappa input.
+
 ## Evidence verification and manual evidence
 
-Candidate findings are not final scientific judgements.
+Candidate findings are not final scientific judgements. The researcher can add evidence manually when automated extraction misses relevant information, when evidence is in a supplement/protocol/registry, or when contextual interpretation is required.
 
-The researcher can add evidence manually when:
+Manual evidence is stored with document hash, instrument, item/domain, source type, source location, reviewer and rationale. Verification status distinguishes the researcher's decision from automated candidate findings.
 
-- the automated extraction misses relevant information
-- information is located in a supplement/protocol/registry
-- a passage requires contextual interpretation
-- the researcher needs to document a source that the automated analyser cannot safely identify.
+**Not found is never equivalent to No.**
 
-Manual evidence is stored with document hash, instrument, item/domain, source type, source location, reviewer and rationale.
+## Finalization and integrity
 
-Verification statuses distinguish the researcher's decision from the automated candidate finding. **Not found is never equivalent to No.** If the application cannot establish a criterion from the available document, the researcher is told to inspect the original source and relevant supplementary material.
+The research workflow can submit the complete working dataset to the finalization endpoint. The server creates a SHA-256 integrity marker and UTC timestamp for the submitted dataset. This is a tamper-evident integrity marker, not a cryptographic signature, legal certification or methodological approval.
 
-## Research-safety rules
-
-The application must never invent:
-
-- evidence
-- page numbers
-- DOI
-- authors
-- methods
-- study characteristics
-- source locations.
-
-If information cannot be determined reliably, it must remain uncertain or require researcher verification.
-
-A missing text match does not establish that the activity was not performed.
+Finalization does not claim that the underlying appraisal is correct. A future production implementation should additionally enforce immutable project state and authenticated authorization before allowing finalization to become a legally or institutionally relied-upon record.
 
 ## Instrument safeguards
 
 ### AMSTAR 2
 
 AMSTAR 2 contains 16 items and uses critical-domain judgements to inform overall confidence. The application does not calculate or present a numerical AMSTAR 2 total score.
-
-If no meta-analysis was performed, the relevant AMSTAR 2 items are handled according to the instrument's own response options rather than by applying a generic "not applicable" rule to unrelated items.
 
 ### CASP
 
@@ -179,55 +177,15 @@ GRADE is outcome/evidence-base oriented. It is not treated as a generic quality 
 
 ## CFIR 2.0 + KTA
 
-The implementation module supports:
+The implementation module supports CFIR 2.0 construct assessment, rationale/evidence location, reviewer information, KTA's seven action-cycle phases, implementation actions, CFIR-to-KTA links, EF Core persistence, audit events and JSON/CSV/XLSX/DOCX/PDF export.
 
-- CFIR 2.0 construct assessment
-- rationale and evidence location
-- reviewer information
-- KTA's seven action-cycle phases
-- implementation actions
-- responsible person and deadline
-- CFIR-to-KTA links
-- EF Core persistence
-- implementation audit events
-- JSON, CSV, XLSX, DOCX and PDF export.
+## Security and production boundary
 
-The application does not calculate a CFIR quality score and does not claim that a KTA action will automatically resolve a determinant. It is not a validated CFIR measurement instrument.
+The repository includes CodeQL, Dependabot, automated checks, upload validation, SHA-256 document identity, safe error handling and security headers.
 
-## Data and persistence
+**Production blocker:** authentication and authorization are not implemented in the current prototype branch. Do not use the public deployment for patient-identifiable information, health information or confidential research data.
 
-CFIR/KTA implementation records use EF Core. SQL Server/Azure SQL is used when `ConnectionStrings:DefaultConnection` is configured; local SQLite is available for prototype operation without LocalDB or an external database.
-
-RIS reference metadata are persisted after explicit researcher confirmation. Duplicate protection uses a deterministic bibliographic fingerprint. Original RIS files are not retained by the importer.
-
-Uploaded research source files are currently processed in memory by document analysis and are not retained by that endpoint. This is not a production research-data governance solution.
-
-## Export
-
-Supported implementation/report exports include:
-
-- JSON
-- CSV
-- XLSX
-- DOCX
-- PDF
-
-Exports document the data and judgements stored in the application. They do not independently validate the underlying research appraisal.
-
-## Security
-
-The repository includes:
-
-- CodeQL
-- Dependabot
-- automated backend/frontend checks
-- least-privilege workflow permissions
-- upload type/signature/size validation
-- SHA-256 document identity
-- safe error handling
-- security headers.
-
-**Production blocker:** authentication and authorization are not implemented. Do not use the public prototype for patient-identifiable information, health information or confidential research data.
+A production release additionally requires authenticated identity, role-based authorization, encrypted storage, managed secrets, backup/restore testing, retention policy, access auditing, rate limiting and institutional governance appropriate to the data being processed.
 
 ## Ownership
 
