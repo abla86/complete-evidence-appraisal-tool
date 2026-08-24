@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { getProjectAudit, getProjectOverview } from '../api/researchApi';
+import ResearchCollaborationPanel from './ResearchCollaborationPanel';
 
 export default function ProjectOverview() {
   const [projects, setProjects] = useState([]);
   const [audit, setAudit] = useState({});
   const [error, setError] = useState('');
+  const [collaborationProject, setCollaborationProject] = useState(() => localStorage.getItem('eat-project-id') || 'research-workspace');
 
   useEffect(() => {
     let cancelled = false;
@@ -26,6 +28,13 @@ export default function ProjectOverview() {
     <h2 id="projects-heading">Prosjektoversikt</h2>
     <p>Samler CFIR-funn, KTA-tiltak, reviewerroller, konsensusstatus og audit trail. Audit trail viser hva som er registrert, av hvem og når.</p>
     {error && <div className="message message-error" role="alert">{error}</div>}
+
+    <section className="assessment-card">
+      <h3>Reviewer-samarbeid</h3>
+      <label>Prosjekt-ID for samarbeidsrom<input value={collaborationProject} onChange={(e) => setCollaborationProject(e.target.value)} /></label>
+      <ResearchCollaborationPanel projectId={collaborationProject || 'research-workspace'} />
+    </section>
+
     {projects.length === 0 && <div className="message"><p>Ingen lagrede prosjekter.</p></div>}
     {projects.map((project) => <article className="assessment-card" key={project.assessmentId}>
       <div className="project-header"><div><p className="eyebrow">{project.cfirStatus}</p><h3>{project.title || 'Uten prosjektnavn'}</h3></div><time dateTime={project.lastChangedUtc}>Sist endret {new Date(project.lastChangedUtc).toLocaleString('nb-NO')}</time></div>
