@@ -53,6 +53,23 @@ public static class EvidenceVerificationEndpoints
             return Results.Ok(ToDto(entity));
         });
 
+        app.MapGet("/api/evidence/manual/{id:guid}/history", async (Guid id, EvidenceDbContext db, CancellationToken cancellationToken) =>
+        {
+            var exists = await db.EvidenceRecords.AsNoTracking().AnyAsync(x => x.Id == id, cancellationToken);
+            if (!exists) return Results.NotFound(new { error = "Evidence record not found." });
+
+            var history = await db.EvidenceRecordHistory.AsNoTracking()
+                .Where(x => x.EvidenceRecordId == id)
+                .OrderByDescending(x => x.Version)
+                .ToListAsync(cancellationToken);
+
+            return Results.Ok(history.Select(x => new
+            {
+                x.Id, x.EvidenceRecordId, x.Version, x.Status, x.Reviewer,
+                x.VerificationNote, x.VerifiedAtUtc, x.RecordedAtUtc, x.Action
+            }));
+        });
+
         app.MapGet("/api/evidence/manual/{documentHash}/summary", async (string documentHash, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
             var records = await db.EvidenceRecords.AsNoTracking()
