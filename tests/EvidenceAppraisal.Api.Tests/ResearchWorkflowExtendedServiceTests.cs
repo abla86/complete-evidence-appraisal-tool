@@ -33,7 +33,7 @@ public sealed class ResearchWorkflowExtendedServiceTests
     }
 }
 
-public sealed class ResearchWorkflowServiceTests
+public sealed class ResearchWorkflowAdditionalServiceTests
 {
     [Fact]
     public void Kappa_for_perfect_agreement_is_one()
