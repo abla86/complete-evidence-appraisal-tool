@@ -6,6 +6,7 @@ namespace EvidenceAppraisal.Api.Data;
 public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> options) : DbContext(options)
 {
     public DbSet<EvidenceRecordEntity> EvidenceRecords => Set<EvidenceRecordEntity>();
+    public DbSet<StudyMetadata> Studies => Set<StudyMetadata>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +31,21 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.VerifiedBy).HasMaxLength(100);
             b.HasIndex(x => new { x.DocumentHashSha256, x.Instrument });
             b.HasIndex(x => new { x.DocumentHashSha256, x.Status });
+        });
+
+        modelBuilder.Entity<StudyMetadata>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Title).HasMaxLength(2000).IsRequired();
+            b.Property(x => x.Type).HasMaxLength(100);
+            b.Property(x => x.Year).HasMaxLength(50);
+            b.Property(x => x.Doi).HasMaxLength(500);
+            b.Property(x => x.Journal).HasMaxLength(1000);
+            b.Property(x => x.Abstract).HasMaxLength(12000);
+            b.Property(x => x.SourceDatabase).HasMaxLength(100);
+            b.Property(x => x.ImportFingerprint).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => x.ImportFingerprint).IsUnique();
+            b.HasIndex(x => x.Doi);
         });
     }
 }
