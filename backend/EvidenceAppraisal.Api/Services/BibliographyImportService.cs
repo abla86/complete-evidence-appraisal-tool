@@ -164,12 +164,27 @@ public sealed class BibliographyImportService
 
     private static string BibValue(string body, string field)
     {
-        var match = Regex.Match(body, $@"(?is)(?:^|,)\s*{Regex.Escape(field)}\s*=\s*(?<value>\{{(?:[^{{}}]|\{{[^{{}}]*\}})*\}}|\"(?:[^\"\\]|\\.)*\"|[^,]+)");
-        if (!match.Success) return string.Empty;
-        var value = match.Groups["value"].Value.Trim().TrimEnd(',').Trim();
-        if (value.Length >= 2 && ((value[0] == '{' && value[^1] == '}') || (value[0] == '"' && value[^1] == '"')))
-            value = value[1..^1];
-        return Regex.Replace(value, @"\s+", " ").Trim();
+        var prefix = "(?:^|,)\\s*" + Regex.Escape(field) + "\\s*=\\s*";
+        var patterns = new[]
+        {
+            prefix + "(?<value>\\{[^}]*\\})",
+            prefix + "(?<value>\"(?:[^\"\\\\]|\\\\.)*\")",
+            prefix + "(?<value>[^,]+)"
+        };
+
+        foreach (var pattern in patterns)
+        {
+            var match = Regex.Match(body, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (!match.Success) continue;
+
+            var value = match.Groups["value"].Value.Trim().TrimEnd(',').Trim();
+            if (value.Length >= 2 && ((value[0] == '{' && value[^1] == '}') || (value[0] == '"' && value[^1] == '"')))
+                value = value[1..^1];
+
+            return Regex.Replace(value, @"\s+", " ").Trim();
+        }
+
+        return string.Empty;
     }
 
     private static List<StudyMetadata> ParseNbib(string content)
