@@ -31,8 +31,25 @@ public static class EvidenceVerificationEndpoints
             entity.VerifiedBy = request.Reviewer.Trim();
             entity.VerificationNote = request.VerificationNote?.Trim();
             entity.VerifiedAtUtc = DateTime.UtcNow;
-            await db.SaveChangesAsync(cancellationToken);
 
+            var lastVersion = await db.EvidenceRecordHistory
+                .Where(x => x.EvidenceRecordId == id)
+                .Select(x => (int?)x.Version)
+                .MaxAsync(cancellationToken) ?? 0;
+
+            db.EvidenceRecordHistory.Add(new EvidenceRecordHistoryEntity
+            {
+                EvidenceRecordId = entity.Id,
+                Version = lastVersion + 1,
+                Status = entity.Status,
+                Reviewer = entity.VerifiedBy,
+                VerificationNote = entity.VerificationNote,
+                VerifiedAtUtc = entity.VerifiedAtUtc,
+                RecordedAtUtc = DateTime.UtcNow,
+                Action = "Verification update"
+            });
+
+            await db.SaveChangesAsync(cancellationToken);
             return Results.Ok(ToDto(entity));
         });
 
