@@ -8,14 +8,17 @@ import ProjectOverview from './components/ProjectOverview';
 import ResearchDashboard from './components/ResearchDashboard';
 import ResearchModuleHub from './components/ResearchModuleHub';
 import ResearchMethods from './components/ResearchMethods';
+import ResearchCompleteness from './components/ResearchCompleteness';
 import RisUploader from './components/RisUploader';
 import './App.css';
 import './workspace.css';
 import './components/EvidenceLibrary.css';
+import './components/ResearchCompleteness.css';
 
 const navItems = [
   ['dashboard', 'Dashboard', 'Oversikt og arbeidsstatus'],
   ['references', 'Referanser', 'Importer RIS fra EndNote/Zotero'],
+  ['research-workspace', 'Komplett forskningsflyt', 'Screening, dual extraction, syntese og EtD'],
   ['methods', 'Metoder & syntese', 'PRISMA, inter-rater og GRADE SoF'],
   ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
   ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
@@ -46,6 +49,7 @@ function App() {
     if (!metadata) return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
     if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
     if (activePage === 'references') return <RisUploader />;
+    if (activePage === 'research-workspace') return <ResearchCompleteness />;
     if (activePage === 'methods') return <ResearchMethods />;
     if (activePage === 'projects') return <ProjectOverview />;
     if (activePage === 'evidence') return <EvidenceLibrary />;
