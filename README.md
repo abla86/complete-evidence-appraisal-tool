@@ -22,7 +22,8 @@ The application supports researchers; it does not replace researcher judgement. 
 | CFIR 2.0 | Implemented | Integrated construct assessment and traceability |
 | KTA | Implemented | Seven-phase action-cycle documentation integrated with CFIR |
 | CFIR → KTA links | Implemented | Explicit links between determinants and implementation actions |
-| Research-document analysis | Implemented | PDF, DOCX, TXT, HTML/HTM and XML extraction, classification and candidate findings |
+| Research-document analysis | Implemented | PDF, DOCX, TXT, HTML/HTM and XML/JATS extraction, classification and candidate findings |
+| RIS reference import | Implemented | Preview → researcher confirmation → metadata persistence with duplicate fingerprint protection |
 | Manual evidence | Implemented | Manual evidence entry with source, reviewer, rationale and document hash |
 | Evidence verification | Implemented | Candidate evidence can be reviewed and marked according to verification status |
 | Persistent uploaded source files | Not implemented | Source files are analysed in memory; the analysis endpoint does not retain the original upload |
@@ -34,7 +35,13 @@ The table intentionally separates implemented software from production-readiness
 ## Research workflow
 
 ```text
-Document
+Reference import (RIS)
+  ↓
+Reference preview and duplicate check
+  ↓
+Study/reference library
+  ↓
+Document upload
   ↓
 Document classification
   ↓
@@ -58,6 +65,34 @@ Audit trail
   ↓
 Export
 ```
+
+## RIS reference import
+
+From the **Referanser** workspace, select **+ Velg RIS-fil**.
+
+The importer supports a standard `.ris` text export from reference managers and bibliographic databases. RIS is widely used for exchange between reference managers and databases, including Zotero workflows and EndNote's RefMan RIS export. citeturn1search0turn1search5
+
+The workflow is deliberately two-step:
+
+1. **Preview** — the file is parsed and the researcher sees title, authors, year, DOI and journal before anything is stored.
+2. **Confirm import** — only after confirmation are new records persisted.
+
+The importer:
+
+- accepts `.ris` only for this endpoint
+- supports multiple records in one file
+- supports repeated author tags
+- supports common title, year, DOI, journal and abstract tags
+- accepts common RIS variants such as `TI`/`T1`, `PY`/`Y1`, `JF`/`JO` and `AB`/`N2`
+- normalises DOI prefixes such as `https://doi.org/` and `doi:`
+- supports continuation lines for text fields
+- creates a SHA-256-based bibliographic fingerprint
+- skips already imported records with the same fingerprint
+- does **not** invent missing bibliographic metadata.
+
+RIS exports vary between databases and reference managers, so the preview is a required research-safety step rather than an optional convenience. Zotero explicitly notes that RIS implementations can diverge and may require preprocessing for non-standard tags. citeturn1search0
+
+The import stores **bibliographic metadata only**. It does not establish study eligibility, methodological quality, risk of bias, evidence certainty or inclusion in a systematic review.
 
 ## Research document analysis
 
@@ -159,6 +194,8 @@ The application does not calculate a CFIR quality score and does not claim that 
 ## Data and persistence
 
 CFIR/KTA implementation records use EF Core. SQL Server/Azure SQL is used when `ConnectionStrings:DefaultConnection` is configured; local SQLite is available for prototype operation without LocalDB or an external database.
+
+RIS reference metadata are persisted after explicit researcher confirmation. Duplicate protection uses a deterministic bibliographic fingerprint. Original RIS files are not retained by the importer.
 
 Uploaded research source files are currently processed in memory by document analysis and are not retained by that endpoint. This is not a production research-data governance solution.
 
