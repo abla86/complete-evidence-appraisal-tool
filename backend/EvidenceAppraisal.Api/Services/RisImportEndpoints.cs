@@ -1,4 +1,5 @@
 using EvidenceAppraisal.Api.Data;
+using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvidenceAppraisal.Api.Services;
@@ -12,7 +13,42 @@ public static class RisImportEndpoints
         endpoints.MapPost("/api/import/ris-preview", Preview);
         endpoints.MapPost("/api/import/ris", Import);
         endpoints.MapGet("/api/studies", ListStudies);
+        endpoints.MapGet("/api/research/methodologies", ListMethodologies);
+        endpoints.MapPost("/api/research/prisma/validate", ValidatePrisma);
+        endpoints.MapPost("/api/research/kappa", CalculateKappa);
         return endpoints;
+    }
+
+    private static IResult ListMethodologies() => Results.Ok(Enum.GetValues<ResearchMethodology>().Select(method => new
+    {
+        id = method.ToString(),
+        name = method switch
+        {
+            ResearchMethodology.SystematicReview => "Systematic review",
+            ResearchMethodology.MetaAnalysis => "Meta-analysis",
+            ResearchMethodology.QualitativeSynthesis => "Qualitative synthesis",
+            ResearchMethodology.ScopingReview => "Scoping review",
+            ResearchMethodology.GuidelineDevelopment => "Guideline development",
+            _ => method.ToString()
+        },
+        recommendedModules = method switch
+        {
+            ResearchMethodology.SystematicReview => new[] { "PRISMA", "AMSTAR 2", "CASP", "RoB tools", "GRADE" },
+            ResearchMethodology.MetaAnalysis => new[] { "PRISMA", "RoB tools", "GRADE", "Effect-size export" },
+            ResearchMethodology.QualitativeSynthesis => new[] { "JBI/CASP", "Extraction", "Thematic synthesis" },
+            ResearchMethodology.ScopingReview => new[] { "PRISMA-ScR", "JBI", "Extraction" },
+            ResearchMethodology.GuidelineDevelopment => new[] { "AGREE II", "GRADE SoF" },
+            _ => Array.Empty<string>()
+        }
+    }));
+
+    private static IResult ValidatePrisma(PrismaFlowInput input)
+        => Results.Ok(new ResearchWorkflowService().ValidatePrisma(input));
+
+    private static IResult CalculateKappa(KappaInput input)
+    {
+        try { return Results.Ok(new ResearchWorkflowService().CalculateKappa(input)); }
+        catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
     }
 
     private static async Task<IResult> Preview(HttpRequest request, RisImportService parser, CancellationToken cancellationToken)
