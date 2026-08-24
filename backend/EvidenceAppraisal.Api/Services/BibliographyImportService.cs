@@ -54,7 +54,8 @@ public sealed class BibliographyImportService
             var authors = BibValue(body, "author").Split(" and ", StringSplitOptions.RemoveEmptyEntries).Select(NormalizeAuthor).ToList();
             var year = BibValue(body, "year");
             var doi = NormalizeDoi(BibValue(body, "doi"));
-            var journal = BibValue(body, "journal") ?? BibValue(body, "booktitle");
+            var journal = BibValue(body, "journal");
+            if (string.IsNullOrWhiteSpace(journal)) journal = BibValue(body, "booktitle");
             result.Add(Build(title, authors, year, doi, journal, BibValue(body, "abstract"), entry.Value.Split('{')[0].Trim().TrimStart('@')));
         }
         return result;
@@ -63,19 +64,13 @@ public sealed class BibliographyImportService
     private static List<StudyMetadata> ParseNbib(string content)
     {
         var blocks = Regex.Split(content.Replace("\r\n", "\n"), @"(?m)(?=^PMID-)").Where(x => !string.IsNullOrWhiteSpace(x));
-        return blocks.Select(block => Build(
-            PubmedValue(block, "TI-"),
-            PubmedValues(block, "AU-").Select(NormalizeAuthor).ToList(),
-            Regex.Match(PubmedValue(block, "DP-"), @"\b(19|20)\d{2}\b").Value,
-            NormalizeDoi(PubmedValues(block, "LID-").FirstOrDefault(x => x.Contains("doi.org", StringComparison.OrdinalIgnoreCase))),
-            PubmedValue(block, "JT-"), PubmedValue(block, "AB-"), "MEDLINE")).Where(x => !string.IsNullOrWhiteSpace(x.Title)).ToList();
+        return blocks.Select(block => Build(PubmedValue(block, "TI-"), PubmedValues(block, "AU-").Select(NormalizeAuthor).ToList(), Regex.Match(PubmedValue(block, "DP-"), @"\b(19|20)\d{2}\b").Value, NormalizeDoi(PubmedValues(block, "LID-").FirstOrDefault(x => x.Contains("doi.org", StringComparison.OrdinalIgnoreCase))), PubmedValue(block, "JT-"), PubmedValue(block, "AB-"), "MEDLINE")).Where(x => !string.IsNullOrWhiteSpace(x.Title)).ToList();
     }
 
     private static List<StudyMetadata> ParseEndNote(string content)
     {
         var blocks = Regex.Split(content.Replace("\r\n", "\n"), @"(?m)(?=^%0)").Where(x => !string.IsNullOrWhiteSpace(x));
-        return blocks.Select(block => Build(
-            EndNoteValue(block, "%T"), EndNoteValues(block, "%A").Select(NormalizeAuthor).ToList(), EndNoteValue(block, "%D"), NormalizeDoi(EndNoteValue(block, "%R")), EndNoteValue(block, "%J"), EndNoteValue(block, "%X"), EndNoteValue(block, "%0"))).Where(x => !string.IsNullOrWhiteSpace(x.Title)).ToList();
+        return blocks.Select(block => Build(EndNoteValue(block, "%T"), EndNoteValues(block, "%A").Select(NormalizeAuthor).ToList(), EndNoteValue(block, "%D"), NormalizeDoi(EndNoteValue(block, "%R")), EndNoteValue(block, "%J"), EndNoteValue(block, "%X"), EndNoteValue(block, "%0"))).Where(x => !string.IsNullOrWhiteSpace(x.Title)).ToList();
     }
 
     private static List<StudyMetadata> ParseXml(string content)
@@ -99,7 +94,7 @@ public sealed class BibliographyImportService
     };
 
     private static IEnumerable<string> TagValues(string record, params string[] tags) => Regex.Matches(record, @"(?m)^([A-Z0-9]{2})\s*-\s*(.*)$").Cast<Match>().Where(m => tags.Contains(m.Groups[1].Value, StringComparer.OrdinalIgnoreCase)).Select(m => m.Groups[2].Value.Trim());
-    private static string BibValue(string body, string field) => Regex.Match(body, $@"(?im)^\s*{Regex.Escape(field)}\s*=\s*[\{{\"](?<v>.*?)[\}}\"]\s*,?\s*$").Groups["v"].Value.Trim();
+    private static string BibValue(string body, string field) => Regex.Match(body, $@"(?im)^\s*{Regex.Escape(field)}\s*=\s*[\{{\""](?<v>.*?)[\}}\""]\s*,?\s*$").Groups["v"].Value.Trim();
     private static string PubmedValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(.*)$").Groups[1].Value.Trim();
     private static IEnumerable<string> PubmedValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
     private static string EndNoteValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Groups[1].Value.Trim();
@@ -108,5 +103,5 @@ public sealed class BibliographyImportService
     private static string? NormalizeDoi(string? value) { if (string.IsNullOrWhiteSpace(value)) return null; var m = Regex.Match(value, @"10\.\d{4,9}/[^\s<>\"']+", RegexOptions.IgnoreCase); return m.Success ? m.Value.TrimEnd('.', ',', ';', ')') : null; }
     private static string Clean(string value) => Regex.Replace(value.Replace("\n", " "), @"\s+", " ").Trim();
     private static string? CleanNullable(string? value) => string.IsNullOrWhiteSpace(value) ? null : Clean(value);
-    private static string Fingerprint(string title, IEnumerable<string> authors, string? year, string? doi) { var raw = $"{NormalizeDoi(doi) ?? ""}|{Clean(title).ToLowerInvariant()}|{string.Join("|", authors).ToLowerInvariant()}|{year}"; return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw))).ToLowerInvariant(); }
+    private static string Fingerprint(string title, IEnumerable<string> authors, string? year, string? doi) { var doiPart = NormalizeDoi(doi) ?? string.Empty; var raw = $"{doiPart}|{Clean(title).ToLowerInvariant()}|{string.Join("|", authors).ToLowerInvariant()}|{year}"; return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw))).ToLowerInvariant(); }
 }
