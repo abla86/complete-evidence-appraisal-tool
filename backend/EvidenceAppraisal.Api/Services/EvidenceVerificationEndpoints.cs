@@ -132,6 +132,8 @@ public static class EvidenceVerificationEndpoints
             Collaboration.Release(projectId, request.FieldId.Trim(), request.ReviewerId.Trim());
             return Results.Ok(new { released = true });
         });
+
+        app.MapEvidenceAuditExportEndpoints();
     }
 
     private static EvidenceRecordDto ToDto(EvidenceRecordEntity entity) => new(
