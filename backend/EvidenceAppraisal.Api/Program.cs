@@ -18,6 +18,8 @@ builder.Services.AddSingleton<ImplementationExportService>();
 builder.Services.AddSingleton<PdfAnalysisService>();
 builder.Services.AddSingleton<DocumentAnalysisService>();
 builder.Services.AddSingleton<RisImportService>();
+builder.Services.AddSingleton<ResearchWorkflowService>();
+builder.Services.AddSingleton<ResearchWorkflowExtendedService>();
 
 var implementationConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ImplementationDbContext>(options =>
@@ -66,7 +68,7 @@ app.MapGet("/api", () => Results.Ok(new
 {
     application = "Evidence Appraisal Tool API",
     status = "Research tool / prototype",
-    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis", "RIS Reference Import" },
+    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis", "RIS Reference Import", "PRISMA workflow", "Inter-rater reliability", "Deduplication", "Conflict resolution" },
     methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
     safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.",
     securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted."
@@ -83,6 +85,15 @@ app.MapGet("/api/instruments", () => Results.Ok(new object[]
     new { id = "kta", name = "Knowledge-to-Action", purpose = "Documentation of the seven-step action cycle", status = "Available", itemCount = 7, scoring = "No validated implementation-progress percentage" }
 }));
 
+app.MapGet("/api/research/methodologies", () => Results.Ok(new object[]
+{
+    new { id = "SystematicReview", name = "Systematic review", recommendedModules = new[] { "RIS", "Deduplication", "Screening", "PRISMA", "Critical appraisal", "Extraction", "GRADE" } },
+    new { id = "MetaAnalysis", name = "Meta-analysis", recommendedModules = new[] { "RIS", "Deduplication", "Screening", "Extraction", "Inter-rater", "GRADE", "Effect data export" } },
+    new { id = "QualitativeSynthesis", name = "Qualitative synthesis", recommendedModules = new[] { "RIS", "Screening", "Extraction", "Critical appraisal", "Synthesis" } },
+    new { id = "ScopingReview", name = "Scoping review", recommendedModules = new[] { "RIS", "Deduplication", "Screening", "Extraction", "PRISMA" } },
+    new { id = "GuidelineDevelopment", name = "Guideline development", recommendedModules = new[] { "Evidence appraisal", "AGREE II", "GRADE", "Consensus" } }
+}));
+
 app.MapGet("/api/amstar2/metadata", () => Results.Ok(new
 {
     instrumentName = "AMSTAR 2", instrumentVersion = "2017", totalItems = Amstar2ValidationService.TotalItems,
@@ -90,18 +101,18 @@ app.MapGet("/api/amstar2/metadata", () => Results.Ok(new
     criticalDomainNotice = "The seven domains are proposed defaults from the original publication. Critical domains must be prespecified and justified for the appraisal context.",
     scoringNotice = "AMSTAR 2 item responses must not be combined into a numerical total score.",
     currentCapabilities = new[] { "Typed assessment submission", "Structural validation", "Required rationale validation", "Required evidence-location validation", "Critical-domain prespecification validation" },
-    unavailableCapabilities = new[] { "Automatic professional judgement", "Multi-reviewer reconciliation", "Clinical or policy recommendation" }
+    unavailableCapabilities = new[] { "Automatic professional judgement", "Clinical or policy recommendation" }
 }));
 app.MapGet("/api/cfir2/metadata", (ImplementationValidationService service) => Results.Ok(new
 {
     framework = "CFIR 2.0", frameworkVersion = "Updated 2022 framework", constructCount = 48, subconstructCount = 19,
     domains = Enum.GetNames<CfirDomain>(), constructs = service.GetCfirConstructs(), officialGuide = "https://cfirguide.org/constructs",
-    methodologicalNotice = "CFIR 2.0 must be fully operationalized for the specific project. The application exposes the 48 constructs as a catalogue, while project-specific selection, subconstructs, coding and rating guidance remain researcher responsibilities."
+    methodologicalNotice = "CFIR 2.0 must be fully operationalized for the specific project."
 }));
 app.MapGet("/api/kta/metadata", (ImplementationValidationService service) => Results.Ok(new
 {
     framework = "Knowledge-to-Action Framework", frameworkVersion = "Graham et al., 2006", phases = service.GetKtaPhases(),
-    methodologicalNotice = "The KTA action cycle is iterative and bidirectional. Phase status and linked actions are documentation aids, not a validated implementation-effectiveness score."
+    methodologicalNotice = "The KTA action cycle is iterative and bidirectional."
 }));
 
 app.MapPost("/api/amstar2/validate", (Amstar2Assessment assessment, Amstar2ValidationService service) => Results.Ok(service.Validate(assessment)));
@@ -111,6 +122,17 @@ app.MapPost("/api/grade/evaluate", (GradeOutcomeAssessment assessment, GradeCert
 app.MapPost("/api/cfir2/validate", (CfirAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
 app.MapPost("/api/kta/validate", (KtaAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
 app.MapPost("/api/implementation/validate", (ImplementationAssessment assessment, ImplementationValidationService service) => Results.Ok(service.ValidateImplementation(assessment.Cfir, assessment.Kta)));
+
+app.MapPost("/api/research/prisma/validate", (PrismaFlowInput input, ResearchWorkflowService service) => Results.Ok(service.ValidatePrisma(input)));
+app.MapPost("/api/research/kappa", (KappaInput input, ResearchWorkflowService service) => Results.Ok(service.CalculateKappa(input)));
+app.MapPost("/api/research/deduplicate", (IReadOnlyList<StudyMetadata> studies, ResearchWorkflowExtendedService service) => Results.Ok(new { candidates = service.FindDuplicates(studies) }));
+app.MapPost("/api/research/conflicts", (IReadOnlyList<ReviewerConflict> comparisons, ResearchWorkflowExtendedService service) => Results.Ok(new { conflicts = service.FindConflicts(comparisons), total = comparisons.Count }));
+app.MapPost("/api/research/finalize", (JsonElement payload, ResearchWorkflowExtendedService service) =>
+{
+    var projectId = payload.TryGetProperty("projectId", out var id) ? id.GetString() : null;
+    if (string.IsNullOrWhiteSpace(projectId)) return Results.BadRequest(new { error = "projectId is required." });
+    return Results.Ok(service.CreateCompletionPackage(projectId, payload));
+});
 
 async Task<IResult> AnalyzeResearchDocument(HttpRequest request, DocumentAnalysisService service, CancellationToken cancellationToken)
 {
