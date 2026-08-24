@@ -31,6 +31,8 @@ public static class RisImportEndpoints
         var parsed = parser.ParseRisFile(file.Content!);
         if (parsed.Count == 0) return Results.BadRequest(new { error = "No valid RIS records with a title were found." });
 
+        await EnsureStudySchemaAsync(db, cancellationToken);
+
         var fingerprints = parsed.Select(x => x.ImportFingerprint).Distinct().ToArray();
         var existing = await db.Studies.AsNoTracking().Where(x => fingerprints.Contains(x.ImportFingerprint)).Select(x => x.ImportFingerprint).ToListAsync(cancellationToken);
         var existingSet = existing.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -42,7 +44,25 @@ public static class RisImportEndpoints
     }
 
     private static async Task<IResult> ListStudies(EvidenceDbContext db, CancellationToken cancellationToken)
-        => Results.Ok(await db.Studies.AsNoTracking().OrderByDescending(x => x.ImportedAtUtc).ToListAsync(cancellationToken));
+    {
+        await EnsureStudySchemaAsync(db, cancellationToken);
+        return Results.Ok(await db.Studies.AsNoTracking().OrderByDescending(x => x.ImportedAtUtc).ToListAsync(cancellationToken));
+    }
+
+    private static async Task EnsureStudySchemaAsync(EvidenceDbContext db, CancellationToken cancellationToken)
+    {
+        var provider = db.Database.ProviderName ?? string.Empty;
+        if (provider.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
+        {
+            await db.Database.ExecuteSqlRawAsync("CREATE TABLE IF NOT EXISTS Studies (Id TEXT NOT NULL CONSTRAINT PK_Studies PRIMARY KEY, Type TEXT NULL, Title TEXT NOT NULL, Authors TEXT NOT NULL, Year TEXT NULL, Doi TEXT NULL, Journal TEXT NULL, Abstract TEXT NULL, SourceDatabase TEXT NULL, ImportFingerprint TEXT NOT NULL, ImportedAtUtc TEXT NOT NULL);", cancellationToken);
+            await db.Database.ExecuteSqlRawAsync("CREATE UNIQUE INDEX IF NOT EXISTS IX_Studies_ImportFingerprint ON Studies (ImportFingerprint);", cancellationToken);
+            await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_Studies_Doi ON Studies (Doi);", cancellationToken);
+        }
+        else if (provider.Contains("SqlServer", StringComparison.OrdinalIgnoreCase))
+        {
+            await db.Database.ExecuteSqlRawAsync("IF OBJECT_ID(N'[Studies]', N'U') IS NULL BEGIN CREATE TABLE [Studies] ([Id] uniqueidentifier NOT NULL CONSTRAINT [PK_Studies] PRIMARY KEY, [Type] nvarchar(100) NULL, [Title] nvarchar(2000) NOT NULL, [Authors] nvarchar(max) NOT NULL, [Year] nvarchar(50) NULL, [Doi] nvarchar(500) NULL, [Journal] nvarchar(1000) NULL, [Abstract] nvarchar(12000) NULL, [SourceDatabase] nvarchar(100) NULL, [ImportFingerprint] nvarchar(64) NOT NULL, [ImportedAtUtc] datetime2 NOT NULL); CREATE UNIQUE INDEX [IX_Studies_ImportFingerprint] ON [Studies] ([ImportFingerprint]); CREATE INDEX [IX_Studies_Doi] ON [Studies] ([Doi]); END", cancellationToken);
+        }
+    }
 
     private static async Task<(string? Content, string? FileName, IResult? Error)> GetRisFile(HttpRequest request, CancellationToken cancellationToken)
     {
