@@ -11,7 +11,7 @@ import ResearchDashboard from './components/ResearchDashboard';
 import ResearchModuleHub from './components/ResearchModuleHub';
 import ResearchMethods from './components/ResearchMethods';
 import ResearchCompleteness from './components/ResearchCompleteness';
-import RisUploader from './components/RisUploader';
+import BibliographyUploader from './components/BibliographyUploader';
 import Rob2Assessment from './components/Rob2Assessment';
 import './App.css';
 import './workspace.css';
@@ -20,16 +20,16 @@ import './components/ResearchCompleteness.css';
 
 const navItems = [
   ['dashboard', 'Dashboard', 'Oversikt og arbeidsstatus'],
-  ['references', 'Referanser', 'Importer RIS fra EndNote/Zotero'],
-  ['research-workspace', 'Komplett forskningsflyt', 'Screening, dual extraction, syntese og EtD'],
-  ['methods', 'Metoder & syntese', 'PRISMA, inter-rater og GRADE SoF'],
+  ['references', 'Referanser', 'Importer RIS, BibTeX, PubMed, XML og EndNote'],
+  ['research-workspace', 'Forskningsflyt', 'Screening, dataekstraksjon, syntese og EtD'],
+  ['methods', 'Metoder & syntese', 'PRISMA, inter-rater og GRADE'],
   ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
   ['rob2', 'RoB 2', 'Risk of Bias 2 for randomiserte studier'],
   ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
   ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
   ['collaboration', 'Samarbeid', 'Aktive reviewere og feltlåser'],
   ['audit', 'Evidenshistorikk', 'Versjonert verifikasjon og endringsspor'],
-  ['evidence', '📄 Analyser dokument', 'Last opp og spor forskningsmateriale'],
+  ['evidence', 'Analyser dokument', 'Last opp og spor forskningsmateriale'],
 ];
 
 function App() {
@@ -52,9 +52,9 @@ function App() {
   }, []);
 
   function renderPage() {
-    if (!metadata && activePage !== 'rob2') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
+    if (!metadata && activePage !== 'rob2' && activePage !== 'references') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
     if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
-    if (activePage === 'references') return <RisUploader />;
+    if (activePage === 'references') return <BibliographyUploader />;
     if (activePage === 'research-workspace') return <ResearchCompleteness />;
     if (activePage === 'methods') return <ResearchMethods />;
     if (activePage === 'projects') return <ProjectOverview />;
