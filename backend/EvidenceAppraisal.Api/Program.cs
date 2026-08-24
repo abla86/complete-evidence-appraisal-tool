@@ -20,6 +20,7 @@ builder.Services.AddSingleton<DocumentAnalysisService>();
 builder.Services.AddSingleton<RisImportService>();
 builder.Services.AddSingleton<ResearchWorkflowService>();
 builder.Services.AddSingleton<ResearchWorkflowExtendedService>();
+builder.Services.AddSingleton<Rob2ValidationService>();
 
 var implementationConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ImplementationDbContext>(options =>
@@ -68,7 +69,7 @@ app.MapGet("/api", () => Results.Ok(new
 {
     application = "Evidence Appraisal Tool API",
     status = "Research tool / prototype",
-    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "CFIR 2.0", "KTA", "Research Document Analysis", "RIS Reference Import", "PRISMA workflow", "Inter-rater reliability", "Deduplication", "Conflict resolution" },
+    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "RoB 2 prototype", "CFIR 2.0", "KTA", "Research Document Analysis", "RIS Reference Import", "PRISMA workflow", "Inter-rater reliability", "Deduplication", "Conflict resolution" },
     methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
     safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.",
     securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted."
@@ -82,7 +83,8 @@ app.MapGet("/api/instruments", () => Results.Ok(new object[]
     new { id = "agree2", name = "AGREE II", purpose = "Appraisal of clinical practice guidelines", status = "Available", itemCount = 23, scoring = "Six standardised domain scores; no single required aggregate score" },
     new { id = "grade", name = "GRADE", purpose = "Outcome-level certainty of a body of evidence", status = "Available", itemCount = 8, scoring = "Four certainty categories with explicit domain judgements" },
     new { id = "cfir2", name = "CFIR 2.0", purpose = "Implementation determinant assessment", status = "Available", itemCount = 48, scoring = "Researcher judgement; no automatic barrier/facilitator total" },
-    new { id = "kta", name = "Knowledge-to-Action", purpose = "Documentation of the seven-step action cycle", status = "Available", itemCount = 7, scoring = "No validated implementation-progress percentage" }
+    new { id = "kta", name = "Knowledge-to-Action", purpose = "Documentation of the seven-step action cycle", status = "Available", itemCount = 7, scoring = "No validated implementation-progress percentage" },
+    new { id = "rob2", name = "Cochrane RoB 2", purpose = "Risk-of-bias assessment for randomised trials", status = "Prototype", itemCount = 5, scoring = "Researcher judgement required; no autonomous appraisal" }
 }));
 
 app.MapGet("/api/research/methodologies", () => Results.Ok(new object[]
@@ -122,6 +124,7 @@ app.MapPost("/api/grade/evaluate", (GradeOutcomeAssessment assessment, GradeCert
 app.MapPost("/api/cfir2/validate", (CfirAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
 app.MapPost("/api/kta/validate", (KtaAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
 app.MapPost("/api/implementation/validate", (ImplementationAssessment assessment, ImplementationValidationService service) => Results.Ok(service.ValidateImplementation(assessment.Cfir, assessment.Kta)));
+app.MapPost("/api/rob2/validate", (Rob2Assessment assessment, Rob2ValidationService service) => Results.Ok(service.Validate(assessment)));
 
 app.MapPost("/api/research/prisma/validate", (PrismaFlowInput input, ResearchWorkflowService service) => Results.Ok(service.ValidatePrisma(input)));
 app.MapPost("/api/research/kappa", (KappaInput input, ResearchWorkflowService service) => Results.Ok(service.CalculateKappa(input)));
@@ -191,11 +194,12 @@ app.MapGet("/api/implementation/{cfirId:guid}/{ktaId:guid}", async (Guid cfirId,
     return snapshot is null ? Results.NotFound() : Results.Ok(snapshot);
 });
 
-app.MapPost("/api/implementation/export/{format}", (string format, ImplementationAssessment assessment, ImplementationValidationService validationService, ImplementationExportService exportService) =>
+app.MapPost("/api/implementation/export/{format}", (string format, ImplementationAssessment assessment, ImplementationValidationService validationService, AssessmentReportFactory reportFactory, AssessmentExportService exportService, ImplementationExportService implementationExportService) =>
 {
     var validation = validationService.ValidateImplementation(assessment.Cfir, assessment.Kta);
     if (!validation.IsValid) return Results.BadRequest(validation);
-    return CreateExportResult(exportService.ExportJson(assessment), assessment.Cfir.Id, format);
+    if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase)) return Results.File(implementationExportService.ExportJson(assessment).Content, "application/json", $"cfir-kta-{assessment.Cfir.Id}.json");
+    return Results.BadRequest(new { error = "Use /api/implementation/export/{format}/file for file exports." });
 });
 app.MapPost("/api/amstar2/export/{format}", (string format, Amstar2Assessment assessment, Amstar2ValidationService validationService, AssessmentReportFactory reportFactory, AssessmentExportService exportService) =>
 {
@@ -229,25 +233,18 @@ app.Run();
 static List<string> ValidateManualEvidence(ManualEvidenceRequest request)
 {
     var errors = new List<string>();
-    if (string.IsNullOrWhiteSpace(request.DocumentHashSha256)) errors.Add("Document hash is required.");
+    if (string.IsNullOrWhiteSpace(request.DocumentHashSha256)) errors.Add("DocumentHashSha256 is required.");
     if (string.IsNullOrWhiteSpace(request.Instrument)) errors.Add("Instrument is required.");
-    if (string.IsNullOrWhiteSpace(request.ItemOrDomain)) errors.Add("Item/domain is required.");
-    if (string.IsNullOrWhiteSpace(request.EvidenceText)) errors.Add("Evidence text is required.");
-    if (string.IsNullOrWhiteSpace(request.SourceType)) errors.Add("Source type is required.");
+    if (string.IsNullOrWhiteSpace(request.ItemOrDomain)) errors.Add("ItemOrDomain is required.");
+    if (string.IsNullOrWhiteSpace(request.EvidenceText)) errors.Add("EvidenceText is required.");
+    if (string.IsNullOrWhiteSpace(request.SourceType)) errors.Add("SourceType is required.");
     if (string.IsNullOrWhiteSpace(request.Reviewer)) errors.Add("Reviewer is required.");
     if (string.IsNullOrWhiteSpace(request.Rationale)) errors.Add("Rationale is required.");
     return errors;
 }
 
 static EvidenceRecordDto ToEvidenceDto(EvidenceRecordEntity entity) => new(
-    entity.Id, entity.DocumentHashSha256, entity.Instrument, entity.ItemOrDomain, entity.EvidenceText, entity.SourceType,
-    entity.Page, entity.Section, entity.Table, entity.Figure, entity.Url, entity.Doi, entity.Reviewer, entity.Rationale,
-    entity.Status, entity.VerificationNote, entity.VerifiedBy, entity.VerifiedAtUtc, entity.CreatedAtUtc);
-
-static IResult CreateExportResult(ExportFile jsonFile, Guid id, string format)
-{
-    if (!string.Equals(format, "json", StringComparison.OrdinalIgnoreCase)) return Results.BadRequest(new { error = "Use /api/implementation/export/{format}/file for json, csv, xlsx, docx or pdf file downloads." });
-    return Results.File(jsonFile.Content, jsonFile.ContentType, $"cfir-kta-{id}.json");
-}
-
-public partial class Program { }
+    entity.Id, entity.DocumentHashSha256, entity.Instrument, entity.ItemOrDomain, entity.EvidenceText,
+    entity.SourceType, entity.Page, entity.Section, entity.Table, entity.Figure, entity.Url, entity.Doi,
+    entity.Reviewer, entity.Rationale, entity.Status, entity.VerificationNote, entity.VerifiedBy,
+    entity.VerifiedAtUtc, entity.CreatedAtUtc);
