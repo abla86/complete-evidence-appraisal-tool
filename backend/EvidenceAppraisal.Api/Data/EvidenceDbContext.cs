@@ -10,6 +10,13 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
     public DbSet<EvidenceRecordEntity> EvidenceRecords => Set<EvidenceRecordEntity>();
     public DbSet<EvidenceRecordHistoryEntity> EvidenceRecordHistory => Set<EvidenceRecordHistoryEntity>();
     public DbSet<StudyMetadata> Studies => Set<StudyMetadata>();
+    public DbSet<ScreeningRecordEntity> ScreeningRecords => Set<ScreeningRecordEntity>();
+    public DbSet<DataExtractionEntity> DataExtractions => Set<DataExtractionEntity>();
+    public DbSet<ResearchOutcomeEntity> ResearchOutcomes => Set<ResearchOutcomeEntity>();
+    public DbSet<ResearchAuditEntity> ResearchAudits => Set<ResearchAuditEntity>();
+    public DbSet<ResearchProjectControlEntity> ResearchProjectControls => Set<ResearchProjectControlEntity>();
+    public DbSet<ReviewerAccessEntity> ReviewerAccess => Set<ReviewerAccessEntity>();
+    public DbSet<AccessAuditEntity> AccessAudits => Set<AccessAuditEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +71,81 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Authors).HasConversion(authorsConverter);
             b.HasIndex(x => x.ImportFingerprint).IsUnique();
             b.HasIndex(x => x.Doi);
+        });
+
+        modelBuilder.Entity<ScreeningRecordEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ExclusionReason).HasMaxLength(1000);
+            b.Property(x => x.Notes).HasMaxLength(4000);
+            b.HasIndex(x => new { x.StudyId, x.IsFullTextStage, x.CreatedAtUtc });
+        });
+
+        modelBuilder.Entity<DataExtractionEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Parameter).HasMaxLength(250).IsRequired();
+            b.Property(x => x.Value).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.Unit).HasMaxLength(100);
+            b.Property(x => x.SourceLocation).HasMaxLength(500);
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Notes).HasMaxLength(4000);
+            b.HasIndex(x => new { x.StudyId, x.Parameter, x.CreatedAtUtc });
+        });
+
+        modelBuilder.Entity<ResearchOutcomeEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(500).IsRequired();
+            b.Property(x => x.Definition).HasMaxLength(4000);
+            b.Property(x => x.Timepoint).HasMaxLength(250);
+            b.Property(x => x.Certainty).HasMaxLength(100);
+            b.Property(x => x.Justification).HasMaxLength(4000);
+            b.Property(x => x.RelativeEffect).HasMaxLength(1000);
+            b.Property(x => x.AbsoluteEffect).HasMaxLength(1000);
+            b.Property(x => x.ParticipantsAndStudies).HasMaxLength(1000);
+            b.HasIndex(x => x.ProjectId);
+        });
+
+        modelBuilder.Entity<ResearchAuditEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.EntityType).HasMaxLength(100).IsRequired();
+            b.Property(x => x.EntityId).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Action).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Data).HasMaxLength(16000).IsRequired();
+            b.Property(x => x.PreviousHash).HasMaxLength(64).IsRequired();
+            b.Property(x => x.CurrentHash).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => x.CreatedAtUtc);
+            b.HasIndex(x => new { x.EntityType, x.EntityId });
+        });
+
+        modelBuilder.Entity<ResearchProjectControlEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(500).IsRequired();
+            b.Property(x => x.FinalHash).HasMaxLength(64);
+            b.Property(x => x.LockedBy).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<ReviewerAccessEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.AccessCodeHash).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => new { x.ProjectId, x.ExpiresAtUtc });
+        });
+
+        modelBuilder.Entity<AccessAuditEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.EntityType).HasMaxLength(100).IsRequired();
+            b.Property(x => x.EntityId).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Action).HasMaxLength(100).IsRequired();
+            b.Property(x => x.IpAddress).HasMaxLength(64);
+            b.HasIndex(x => x.TimestampUtc);
         });
     }
 }
