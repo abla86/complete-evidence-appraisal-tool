@@ -163,3 +163,5 @@ static List<string> ValidateManualEvidence(ManualEvidenceRequest request)
 }
 
 public sealed record ManualEvidenceRequest(string DocumentHashSha256, string Instrument, string ItemOrDomain, string EvidenceText, string SourceType, string? Page, string? Section, string? Table, string? Figure, string? Url, string? Doi, string Reviewer, string Rationale);
+
+public partial class Program { }
