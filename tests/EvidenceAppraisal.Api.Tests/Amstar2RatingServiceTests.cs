@@ -8,30 +8,50 @@ public sealed class Amstar2RatingServiceTests
     private readonly Amstar2RatingService _service = new();
 
     [Fact]
-    public void High_confidence_requires_no_critical_flaws_and_no_more_than_one_noncritical_weakness()
+    public void No_weaknesses_returns_high()
     {
         var result = _service.Calculate(CreateAssessment());
 
-        Assert.Equal("High", result.Rating);
+        Assert.Equal("High", result.SuggestedConfidence);
         Assert.Equal(0, result.CriticalFlawCount);
+        Assert.Equal(0, result.NonCriticalWeaknessCount);
     }
 
     [Fact]
-    public void One_critical_flaw_produces_low_confidence()
+    public void Two_noncritical_weaknesses_return_moderate()
     {
-        var result = _service.Calculate(CreateAssessment(criticalFlaws: new[] { 4 }));
+        var result = _service.Calculate(CreateAssessment(
+            weakItems: new[] { 3, 10 }
+        ));
 
-        Assert.Equal("Low", result.Rating);
+        Assert.Equal("Moderate", result.SuggestedConfidence);
+        Assert.Equal(0, result.CriticalFlawCount);
+        Assert.Equal(2, result.NonCriticalWeaknessCount);
+        Assert.Equal(new[] { 3, 10 }, result.NonCriticalWeaknessItems);
+    }
+
+    [Fact]
+    public void One_critical_flaw_returns_low()
+    {
+        var result = _service.Calculate(CreateAssessment(
+            weakItems: new[] { 4 },
+            criticalFlaws: new[] { 4 }
+        ));
+
+        Assert.Equal("Low", result.SuggestedConfidence);
         Assert.Equal(1, result.CriticalFlawCount);
         Assert.Equal(new[] { 4 }, result.CriticalFlawItems);
     }
 
     [Fact]
-    public void Two_critical_flaws_produce_critically_low_confidence()
+    public void Two_critical_flaws_return_critically_low()
     {
-        var result = _service.Calculate(CreateAssessment(criticalFlaws: new[] { 4, 9 }));
+        var result = _service.Calculate(CreateAssessment(
+            weakItems: new[] { 4, 9 },
+            criticalFlaws: new[] { 4, 9 }
+        ));
 
-        Assert.Equal("Critically Low", result.Rating);
+        Assert.Equal("CriticallyLow", result.SuggestedConfidence);
         Assert.Equal(2, result.CriticalFlawCount);
         Assert.Equal(new[] { 4, 9 }, result.CriticalFlawItems);
     }
@@ -57,12 +77,17 @@ public sealed class Amstar2RatingServiceTests
                 .Select(item => new Amstar2ItemAssessment
                 {
                     ItemNumber = item,
-                    Response = Amstar2Response.Yes,
-                    Rationale = weak.Contains(item) ? "Identified weakness." : "No identified weakness.",
-                    EvidenceLocation = "p. 4",
+                    Response = item is 11 or 12 or 15
+                        ? Amstar2Response.NoMetaAnalysisConducted
+                        : Amstar2Response.Yes,
+                    Rationale = "Documented researcher judgement.",
+                    EvidenceLocation = "Methods section, page reference",
                     IsWeakness = weak.Contains(item),
                     IsCriticalFlaw = flaws.Contains(item)
-                }).ToArray()
+                })
+                .ToArray(),
+            FinalConfidence = null,
+            FinalConfidenceRationale = null
         };
     }
 }
