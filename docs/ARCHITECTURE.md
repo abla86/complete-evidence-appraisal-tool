@@ -2,7 +2,7 @@
 
 ## System overview
 
-Evidence Appraisal Tool is a full-stack research application designed to make critical appraisal and implementation documentation structured, traceable and auditable without replacing researcher judgement.
+Evidence Appraisal Tool is a full-stack research application intended to make critical-appraisal and implementation documentation structured and traceable without replacing researcher judgement.
 
 ```text
 Researcher
@@ -15,25 +15,26 @@ React + Vite
 ASP.NET Core API (.NET 9)
    |
    +--> AMSTAR 2 / CASP / AGREE II / GRADE workflows
+   +--> RoB 2 prototype workflow
    +--> CFIR 2.0 / KTA implementation workflows
    +--> Evidence & traceability document analysis
-   |      +--> PDF / DOCX / TXT / HTML / XML
+   |      +--> PDF / DOCX / TXT / HTML / XML/JATS inputs where supported
    |      +--> heuristic document classification
    |      +--> instrument suitability warnings
    |      +--> candidate evidence findings
    |      +--> SHA-256 document identity
    |
    +--> structural and methodological-boundary validation
-   +--> EF Core persistence for CFIR/KTA implementation records
-   +--> reviewer / audit / project overview
-   +--> Word / PDF / Excel / CSV / JSON export
+   +--> EF Core persistence for implementation records
+   +--> reviewer / audit / project views
+   +--> Word / PDF / Excel / CSV / JSON export where implemented
 ```
 
 ## Document-analysis boundary
 
 The document-analysis service is deliberately conservative:
 
-1. validate upload and file signature where applicable
+1. validate upload and file characteristics where applicable
 2. calculate SHA-256
 3. extract text into source units
 4. classify document type heuristically
@@ -44,25 +45,25 @@ The document-analysis service is deliberately conservative:
 
 A candidate text match is never a final appraisal judgement.
 
-If no relevant passage is found, the result explicitly states that this does not establish that the information is absent from the source. The researcher must inspect the original document and relevant supplementary/protocol/registry material.
+If no relevant passage is found, the result explicitly states that this does not establish that the information is absent from the source. The researcher must inspect the original document and relevant supplementary, protocol or registry material where applicable.
 
-Uploaded source files are processed in memory by the analysis endpoint and are not persisted by that endpoint.
+Research-document uploads used by the analysis endpoint are processed without being persisted by that endpoint. This does not by itself constitute a production storage, retention or privacy control.
 
 ## Frontend
 
-React and Vite provide:
+React and Vite provide the current user interface for:
 
 - research dashboard and workspace navigation
 - critical-appraisal workflows
 - CFIR 2.0 + KTA implementation workflow
 - structured input and validation feedback
-- project overview, reviewer and audit views
+- project/reviewer/audit views
 - evidence/traceability workspace
-- visible research-document upload
+- research-document upload
 - candidate evidence display
 - export initiation.
 
-A dedicated persistent Evidence Map/manual-evidence workflow is planned but is not currently implemented.
+A dedicated persistent Evidence Map/manual-evidence workflow remains a future extension; manual evidence entry exists in the current research-document workflow but is not equivalent to a complete persistent evidence-map system.
 
 ## Backend
 
@@ -74,9 +75,9 @@ ASP.NET Core provides:
 - candidate evidence generation
 - CFIR/KTA implementation validation
 - EF Core persistence for implementation records
-- audit-event recording
+- audit-event recording where implemented
 - project overview queries
-- implementation and appraisal export generation.
+- implementation and appraisal export generation where implemented.
 
 The CFIR/KTA implementation aggregate is represented by `ImplementationAssessment`, which contains one `CfirAssessment` and one `KtaAssessment`. This keeps the transport/workflow model explicit without introducing a generic untyped assessment dictionary.
 
@@ -104,22 +105,23 @@ When no `DefaultConnection` is configured, SQLite is used for local/prototype op
 - CASP remains design-specific.
 - AGREE II retains its six-domain/23-item/7-point structure.
 - GRADE remains outcome/body-of-evidence oriented.
+- RoB 2 workflow output remains subject to researcher review and should not be described as independently validated merely because it is implemented.
 
 ## Security and integrity
 
-The repository demonstrates:
+The repository currently demonstrates:
 
-- CodeQL analysis
-- Dependabot monitoring
-- least-privilege GitHub Actions permissions
+- CodeQL workflow
+- Dependabot configuration
+- least-privilege GitHub Actions permissions in the CI/CodeQL workflows
 - local secret exclusion
 - SHA-256 document identity
-- upload size/type/signature validation
-- in-memory processing of uploaded source files
+- upload validation controls where implemented
+- in-memory processing for the document-analysis endpoint
 - automated backend and frontend checks
-- security headers.
+- security headers where implemented.
 
-The application does not claim enterprise identity management, clinical validation or security certification.
+These controls do not constitute enterprise identity management, clinical validation, GDPR compliance, penetration-test certification or general security certification.
 
 ## AI boundary
 
@@ -137,7 +139,7 @@ AI output must remain candidate evidence and must never be presented as an autom
 
 ## Production-hardening gaps
 
-The repository must not claim production research-data readiness until the following are addressed for the intended deployment context:
+The repository must not claim production research-data readiness until the following are addressed and verified for the intended deployment context:
 
 - authentication and authorization
 - managed production database and migrations
@@ -147,7 +149,8 @@ The repository must not claim production research-data readiness until the follo
 - dedicated end-to-end browser testing
 - operational monitoring and incident response
 - OCR for scanned documents
-- richer structured extraction for tables, figures and JATS sections
-- persistent Evidence Map/manual evidence workflow.
+- richer structured extraction for tables and figures
+- complete persistent evidence-map/manual-evidence anchoring
+- full collaborative access/concurrency controls.
 
-These limitations are intentionally documented rather than hidden.
+These limitations are documented rather than hidden.
