@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { addManualEvidence, analyzeEvidenceDocument, getEvidenceSummary, getManualEvidence, verifyEvidence } from '../api/evidenceApi';
+import EvidenceDocumentViewer from './EvidenceDocumentViewer';
 
 const instruments = [['amstar2', 'AMSTAR 2'], ['casp', 'CASP'], ['agree2', 'AGREE II'], ['grade', 'GRADE']];
 const acceptedFormats = '.pdf,.docx,.txt,.html,.htm,.xml,.jats';
@@ -30,40 +31,26 @@ export default function EvidenceLibrary() {
   const [manualError, setManualError] = useState('');
 
   function handleFile(event) {
-    setFile(event.target.files?.[0] ?? null); setResult(null); setManualEvidence([]); setSummary(null); setShowManualForm(false); setError('');
+    setFile(event.target.files?.[0] ?? null);
+    setResult(null); setManualEvidence([]); setSummary(null); setShowManualForm(false); setError('');
   }
-
   function toggleInstrument(id) { setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
-
-  async function refreshEvidence(hash) {
-    const [records, counts] = await Promise.all([getManualEvidence(hash), getEvidenceSummary(hash)]);
-    setManualEvidence(records); setSummary(counts);
-  }
-
+  async function refreshEvidence(hash) { const [records, counts] = await Promise.all([getManualEvidence(hash), getEvidenceSummary(hash)]); setManualEvidence(records); setSummary(counts); }
   async function analyse() {
     if (!file || selected.length === 0) return;
     setBusy(true); setError(''); setManualError('');
-    try {
-      const analysis = await analyzeEvidenceDocument(file, selected, includePageText);
-      setResult(analysis);
-      await refreshEvidence(analysis.documentHashSha256);
-    } catch (e) { setError(e.message || 'Kunne ikke analysere dokumentet.'); }
+    try { const analysis = await analyzeEvidenceDocument(file, selected, includePageText); setResult(analysis); await refreshEvidence(analysis.documentHashSha256); }
+    catch (e) { setError(e.message || 'Kunne ikke analysere dokumentet.'); }
     finally { setBusy(false); }
   }
-
   async function saveManualEvidence(event) {
     event.preventDefault(); if (!result) return;
     setSavingManual(true); setManualError('');
-    try {
-      await addManualEvidence({ documentHashSha256: result.documentHashSha256, instrument: selected[0] ?? 'manual', ...manual });
-      setManual({ itemOrDomain: '', evidenceText: '', sourceType: 'Main article', page: '', section: '', table: '', figure: '', url: '', doi: '', reviewer: '', rationale: '' });
-      setShowManualForm(false); await refreshEvidence(result.documentHashSha256);
-    } catch (e) { setManualError(e.message || 'Kunne ikke lagre manuell evidens.'); }
+    try { await addManualEvidence({ documentHashSha256: result.documentHashSha256, instrument: selected[0] ?? 'manual', ...manual }); setManual({ itemOrDomain: '', evidenceText: '', sourceType: 'Main article', page: '', section: '', table: '', figure: '', url: '', doi: '', reviewer: '', rationale: '' }); setShowManualForm(false); await refreshEvidence(result.documentHashSha256); }
+    catch (e) { setManualError(e.message || 'Kunne ikke lagre manuell evidens.'); }
     finally { setSavingManual(false); }
   }
-
   function updateDraft(id, field, value) { setVerificationDrafts((current) => ({ ...current, [id]: { ...current[id], [field]: value } })); }
-
   async function saveVerification(item) {
     const draft = verificationDrafts[item.id] ?? {};
     if (!draft.reviewer?.trim()) { setManualError('Reviewer må oppgis ved verifisering.'); return; }
@@ -83,6 +70,7 @@ export default function EvidenceLibrary() {
       <p className="muted">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB.</p>
       <div className="document-upload-box"><input id="evidence-document" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFile} /><label htmlFor="evidence-document" className="upload-button">+ Legg til forskningsdokument</label><p className="upload-help">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB</p></div>
       {file && <div className="notice" aria-live="polite"><strong>Valgt dokument:</strong> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)</div>}
+      {file && <EvidenceDocumentViewer file={file} />}
       <fieldset><legend>Vurderingsinstrumenter</legend><p className="muted">Instrumentegnethet kontrolleres etter analysen. Forskeren må bekrefte dokumenttype og instrument.</p><div className="research-grid">{instruments.map(([id, label]) => <label key={id} className="checkbox-card"><input type="checkbox" checked={selected.includes(id)} onChange={() => toggleInstrument(id)} /><span>{label}</span></label>)}</div></fieldset>
       <label className="checkbox-card"><input type="checkbox" checked={includePageText} onChange={(event) => setIncludePageText(event.target.checked)} /><span>Ta med ekstraherte tekster i resultatet</span></label>
       <button type="button" className="primary-action" disabled={!file || selected.length === 0 || busy} onClick={analyse}>{busy ? 'Analyserer dokument …' : 'Analyser dokument'}</button>
@@ -98,13 +86,10 @@ export default function EvidenceLibrary() {
       {result.classification?.signals?.length > 0 && <div><h4>Klassifiseringssignaler</h4><ul>{result.classification.signals.map((signal) => <li key={signal}>{signal}</li>)}</ul></div>}
       {result.instrumentSuitability?.length > 0 && <section><h4>Instrumentegnethet</h4><div className="evidence-table-wrap"><table><thead><tr><th>Instrument</th><th>Status</th><th>Begrunnelse</th></tr></thead><tbody>{result.instrumentSuitability.map((item) => <tr key={item.instrument}><td>{item.instrument}</td><td><strong className={statusClass(item.status)}>{item.status}</strong></td><td>{item.reason}</td></tr>)}</tbody></table></div></section>}
       {result.warnings?.length > 0 && <div><h4>Varsler</h4><ul>{result.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
-
       <h4>Evidence map – kandidatfunn</h4>
       {result.findings?.length === 0 ? <p>Ingen kandidatpassasjer ble identifisert. Dette betyr ikke at informasjonen mangler. Kontroller originaldokumentet og supplement manuelt.</p> : <div className="evidence-table-wrap"><table><thead><tr><th>Instrument</th><th>Område</th><th>Side</th><th>Treff</th><th>Passasje</th><th>Status</th></tr></thead><tbody>{result.findings.map((finding, index) => <tr key={`${finding.instrument}-${finding.topic}-${finding.page}-${index}`}><td>{finding.instrument.toUpperCase()}</td><td>{finding.topic}</td><td>{finding.page}</td><td><code>{finding.matchedTerm}</code></td><td>{finding.excerpt}</td><td><strong>{finding.status}</strong><br /><small>{finding.confidence}</small></td></tr>)}</tbody></table></div>}
 
-      <section className="assessment-card">
-        <h4>Forskerverifisering</h4>
-        <p className="muted">Kandidatfunn må kontrolleres mot originalkilden. «Ikke funnet» er ikke det samme som «Nei», og automatisk teksttreff er ikke en metodisk vurdering.</p>
+      <section className="assessment-card"><h4>Forskerverifisering</h4><p className="muted">Kandidatfunn må kontrolleres mot originalkilden. «Ikke funnet» er ikke det samme som «Nei», og automatisk teksttreff er ikke en metodisk vurdering.</p>
         {summary && <div className="notice"><strong>Evidence map:</strong> {summary.total} lagrede evidensposter · {Object.entries(summary.byStatus ?? {}).map(([status, count]) => `${status}: ${count}`).join(' · ') || 'ingen statuser ennå'}</div>}
         {manualError && <p className="notice notice-error" role="alert">{manualError}</p>}
         {manualEvidence.length === 0 ? <p>Ingen lagrede manuelle evidensposter for dette dokumentet.</p> : <div className="evidence-table-wrap"><table><thead><tr><th>Item/domain</th><th>Evidens</th><th>Status</th><th>Reviewer</th><th>Verifikasjonsnotat</th><th>Handling</th></tr></thead><tbody>{manualEvidence.map((item) => { const draft = verificationDrafts[item.id] ?? {}; return <tr key={item.id}><td>{item.itemOrDomain}</td><td>{item.evidenceText}</td><td><select value={draft.status ?? item.status} onChange={(e) => updateDraft(item.id, 'status', e.target.value)}>{verificationStatuses.map((status) => <option key={status}>{status}</option>)}</select></td><td><input value={draft.reviewer ?? item.verifiedBy ?? item.reviewer} onChange={(e) => updateDraft(item.id, 'reviewer', e.target.value)} /></td><td><textarea value={draft.note ?? item.verificationNote ?? ''} onChange={(e) => updateDraft(item.id, 'note', e.target.value)} placeholder="Hvorfor er funnet verifisert/avvist/usikkert?" /></td><td><button type="button" className="secondary-action" disabled={verifyingId === item.id} onClick={() => saveVerification(item)}>{verifyingId === item.id ? 'Lagrer …' : 'Lagre status'}</button></td></tr>; })}</tbody></table></div>}
