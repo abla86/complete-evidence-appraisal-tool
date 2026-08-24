@@ -14,27 +14,73 @@ const labels = {
   High: 'Høy risiko for bias',
 };
 
+const API = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:5237');
+
 export default function Rob2Assessment({ setup }) {
   const [domains, setDomains] = useState(createEmptyRob2Domains);
   const [errors, setErrors] = useState({});
   const [validated, setValidated] = useState(false);
+  const [serverResult, setServerResult] = useState(null);
+  const [serverError, setServerError] = useState('');
 
   const overall = useMemo(() => calculateRob2Overall(domains), [domains]);
   const multipleConcerns = domains.filter((domain) => domain.rating === 'SomeConcerns').length > 1;
 
   function updateDomain(domainId, field, value) {
     setValidated(false);
+    setServerResult(null);
+    setServerError('');
     setErrors({});
     setDomains((current) => current.map((domain) => (
       domain.domainId === domainId ? { ...domain, [field]: value } : domain
     )));
   }
 
-  function validate(event) {
+  async function validate(event) {
     event.preventDefault();
     const nextErrors = validateRob2Drafts(domains);
     setErrors(nextErrors);
-    setValidated(Object.keys(nextErrors).length === 0);
+    setServerResult(null);
+    setServerError('');
+
+    if (Object.keys(nextErrors).length > 0) {
+      setValidated(false);
+      return;
+    }
+
+    const assessment = {
+      instrumentName: 'Cochrane Risk of Bias 2 (RoB 2)',
+      instrumentVersion: '2019',
+      reviewTitle: setup?.reviewTitle?.trim() || 'RoB 2-vurdering',
+      reviewer: setup?.reviewer?.trim() || 'Researcher',
+      assessmentDateUtc: new Date().toISOString(),
+      domains: domains.map((domain) => ({
+        domainId: domain.domainId,
+        rating: domain.rating,
+        rationale: domain.rationale.trim(),
+        evidenceLocation: domain.evidenceLocation.trim(),
+      })),
+      overallRiskOfBias: overall,
+      overallRationale: multipleConcerns
+        ? 'Flere domener er vurdert med noen betenkeligheter; samlet vurdering krever forskerens metodiske gjennomgang.'
+        : null,
+      overallJudgementOverridden: false,
+    };
+
+    try {
+      const response = await fetch(`${API}/api/rob2/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assessment),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || data.title || `Validering feilet (${response.status})`);
+      setServerResult(data);
+      setValidated(data.isValid);
+    } catch (error) {
+      setServerError(error.message);
+      setValidated(false);
+    }
   }
 
   return (
@@ -45,7 +91,7 @@ export default function Rob2Assessment({ setup }) {
           <h2>RoB 2 – randomiserte kontrollerte studier</h2>
           <p>Resultatspesifikk vurdering med fem obligatoriske biasdomener.</p>
         </div>
-        <span className="local-only">Ikke lagret</span>
+        <span className="local-only">Prototype – forskervurdering</span>
       </div>
 
       <div className="notice-inline">
@@ -122,9 +168,28 @@ export default function Rob2Assessment({ setup }) {
         </button>
       </form>
 
-      {overall && (
+      {serverError && (
+        <section className="message message-error" role="alert">
+          <strong>Servervalidering feilet:</strong> {serverError}
+        </section>
+      )}
+
+      {serverResult && (
+        <section className={serverResult.isValid ? 'confirmation' : 'message message-error'} aria-live="polite">
+          <strong>{serverResult.isValid ? 'Servervalidering godkjent.' : 'Servervalidering fant feil.'}</strong>
+          {serverResult.errors?.length > 0 && <ul>{serverResult.errors.map((error) => <li key={error}>{error}</li>)}</ul>}
+          {serverResult.proposedOverallRisk && (
+            <span>Foreløpig samlet risikoforslag fra prototypens valideringslogikk: {labels[serverResult.proposedOverallRisk]}.</span>
+          )}
+          {serverResult.requiresResearcherReview && (
+            <span>Forskerens samlede metodiske vurdering kreves før resultatet kan brukes som endelig RoB 2-vurdering.</span>
+          )}
+        </section>
+      )}
+
+      {overall && !serverResult && (
         <section className="confirmation" aria-live="polite">
-          <strong>Foreslått samlet vurdering: {labels[overall]}</strong>
+          <strong>Foreløpig samlet vurdering: {labels[overall]}</strong>
           <span>
             {overall === 'High'
               ? 'Minst ett domene er vurdert som høy risiko for bias.'
@@ -134,7 +199,7 @@ export default function Rob2Assessment({ setup }) {
           </span>
           {multipleConcerns && (
             <span>
-              Flere domener har noen betenkeligheter. Cochrane angir at dette kan gi høy samlet risiko når betenkelighetene samlet reduserer tilliten vesentlig; dette må vurderes av forskeren og skal ikke avgjøres automatisk av programmet.
+              Flere domener har noen betenkeligheter. Dette er en foreløpig programoppsummering; samlet RoB 2-vurdering må gjøres av forskeren etter gjeldende veiledning.
             </span>
           )}
         </section>
@@ -142,7 +207,7 @@ export default function Rob2Assessment({ setup }) {
 
       {validated && (
         <section className="confirmation export-section">
-          <strong>RoB 2-datasettet er komplett</strong>
+          <strong>RoB 2-datasettet er komplett og servervalidert</strong>
           <span>Alle fem domener har vurdering, begrunnelse og dokumentasjonssted.</span>
         </section>
       )}
