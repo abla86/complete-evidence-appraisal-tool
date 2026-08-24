@@ -1,25 +1,37 @@
 # Evidence Appraisal Tool
 
+![CI](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/ci.yml/badge.svg)
+![CodeQL](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/codeql.yml/badge.svg)
+![Dependabot](https://img.shields.io/badge/dependencies-Dependabot-blue)
+![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4)
+![React 19](https://img.shields.io/badge/React-19-61DAFB)
+![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+
+**Live prototype:** https://evidence-appraisal-tool.onrender.com
+
 A research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, master's students, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
 
 ## Core principle
 
 **The application assists; the researcher decides.**
 
-Document analysis identifies candidate passages and structures evidence. It does not decide whether a study is methodologically sound, whether an AMSTAR 2/CASP/AGREE II/GRADE judgement is correct, or whether evidence supports a clinical or policy recommendation.
+Document analysis identifies candidate passages and structures evidence. It does not decide whether a study is methodologically sound, whether an AMSTAR 2/CASP/AGREE II/GRADE/RoB 2 judgement is correct, or whether evidence supports a clinical or policy recommendation.
 
-The document-analysis workflow explicitly distinguishes **not found** from **No** and requires researcher verification before evidence can be treated as verified. This follows the project's research-safety design and the distinction between reporting support and methodological judgement.
+The document-analysis workflow explicitly distinguishes **not found** from **No** and requires researcher verification before evidence can be treated as verified.
 
 ## Current capabilities
 
 ### Critical appraisal
 
 - AMSTAR 2
+- Cochrane Risk of Bias 2 (RoB 2) prototype workflow for randomized trials
 - CASP
 - AGREE II
 - GRADE
 - Structured rationale and evidence-location capture
 - Methodological notices and validation
+- Researcher-controlled final judgements
+- Non-destructive AMSTAR 2 advisory consistency checks
 
 ### Research workflow
 
@@ -97,13 +109,14 @@ The current collaboration implementation uses polling. Presence and locks are co
 5. **Automated classification is a signal, not a methodological judgement.**
 6. **AMSTAR 2 is not reduced to an inappropriate numerical total score.**
 7. **GRADE certainty is not inferred solely from text matching.**
-8. **Duplicate candidates are not silently deleted.**
-9. **Finalization produces an integrity marker, not scientific certification.**
+8. **RoB 2 overall judgement remains subject to researcher review where methodological judgement is required.**
+9. **Duplicate candidates are not silently deleted.**
+10. **Finalization produces an integrity marker, not scientific certification.**
 
 ## Architecture
 
 ```text
-frontend/                         React + Vite
+frontend/                         React 19 + Vite 8
   src/components/                Research workflow UI
   src/api/                       API clients
   src/domain/                    Appraisal/domain logic
@@ -113,8 +126,8 @@ backend/EvidenceAppraisal.Api/   ASP.NET Core .NET 9
   Services/                      Validation, analysis, export and workflow services
   Data/                          EF Core persistence
 
- tests/                           Backend tests
-docs/                            Architecture, safety and methodology notes
+tests/                            Backend regression tests
+docs/                             Architecture, safety and methodology notes
 ```
 
 The backend currently supports SQLite by default for local development and SQL Server when `DefaultConnection` is configured.
@@ -128,8 +141,6 @@ dotnet restore EvidenceAppraisalTool.sln
 dotnet build EvidenceAppraisalTool.sln
 dotnet run --project backend/EvidenceAppraisal.Api
 ```
-
-The development API uses the configured launch settings and exposes `/health` and the documented API endpoints.
 
 ### Frontend
 
@@ -151,6 +162,12 @@ npm test
 npm run lint
 npm run build
 ```
+
+## CI and security
+
+The repository has automated GitHub Actions for backend/frontend build and test plus CodeQL analysis. Dependabot is configured for NuGet, npm and GitHub Actions dependencies. The CI workflow targets .NET 9 and Node 24, matching the current project configuration.
+
+The current CI workflow runs on pushes and pull requests targeting `main` and performs backend restore/build/test followed by frontend install/test/lint/build.
 
 ## Production and academic-use limitations
 
@@ -174,20 +191,24 @@ These are intentionally not faked by the application. The UI and documentation s
 
 ## Methodological scope
 
-PRISMA is a reporting guideline and should not be used as a substitute for methodological quality appraisal. The application therefore treats PRISMA flow validation separately from AMSTAR 2, CASP, AGREE II and GRADE judgement workflows.
+PRISMA is a reporting guideline and should not be used as a substitute for methodological quality appraisal. The application therefore treats PRISMA flow validation separately from AMSTAR 2, CASP, AGREE II, GRADE and RoB 2 judgement workflows.
 
 PRISMA 2020 provides updated reporting guidance for systematic reviews and explicitly distinguishes reporting guidance from assessment of review conduct or methodological quality (Page et al., 2021).
 
 ## Project status
 
-**Status:** advanced research-tool prototype / development platform.
+**Status: advanced research-tool prototype / published demonstration deployment.**
 
-The repository contains substantially more than a checklist demo: it includes document analysis, evidence traceability, appraisal validation, research workflow support, reviewer comparison, implementation modules, tests and research-safety documentation. However, production deployment and formal methodological validation are separate activities and must not be implied by the presence of software functionality.
+The repository contains substantially more than a checklist demo: it includes document analysis, evidence traceability, appraisal validation, RoB 2 prototype support, research workflow support, reviewer comparison, implementation modules, tests, CI, CodeQL, Dependabot and research-safety documentation.
+
+The public deployment is a demonstration prototype. It is **not** a validated clinical decision-support system, not a certification of research quality, and not a replacement for the official appraisal instruments or researcher judgement.
 
 ## References
 
 Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Mulrow, C. D., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71. https://doi.org/10.1136/bmj.n71
 
+Sterne, J. A. C., Savović, J., Page, M. J., Elbers, R. G., Blencowe, N. S., Boutron, I., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
+
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE](LICENSE). The repository source is publicly viewable as a professional portfolio; the original source code, architecture and documentation remain proprietary unless otherwise stated by their respective rights holders.
