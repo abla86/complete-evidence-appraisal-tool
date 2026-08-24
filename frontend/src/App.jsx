@@ -13,6 +13,7 @@ import ResearchModuleHub from './components/ResearchModuleHub';
 import ResearchMethods from './components/ResearchMethods';
 import ResearchCompleteness from './components/ResearchCompleteness';
 import BibliographyUploader from './components/BibliographyUploader';
+import FinalizationPanel from './components/FinalizationPanel';
 import Rob2Assessment from './components/Rob2Assessment';
 import './App.css';
 import './workspace.css';
@@ -31,6 +32,7 @@ const navItems = [
   ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
   ['collaboration', 'Samarbeid', 'Aktive reviewere og feltlåser'],
   ['audit', 'Evidenshistorikk', 'Versjonert verifikasjon og endringsspor'],
+  ['finalize', 'Finalisering', 'Lås prosjektet med integritetskontroll'],
   ['evidence', 'Analyser dokument', 'Last opp og spor forskningsmateriale'],
 ];
 
@@ -54,7 +56,7 @@ function App() {
   }, []);
 
   function renderPage() {
-    if (!metadata && activePage !== 'rob2' && activePage !== 'references' && activePage !== 'prisma-export') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
+    if (!metadata && activePage !== 'rob2' && activePage !== 'references' && activePage !== 'prisma-export' && activePage !== 'finalize') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
     if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
     if (activePage === 'references') return <BibliographyUploader />;
     if (activePage === 'research-workspace') return <ResearchCompleteness />;
@@ -63,6 +65,7 @@ function App() {
     if (activePage === 'projects') return <ProjectOverview />;
     if (activePage === 'collaboration') return <ResearchCollaborationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
     if (activePage === 'audit') return <EvidenceAuditHistory />;
+    if (activePage === 'finalize') return <FinalizationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
     if (activePage === 'evidence') return <EvidenceLibrary />;
     if (activePage === 'implementation') return <ImplementationModule />;
     if (activePage === 'rob2') return <Rob2Assessment />;
