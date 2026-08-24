@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAmstar2Metadata, getHealth } from './api/amstarApi';
 import AssessmentForm from './components/AssessmentForm';
+import EvidenceAuditHistory from './components/EvidenceAuditHistory';
 import EvidenceLibrary from './components/EvidenceLibrary';
 import ImplementationModule from './components/ImplementationModule';
 import PreAppraisalSetup from './components/PreAppraisalSetup';
@@ -25,6 +26,7 @@ const navItems = [
   ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
   ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
   ['collaboration', 'Samarbeid', 'Aktive reviewere og feltlåser'],
+  ['audit', 'Evidenshistorikk', 'Versjonert verifikasjon og endringsspor'],
   ['evidence', '📄 Analyser dokument', 'Last opp og spor forskningsmateriale'],
 ];
 
@@ -55,6 +57,7 @@ function App() {
     if (activePage === 'methods') return <ResearchMethods />;
     if (activePage === 'projects') return <ProjectOverview />;
     if (activePage === 'collaboration') return <ResearchCollaborationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
+    if (activePage === 'audit') return <EvidenceAuditHistory />;
     if (activePage === 'evidence') return <EvidenceLibrary />;
     if (activePage === 'implementation') return <ImplementationModule />;
 
