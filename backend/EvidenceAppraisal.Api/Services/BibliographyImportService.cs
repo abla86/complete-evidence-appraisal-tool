@@ -40,7 +40,7 @@ public sealed class BibliographyImportService
     private static List<StudyMetadata> ParseRis(string content)
     {
         var normalized = NormalizeLineEndings(content);
-        var records = Regex.Split(normalized, @"(?m)(?=^TY\s*-")
+        var records = Regex.Split(normalized, @"(?m)(?=^TY\s*-)")
             .Where(x => !string.IsNullOrWhiteSpace(x));
 
         return records.Select(ParseRisRecord).Where(x => x is not null).Cast<StudyMetadata>().ToList();
@@ -164,28 +164,67 @@ public sealed class BibliographyImportService
 
     private static string BibValue(string body, string field)
     {
-        var prefix = "(?:^|,)\\s*" + Regex.Escape(field) + "\\s*=\\s*";
-        var patterns = new[]
+        var match = Regex.Match(body, $@"(?im)(?:^|,)\s*{Regex.Escape(field)}\s*=\s*");
+        if (!match.Success) return string.Empty;
+
+        var index = match.Index + match.Length;
+        while (index < body.Length && char.IsWhiteSpace(body[index])) index++;
+        if (index >= body.Length) return string.Empty;
+
+        string value;
+        var opening = body[index];
+
+        if (opening == '{')
         {
-            prefix + "(?<value>\\{[^}]*\\})",
-            prefix + "(?<value>\"(?:[^\"\\\\]|\\\\.)*\")",
-            prefix + "(?<value>[^,]+)"
-        };
+            var depth = 0;
+            var escaped = false;
+            var end = -1;
+            for (var i = index; i < body.Length; i++)
+            {
+                var c = body[i];
+                if (escaped) { escaped = false; continue; }
+                if (c == '\\') { escaped = true; continue; }
+                if (c == '{') depth++;
+                else if (c == '}')
+                {
+                    depth--;
+                    if (depth == 0) { end = i; break; }
+                }
+            }
 
-        foreach (var pattern in patterns)
+            if (end < 0) return string.Empty;
+            value = body[(index + 1)..end];
+        }
+        else if (opening == '"')
         {
-            var match = Regex.Match(body, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-            if (!match.Success) continue;
+            var escaped = false;
+            var end = -1;
+            for (var i = index + 1; i < body.Length; i++)
+            {
+                var c = body[i];
+                if (escaped) { escaped = false; continue; }
+                if (c == '\\') { escaped = true; continue; }
+                if (c == '"') { end = i; break; }
+            }
 
-            var value = match.Groups["value"].Value.Trim().TrimEnd(',').Trim();
-            if (value.Length >= 2 && ((value[0] == '{' && value[^1] == '}') || (value[0] == '"' && value[^1] == '"')))
-                value = value[1..^1];
-
-            return Regex.Replace(value, @"\s+", " ").Trim();
+            if (end < 0) return string.Empty;
+            value = body[(index + 1)..end];
+        }
+        else
+        {
+            var end = index;
+            while (end < body.Length && body[end] != ',') end++;
+            value = body[index..end];
         }
 
-        return string.Empty;
+        return Regex.Replace(UnescapeBib(value), @"\s+", " ").Trim();
     }
+
+    private static string UnescapeBib(string value) =>
+        value.Replace("\\\"", "\"")
+            .Replace("\\{", "{")
+            .Replace("\\}", "}")
+            .Replace("\\\\", "\\");
 
     private static List<StudyMetadata> ParseNbib(string content)
     {
@@ -241,7 +280,11 @@ public sealed class BibliographyImportService
                 .SelectMany(x => x.Descendants()).FirstOrDefault(x => x.Name.LocalName.Equals("Title", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
             if (string.IsNullOrWhiteSpace(journal)) journal = article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("journal-title", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
 
-            var abstractText = string.Join(" ", article.Descendants().Where(x => x.Name.LocalName.Equals("AbstractText", StringComparison.OrdinalIgnoreCase) || x.Name.LocalName.Equals("abstract", StringComparison.OrdinalIgnoreCase)).Select(x => x.Value.Trim()).Where(x => x.Length > 0));
+            var abstractNodes = article.Descendants().Where(x => x.Name.LocalName.Equals("AbstractText", StringComparison.OrdinalIgnoreCase)).ToList();
+            if (abstractNodes.Count == 0)
+                abstractNodes = article.Descendants().Where(x => x.Name.LocalName.Equals("abstract", StringComparison.OrdinalIgnoreCase)).ToList();
+            var abstractText = string.Join(" ", abstractNodes.Select(x => x.Value.Trim()).Where(x => x.Length > 0));
+
             var publicationText = article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("PubDate", StringComparison.OrdinalIgnoreCase))?.Value.Trim()
                 ?? article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("year", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
 
@@ -273,8 +316,36 @@ public sealed class BibliographyImportService
 
     private static string First(Dictionary<string, List<string>> fields, params string[] tags) => tags.SelectMany(tag => fields.TryGetValue(tag, out var values) ? values : Enumerable.Empty<string>()).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x)) ?? string.Empty;
     private static IEnumerable<string> Values(Dictionary<string, List<string>> fields, params string[] tags) => tags.SelectMany(tag => fields.TryGetValue(tag, out var values) ? values : Enumerable.Empty<string>());
-    private static string PubmedValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(?<v>.*(?:\n(?![A-Z]{2,4}\s*-).*)*)$").Groups["v"].Value.Replace("\n", " ").Trim();
-    private static IEnumerable<string> PubmedValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
+    private static string PubmedValue(string block, string tag)
+    {
+        var lines = NormalizeLineEndings(block).Split('\n');
+        var values = new List<string>();
+        var capture = false;
+
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.TrimEnd();
+            var match = Regex.Match(line, @"^(?<tag>[A-Z0-9]{2,4})-\s*(?<value>.*)$", RegexOptions.CultureInvariant);
+            if (match.Success)
+            {
+                capture = string.Equals(match.Groups["tag"].Value, tag, StringComparison.OrdinalIgnoreCase);
+                if (capture) values.Add(match.Groups["value"].Value.Trim());
+                continue;
+            }
+
+            if (capture && rawLine.Length > 0 && char.IsWhiteSpace(rawLine[0]))
+                values.Add(line.Trim());
+        }
+
+        return string.Join(" ", values).Trim();
+    }
+
+    private static IEnumerable<string> PubmedValues(string block, string tag) =>
+        NormalizeLineEndings(block).Split('\n')
+            .Select(line => Regex.Match(line.TrimEnd(), $@"^{Regex.Escape(tag)}-\s*(?<value>.*)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+            .Where(m => m.Success)
+            .Select(m => m.Groups["value"].Value.Trim());
+
     private static string EndNoteValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Groups[1].Value.Trim();
     private static IEnumerable<string> EndNoteValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
     private static string NormalizeAuthor(string value) => Regex.Replace(value, @"\s+", " ").Trim();
