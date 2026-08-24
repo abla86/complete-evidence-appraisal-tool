@@ -16,7 +16,7 @@ const navItems = [
   ['appraisal', 'Kritisk vurdering', 'AMSTAR 2, CASP, AGREE II og GRADE'],
   ['implementation', 'Implementering', 'CFIR 2.0 + KTA'],
   ['projects', 'Prosjekter', 'Reviewere, konsensus og audit trail'],
-  ['evidence', 'Evidence & sporbarhet', 'Kilder, dokumentasjon og begrunnelser'],
+  ['evidence', '📄 Analyser dokument', 'Last opp og spor forskningsmateriale'],
 ];
 
 function App() {
