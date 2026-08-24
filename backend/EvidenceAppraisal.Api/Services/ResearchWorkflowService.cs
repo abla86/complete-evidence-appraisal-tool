@@ -25,9 +25,13 @@ public sealed class ResearchWorkflowService
         if (screeningDifference != 0) warnings.Add("Identification → screening counts do not reconcile.");
         if (eligibilityDifference != 0) warnings.Add("Screening → reports sought counts do not reconcile.");
         if (includedDifference != 0) warnings.Add("Eligibility → included reports counts do not reconcile.");
+        if (input.RecordsRemovedBeforeScreening > input.RecordsIdentified) warnings.Add("Records removed before screening cannot exceed records identified.");
+        if (input.RecordsExcluded > input.RecordsScreened) warnings.Add("Records excluded cannot exceed records screened.");
         if (input.ReportsNotRetrieved > input.ReportsSought) warnings.Add("Reports not retrieved cannot exceed reports sought.");
         if (input.ReportsAssessed > input.ReportsSought - input.ReportsNotRetrieved) warnings.Add("Reports assessed cannot exceed retrievable reports.");
-        if (input.StudiesIncluded < 0 || input.ReportsIncluded < 0) warnings.Add("Included counts are invalid.");
+        if (input.ReportsExcludedWithReasons > input.ReportsAssessed) warnings.Add("Reports excluded with reasons cannot exceed reports assessed.");
+        if (input.ReportsIncluded > input.ReportsAssessed) warnings.Add("Reports included cannot exceed reports assessed.");
+        if (input.StudiesIncluded > input.ReportsIncluded) warnings.Add("Studies included cannot exceed reports included when one report maps to one study; verify the study/report relationship.");
 
         return new(input, screeningExpected, screeningDifference, eligibilityExpected, eligibilityDifference,
             includedExpected, includedDifference, warnings.Count == 0, warnings);
@@ -38,19 +42,20 @@ public sealed class ResearchWorkflowService
         if (input.Reviewer1 is null || input.Reviewer2 is null || input.Reviewer1.Count != input.Reviewer2.Count)
             throw new ArgumentException("Both reviewers must provide equally sized answer lists.");
         if (input.Reviewer1.Count == 0) throw new ArgumentException("At least one paired rating is required.");
+        if (input.Reviewer1.Any(string.IsNullOrWhiteSpace) || input.Reviewer2.Any(string.IsNullOrWhiteSpace))
+            throw new ArgumentException("Paired reviewer ratings cannot contain missing values; resolve missing ratings before calculating kappa.");
 
         var categories = input.Reviewer1.Concat(input.Reviewer2)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToArray();
         if (categories.Length < 2) throw new ArgumentException("At least two response categories are required for Cohen's kappa.");
 
-        var r1 = categories.ToDictionary(c => c, c => input.Reviewer1.Count(x => string.Equals(x?.Trim(), c, StringComparison.OrdinalIgnoreCase)), StringComparer.OrdinalIgnoreCase);
-        var r2 = categories.ToDictionary(c => c, c => input.Reviewer2.Count(x => string.Equals(x?.Trim(), c, StringComparison.OrdinalIgnoreCase)), StringComparer.OrdinalIgnoreCase);
+        var r1 = categories.ToDictionary(c => c, c => input.Reviewer1.Count(x => string.Equals(x.Trim(), c, StringComparison.OrdinalIgnoreCase)), StringComparer.OrdinalIgnoreCase);
+        var r2 = categories.ToDictionary(c => c, c => input.Reviewer2.Count(x => string.Equals(x.Trim(), c, StringComparison.OrdinalIgnoreCase)), StringComparer.OrdinalIgnoreCase);
         var n = input.Reviewer1.Count;
-        var agreements = input.Reviewer1.Zip(input.Reviewer2).Count(p => string.Equals(p.First?.Trim(), p.Second?.Trim(), StringComparison.OrdinalIgnoreCase));
+        var agreements = input.Reviewer1.Zip(input.Reviewer2).Count(p => string.Equals(p.First.Trim(), p.Second.Trim(), StringComparison.OrdinalIgnoreCase));
         var po = agreements / (double)n;
         var pe = categories.Sum(c => (r1[c] / (double)n) * (r2[c] / (double)n));
         var kappa = Math.Abs(1 - pe) < 1e-12 ? 1d : (po - pe) / (1 - pe);
@@ -61,10 +66,10 @@ public sealed class ResearchWorkflowService
     private static string Interpret(double kappa) => kappa switch
     {
         < 0 => "Agreement less than expected by chance; interpret with caution.",
-        < 0.21 => "Slight agreement.",
-        < 0.41 => "Fair agreement.",
-        < 0.61 => "Moderate agreement.",
-        < 0.81 => "Substantial agreement.",
-        _ => "Almost perfect agreement."
+        < 0.21 => "Slight agreement (Landis–Koch convention; interpretation should be contextualized).",
+        < 0.41 => "Fair agreement (Landis–Koch convention; interpretation should be contextualized).",
+        < 0.61 => "Moderate agreement (Landis–Koch convention; interpretation should be contextualized).",
+        < 0.81 => "Substantial agreement (Landis–Koch convention; interpretation should be contextualized).",
+        _ => "Almost perfect agreement (Landis–Koch convention; interpretation should be contextualized)."
     };
 }
