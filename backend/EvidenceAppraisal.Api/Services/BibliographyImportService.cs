@@ -39,15 +39,11 @@ public sealed class BibliographyImportService
 
     private static List<StudyMetadata> ParseRis(string content)
     {
-        var normalized = content.Replace("\r\n", "\n").Replace('\r', '\n');
+        var normalized = NormalizeLineEndings(content);
         var records = Regex.Split(normalized, @"(?m)(?=^TY\s*-")
             .Where(x => !string.IsNullOrWhiteSpace(x));
 
-        return records
-            .Select(ParseRisRecord)
-            .Where(x => x is not null)
-            .Cast<StudyMetadata>()
-            .ToList();
+        return records.Select(ParseRisRecord).Where(x => x is not null).Cast<StudyMetadata>().ToList();
     }
 
     private static StudyMetadata? ParseRisRecord(string record)
@@ -56,16 +52,15 @@ public sealed class BibliographyImportService
         var title = First(fields, "TI", "T1");
         if (string.IsNullOrWhiteSpace(title)) return null;
 
-        var authors = Values(fields, "AU", "A1")
-            .Select(NormalizeAuthor)
-            .Where(x => x.Length > 0)
-            .ToList();
+        var authors = Values(fields, "AU", "A1").Select(NormalizeAuthor).Where(x => x.Length > 0).ToList();
         var doi = NormalizeDoi(First(fields, "DO", "M3"));
         var year = ExtractYear(First(fields, "PY", "Y1", "DA"));
         var journal = First(fields, "JO", "JF", "T2");
+        var abstractText = First(fields, "AB", "N2");
         var type = First(fields, "TY");
+        var recordIdentifier = First(fields, "ID");
 
-        return Build(title, authors, year, doi, journal, null, type);
+        return Build(title, authors, year, doi, journal, abstractText, type, recordIdentifier);
     }
 
     private static Dictionary<string, List<string>> ParseTaggedLines(string record, string pattern)
@@ -89,10 +84,11 @@ public sealed class BibliographyImportService
                 continue;
             }
 
-            if (currentTag is not null && line.Length > 0 && char.IsWhiteSpace(rawLine.FirstOrDefault()))
+            if (currentTag is not null && line.Length > 0 && rawLine.Length > 0 && char.IsWhiteSpace(rawLine[0]))
             {
                 var values = result[currentTag];
-                values[^1] = $"{values[^1]} {line.Trim()}".Trim();
+                if (values.Count > 0)
+                    values[^1] = $"{values[^1]} {line.Trim()}".Trim();
             }
         }
 
@@ -118,12 +114,12 @@ public sealed class BibliographyImportService
             var journal = BibValue(entry.Body, "journal");
             if (string.IsNullOrWhiteSpace(journal)) journal = BibValue(entry.Body, "booktitle");
 
-            result.Add(Build(title, authors, year, doi, journal, BibValue(entry.Body, "abstract"), entry.Type));
+            result.Add(Build(title, authors, year, doi, journal, BibValue(entry.Body, "abstract"), entry.Type, entry.Key));
         }
         return result;
     }
 
-    private static IEnumerable<(string Type, string Body)> ExtractBibEntries(string content)
+    private static IEnumerable<(string Type, string Key, string Body)> ExtractBibEntries(string content)
     {
         var i = 0;
         while (i < content.Length)
@@ -157,7 +153,11 @@ public sealed class BibliographyImportService
             if (close < 0) yield break;
             var entry = content[(open + 1)..close];
             var comma = entry.IndexOf(',');
-            if (comma >= 0) yield return (type, entry[(comma + 1)..]);
+            if (comma >= 0)
+            {
+                var key = entry[..comma].Trim();
+                yield return (type, key, entry[(comma + 1)..]);
+            }
             i = close + 1;
         }
     }
@@ -174,22 +174,21 @@ public sealed class BibliographyImportService
 
     private static List<StudyMetadata> ParseNbib(string content)
     {
-        var blocks = Regex.Split(content.Replace("\r\n", "\n").Replace('\r', '\n'), @"(?m)(?=^PMID-\s*)")
-            .Where(x => !string.IsNullOrWhiteSpace(x));
+        var blocks = Regex.Split(NormalizeLineEndings(content), @"(?m)(?=^PMID-\s*)").Where(x => !string.IsNullOrWhiteSpace(x));
 
         return blocks.Select(block =>
         {
             var title = PubmedValue(block, "TI");
             var authors = PubmedValues(block, "AU").Select(NormalizeAuthor).Where(x => x.Length > 0).ToList();
-            var doi = NormalizeDoi(PubmedValues(block, "LID").FirstOrDefault(x => x.Contains("doi.org", StringComparison.OrdinalIgnoreCase) || x.Contains("[doi]", StringComparison.OrdinalIgnoreCase)));
-            return Build(title, authors, ExtractYear(PubmedValue(block, "DP")), doi, PubmedValue(block, "JT"), PubmedValue(block, "AB"), "MEDLINE");
+            var doi = NormalizeDoi(PubmedValues(block, "LID").FirstOrDefault(x => x.Contains("[doi]", StringComparison.OrdinalIgnoreCase) || x.Contains("doi.org", StringComparison.OrdinalIgnoreCase)));
+            var pmid = Regex.Match(block, @"(?m)^PMID-\s*(\d+)").Groups[1].Value.Trim();
+            return Build(title, authors, ExtractYear(PubmedValue(block, "DP")), doi, PubmedValue(block, "JT"), PubmedValue(block, "AB"), "MEDLINE", pmid);
         }).Where(x => !string.IsNullOrWhiteSpace(x.Title)).ToList();
     }
 
     private static List<StudyMetadata> ParseEndNote(string content)
     {
-        var blocks = Regex.Split(content.Replace("\r\n", "\n").Replace('\r', '\n'), @"(?m)(?=^%0\s)")
-            .Where(x => !string.IsNullOrWhiteSpace(x));
+        var blocks = Regex.Split(NormalizeLineEndings(content), @"(?m)(?=^%0\s)").Where(x => !string.IsNullOrWhiteSpace(x));
 
         return blocks.Select(block => Build(
             EndNoteValue(block, "%T"),
@@ -198,7 +197,8 @@ public sealed class BibliographyImportService
             NormalizeDoi(EndNoteValue(block, "%R")),
             EndNoteValue(block, "%J"),
             EndNoteValue(block, "%X"),
-            EndNoteValue(block, "%0")))
+            EndNoteValue(block, "%0"),
+            EndNoteValue(block, "%U")))
             .Where(x => !string.IsNullOrWhiteSpace(x.Title))
             .ToList();
     }
@@ -214,22 +214,36 @@ public sealed class BibliographyImportService
             string Text(string name) => article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals(name, StringComparison.OrdinalIgnoreCase))?.Value.Trim() ?? string.Empty;
             var title = Text("ArticleTitle");
             if (title.Length == 0) title = Text("article-title");
+
             var authors = article.Descendants().Where(x => x.Name.LocalName.Equals("Author", StringComparison.OrdinalIgnoreCase))
-                .Select(a =>
-                {
-                    var collective = a.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("CollectiveName", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
-                    if (!string.IsNullOrWhiteSpace(collective)) return collective;
-                    var family = a.Descendants().FirstOrDefault(x => x.Name.LocalName is "LastName" or "Family")?.Value.Trim();
-                    var given = a.Descendants().FirstOrDefault(x => x.Name.LocalName is "ForeName" or "Given")?.Value.Trim();
-                    return string.Join(" ", new[] { given, family }.Where(x => !string.IsNullOrWhiteSpace(x)));
-                }).Where(x => x.Length > 0).ToList();
+                .Select(ParseXmlAuthor).Where(x => x.Length > 0).ToList();
+
             var doiNode = article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("ELocationID", StringComparison.OrdinalIgnoreCase) && string.Equals((string?)x.Attribute("EIdType"), "doi", StringComparison.OrdinalIgnoreCase));
             var doi = NormalizeDoi(doiNode?.Value ?? Text("doi"));
-            return Build(title, authors, ExtractYear(Text("PubDate")), doi, Text("Title"), Text("AbstractText"), "XML");
+            var articleId = article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("ArticleId", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
+
+            var journal = article.Descendants().Where(x => x.Name.LocalName.Equals("Journal", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Descendants()).FirstOrDefault(x => x.Name.LocalName.Equals("Title", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
+            if (string.IsNullOrWhiteSpace(journal)) journal = article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("journal-title", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
+
+            var abstractText = string.Join(" ", article.Descendants().Where(x => x.Name.LocalName.Equals("AbstractText", StringComparison.OrdinalIgnoreCase) || x.Name.LocalName.Equals("abstract", StringComparison.OrdinalIgnoreCase)).Select(x => x.Value.Trim()).Where(x => x.Length > 0));
+            var publicationText = article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("PubDate", StringComparison.OrdinalIgnoreCase))?.Value.Trim()
+                ?? article.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("year", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
+
+            return Build(title, authors, ExtractYear(publicationText), doi, journal, abstractText, "XML", articleId);
         }).Where(x => !string.IsNullOrWhiteSpace(x.Title)).ToList();
     }
 
-    private static StudyMetadata Build(string title, List<string> authors, string? year, string? doi, string? journal, string? abstractText, string? type) => new()
+    private static string ParseXmlAuthor(XElement author)
+    {
+        var collective = author.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals("CollectiveName", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
+        if (!string.IsNullOrWhiteSpace(collective)) return collective;
+        var family = author.Descendants().FirstOrDefault(x => x.Name.LocalName is "LastName" or "Family")?.Value.Trim();
+        var given = author.Descendants().FirstOrDefault(x => x.Name.LocalName is "ForeName" or "Given")?.Value.Trim();
+        return string.Join(" ", new[] { given, family }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    }
+
+    private static StudyMetadata Build(string title, List<string> authors, string? year, string? doi, string? journal, string? abstractText, string? type, string? recordIdentifier) => new()
     {
         Title = Clean(title),
         Authors = authors,
@@ -238,6 +252,7 @@ public sealed class BibliographyImportService
         Journal = CleanNullable(journal),
         Abstract = CleanNullable(abstractText),
         Type = CleanNullable(type),
+        RecordIdentifier = CleanNullable(recordIdentifier),
         ImportFingerprint = Fingerprint(title, authors, year, doi)
     };
 
@@ -247,7 +262,7 @@ public sealed class BibliographyImportService
     private static IEnumerable<string> PubmedValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s*-\s*(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
     private static string EndNoteValue(string block, string tag) => Regex.Match(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Groups[1].Value.Trim();
     private static IEnumerable<string> EndNoteValues(string block, string tag) => Regex.Matches(block, $@"(?m)^{Regex.Escape(tag)}\s+(.*)$").Cast<Match>().Select(m => m.Groups[1].Value.Trim());
-    private static string NormalizeAuthor(string value) => Regex.Replace(value.Replace("  ", " "), @"\s+", " ").Trim();
+    private static string NormalizeAuthor(string value) => Regex.Replace(value, @"\s+", " ").Trim();
     private static string? NormalizeDoi(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
@@ -258,6 +273,7 @@ public sealed class BibliographyImportService
     private static string ExtractYear(string? value) => Regex.Match(value ?? string.Empty, @"\b(19|20)\d{2}\b").Value;
     private static string Clean(string value) => Regex.Replace(value.Replace("\n", " "), @"\s+", " ").Trim();
     private static string? CleanNullable(string? value) => string.IsNullOrWhiteSpace(value) ? null : Clean(value);
+    private static string NormalizeLineEndings(string value) => value.Replace("\r\n", "\n").Replace('\r', '\n');
     private static string Fingerprint(string title, IEnumerable<string> authors, string? year, string? doi)
     {
         var doiPart = NormalizeDoi(doi) ?? string.Empty;
