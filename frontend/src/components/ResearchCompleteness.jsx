@@ -34,7 +34,7 @@ export default function ResearchCompleteness() {
   ]);
   const [extractionA, setExtractionA] = useState({ N: '100', Mean: '', SD: '', Effect: '', 'Lower 95% CI': '', 'Upper 95% CI': '' });
   const [extractionB, setExtractionB] = useState({ N: '100', Mean: '', SD: '', Effect: '', 'Lower 95% CI': '', 'Upper 95% CI': '' });
-  const [forestRows, setForestRows] = useState([
+  const [forestRows] = useState([
     { study: 'Eksempelstudie A', effect: 0.8, lower: 0.6, upper: 1.0 },
     { study: 'Eksempelstudie B', effect: 0.7, lower: 0.5, upper: 0.95 },
   ]);
