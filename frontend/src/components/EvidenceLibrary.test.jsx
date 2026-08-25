@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import EvidenceLibrary from './EvidenceLibrary';
 import { analyzeEvidenceDocument } from '../api/evidenceApi';
@@ -16,7 +16,7 @@ vi.mock('../api/evidenceApi', () => ({
 }));
 
 describe('EvidenceLibrary research-document analysis', () => {
-  it('hÃ¥ndterer analyse-workflow og viser resultater korrekt', async () => {
+  it('håndterer analyse-workflow og viser resultater korrekt', async () => {
     analyzeEvidenceDocument.mockResolvedValue({
       fileName: 'review.pdf',
       documentType: 'Systematic review / meta-analysis',
@@ -54,35 +54,21 @@ describe('EvidenceLibrary research-document analysis', () => {
 
     fireEvent.change(input, { target: { files: [file] } });
 
-    const analyzeButton = await screen.findByRole('button', {
-      name: /analyser dokument/i,
-    });
-
     await waitFor(() => {
-      expect(analyzeButton).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: /analyser dokument/i })).not.toBeDisabled();
     });
 
-    fireEvent.click(analyzeButton);
+    fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
-    expect(
-      await screen.findByText('Systematic review / meta-analysis')
-    ).toBeInTheDocument();
-
-    expect(screen.getByTestId('document-viewer')).toHaveTextContent(
-      'review.pdf'
-    );
-    expect(screen.getByText('Dokumenttype:').parentElement).toHaveTextContent(
-      'Systematic review / meta-analysis'
-    );
+    expect(await screen.findByText('Systematic review / meta-analysis')).toBeInTheDocument();
+    expect(screen.getByTestId('document-viewer')).toHaveTextContent('review.pdf');
+    expect(screen.getByText('Dokumenttype:')).toBeInTheDocument();
+    expect(screen.getByText(/Dokumenttype:\s*Systematic review \/ meta-analysis/i)).toBeInTheDocument();
     expect(screen.getByText('Suitable')).toBeInTheDocument();
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
     expect(screen.getByText('PROSPERO')).toBeInTheDocument();
     expect(screen.getByText('abc123456')).toBeInTheDocument();
-    expect(analyzeEvidenceDocument).toHaveBeenCalledWith(
-      file,
-      ['amstar2'],
-      false
-    );
+    expect(analyzeEvidenceDocument).toHaveBeenCalledWith(file, ['amstar2'], false);
   });
 
   it('accepts a dropped research document', async () => {
@@ -110,4 +96,3 @@ describe('EvidenceLibrary research-document analysis', () => {
     );
   });
 });
-
