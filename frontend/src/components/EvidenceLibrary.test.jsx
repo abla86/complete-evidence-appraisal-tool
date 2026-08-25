@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 import EvidenceLibrary from './EvidenceLibrary';
 import { analyzeEvidenceDocument } from '../api/evidenceApi';
 
+vi.mock('./EvidenceDocumentViewer', () => ({
+  default: ({ file }) => <div data-testid="document-viewer">{file?.name}</div>,
+}));
+
 vi.mock('../api/evidenceApi', () => ({
   analyzeEvidenceDocument: vi.fn(),
   addManualEvidence: vi.fn(),
