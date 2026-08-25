@@ -22,10 +22,21 @@ export default function ResearchDashboard({ onNavigate }) {
     completedActions: data.projects.reduce((n, p) => n + p.completedKtaActions, 0),
   }), [data.projects]);
 
+  const capabilities = [
+    ['Dokumentanalyse', 'PDF · DOCX · XML/JATS', 'evidence'],
+    ['Referanseimport', 'RIS · BibTeX · PubMed · EndNote', 'references'],
+    ['Kritisk vurdering', 'AMSTAR 2 · CASP · AGREE II · GRADE', 'appraisal'],
+    ['RoB 2', 'Randomiserte studier', 'rob2'],
+    ['Screening & dataekstraksjon', 'PRISMA · PICO/PECO', 'research-workspace'],
+    ['Implementering', 'CFIR 2.0 · KTA', 'implementation'],
+    ['Samarbeid', 'Reviewere · feltlåser · konsensus', 'collaboration'],
+    ['Audit & finalisering', 'Historikk · integritetshash', 'audit'],
+  ];
+
   return <section className="research-hub" aria-labelledby="dashboard-heading">
     <p className="eyebrow">Research workspace</p>
     <h2 id="dashboard-heading">Forskningsdashboard</h2>
-    <p>Start her for å se prosjektstatus, metodiske arbeidsflyter og forhold som krever oppfølging. Tallene er dokumentasjonsstatus, ikke kvalitets- eller effektskårer.</p>
+    <p>Alle hovedfunksjoner er samlet her. Velg arbeidsflyten du trenger i stedet for å lete etter funksjoner i menyen.</p>
     {error && <div className="message message-error" role="alert">Kunne ikke hente prosjektstatus: {error}</div>}
 
     <div className="capability-grid">
@@ -39,10 +50,29 @@ export default function ResearchDashboard({ onNavigate }) {
       ].map(([label, value]) => <section className="capability-card" key={label}><p className="eyebrow">{label}</p><strong className="dashboard-number">{value}</strong></section>)}
     </div>
 
+    <section className="dashboard-section dashboard-capabilities">
+      <div className="dashboard-section-heading">
+        <div>
+          <p className="eyebrow">Funksjoner</p>
+          <h3>Hva kan du gjøre her?</h3>
+        </div>
+        <span className="dashboard-feature-count">{capabilities.length} arbeidsområder</span>
+      </div>
+      <div className="dashboard-feature-grid">
+        {capabilities.map(([title, detail, target]) => (
+          <button key={target} type="button" className="dashboard-feature-card" onClick={() => onNavigate(target)}>
+            <strong>{title}</strong>
+            <span>{detail}</span>
+            <small>Åpne →</small>
+          </button>
+        ))}
+      </div>
+    </section>
+
     <div className="dashboard-actions">
-      <button className="primary-button" type="button" onClick={() => onNavigate('implementation')}>Åpne CFIR + KTA</button>
-      <button type="button" onClick={() => onNavigate('projects')}>Prosjektoversikt og audit trail</button>
-      <button type="button" onClick={() => onNavigate('appraisal')}>Kritisk vurdering</button>
+      <button className="primary-button" type="button" onClick={() => onNavigate('evidence')}>Importer og analyser artikkel</button>
+      <button type="button" onClick={() => onNavigate('references')}>Importer referanser</button>
+      <button type="button" onClick={() => onNavigate('appraisal')}>Start kritisk vurdering</button>
     </div>
 
     <section className="dashboard-section">
