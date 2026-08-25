@@ -12,7 +12,9 @@ function Invoke-Step {
     param([string]$Name, [scriptblock]$Action)
     Write-Host "`n=== $Name ===" -ForegroundColor Cyan
     & $Action
-    if ($LASTEXITCODE -ne 0) { throw "$Name failed with exit code $LASTEXITCODE" }
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Name failed with exit code $LASTEXITCODE"
+    }
 }
 
 function Require-Command {
@@ -22,18 +24,17 @@ function Require-Command {
     }
 }
 
-if (-not (Test-Path $RepoPath -PathType Container)) { throw "Repository path not found: $RepoPath" }
-Set-Location $RepoPath
+if (-not (Test-Path $RepoPath -PathType Container)) {
+    throw "Repository path not found: $RepoPath"
+}
 
-Write-Host "Evidence Appraisal Tool - strict audit" -ForegroundColor Green
-Write-Host "Repository: $RepoPath"
+Set-Location $RepoPath
 
 Require-Command git
 Require-Command dotnet
 Require-Command node
 Require-Command npm
 
-Invoke-Step 'Git status' { git status --short --branch }
 Invoke-Step 'Repository structure' {
     $required = @(
         'EvidenceAppraisalTool.sln',
@@ -45,11 +46,18 @@ Invoke-Step 'Repository structure' {
         '.github/dependabot.yml',
         'SECURITY.md',
         'docs/methodology/AMSTAR2_IMPLEMENTATION.md',
-        'docs/methodology/CFIR_KTA_IMPLEMENTATION.md'
+        'docs/methodology/CFIR_KTA_IMPLEMENTATION.md',
+        'backend/EvidenceAppraisal.Api/Data/EvidenceDbContext.cs',
+        'backend/EvidenceAppraisal.Api/Models/ResearchOperationsModels.cs',
+        'backend/EvidenceAppraisal.Api/Services/ResearchOperationsEndpoints.cs',
+        'frontend/src/App.jsx',
+        'frontend/src/components/ResearchModuleHub.jsx'
     )
+
     foreach ($path in $required) {
-        if (-not (Test-Path $path)) { throw "Required path missing: $path" }
-        Write-Host "OK  $path"
+        if (-not (Test-Path $path)) {
+            throw "Required path missing: $path"
+        }
     }
 }
 
@@ -61,47 +69,143 @@ Invoke-Step 'Secret-pattern scan' {
         '-----BEGIN (RSA|OPENSSH|EC|DSA|PRIVATE) KEY-----',
         '(?i)password\s*=\s*["''][^"'']+["'']'
     )
-    $files = git ls-files | Where-Object { $_ -notmatch '(^|/)(node_modules|bin|obj|dist|coverage)/' }
+
+    $files = git ls-files | Where-Object {
+        $_ -notmatch '(^|/)(node_modules|bin|obj|dist|coverage)/'
+    }
+
     foreach ($file in $files) {
         $text = Get-Content -Raw -LiteralPath $file -ErrorAction SilentlyContinue
         foreach ($pattern in $patterns) {
-            if ($text -match $pattern) { throw "Potential secret pattern found in $file" }
+            if ($text -match $pattern) {
+                throw "Potential secret pattern found in $file"
+            }
         }
     }
-    Write-Host 'No configured secret patterns detected.'
+}
+
+Invoke-Step 'Static source contracts' {
+    $models = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Models/ResearchOperationsModels.cs'
+    $ops = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/ResearchOperationsEndpoints.cs'
+    $db = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Data/EvidenceDbContext.cs'
+    $hub = Get-Content -Raw 'frontend/src/components/ResearchModuleHub.jsx'
+    $doc = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/DocumentAnalysisService.cs'
+
+    foreach ($required in @(
+        'record ScreeningDecisionRequest(Guid ProjectId',
+        'record ExtractionRequest(Guid ProjectId',
+        'EnableDualReview',
+        'EnablePrismaTracking',
+        'EnableAuditTrail',
+        'RequireHumanVerification',
+        'PreviousHash',
+        'CurrentHash'
+    )) {
+        if ($models -notmatch [regex]::Escape($required)) {
+            throw "Missing model contract: $required"
+        }
+    }
+
+    foreach ($required in @(
+        'request.ProjectId == Guid.Empty',
+        'request.ProjectId is null',
+        'project.EnableDualReview',
+        'project.EnablePrismaTracking',
+        'x.ProjectId == projectId'
+    )) {
+        if ($ops -notmatch [regex]::Escape($required)) {
+            throw "Missing server-side project rule: $required"
+        }
+    }
+
+    if ($db -notmatch 'ValueComparer<List<string>>') {
+        throw 'StudyMetadata.Authors ValueComparer missing'
+    }
+
+    if ($db -notmatch 'SetValueComparer\(authorsComparer\)') {
+        throw 'StudyMetadata.Authors ValueComparer not attached'
+    }
+
+    if ($hub -match "setSelected\(''\)") {
+        throw 'ResearchModuleHub still performs synchronous setState inside effect'
+    }
+
+    if ($hub -notmatch "const effectiveSelected = current \? selected : '';") {
+        throw 'ResearchModuleHub effectiveSelected contract missing'
+    }
+
+    if ($doc -notmatch 'DtdProcessing\s*=\s*DtdProcessing\.Ignore') {
+        throw 'XML DTD processing is not explicitly disabled'
+    }
+
+    if ($doc -notmatch 'XmlResolver\s*=\s*null') {
+        throw 'XML resolver is not explicitly disabled'
+    }
 }
 
 if (-not $SkipBuild) {
-    Invoke-Step 'Backend restore' { dotnet restore EvidenceAppraisalTool.sln }
-    Invoke-Step 'Backend build' { dotnet build EvidenceAppraisalTool.sln --configuration Release --no-restore }
+    Invoke-Step 'Backend restore' {
+        dotnet restore EvidenceAppraisalTool.sln
+    }
+
+    Invoke-Step 'Backend build' {
+        dotnet build EvidenceAppraisalTool.sln --configuration Release --no-restore
+    }
 }
 
 if (-not $SkipTests) {
-    Invoke-Step 'Backend tests' { dotnet test EvidenceAppraisalTool.sln --configuration Release --no-build }
+    Invoke-Step 'Backend tests' {
+        if ($SkipBuild) {
+            dotnet test EvidenceAppraisalTool.sln --configuration Release
+        }
+        else {
+            dotnet test EvidenceAppraisalTool.sln --configuration Release --no-build
+        }
+    }
 }
 
 Push-Location frontend
 try {
-    Invoke-Step 'Frontend dependency verification' { npm ci --ignore-scripts }
-    if (-not $SkipTests) { Invoke-Step 'Frontend tests' { npm test } }
-    Invoke-Step 'Frontend lint' { npm run lint }
-    if (-not $SkipBuild) { Invoke-Step 'Frontend production build' { npm run build } }
-}
-finally { Pop-Location }
+    Invoke-Step 'Frontend dependency verification' {
+        npm ci --ignore-scripts
+    }
 
-Write-Host "`n=== Methodological boundary audit ===" -ForegroundColor Cyan
-$readme = Get-Content -Raw README.md
-$requiredNotices = @(
-    'no numerical total score',
-    'researcher',
-    'CFIR',
-    'KTA',
-    'limitations'
-)
-foreach ($notice in $requiredNotices) {
-    if ($readme -notmatch [regex]::Escape($notice)) { throw "README methodological notice missing: $notice" }
+    if (-not $SkipTests) {
+        Invoke-Step 'Frontend tests' {
+            npm test
+        }
+    }
+
+    Invoke-Step 'Frontend lint' {
+        npm run lint
+    }
+
+    if (-not $SkipBuild) {
+        Invoke-Step 'Frontend production build' {
+            npm run build
+        }
+    }
+}
+finally {
+    Pop-Location
+}
+
+Invoke-Step 'Methodological boundary audit' {
+    $readme = Get-Content -Raw README.md
+    $requiredNotices = @(
+        'researcher',
+        'CFIR',
+        'KTA',
+        'limitations'
+    )
+
+    foreach ($notice in $requiredNotices) {
+        if ($readme -notmatch [regex]::Escape($notice)) {
+            throw "README methodological notice missing: $notice"
+        }
+    }
 }
 
 Write-Host "`nAUDIT RESULT: PASS" -ForegroundColor Green
-Write-Host 'This script proves only that the configured repository checks passed on the machine where it is run.'
-Write-Host 'It does not establish methodological validity, clinical validity, security certification, or production readiness.'
+Write-Host 'All configured repository checks completed successfully on this machine.'
+Write-Host 'PASS does not establish methodological validity, clinical validity, legal compliance, security certification, or production readiness.'
