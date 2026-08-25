@@ -6,6 +6,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 Set-StrictMode -Version Latest
+$global:LASTEXITCODE = 0
 
 if ([string]::IsNullOrWhiteSpace($RepoPath)) {
     if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
@@ -29,14 +30,15 @@ function Invoke-SystemStep {
     Write-Host "`n=== $Name ===" -ForegroundColor Cyan
 
     try {
+        $global:LASTEXITCODE = 0
         & $Action
-        $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
+        $exitCode = [int]$global:LASTEXITCODE
 
         if ($exitCode -ne 0) {
             throw "Exit code $exitCode"
         }
 
-        $script:Results.Add([pscustomobject]@{ Step = $Name; Status = 'OK' })
+        $script:Results.Add([pscustomobject]@{ Step = $Name; Status = 'OK'; Detail = '' })
         Write-Host "$Name : OK" -ForegroundColor Green
     }
     catch {
@@ -73,29 +75,34 @@ Invoke-SystemStep 'MAIN SYNC' {
 
 Invoke-SystemStep 'REPOSITORY / SECURITY / FULL AUDIT' {
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\tools\audit-and-build.ps1'
-    if ($LASTEXITCODE -ne 0) { throw "audit-and-build.ps1 failed with exit code $LASTEXITCODE" }
+    $code = [int]$global:LASTEXITCODE
+    if ($code -ne 0) { throw "audit-and-build.ps1 failed with exit code $code" }
 }
 
 Invoke-SystemStep 'BACKEND REGRESSION' {
     dotnet test '.\EvidenceAppraisalTool.sln' --configuration Release --no-build
-    if ($LASTEXITCODE -ne 0) { throw "Backend tests failed with exit code $LASTEXITCODE" }
+    $code = [int]$global:LASTEXITCODE
+    if ($code -ne 0) { throw "Backend tests failed with exit code $code" }
 }
 
 Push-Location '.\frontend'
 try {
     Invoke-SystemStep 'FRONTEND TESTS' {
         npm.cmd test -- --run
-        if ($LASTEXITCODE -ne 0) { throw "Frontend tests failed with exit code $LASTEXITCODE" }
+        $code = [int]$global:LASTEXITCODE
+        if ($code -ne 0) { throw "Frontend tests failed with exit code $code" }
     }
 
     Invoke-SystemStep 'FRONTEND LINT' {
         npm.cmd run lint
-        if ($LASTEXITCODE -ne 0) { throw "Frontend lint failed with exit code $LASTEXITCODE" }
+        $code = [int]$global:LASTEXITCODE
+        if ($code -ne 0) { throw "Frontend lint failed with exit code $code" }
     }
 
     Invoke-SystemStep 'FRONTEND PRODUCTION BUILD' {
         npm.cmd run build
-        if ($LASTEXITCODE -ne 0) { throw "Frontend production build failed with exit code $LASTEXITCODE" }
+        $code = [int]$global:LASTEXITCODE
+        if ($code -ne 0) { throw "Frontend production build failed with exit code $code" }
     }
 }
 finally {
