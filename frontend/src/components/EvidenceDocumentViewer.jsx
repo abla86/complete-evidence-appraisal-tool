@@ -17,18 +17,23 @@ export default function EvidenceDocumentViewer({ file }) {
 
   useEffect(() => {
     if (!file) {
-      setUrl(null);
-      setText('');
-      setTextError('');
+      queueMicrotask(() => {
+        setUrl(null);
+        setText('');
+        setTextError('');
+      });
       return undefined;
     }
 
     const objectUrl = URL.createObjectURL(file);
     let active = true;
 
-    setUrl(objectUrl);
-    setText('');
-    setTextError('');
+    queueMicrotask(() => {
+      if (!active) return;
+      setUrl(objectUrl);
+      setText('');
+      setTextError('');
+    });
 
     if (getFileKind(file) === 'text') {
       file.text()
@@ -63,7 +68,7 @@ export default function EvidenceDocumentViewer({ file }) {
       <div className="document-viewer-header">
         <strong>{file.name}</strong>
         {url && (
-          <a href={url} download={file.name}>
+          <a href={url} download={file.name} aria-label="Åpne/last ned">
             Åpne/last ned
           </a>
         )}
@@ -93,7 +98,7 @@ export default function EvidenceDocumentViewer({ file }) {
             Dokumentet er likevel tilgjengelig for analyse i verktøyet.
           </p>
           {url && (
-            <a href={url} download={file.name}>
+            <a href={url} download={file.name} aria-label="Åpne/last ned dokumentet">
               Åpne/last ned dokumentet
             </a>
           )}
