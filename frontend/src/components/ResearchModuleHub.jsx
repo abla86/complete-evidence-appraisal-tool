@@ -306,10 +306,7 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
     [instruments, allowed],
   );
   const current = useMemo(() => visibleInstruments.find((item) => item.id === selected), [visibleInstruments, selected]);
-
-  useEffect(() => {
-    if (selected && !allowed.has(selected)) setSelected('');
-  }, [selected, allowed]);
+  const effectiveSelected = current ? selected : '';
 
   return (
     <section className="research-hub">
@@ -324,15 +321,15 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
         <>
           <div className="instrument-picker">
             {visibleInstruments.map((item) =>
-              <button type="button" className={selected === item.id ? 'instrument-option selected' : 'instrument-option'}
+              <button type="button" className={effectiveSelected === item.id ? 'instrument-option selected' : 'instrument-option'}
                 key={item.id} onClick={() => setSelected(item.id)}>
                 <strong>{item.name}</strong><span>{item.purpose}</span>
               </button>)}
           </div>
           {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.scoring}</p>}
-          {selected === 'casp' && <CaspForm />}
-          {selected === 'agree2' && <Agree2Form />}
-          {selected === 'grade' && <GradeForm />}
+          {effectiveSelected === 'casp' && <CaspForm />}
+          {effectiveSelected === 'agree2' && <Agree2Form />}
+          {effectiveSelected === 'grade' && <GradeForm />}
         </>
       )}
     </section>
