@@ -15,13 +15,13 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 9.0.x
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -34,7 +34,7 @@ jobs:
         run: dotnet build EvidenceAppraisalTool.sln --no-restore --configuration Release
 
       - name: Test backend
-        run: dotnet test EvidenceAppraisalTool.sln --no-build --configuration Release
+        run: dotnet test EvidenceAppraisalTool.sln --no-build --configuration Release --logger "trx;LogFileName=backend-tests.trx"
 
       - name: Install frontend
         working-directory: frontend
