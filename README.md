@@ -73,6 +73,31 @@ The document-analysis workflow provides:
 
 The application is deliberately conservative: an automated text match is a **candidate finding**, not an appraisal conclusion.
 
+### Human verification and accountability
+
+The verification workflow is designed around human-in-the-loop research practice:
+
+- automated findings remain provisional until researcher review
+- verification records capture reviewer identity, status and verification note where supported by the workflow
+- the original source remains authoritative
+- verification history is versioned rather than silently overwritten
+- an automated finding must never be interpreted as equivalent to a methodological judgement
+
+Where a project requires independent dual review, the application provides reviewer comparison, conflict identification and consensus-oriented workflow support. These technical features do not themselves establish inter-rater reliability or methodological validity for a research project.
+
+### Methodology provenance
+
+Appraisal results should be interpreted together with the exact methodology and software version used. For reproducible research use, record:
+
+- the relevant appraisal methodology/version or checklist edition
+- the exact application Git commit SHA or release tag
+- relevant configuration and workflow choices
+- input-data provenance
+- verification/test results
+- known limitations and researcher decisions
+
+The application treats methodology provenance as part of research reproducibility rather than as a claim that a software registry makes an appraisal scientifically valid.
+
 ### Collaboration
 
 The project includes a collaboration workspace with:
@@ -99,6 +124,8 @@ The current collaboration implementation uses polling. Presence and locks are co
 - PDF/report generation where implemented
 - CSV/XLSX/DOCX/PDF support in implementation workflows
 - SHA-256 integrity markers for finalization packages
+
+SHA-256 is used as a document/integrity identifier. It is not a substitute for institutional information-security controls, authenticated audit infrastructure, or independent scientific verification.
 
 ## Research-safety rules
 
@@ -169,13 +196,23 @@ The repository has automated GitHub Actions for backend/frontend build and test 
 
 The current CI workflow runs on pushes and pull requests targeting `main` and performs backend restore/build/test followed by frontend install/test/lint/build.
 
-## Production and academic-use boundary
+## Validation and scientific-use boundary
 
-This repository should **not** be described as a validated clinical decision-support system or as a substitute for authorised appraisal instruments.
+The application is designed as **research support software**, not as a self-validating scientific instrument. Passing software tests establishes technical behavior for the tested scenarios; it does **not** establish methodological validity, construct validity, clinical validity, inter-rater equivalence to expert panels, or scientific certification of appraisal results.
+
+A separate empirical validation study would be required to support claims that automated findings agree with expert human reviewers, including clearly defined samples, reference standards, reviewer procedures and appropriate reliability/accuracy analyses.
+
+## Privacy, security and deployment boundary
 
 The public deployment is a demonstration environment. It is intended for public, synthetic, or otherwise non-sensitive material. Do not upload participant information, patient information, confidential unpublished research data, credentials, API keys, access tokens, or other restricted information to the public deployment, GitHub issues, pull requests, or example datasets.
 
-If a research project involves personal data or other restricted research data, processing must take place within the applicable institutional research, privacy, information-security and ethics framework. The technical controls in this repository do not by themselves establish GDPR compliance or approval for a particular research project.
+If a research project involves personal data or other restricted research data, processing must take place within the applicable institutional research, privacy, information-security and ethics framework. The technical controls in this repository do **not** by themselves establish GDPR compliance, ISO certification, institutional approval, data-processing authorization, or suitability for a particular research project.
+
+## Regulatory boundary
+
+This repository must not be presented as a CE-marked medical device or as a clinically validated decision-support system on the basis of the software implementation alone. Whether a particular deployment or use case falls within applicable medical-device, research-governance, privacy or institutional requirements must be assessed for that context by the responsible organization and relevant authorities.
+
+## Reproducible research use
 
 For reproducible research use, record the exact Git commit SHA or release tag, relevant configuration, input-data provenance, software changes, verification/test results and known limitations. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
 
