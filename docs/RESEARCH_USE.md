@@ -1,4 +1,4 @@
-# Research use and master-study boundary
+# Research use boundary
 
 ## Purpose
 
@@ -36,7 +36,7 @@ Automated text analysis is advisory. A candidate match is not a methodological c
 
 The public demonstration environment is intended for public, synthetic, or otherwise non-sensitive material. Do not upload identifiable participant information, patient information, confidential unpublished research data, credentials, access tokens, or other restricted information to the public deployment, GitHub issues, pull requests, or example datasets.
 
-If a master project or research project involves personal data or other restricted research data, the data must be processed only within the institutionally approved research setup and according to the applicable data-management, privacy, security, and ethics requirements. The existence of technical security controls in this repository does not by itself establish regulatory compliance for a particular study.
+If a research project involves personal data or other restricted research data, the data must be processed only within the institutionally approved research setup and according to the applicable data-management, privacy, security, and ethics requirements. The existence of technical security controls in this repository does not by itself establish regulatory compliance for a particular study.
 
 ## Reproducibility
 
