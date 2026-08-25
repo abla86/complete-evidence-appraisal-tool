@@ -132,7 +132,10 @@ public sealed class PdfAnalysisService
     {
         using var stream = new MemoryStream(bytes, writable: false);
         using var document = WordprocessingDocument.Open(stream, false);
-        return string.Join("\n", document.MainDocumentPart?.Document.Body?.Descendants<DocumentFormat.OpenXml.Wordprocessing.Text>().Select(x => x.Text) ?? []);
+        var body = document.MainDocumentPart?.Document?.Body;
+        return body is null
+            ? string.Empty
+            : string.Join("\n", body.Descendants<DocumentFormat.OpenXml.Wordprocessing.Text>().Select(x => x.Text));
     }
 
     private static string ExtractXml(byte[] bytes)
