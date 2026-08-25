@@ -71,6 +71,39 @@ public sealed class DocumentAnalysisServiceTests
     }
 
     [Fact]
+    public async Task Jats_with_doctype_is_parsed_without_external_dtd_resolution()
+    {
+        const string jats = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with MathML3 v1.4//EN" "JATS-archivearticle1-4-mathml3.dtd">
+            <article>
+              <front><article-meta><title-group><article-title>Systematic review</article-title></title-group></article-meta></front>
+              <body><sec><title>Methods</title><p>Search strategy used PubMed and MEDLINE.</p></sec></body>
+            </article>
+            """;
+
+        var file = CreateFile(jats, "review.jats", "application/xml");
+        var service = new DocumentAnalysisService();
+
+        var result = await service.AnalyzeAsync(file, ["amstar2"], false, CancellationToken.None);
+
+        Assert.Equal("Systematic review / meta-analysis", result.DocumentType);
+        Assert.Contains(result.Findings, x => x.Topic == "Search strategy" && x.MatchedTerm == "PubMed");
+        Assert.DoesNotContain(result.Warnings, x => x.Contains("not valid XML", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Invalid_jats_is_rejected()
+    {
+        var file = CreateFile("<article><broken>", "broken.jats", "application/xml");
+        var service = new DocumentAnalysisService();
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => service.AnalyzeAsync(file, ["amstar2"], false, CancellationToken.None));
+
+        Assert.Contains("not valid XML", exception.Message);
+    }
+
+    [Fact]
     public async Task Unsupported_file_type_is_rejected()
     {
         var file = CreateFile("not a supported document", "article.exe", "application/octet-stream");
