@@ -1,12 +1,21 @@
 [CmdletBinding()]
 param(
-    [string]$RepoPath = (Split-Path -Parent $PSScriptRoot),
+    [string]$RepoPath = $null,
     [switch]$SkipBuild,
     [switch]$SkipTests
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+
+if ([string]::IsNullOrWhiteSpace($RepoPath)) {
+    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        $RepoPath = Split-Path -Parent $PSScriptRoot
+    }
+    else {
+        $RepoPath = (Get-Location).Path
+    }
+}
 
 function Invoke-Step {
     param([string]$Name, [scriptblock]$Action)
