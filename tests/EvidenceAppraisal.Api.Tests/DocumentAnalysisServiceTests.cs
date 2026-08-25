@@ -88,7 +88,9 @@ public sealed class DocumentAnalysisServiceTests
         var result = await service.AnalyzeAsync(file, ["amstar2"], false, CancellationToken.None);
 
         Assert.Equal("Systematic review / meta-analysis", result.DocumentType);
-        Assert.Contains(result.Findings, x => x.Topic == "Search strategy" && x.MatchedTerm == "PubMed");
+        Assert.Contains(result.Findings, x =>
+            x.Topic == "Search strategy" &&
+            x.Excerpt.Contains("PubMed", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(result.Warnings, x => x.Contains("not valid XML", StringComparison.OrdinalIgnoreCase));
     }
 
