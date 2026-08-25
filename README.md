@@ -7,7 +7,9 @@
 ![React 19](https://img.shields.io/badge/React-19-61DAFB)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-**Live prototype:** https://evidence-appraisal-tool.onrender.com
+**Public deployment target:** https://evidence-appraisal-tool.onrender.com
+
+**Deployment status:** Render deployment is configured from `main` via `render.yaml`. The URL above is the intended public application address; live availability must be confirmed in the Render service dashboard because this repository does not expose Render's runtime deployment state.
 
 A research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
 
@@ -177,7 +179,7 @@ npm ci
 npm run dev
 ```
 
-If required, set `VITE_API_URL` to the backend URL.
+If required, set `VITE_API_URL` to the backend URL. In the published same-origin deployment, the frontend uses the application origin and calls `/api/...` directly.
 
 ### Tests
 
@@ -189,6 +191,23 @@ npm test
 npm run lint
 npm run build
 ```
+
+## Deployment
+
+Render is configured through [`render.yaml`](render.yaml):
+
+- Docker runtime
+- deploy from `main`
+- automatic deployment on changes to `main`
+- health check at `/health`
+- frontend build copied into the ASP.NET `wwwroot`
+- API and frontend served from the same origin
+
+The live application address is intended to be:
+
+**https://evidence-appraisal-tool.onrender.com**
+
+A green GitHub build confirms repository build/test status. It does not by itself confirm that the Render runtime is healthy; runtime availability must be confirmed from Render's service dashboard or health endpoint.
 
 ## CI and security
 
