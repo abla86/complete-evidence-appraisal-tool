@@ -66,6 +66,22 @@ public sealed class ResearchProjectControlEntity
     public DateTime? LockedAtUtc { get; set; }
     public string? FinalHash { get; set; }
     public string? LockedBy { get; set; }
+
+    // Project-level configuration. These are explicit user choices, not hidden global rules.
+    public string EnabledInstrumentsJson { get; set; } = "[\"amstar2\"]";
+    public bool RequireHumanVerification { get; set; } = true;
+    public bool EnableDualReview { get; set; }
+    public bool EnablePrismaTracking { get; set; }
+    public bool EnableAuditTrail { get; set; } = true;
+    public bool EnableDoiMetadataLookup { get; set; } = true;
+    public bool EnablePicoAssist { get; set; }
+    public bool EnablePdfEvidenceMapping { get; set; } = true;
+    public bool EnableOfflineMode { get; set; }
+    public bool IncludePageTextInAnalysis { get; set; }
+    public string MethodologyVersion { get; set; } = string.Empty;
+    public string ResearchRulesVersion { get; set; } = "1.0";
+    public DateTime ConfiguredAtUtc { get; set; } = DateTime.UtcNow;
+    public string? ConfiguredBy { get; set; }
 }
 
 public sealed class ReviewerAccessEntity
@@ -94,6 +110,40 @@ public sealed record ExtractionRequest(Guid StudyId, string Parameter, string Va
 public sealed record OutcomeRequest(string Name, string? Definition, string? Timepoint, string? Certainty, string? Justification, string? RelativeEffect, string? AbsoluteEffect, string? ParticipantsAndStudies, Guid? ProjectId);
 public sealed record FinalizeProjectRequest(string Reviewer, string? Name);
 public sealed record ReviewerAccessRequest(Guid ProjectId, int ValidDays = 30);
+
+public sealed record ResearchProjectConfigurationRequest(
+    string Name,
+    IReadOnlyCollection<string>? EnabledInstruments,
+    bool RequireHumanVerification,
+    bool EnableDualReview,
+    bool EnablePrismaTracking,
+    bool EnableAuditTrail,
+    bool EnableDoiMetadataLookup,
+    bool EnablePicoAssist,
+    bool EnablePdfEvidenceMapping,
+    bool EnableOfflineMode,
+    bool IncludePageTextInAnalysis,
+    string? MethodologyVersion,
+    string Reviewer);
+
+public sealed record ResearchProjectConfigurationDto(
+    Guid Id,
+    string Name,
+    IReadOnlyCollection<string> EnabledInstruments,
+    bool RequireHumanVerification,
+    bool EnableDualReview,
+    bool EnablePrismaTracking,
+    bool EnableAuditTrail,
+    bool EnableDoiMetadataLookup,
+    bool EnablePicoAssist,
+    bool EnablePdfEvidenceMapping,
+    bool EnableOfflineMode,
+    bool IncludePageTextInAnalysis,
+    string MethodologyVersion,
+    string ResearchRulesVersion,
+    bool IsLocked,
+    DateTime ConfiguredAtUtc,
+    string? ConfiguredBy);
 
 public static class ResearchHash
 {
