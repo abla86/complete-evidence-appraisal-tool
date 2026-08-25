@@ -38,7 +38,14 @@ builder.Services.AddScoped<ImplementationPersistenceService>();
 builder.Services.AddScoped<ProjectOverviewService>();
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
-builder.Services.AddCors(options => options.AddPolicy("LocalReactFrontend", policy => policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(options => options.AddPolicy("AppClients", policy =>
+{
+    policy.WithOrigins(
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "https://evidence-appraisal-tool.onrender.com"
+    ).AllowAnyHeader().AllowAnyMethod();
+}));
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -62,7 +69,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseCors("LocalReactFrontend");
+app.UseCors("AppClients");
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
