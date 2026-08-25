@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen } from '@testing-library/react';
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import EvidenceLibrary from './EvidenceLibrary';
 import { analyzeEvidenceDocument } from '../api/evidenceApi';
@@ -50,6 +50,10 @@ describe('EvidenceLibrary research-document analysis', () => {
 
     fireEvent.change(input, { target: { files: [file] } });
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /analyser dokument/i })).not.toBeDisabled();
+    });
+
     expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
     expect(document.querySelector('.file-name')).toHaveTextContent('review.pdf');
     expect(screen.getByText(/2.*Velg instrument/)).toBeInTheDocument();
@@ -58,6 +62,7 @@ describe('EvidenceLibrary research-document analysis', () => {
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
     expect(screen.getByTestId('document-viewer')).toHaveTextContent('review.pdf');
+    expect(screen.getByRole('heading', { name: 'review.pdf' })).toBeInTheDocument();
     const documentTypeLabel = screen.getByText('Dokumenttype:');
     expect(documentTypeLabel.parentElement).toHaveTextContent('Systematic review / meta-analysis');
     expect(screen.getByText('Suitable')).toBeInTheDocument();
@@ -66,7 +71,7 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(analyzeEvidenceDocument).toHaveBeenCalledWith(file, ['amstar2'], false);
   });
 
-  it('accepts a dropped research document', () => {
+  it('accepts a dropped research document', async () => {
     const file = new File(['%PDF-1.7'], 'dropped.pdf', { type: 'application/pdf' });
     render(<EvidenceLibrary />);
 
@@ -77,8 +82,9 @@ describe('EvidenceLibrary research-document analysis', () => {
       dataTransfer: { files: [file] },
     });
 
-    expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
-    expect(screen.queryByText('file-selected-status')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
+    });
     expect(document.querySelector('.file-name')).toHaveTextContent('dropped.pdf');
   });
 });
