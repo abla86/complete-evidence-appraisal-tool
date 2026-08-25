@@ -129,8 +129,10 @@ async Task<IResult> AnalyzeResearchDocument(HttpRequest request, DocumentAnalysi
     var form = await request.ReadFormAsync(cancellationToken);
     var file = form.Files.GetFile("file");
     if (file is null) return Results.BadRequest(new { error = "Upload a supported research document using the 'file' field." });
-    var instruments = form["instruments"].SelectMany(value => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)).ToArray();
-    var includeSourceText = string.Equals(form["includePageText"].FirstOrDefault(), "true", StringComparison.OrdinalIgnoreCase);
+    var instruments = form.TryGetValue("instruments", out var instrumentValues)
+        ? instrumentValues.SelectMany(value => (value ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)).ToArray()
+        : Array.Empty<string>();
+    var includeSourceText = string.Equals(form.TryGetValue("includePageText", out var includePageText) ? includePageText.FirstOrDefault() : null, "true", StringComparison.OrdinalIgnoreCase);
     try { return Results.Ok(await service.AnalyzeAsync(file, instruments, includeSourceText, cancellationToken)); }
     catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
 }
