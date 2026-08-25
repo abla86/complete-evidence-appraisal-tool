@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using EvidenceAppraisal.Api.Models;
@@ -141,7 +142,15 @@ public sealed class DocumentAnalysisService
     private static string ExtractXml(byte[] bytes)
     {
         using var stream = new MemoryStream(bytes, writable: false);
-        var doc = XDocument.Load(stream, LoadOptions.PreserveWhitespace);
+        var settings = new XmlReaderSettings
+        {
+            DtdProcessing = DtdProcessing.Ignore,
+            XmlResolver = null,
+            IgnoreComments = true,
+            IgnoreWhitespace = false
+        };
+        using var reader = XmlReader.Create(stream, settings);
+        var doc = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
         return string.Join(" ", doc.DescendantNodes().OfType<XText>().Select(x => x.Value));
     }
 
@@ -224,8 +233,10 @@ public sealed class DocumentAnalysisService
             return;
         }
         if (extension.Equals(".docx", StringComparison.OrdinalIgnoreCase) && (bytes.Length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B)) throw new ArgumentException("The uploaded DOCX file is not a valid Office package.");
-        if ((extension.Equals(".xml", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jats", StringComparison.OrdinalIgnoreCase)) && !LooksLikeXml(bytes))
-            throw new ArgumentException("The uploaded XML/JATS file is not valid XML content.");
+        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jats", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!LooksLikeXml(bytes)) throw new ArgumentException("The uploaded XML/JATS file is not valid XML content.");
+        }
     }
 
     private static bool LooksLikeXml(byte[] bytes)
@@ -233,10 +244,18 @@ public sealed class DocumentAnalysisService
         try
         {
             using var stream = new MemoryStream(bytes, writable: false);
-            _ = XDocument.Load(stream);
+            var settings = new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Ignore,
+                XmlResolver = null,
+                IgnoreComments = true,
+                IgnoreWhitespace = false
+            };
+            using var reader = XmlReader.Create(stream, settings);
+            _ = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
             return true;
         }
-        catch (Exception) { return false; }
+        catch (XmlException) { return false; }
     }
 
     private static string BuildExcerpt(string text, string term)
