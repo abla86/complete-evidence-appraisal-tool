@@ -39,6 +39,6 @@ export default function ResearchMethods() {
       <div className="notice notice-warning"><strong>Kontroller alltid mot kildene:</strong> GRADE certainty er en faglig vurdering av evidensgrunnlaget, ikke en automatisk kvalitetsscore.</div>
     </section>
 
-    <section className="method-card roadmap"><h3>Metodiske utvidelser</h3><p>Validerte instrumenttekster må håndteres etter gjeldende rettighets- og lisensvilkår. Programmet skal ikke late som en sjekkliste er tilgjengelig dersom den ikke er implementert eller lisensiert.</p><div className="roadmap-grid"><span>Risk of Bias</span><span>Extraction</span><span>Qualitative synthesis</span><span>Meta-analysis</span><span>Conflict resolution</span><span>Master Report</span></div></section>
+    <section className="method-card roadmap"><h3>Metodiske utvidelser</h3><p>Validerte instrumenttekster må håndteres etter gjeldende rettighets- og lisensvilkår. Programmet skal ikke late som en sjekkliste er tilgjengelig dersom den ikke er implementert eller lisensiert.</p><div className="roadmap-grid"><span>Risk of Bias</span><span>Extraction</span><span>Qualitative synthesis</span><span>Meta-analysis</span><span>Conflict resolution</span><span>Research report</span></div></section>
   </div>;
 }
