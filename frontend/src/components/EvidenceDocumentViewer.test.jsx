@@ -7,7 +7,9 @@ describe('EvidenceDocumentViewer', () => {
   const originalRevokeObjectURL = URL.revokeObjectURL;
 
   beforeEach(() => {
-    URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    // Use a non-opaque test URL so JSDOM does not attempt to navigate an
+    // iframe to a blob origin and throw a localStorage SecurityError.
+    URL.createObjectURL = vi.fn(() => 'https://example.test/mock-document');
     URL.revokeObjectURL = vi.fn();
   });
 
@@ -36,11 +38,14 @@ describe('EvidenceDocumentViewer', () => {
       'Forskningsdokument: review.pdf'
     );
 
-    expect(iframe).toHaveAttribute('src', 'blob:mock-url');
+    expect(iframe).toHaveAttribute(
+      'src',
+      'https://example.test/mock-document'
+    );
     expect(URL.createObjectURL).toHaveBeenCalledWith(file);
     expect(
-      screen.getByRole('link', { name: /Åpne\/last ned/i })
-    ).toHaveAttribute('href', 'blob:mock-url');
+      screen.getByRole('link', { name: 'Åpne/last ned' })
+    ).toHaveAttribute('href', 'https://example.test/mock-document');
   });
 
   it.each(['txt', 'html', 'htm', 'xml', 'jats'])(
@@ -74,7 +79,7 @@ describe('EvidenceDocumentViewer', () => {
       screen.getByText(/Nettleseren kan ikke vise DOCX direkte/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: /Åpne\/last ned/i })
+      screen.getByRole('link', { name: 'Åpne/last ned' })
     ).toBeInTheDocument();
   });
 
@@ -105,6 +110,8 @@ describe('EvidenceDocumentViewer', () => {
 
     unmount();
 
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(
+      'https://example.test/mock-document'
+    );
   });
 });
