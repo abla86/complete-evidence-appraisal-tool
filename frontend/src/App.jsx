@@ -36,53 +36,111 @@ const navItems = [
   ['evidence', 'Analyser dokument', 'Last opp og spor forskningsmateriale'],
 ];
 
+const PROJECT_ID_KEY = 'eat-project-id';
+const DEFAULT_PROJECT_ID = 'default-research-project';
+
+const DEFAULT_WORKFLOW_RULES = {
+  instruments: ['amstar2'],
+  requireHumanVerification: true,
+  dualReview: false,
+  prismaTracking: true,
+  auditTrail: true,
+  doiLookup: true,
+  picoAssist: false,
+  pdfEvidenceMapping: true,
+  offlineMode: false,
+  includePageText: false,
+};
+
+function getProjectId() {
+  return localStorage.getItem(PROJECT_ID_KEY) || DEFAULT_PROJECT_ID;
+}
+
+function normalizeWorkflowRules(rules) {
+  return {
+    ...DEFAULT_WORKFLOW_RULES,
+    ...(rules ?? {}),
+    instruments: Array.isArray(rules?.instruments) && rules.instruments.length > 0
+      ? rules.instruments
+      : DEFAULT_WORKFLOW_RULES.instruments,
+  };
+}
+
 function App() {
   const [metadata, setMetadata] = useState(null);
   const [apiStatus, setApiStatus] = useState('Checking');
   const [error, setError] = useState('');
   const [assessmentSetup, setAssessmentSetup] = useState(null);
+  const [workflowRules, setWorkflowRules] = useState(DEFAULT_WORKFLOW_RULES);
+  const [projectId] = useState(getProjectId());
   const [activePage, setActivePage] = useState('dashboard');
 
   useEffect(() => {
     let active = true;
     Promise.all([getHealth(), getAmstar2Metadata()]).then(([health, instrumentMetadata]) => {
       if (!active) return;
-      setApiStatus(health.status); setMetadata(instrumentMetadata);
+      setApiStatus(health.status);
+      setMetadata(instrumentMetadata);
     }).catch((e) => {
       if (!active) return;
-      setApiStatus('Unavailable'); setError(e.message || 'Kunne ikke koble til API-et.');
+      setApiStatus('Unavailable');
+      setError(e.message || 'Kunne ikke koble til API-et.');
     });
     return () => { active = false; };
   }, []);
 
+  async function persistProjectSetup(setup) {
+    const normalized = normalizeWorkflowRules(setup.workflowRules);
+    setWorkflowRules(normalized);
+    setAssessmentSetup(setup);
+
+    try {
+      const response = await fetch(`/api/research/operations/projects/${projectId}/configuration`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: setup.reviewTitle,
+          reviewer: setup.reviewer,
+          workflowRules: normalized,
+        }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Kunne ikke lagre prosjektoppsettet.');
+      }
+    } catch (e) {
+      setError(e.message || 'Kunne ikke lagre prosjektoppsettet.');
+    }
+  }
+
   function renderPage() {
     if (!metadata && activePage !== 'rob2' && activePage !== 'references' && activePage !== 'prisma-export' && activePage !== 'finalize') return <section className="message" aria-live="polite"><p>Laster metodeinformasjon …</p></section>;
     if (activePage === 'dashboard') return <ResearchDashboard onNavigate={setActivePage} />;
-    if (activePage === 'references') return <BibliographyUploader />;
+    if (activePage === 'references') return workflowRules.doiLookup ? <BibliographyUploader /> : <section className="notice notice-warning"><h2>DOI-/bibliografiintegrasjon er slått av</h2><p>Dette prosjektet bruker ikke automatisk DOI-oppslag.</p></section>;
     if (activePage === 'research-workspace') return <ResearchCompleteness />;
-    if (activePage === 'prisma-export') return <PrismaExportPanel />;
+    if (activePage === 'prisma-export') return workflowRules.prismaTracking ? <PrismaExportPanel /> : <section className="notice notice-warning"><h2>PRISMA-sporing er slått av</h2><p>PRISMA-modulen er deaktivert i prosjektoppsettet.</p></section>;
     if (activePage === 'methods') return <ResearchMethods />;
     if (activePage === 'projects') return <ProjectOverview />;
-    if (activePage === 'collaboration') return <ResearchCollaborationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
-    if (activePage === 'audit') return <EvidenceAuditHistory />;
-    if (activePage === 'finalize') return <FinalizationPanel projectId={localStorage.getItem('eat-project-id') || 'default-research-project'} />;
+    if (activePage === 'collaboration') return workflowRules.dualReview ? <ResearchCollaborationPanel projectId={projectId} /> : <section className="notice notice-warning"><h2>Dual review er slått av</h2><p>Aktiver dual review i prosjektoppsettet dersom to uavhengige reviewere skal brukes.</p></section>;
+    if (activePage === 'audit') return workflowRules.auditTrail ? <EvidenceAuditHistory /> : <section className="notice notice-warning"><h2>Audit trail er slått av</h2><p>Endringshistorikk utover nødvendig systemlogging er ikke aktivert for prosjektet.</p></section>;
+    if (activePage === 'finalize') return <FinalizationPanel projectId={projectId} />;
     if (activePage === 'evidence') return <EvidenceLibrary />;
     if (activePage === 'implementation') return <ImplementationModule />;
-    if (activePage === 'rob2') return <Rob2Assessment />;
+    if (activePage === 'rob2') return workflowRules.instruments.includes('rob2') ? <Rob2Assessment /> : <section className="notice notice-warning"><h2>RoB 2 er slått av</h2><p>Velg RoB 2 i prosjektoppsettet for å bruke denne modulen.</p></section>;
 
     return <>
       <section className="instrument-card"><div><p className="eyebrow">Systematiske oversikter</p><h2>{metadata.instrumentName} <span>({metadata.instrumentVersion})</span></h2><p>Instrumentet inneholder <strong>{metadata.totalItems} punkter</strong>.</p></div><div className="critical-domains"><h3>Foreslåtte kritiske standarddomener</h3><ul>{metadata.proposedDefaultCriticalDomains.map((item) => <li key={item}>Punkt {item}</li>)}</ul></div></section>
       <section className="notice notice-warning"><h2>Metodisk avgrensning</h2><p>{metadata.criticalDomainNotice}</p><p><strong>Viktig:</strong> {metadata.scoringNotice}</p></section>
-      <PreAppraisalSetup defaultCriticalDomains={metadata.proposedDefaultCriticalDomains} onConfirmed={setAssessmentSetup} />
+      <PreAppraisalSetup defaultCriticalDomains={metadata.proposedDefaultCriticalDomains} initialWorkflowRules={workflowRules} onConfirmed={persistProjectSetup} />
       {assessmentSetup && <AssessmentForm setup={assessmentSetup} />}
-      <ResearchModuleHub />
+      <ResearchModuleHub workflowRules={workflowRules} />
     </>;
   }
 
   return <div className="app-shell">
     <header className="hero"><div><p className="eyebrow">Forskningsverktøy</p><h1>Evidence Appraisal Tool</h1><p className="hero-text">Transparent og etterprøvbar støtte for kritisk vurdering, implementeringsarbeid og forskningsmessig sporbarhet.</p></div><div className={`status status-${apiStatus.toLowerCase()}`} role="status" aria-live="polite"><span aria-hidden="true" /> API: {apiStatus}</div></header>
     <div className="workspace-layout">
-      <aside className="research-sidebar" aria-label="Forskningsnavigasjon"><div className="sidebar-title">Research workspace</div><nav>{navItems.map(([id, label, description]) => <button key={id} type="button" className={activePage === id ? 'nav-item active' : 'nav-item'} onClick={() => setActivePage(id)}><strong>{label}</strong><span>{description}</span></button>)}</nav><div className="sidebar-notice"><strong>Metodisk prinsipp</strong><p>Programmet strukturerer og validerer registrerte data. Det avgjør ikke forskningskvalitet eller implementeringseffekt automatisk.</p></div></aside>
+      <aside className="research-sidebar" aria-label="Forskningsnavigasjon"><div className="sidebar-title">Research workspace</div><nav>{navItems.map(([id, label, description]) => <button key={id} type="button" className={activePage === id ? 'nav-item active' : 'nav-item'} onClick={() => setActivePage(id)}><strong>{label}</strong><span>{description}</span></button>)}</nav><div className="sidebar-notice"><strong>Aktivt prosjektoppsett</strong><p>{workflowRules.instruments.length} instrument(er) · {workflowRules.dualReview ? 'dual review på' : 'single review'} · {workflowRules.prismaTracking ? 'PRISMA på' : 'PRISMA av'} · {workflowRules.auditTrail ? 'audit på' : 'audit av'}</p></div></aside>
       <main className="main-content">{error && <section className="message message-error" role="alert"><h2>Kunne ikke koble til API-et</h2><p>{error}</p></section>}{renderPage()}</main>
     </div>
   </div>;
