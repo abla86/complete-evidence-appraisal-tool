@@ -44,10 +44,10 @@ export default function EvidenceLibrary() {
   function toggleInstrument(id) { setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
   async function refreshEvidence(hash) { const [records, counts] = await Promise.all([getManualEvidence(hash), getEvidenceSummary(hash)]); setManualEvidence(records); setSummary(counts); }
   async function analyse() {
-    if (!file || selected.length === 0) return;
+    if (!file || selected.length === 0 || busy) return;
     setBusy(true); setError(''); setManualError('');
     try { const analysis = await analyzeEvidenceDocument(file, selected, includePageText); setResult(analysis); await refreshEvidence(analysis.documentHashSha256); }
-    catch (e) { setError(e.message || 'Kunne ikke analysere dokumentet.'); }
+    catch (e) { setResult(null); setError(e.message || 'Kunne ikke analysere dokumentet.'); }
     finally { setBusy(false); }
   }
   async function saveManualEvidence(event) {
@@ -126,8 +126,13 @@ export default function EvidenceLibrary() {
 
     {result && <section className="assessment-card" aria-live="polite">
       <p className="eyebrow">Dokumentanalyse</p><h3>{result.fileName}</h3>
-      <p><strong>Dokumenttype:</strong> {result.classification?.documentType ?? result.documentType} · <strong>Klassifiseringsgrad:</strong> {result.classification?.confidence ?? 'Ikke oppgitt'} · {result.sourceUnitCount ?? result.pageCount} kildenheter · {result.extractionStatus}</p>
-      <p className="muted">SHA-256: <code>{result.documentHashSha256}</code></p>
+      <div className="analysis-summary-grid" aria-label="Analyseresultat">
+        <div className="analysis-summary-card"><span className="muted">Dokumenttype</span><strong data-testid="document-type">{result.classification?.documentType ?? result.documentType ?? 'Ikke oppgitt'}</strong></div>
+        <div className="analysis-summary-card"><span className="muted">Klassifiseringsgrad</span><strong>{result.classification?.confidence ?? 'Ikke oppgitt'}</strong></div>
+        <div className="analysis-summary-card"><span className="muted">Kildenheter</span><strong>{result.sourceUnitCount ?? result.pageCount ?? 'Ikke oppgitt'}</strong></div>
+        <div className="analysis-summary-card"><span className="muted">Ekstraksjon</span><strong>{result.extractionStatus ?? 'Ikke oppgitt'}</strong></div>
+      </div>
+      <p className="muted">SHA-256: <code data-testid="document-hash">{result.documentHashSha256}</code></p>
       <div className="notice notice-warning"><strong>Forskerkontroll kreves.</strong> {result.methodologicalNotice}</div>
       {result.classification?.signals?.length > 0 && <div><h4>Klassifiseringssignaler</h4><ul>{result.classification.signals.map((signal) => <li key={signal}>{signal}</li>)}</ul></div>}
       {result.instrumentSuitability?.length > 0 && <section><h4>Instrumentegnethet</h4><div className="evidence-table-wrap"><table><thead><tr><th>Instrument</th><th>Status</th><th>Begrunnelse</th></tr></thead><tbody>{result.instrumentSuitability.map((item) => <tr key={item.instrument}><td>{item.instrument}</td><td><strong className={statusClass(item.status)}>{item.status}</strong></td><td>{item.reason}</td></tr>)}</tbody></table></div></section>}
