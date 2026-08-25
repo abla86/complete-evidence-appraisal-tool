@@ -62,13 +62,9 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new());
 
         var authorsComparer = new ValueComparer<List<string>>(
-            (left, right) =>
-                ReferenceEquals(left, right) ||
-                (left is not null && right is not null && left.SequenceEqual(right)),
-            value => value is null
-                ? 0
-                : value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item?.GetHashCode() ?? 0)),
-            value => value is null ? new List<string>() : value.ToList());
+            (left, right) => left.SequenceEqual(right),
+            value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),
+            value => value.ToList());
 
         modelBuilder.Entity<StudyMetadata>(b =>
         {
