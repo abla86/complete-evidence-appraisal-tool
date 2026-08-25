@@ -14,21 +14,38 @@ export default function EvidenceDocumentViewer({ file }) {
 
   useEffect(() => {
     if (!file) {
-      setUrl(null);
-      setText('');
-      setTextError('');
+      queueMicrotask(() => {
+        setUrl(null);
+        setText('');
+        setTextError('');
+      });
       return undefined;
     }
 
     const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-    setText('');
-    setTextError('');
+    let active = true;
+
+    queueMicrotask(() => {
+      if (!active) return;
+      setUrl(objectUrl);
+      setText('');
+      setTextError('');
+    });
 
     if (kind(file) === 'text') {
-      file.text().then(setText).catch(() => setTextError('Filen kunne ikke forhåndsvises som tekst.'));
+      file.text()
+        .then((value) => {
+          if (active) setText(value);
+        })
+        .catch(() => {
+          if (active) setTextError('Filen kunne ikke forhåndsvises som tekst.');
+        });
     }
-    return () => URL.revokeObjectURL(objectUrl);
+
+    return () => {
+      active = false;
+      URL.revokeObjectURL(objectUrl);
+    };
   }, [file]);
 
   if (!file) {
