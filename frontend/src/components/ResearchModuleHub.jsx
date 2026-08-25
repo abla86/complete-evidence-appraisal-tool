@@ -306,7 +306,10 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
     [instruments, allowed],
   );
   const current = useMemo(() => visibleInstruments.find((item) => item.id === selected), [visibleInstruments, selected]);
-  const effectiveSelected = current ? selected : '';
+
+  useEffect(() => {
+    if (selected && !allowed.has(selected)) setSelected('');
+  }, [selected, allowed]);
 
   return (
     <section className="research-hub">

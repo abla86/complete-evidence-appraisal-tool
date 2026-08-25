@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -71,7 +71,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Abstract).HasMaxLength(12000);
             b.Property(x => x.SourceDatabase).HasMaxLength(100);
             b.Property(x => x.ImportFingerprint).HasMaxLength(64).IsRequired();
-            b.Property(x => x.Authors).HasConversion(authorsConverter);
+            b.Property(x => x.Authors).HasConversion(authorsConverter).Metadata.SetValueComparer(authorsComparer);
             b.HasIndex(x => x.ImportFingerprint).IsUnique();
             b.HasIndex(x => x.Doi);
         });
@@ -178,3 +178,4 @@ public sealed class EvidenceRecordEntity
     public string? EvidenceQuote { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
+

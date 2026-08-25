@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using EvidenceAppraisal.Api.Data;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -190,3 +190,4 @@ public static class ResearchOperationsEndpoints
         await db.SaveChangesAsync(cancellationToken);
     }
 }
+
