@@ -16,7 +16,7 @@ vi.mock('../api/evidenceApi', () => ({
 }));
 
 describe('EvidenceLibrary research-document analysis', () => {
-  it('shows the upload control and sends a supported research document with selected instruments', async () => {
+  it('shows the upload zone and sends a supported research document with selected instruments', async () => {
     analyzeEvidenceDocument.mockResolvedValue({
       fileName: 'review.pdf',
       pageCount: 2,
@@ -43,8 +43,18 @@ describe('EvidenceLibrary research-document analysis', () => {
     render(<EvidenceLibrary />);
 
     const input = screen.getByLabelText(/velg dokument/i);
+    expect(screen.getByText('Importer forskningsartikkelen')).toBeInTheDocument();
+    expect(screen.getByText(/Start med å legge inn artikkelen/i)).toBeInTheDocument();
+    expect(screen.getByText('STEg 1 · ARTIKKEL'.replace('STEg', 'STEG'))).toBeInTheDocument();
     expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml,.jats');
+
     fireEvent.change(input, { target: { files: [file] } });
+
+    expect(screen.getByText('ARTIKKEL VALGT')).toBeInTheDocument();
+    expect(screen.getByText('review.pdf')).toBeInTheDocument();
+    expect(screen.getByText('2 · Velg instrument')).toBeInTheDocument();
+    expect(screen.getByText('3 · Start analyse')).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
     expect(await screen.findByText('review.pdf')).toBeInTheDocument();
@@ -54,5 +64,20 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(screen.getByText('Not suitable')).toBeInTheDocument();
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
     expect(analyzeEvidenceDocument).toHaveBeenCalledWith(file, ['amstar2'], false);
+  });
+
+  it('accepts a dropped research document', () => {
+    const file = new File(['%PDF-1.7'], 'dropped.pdf', { type: 'application/pdf' });
+    render(<EvidenceLibrary />);
+
+    const zone = screen.getByText('Legg inn forskningsartikkelen').closest('.document-upload-box');
+    expect(zone).toBeInTheDocument();
+
+    fireEvent.drop(zone, {
+      dataTransfer: { files: [file] },
+    });
+
+    expect(screen.getByText('ARTIKKEL VALGT')).toBeInTheDocument();
+    expect(screen.getByText('dropped.pdf')).toBeInTheDocument();
   });
 });
