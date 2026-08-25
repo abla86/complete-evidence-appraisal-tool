@@ -46,9 +46,16 @@ export default function EvidenceLibrary() {
   async function analyse() {
     if (!file || selected.length === 0 || busy) return;
     setBusy(true); setError(''); setManualError('');
-    try { const analysis = await analyzeEvidenceDocument(file, selected, includePageText); setResult(analysis); await refreshEvidence(analysis.documentHashSha256); }
-    catch (e) { setResult(null); setError(e.message || 'Kunne ikke analysere dokumentet.'); }
-    finally { setBusy(false); }
+    try {
+      const analysis = await analyzeEvidenceDocument(file, selected, includePageText);
+      setResult(analysis);
+      await refreshEvidence(analysis.documentHashSha256);
+    } catch (e) {
+      setResult(null);
+      setError(e.message || 'Kunne ikke analysere dokumentet.');
+    } finally {
+      setBusy(false);
+    }
   }
   async function saveManualEvidence(event) {
     event.preventDefault(); if (!result) return;
@@ -126,11 +133,23 @@ export default function EvidenceLibrary() {
 
     {result && <section className="assessment-card" aria-live="polite">
       <p className="eyebrow">Dokumentanalyse</p><h3>{result.fileName}</h3>
-      <div className="analysis-summary-grid" aria-label="Analyseresultat">
-        <div className="analysis-summary-card"><span className="muted">Dokumenttype</span><strong data-testid="document-type">{result.classification?.documentType ?? result.documentType ?? 'Ikke oppgitt'}</strong></div>
-        <div className="analysis-summary-card"><span className="muted">Klassifiseringsgrad</span><strong>{result.classification?.confidence ?? 'Ikke oppgitt'}</strong></div>
-        <div className="analysis-summary-card"><span className="muted">Kildenheter</span><strong>{result.sourceUnitCount ?? result.pageCount ?? 'Ikke oppgitt'}</strong></div>
-        <div className="analysis-summary-card"><span className="muted">Ekstraksjon</span><strong>{result.extractionStatus ?? 'Ikke oppgitt'}</strong></div>
+      <div className="research-grid analysis-summary-grid" aria-label="Analyseresultat">
+        <article className="assessment-card analysis-summary-card">
+          <span className="muted">Dokumenttype</span>
+          <strong data-testid="document-type">{result.classification?.documentType ?? result.documentType}</strong>
+        </article>
+        <article className="assessment-card analysis-summary-card">
+          <span className="muted">Klassifiseringsgrad</span>
+          <strong>{result.classification?.confidence ?? 'Ikke oppgitt'}</strong>
+        </article>
+        <article className="assessment-card analysis-summary-card">
+          <span className="muted">Kildenheter</span>
+          <strong>{result.sourceUnitCount ?? result.pageCount}</strong>
+        </article>
+        <article className="assessment-card analysis-summary-card">
+          <span className="muted">Ekstraksjon</span>
+          <strong>{result.extractionStatus}</strong>
+        </article>
       </div>
       <p className="muted">SHA-256: <code data-testid="document-hash">{result.documentHashSha256}</code></p>
       <div className="notice notice-warning"><strong>Forskerkontroll kreves.</strong> {result.methodologicalNotice}</div>
