@@ -135,18 +135,18 @@ public static class ResearchOperationsEndpoints
 
         endpoints.MapPost("/api/research/operations/extraction", async (ExtractionRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            if (request.ProjectId is null || request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Parameter) || string.IsNullOrWhiteSpace(request.Reviewer))
+            if (request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Parameter) || string.IsNullOrWhiteSpace(request.Reviewer))
                 return Results.BadRequest(new { error = "ProjectId, StudyId, Parameter and Reviewer are required." });
             if (string.IsNullOrWhiteSpace(request.Value)) return Results.BadRequest(new { error = "Value is required." });
 
-            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId.Value, cancellationToken);
+            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
             if (project is null) return Results.NotFound(new { error = "Research project not found." });
             if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
             if (!await db.Studies.AnyAsync(x => x.Id == request.StudyId, cancellationToken)) return Results.NotFound(new { error = "Study not found." });
 
             var entity = new DataExtractionEntity
             {
-                ProjectId = request.ProjectId.Value,
+                ProjectId = request.ProjectId,
                 StudyId = request.StudyId,
                 Parameter = request.Parameter.Trim(),
                 Value = request.Value.Trim(),
