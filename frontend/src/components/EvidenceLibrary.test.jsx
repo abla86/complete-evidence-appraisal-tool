@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import EvidenceLibrary from './EvidenceLibrary';
 import { analyzeEvidenceDocument } from '../api/evidenceApi';
@@ -16,7 +16,7 @@ vi.mock('../api/evidenceApi', () => ({
 }));
 
 describe('EvidenceLibrary research-document analysis', () => {
-  it('håndterer analyse-workflow og viser resultater korrekt', async () => {
+  it('hÃ¥ndterer analyse-workflow og viser resultater korrekt', async () => {
     analyzeEvidenceDocument.mockResolvedValue({
       fileName: 'review.pdf',
       documentType: 'Systematic review / meta-analysis',
@@ -110,3 +110,4 @@ describe('EvidenceLibrary research-document analysis', () => {
     );
   });
 });
+
