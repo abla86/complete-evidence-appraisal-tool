@@ -82,4 +82,3 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(document.querySelector('.file-name')).toHaveTextContent('dropped.pdf');
   });
 });
-
