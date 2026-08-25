@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EvidenceAppraisal.Api.Data;
@@ -59,6 +60,15 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
         var authorsConverter = new ValueConverter<List<string>, string>(
             value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
             value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new());
+
+        var authorsComparer = new ValueComparer<List<string>>(
+            (left, right) =>
+                ReferenceEquals(left, right) ||
+                (left is not null && right is not null && left.SequenceEqual(right)),
+            value => value is null
+                ? 0
+                : value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item?.GetHashCode() ?? 0)),
+            value => value is null ? new List<string>() : value.ToList());
 
         modelBuilder.Entity<StudyMetadata>(b =>
         {
@@ -178,4 +188,3 @@ public sealed class EvidenceRecordEntity
     public string? EvidenceQuote { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
-
