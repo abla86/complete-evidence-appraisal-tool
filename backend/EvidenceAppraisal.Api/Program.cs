@@ -16,7 +16,6 @@ builder.Services.AddSingleton<CaspValidationService>();
 builder.Services.AddSingleton<GradeCertaintyService>();
 builder.Services.AddSingleton<ImplementationValidationService>();
 builder.Services.AddSingleton<ImplementationExportService>();
-builder.Services.AddSingleton<PdfAnalysisService>();
 builder.Services.AddSingleton<DocumentAnalysisService>();
 builder.Services.AddSingleton<RisImportService>();
 builder.Services.AddSingleton<BibliographyImportService>();
