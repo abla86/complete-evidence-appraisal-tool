@@ -15,7 +15,7 @@ describe('AnalysisVerification', () => {
     }} onVerify={onVerify} />);
 
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
-    expect(screen.getByText(/PROSPERO/)).toBeInTheDocument();
+    expect(screen.getByText('PROSPERO', { selector: 'code' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Bekreft funn' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Avvis funn' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Marker usikkert' })).toBeInTheDocument();
