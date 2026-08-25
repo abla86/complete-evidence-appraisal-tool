@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Collections.Generic;
+using System.Linq;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -59,7 +61,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
 
         var authorsConverter = new ValueConverter<List<string>, string>(
             value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
-            value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new());
+            value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new List<string>());
 
         var authorsComparer = new ValueComparer<List<string>>(
             (left, right) => left.SequenceEqual(right),
@@ -88,7 +90,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
             b.Property(x => x.ExclusionReason).HasMaxLength(1000);
             b.Property(x => x.Notes).HasMaxLength(4000);
-            b.HasIndex(x => new { x.StudyId, x.IsFullTextStage, x.CreatedAtUtc });
+            b.HasIndex(x => new { x.ProjectId, x.StudyId, x.IsFullTextStage, x.CreatedAtUtc });
         });
 
         modelBuilder.Entity<DataExtractionEntity>(b =>
@@ -100,7 +102,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.SourceLocation).HasMaxLength(500);
             b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
             b.Property(x => x.Notes).HasMaxLength(4000);
-            b.HasIndex(x => new { x.StudyId, x.Parameter, x.CreatedAtUtc });
+            b.HasIndex(x => new { x.ProjectId, x.StudyId, x.Parameter, x.CreatedAtUtc });
         });
 
         modelBuilder.Entity<ResearchOutcomeEntity>(b =>
