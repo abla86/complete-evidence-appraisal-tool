@@ -39,7 +39,7 @@ function EvidenceFields({ items, setItems, mode }) {
         <fieldset className="research-item" key={item.itemNumber}>
           <legend>Punkt {item.itemNumber}</legend>
           {mode === 'agree2' ? (
-            <label>SkÃ¥r 1â€“7
+            <label>Skår 1–7
               <select value={item.score ?? ''} onChange={(event) =>
                 update(item.itemNumber, 'score', Number(event.target.value))}>
                 <option value="">Velg</option>
@@ -54,7 +54,7 @@ function EvidenceFields({ items, setItems, mode }) {
                 <option value="">Velg</option>
                 <option value="Yes">Ja</option>
                 <option value="No">Nei</option>
-                <option value="CannotTell">Kan ikke avgjÃ¸res</option>
+                <option value="CannotTell">Kan ikke avgjøres</option>
               </select>
             </label>
           )}
@@ -158,7 +158,7 @@ function Agree2Form() {
   return (
     <form className="research-form" onSubmit={submit}>
       <h3>AGREE II-vurdering</h3>
-      <p className="module-warning">Alle 23 punkter skÃ¥res 1â€“7. DomeneskÃ¥r beregnes etter AGREE II-formelen; domenene skal ikke summeres til Ã©n automatisk totalskÃ¥r.</p>
+      <p className="module-warning">Alle 23 punkter skåres 1–7. Domeneskår beregnes etter AGREE II-formelen; domenene skal ikke summeres til én automatisk totalskår.</p>
       <div className="research-grid">
         <label>Retningslinjetittel<input required value={meta.guidelineTitle}
           onChange={(e) => setMeta({ ...meta, guidelineTitle: e.target.value })} /></label>
@@ -169,7 +169,7 @@ function Agree2Form() {
       </div>
       <EvidenceFields items={items} setItems={setItems} mode="agree2" />
       <div className="research-grid">
-        <label>Samlet kvalitet 1â€“7<input required type="number" min="1" max="7"
+        <label>Samlet kvalitet 1–7<input required type="number" min="1" max="7"
           value={meta.overallQualityScore}
           onChange={(e) => setMeta({ ...meta, overallQualityScore: e.target.value })} /></label>
         <label>Anbefaling<input required value={meta.recommendation}
@@ -179,14 +179,14 @@ function Agree2Form() {
       <label>Begrunnelse for anbefaling<textarea required rows="3"
         value={meta.recommendationRationale}
         onChange={(e) => setMeta({ ...meta, recommendationRationale: e.target.value })} /></label>
-      <button className="primary-button">Beregn AGREE II-domeneskÃ¥r</button>
+      <button className="primary-button">Beregn AGREE II-domeneskår</button>
       {result?.isValid && (
-        <div className="result-panel"><h4>DomeneskÃ¥r</h4><ul>
+        <div className="result-panel"><h4>Domeneskår</h4><ul>
           {result.domainScores.map((domain) => <li key={domain.domainNumber}>
             {domain.domainNumber}. {domain.domainName}: <strong>{domain.standardizedScorePercent} %</strong>
           </li>)}
         </ul>{!result.independentAppraisalMinimumMet &&
-          <p>ForelÃ¸pig Ã©n vurderer. Legg til uavhengige vurderinger fÃ¸r forskningsmessig konsensus.</p>}</div>
+          <p>Foreløpig én vurderer. Legg til uavhengige vurderinger før forskningsmessig konsensus.</p>}</div>
       )}
       <Result result={result?.isValid ? null : result} />
     </form>
@@ -223,7 +223,7 @@ function GradeForm() {
 
   return (
     <form className="research-form" onSubmit={submit}>
-      <h3>GRADE â€“ sikkerhet i dokumentasjonen per utfall</h3>
+      <h3>GRADE – sikkerhet i dokumentasjonen per utfall</h3>
       <div className="research-grid">
         {['outcomeName', 'population', 'intervention', 'comparator', 'effectMeasure',
           'relativeEffect', 'absoluteEffect'].map((field) =>
@@ -237,20 +237,20 @@ function GradeForm() {
           onChange={(e) => setMeta({ ...meta, participants: e.target.value })} /></label>
         <label>Studier<input type="number" min="1" value={meta.studies}
           onChange={(e) => setMeta({ ...meta, studies: e.target.value })} /></label>
-        <label>UtgangsnivÃ¥<select value={meta.initialCertainty}
+        <label>Utgangsnivå<select value={meta.initialCertainty}
           onChange={(e) => setMeta({ ...meta, initialCertainty: e.target.value })}>
           {['High', 'Moderate', 'Low', 'VeryLow'].map((value) =>
             <option key={value} value={value}>{value}</option>)}
         </select></label>
       </div>
-      <label>Begrunnelse for utgangsnivÃ¥<textarea required rows="3"
+      <label>Begrunnelse for utgangsnivå<textarea required rows="3"
         value={meta.initialCertaintyRationale}
         onChange={(e) => setMeta({ ...meta, initialCertaintyRationale: e.target.value })} /></label>
       <div className="research-items">
         {gradeDomains.map(([domain, min, max]) => {
           const item = judgements.find((entry) => entry.domain === domain);
           return <fieldset className="research-item" key={domain}><legend>{domain}</legend>
-            <label>NivÃ¥endring<select value={item.levelChange}
+            <label>Nivåendring<select value={item.levelChange}
               onChange={(e) => updateDomain(domain, 'levelChange', Number(e.target.value))}>
               {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((value) =>
                 <option key={value} value={value}>{value > 0 ? `+${value}` : value}</option>)}
@@ -275,8 +275,8 @@ function GradeForm() {
         onChange={(e) => setMeta({ ...meta, finalCertaintyRationale: e.target.value })} /></label>
       <button className="primary-button">Vurder GRADE-utfall</button>
       {result?.isValid && <div className="result-panel">
-        ForelÃ¸pig sikkerhet: <strong>{result.provisionalCertainty}</strong>.
-        Netto nivÃ¥endring: {result.netLevelChange}.
+        Foreløpig sikkerhet: <strong>{result.provisionalCertainty}</strong>.
+        Netto nivåendring: {result.netLevelChange}.
       </div>}
       <Result result={result?.isValid ? null : result} />
     </form>
@@ -286,7 +286,7 @@ function GradeForm() {
 function Result({ result }) {
   if (!result) return null;
   return <div className={result.isValid ? 'result-panel' : 'message message-error'} role="status">
-    <strong>{result.isValid ? 'Datasettet er validert.' : 'MÃ¥ korrigeres'}</strong>
+    <strong>{result.isValid ? 'Datasettet er validert.' : 'Må korrigeres'}</strong>
     {result.errors?.length > 0 && <ul>{result.errors.map((error) =>
       <li key={error}>{error}</li>)}</ul>}
   </div>;
@@ -305,11 +305,11 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
     () => instruments.filter((item) => item.id !== 'amstar2' && allowed.has(item.id)),
     [instruments, allowed],
   );
-  const current = useMemo(() => visibleInstruments.find((item) => item.id === selected), [visibleInstruments, selected]);
-
-  useEffect(() => {
-    if (selected && !allowed.has(selected)) setSelected('');
-  }, [selected, allowed]);
+  const current = useMemo(
+    () => visibleInstruments.find((item) => item.id === selected),
+    [visibleInstruments, selected],
+  );
+  const effectiveSelected = current ? selected : '';
 
   return (
     <section className="research-hub">
