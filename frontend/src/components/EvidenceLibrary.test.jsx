@@ -44,14 +44,14 @@ describe('EvidenceLibrary research-document analysis', () => {
 
     const input = screen.getByLabelText(/velg dokument/i);
     expect(screen.getByText('Importer forskningsartikkelen')).toBeInTheDocument();
-    expect(screen.getByText(/Start med/)).toBeInTheDocument();
+    expect(screen.getByText(/Start med/i)).toBeInTheDocument();
     expect(screen.getByText(/STEG 1/)).toBeInTheDocument();
     expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml,.jats');
 
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
-    expect(screen.getByText('review.pdf')).toBeInTheDocument();
+    expect(document.querySelector('.file-name')).toHaveTextContent('review.pdf');
     expect(screen.getByText(/2.*Velg instrument/)).toBeInTheDocument();
     expect(screen.getByText(/3.*Start analyse/)).toBeInTheDocument();
 
@@ -78,8 +78,10 @@ describe('EvidenceLibrary research-document analysis', () => {
     });
 
     expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
-    expect(screen.getByText('file-selected-status')).not.toBeInTheDocument();
-    expect(screen.getByText('dropped.pdf', { selector: '.file-name' })).toBeInTheDocument();
+    expect(screen.queryByText('file-selected-status')).not.toBeInTheDocument();
+    expect(document.querySelector('.file-name')).toHaveTextContent('dropped.pdf');
   });
 });
+
+
 
