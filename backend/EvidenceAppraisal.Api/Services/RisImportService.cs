@@ -22,7 +22,7 @@ public sealed class RisImportService
                 var line = rawLine.TrimEnd();
                 if (line.Length < 2) continue;
                 var tag = line[..2];
-                var isTagLine = line.Length >= 6 && line[2] == ' ' && line[3] == ' ' && line[5] == '-';
+                var isTagLine = line.Length >= 5 && line[2] == ' ' && line[3] == ' ' && line[4] == '-';
                 if (isTagLine)
                 {
                     currentTag = tag;
