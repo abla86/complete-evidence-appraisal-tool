@@ -36,9 +36,7 @@ export default function EvidenceDocumentViewer({ file }) {
           if (active) setText(value);
         })
         .catch(() => {
-          if (active) {
-            setTextError('Filen kunne ikke forhåndsvises som tekst.');
-          }
+          if (active) setTextError('Filen kunne ikke forhåndsvises som tekst.');
         });
     }
 
