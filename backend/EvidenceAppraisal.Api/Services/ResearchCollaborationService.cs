@@ -39,7 +39,10 @@ public sealed class ResearchCollaborationService
         {
             if (!_locks.TryGetValue(key, out var existing) || existing.ExpiresAtUtc <= now || existing.ReviewerId == reviewerId)
             {
-                if (_locks.TryUpdate(key, requested, existing) || (existing is null && _locks.TryAdd(key, requested)))
+                var acquired = existing is null
+                    ? _locks.TryAdd(key, requested)
+                    : _locks.TryUpdate(key, requested, existing);
+                if (acquired)
                 {
                     fieldLock = requested;
                     return true;
