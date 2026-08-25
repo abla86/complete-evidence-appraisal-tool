@@ -1,9 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { fetchMetadataByDoi } from './doiService';
 
 describe('fetchMetadataByDoi', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('normalizes DOI and maps Crossref metadata', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         message: {
@@ -16,7 +20,7 @@ describe('fetchMetadataByDoi', () => {
           URL: 'https://doi.org/10.test/abc',
         },
       }),
-    });
+    }));
 
     const result = await fetchMetadataByDoi('https://doi.org/10.test/abc.');
 
