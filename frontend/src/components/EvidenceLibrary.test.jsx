@@ -35,7 +35,7 @@ describe('EvidenceLibrary research-document analysis', () => {
     render(<EvidenceLibrary />);
 
     const input = screen.getByLabelText(/velg dokument/i);
-    expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml');
+    expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml,.jats');
     fireEvent.change(input, { target: { files: [file] } });
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
