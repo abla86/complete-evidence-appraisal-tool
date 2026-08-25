@@ -57,7 +57,7 @@ describe('EvidenceLibrary research-document analysis', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
-    expect(await screen.findByText('review.pdf')).toBeInTheDocument();
+    expect(screen.getByTestId('document-viewer')).toHaveTextContent('review.pdf');
     const documentTypeLabel = screen.getByText('Dokumenttype:');
     expect(documentTypeLabel.parentElement).toHaveTextContent('Systematic review / meta-analysis');
     expect(screen.getByText('Suitable')).toBeInTheDocument();
@@ -82,6 +82,4 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(document.querySelector('.file-name')).toHaveTextContent('dropped.pdf');
   });
 });
-
-
 
