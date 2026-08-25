@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using EvidenceAppraisal.Api.Data;
 using EvidenceAppraisal.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -65,23 +65,40 @@ public static class ResearchOperationsEndpoints
             project.ConfiguredBy = request.Reviewer.Trim();
 
             await db.SaveChangesAsync(cancellationToken);
-            await AppendAuditAsync(db, "ResearchProject", project.Id.ToString(), "Configuration updated", project.ConfiguredBy, ToConfigurationDto(project), cancellationToken);
+            if (project.EnableAuditTrail)
+                await AppendAuditAsync(db, "ResearchProject", project.Id.ToString(), "Configuration updated", project.ConfiguredBy, ToConfigurationDto(project), cancellationToken);
 
             return Results.Ok(ToConfigurationDto(project));
         });
 
         endpoints.MapPost("/api/research/operations/screening", async (ScreeningDecisionRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            if (request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Reviewer))
-                return Results.BadRequest(new { error = "StudyId and Reviewer are required." });
+            if (request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Reviewer))
+                return Results.BadRequest(new { error = "ProjectId, StudyId and Reviewer are required." });
             if (request.Status == ScreeningStatus.Excluded && string.IsNullOrWhiteSpace(request.ExclusionReason))
                 return Results.BadRequest(new { error = "ExclusionReason is required when a study is excluded." });
 
-            var studyExists = await db.Studies.AnyAsync(x => x.Id == request.StudyId, cancellationToken);
-            if (!studyExists) return Results.NotFound(new { error = "Study not found." });
+            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
+            if (project is null) return Results.NotFound(new { error = "Research project not found." });
+            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
+            if (!project.EnablePrismaTracking) return Results.BadRequest(new { error = "PRISMA/screening tracking is disabled for this project." });
+
+            if (!await db.Studies.AnyAsync(x => x.Id == request.StudyId, cancellationToken))
+                return Results.NotFound(new { error = "Study not found." });
+
+            if (project.EnableDualReview && request.Status == ScreeningStatus.Included)
+            {
+                var prior = await db.ScreeningRecords.AsNoTracking()
+                    .Where(x => x.ProjectId == request.ProjectId && x.StudyId == request.StudyId && x.Reviewer != request.Reviewer.Trim() && x.Status != ScreeningStatus.Pending)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefaultAsync(cancellationToken);
+                if (prior is null)
+                    return Results.Conflict(new { error = "Dual review is enabled. An independent reviewer decision is required before inclusion can be finalized." });
+            }
 
             var entity = new ScreeningRecordEntity
             {
+                ProjectId = request.ProjectId,
                 StudyId = request.StudyId,
                 Reviewer = request.Reviewer.Trim(),
                 Status = request.Status,
@@ -92,19 +109,24 @@ public static class ResearchOperationsEndpoints
             };
             db.ScreeningRecords.Add(entity);
             await db.SaveChangesAsync(cancellationToken);
-            await AppendAuditAsync(db, "ScreeningRecord", entity.Id.ToString(), "Created", entity.Reviewer, entity, cancellationToken);
+
+            if (project.EnableAuditTrail)
+                await AppendAuditAsync(db, "ScreeningRecord", entity.Id.ToString(), "Created", entity.Reviewer, entity, cancellationToken);
+
             return Results.Created($"/api/research/operations/screening/{entity.Id}", entity);
         });
 
-        endpoints.MapGet("/api/research/operations/screening/{studyId:guid}", async (Guid studyId, EvidenceDbContext db, CancellationToken cancellationToken) =>
+        endpoints.MapGet("/api/research/operations/screening/{studyId:guid}", async (Guid studyId, Guid? projectId, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            var rows = await db.ScreeningRecords.AsNoTracking().Where(x => x.StudyId == studyId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
-            return Results.Ok(rows);
+            var query = db.ScreeningRecords.AsNoTracking().Where(x => x.StudyId == studyId);
+            if (projectId.HasValue) query = query.Where(x => x.ProjectId == projectId.Value);
+            return Results.Ok(await query.OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken));
         });
 
-        endpoints.MapGet("/api/research/operations/screening/stats", async (EvidenceDbContext db, CancellationToken cancellationToken) =>
+        endpoints.MapGet("/api/research/operations/screening/stats", async (Guid projectId, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            var latest = await db.ScreeningRecords.AsNoTracking().GroupBy(x => new { x.StudyId, x.IsFullTextStage }).Select(g => g.OrderByDescending(x => x.CreatedAtUtc).First()).ToListAsync(cancellationToken);
+            if (projectId == Guid.Empty) return Results.BadRequest(new { error = "ProjectId is required." });
+            var latest = await db.ScreeningRecords.AsNoTracking().Where(x => x.ProjectId == projectId).GroupBy(x => new { x.StudyId, x.IsFullTextStage }).Select(g => g.OrderByDescending(x => x.CreatedAtUtc).First()).ToListAsync(cancellationToken);
             var title = latest.Where(x => !x.IsFullTextStage).ToList();
             var fullText = latest.Where(x => x.IsFullTextStage).ToList();
             var breakdown = fullText.Where(x => x.Status == ScreeningStatus.Excluded).GroupBy(x => x.ExclusionReason ?? "Unspecified").ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
@@ -113,50 +135,97 @@ public static class ResearchOperationsEndpoints
 
         endpoints.MapPost("/api/research/operations/extraction", async (ExtractionRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            if (request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Parameter) || string.IsNullOrWhiteSpace(request.Reviewer)) return Results.BadRequest(new { error = "StudyId, Parameter and Reviewer are required." });
+            if (request.ProjectId is null || request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Parameter) || string.IsNullOrWhiteSpace(request.Reviewer))
+                return Results.BadRequest(new { error = "ProjectId, StudyId, Parameter and Reviewer are required." });
             if (string.IsNullOrWhiteSpace(request.Value)) return Results.BadRequest(new { error = "Value is required." });
+
+            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId.Value, cancellationToken);
+            if (project is null) return Results.NotFound(new { error = "Research project not found." });
+            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
             if (!await db.Studies.AnyAsync(x => x.Id == request.StudyId, cancellationToken)) return Results.NotFound(new { error = "Study not found." });
-            var entity = new DataExtractionEntity { StudyId = request.StudyId, Parameter = request.Parameter.Trim(), Value = request.Value.Trim(), Unit = request.Unit?.Trim(), SourceLocation = request.SourceLocation?.Trim(), Reviewer = request.Reviewer.Trim(), Notes = request.Notes?.Trim(), CreatedAtUtc = DateTime.UtcNow };
+
+            var entity = new DataExtractionEntity
+            {
+                ProjectId = request.ProjectId.Value,
+                StudyId = request.StudyId,
+                Parameter = request.Parameter.Trim(),
+                Value = request.Value.Trim(),
+                Unit = request.Unit?.Trim(),
+                SourceLocation = request.SourceLocation?.Trim(),
+                Reviewer = request.Reviewer.Trim(),
+                Notes = request.Notes?.Trim(),
+                CreatedAtUtc = DateTime.UtcNow
+            };
             db.DataExtractions.Add(entity);
             await db.SaveChangesAsync(cancellationToken);
-            await AppendAuditAsync(db, "DataExtraction", entity.Id.ToString(), "Created", entity.Reviewer, entity, cancellationToken);
+
+            if (project.EnableAuditTrail)
+                await AppendAuditAsync(db, "DataExtraction", entity.Id.ToString(), "Created", entity.Reviewer, entity, cancellationToken);
+
             return Results.Created($"/api/research/operations/extraction/{entity.Id}", entity);
         });
 
-        endpoints.MapGet("/api/research/operations/extraction/{studyId:guid}", async (Guid studyId, EvidenceDbContext db, CancellationToken cancellationToken) => Results.Ok(await db.DataExtractions.AsNoTracking().Where(x => x.StudyId == studyId).OrderBy(x => x.Parameter).ThenBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken)));
+        endpoints.MapGet("/api/research/operations/extraction/{studyId:guid}", async (Guid studyId, Guid? projectId, EvidenceDbContext db, CancellationToken cancellationToken) =>
+        {
+            var query = db.DataExtractions.AsNoTracking().Where(x => x.StudyId == studyId);
+            if (projectId.HasValue) query = query.Where(x => x.ProjectId == projectId.Value);
+            return Results.Ok(await query.OrderBy(x => x.Parameter).ThenBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken));
+        });
 
         endpoints.MapPost("/api/research/operations/outcomes", async (OutcomeRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(request.Name)) return Results.BadRequest(new { error = "Outcome name is required." });
-            var entity = new ResearchOutcomeEntity { Name = request.Name.Trim(), Definition = request.Definition?.Trim(), Timepoint = request.Timepoint?.Trim(), Certainty = request.Certainty?.Trim(), Justification = request.Justification?.Trim(), RelativeEffect = request.RelativeEffect?.Trim(), AbsoluteEffect = request.AbsoluteEffect?.Trim(), ParticipantsAndStudies = request.ParticipantsAndStudies?.Trim(), ProjectId = request.ProjectId, CreatedAtUtc = DateTime.UtcNow };
+            if (request.ProjectId is null || request.ProjectId == Guid.Empty || string.IsNullOrWhiteSpace(request.Name))
+                return Results.BadRequest(new { error = "ProjectId and outcome name are required." });
+
+            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId.Value, cancellationToken);
+            if (project is null) return Results.NotFound(new { error = "Research project not found." });
+            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
+
+            var entity = new ResearchOutcomeEntity
+            {
+                Name = request.Name.Trim(),
+                Definition = request.Definition?.Trim(),
+                Timepoint = request.Timepoint?.Trim(),
+                Certainty = request.Certainty?.Trim(),
+                Justification = request.Justification?.Trim(),
+                RelativeEffect = request.RelativeEffect?.Trim(),
+                AbsoluteEffect = request.AbsoluteEffect?.Trim(),
+                ParticipantsAndStudies = request.ParticipantsAndStudies?.Trim(),
+                ProjectId = request.ProjectId.Value,
+                CreatedAtUtc = DateTime.UtcNow
+            };
             db.ResearchOutcomes.Add(entity);
             await db.SaveChangesAsync(cancellationToken);
-            await AppendAuditAsync(db, "ResearchOutcome", entity.Id.ToString(), "Created", "", entity, cancellationToken);
+            if (project.EnableAuditTrail)
+                await AppendAuditAsync(db, "ResearchOutcome", entity.Id.ToString(), "Created", "", entity, cancellationToken);
             return Results.Created($"/api/research/operations/outcomes/{entity.Id}", entity);
         });
 
-        endpoints.MapGet("/api/research/operations/outcomes", async (Guid? projectId, EvidenceDbContext db, CancellationToken cancellationToken) =>
+        endpoints.MapGet("/api/research/operations/outcomes", async (Guid projectId, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
-            var query = db.ResearchOutcomes.AsNoTracking().AsQueryable();
-            if (projectId.HasValue) query = query.Where(x => x.ProjectId == projectId.Value);
-            return Results.Ok(await query.OrderBy(x => x.Name).ToListAsync(cancellationToken));
+            if (projectId == Guid.Empty) return Results.BadRequest(new { error = "ProjectId is required." });
+            return Results.Ok(await db.ResearchOutcomes.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.Name).ToListAsync(cancellationToken));
         });
 
         endpoints.MapPost("/api/research/operations/projects/{projectId:guid}/finalize", async (Guid projectId, FinalizeProjectRequest request, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(request.Reviewer)) return Results.BadRequest(new { error = "Reviewer is required." });
             var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == projectId, cancellationToken);
-            if (project is null) { project = new ResearchProjectControlEntity { Id = projectId, Name = request.Name?.Trim() ?? "Research project" }; db.ResearchProjectControls.Add(project); }
+            if (project is null) return Results.NotFound(new { error = "Research project not found." });
             if (project.IsLocked) return Results.Conflict(new { error = "Project is already finalized and locked.", project.FinalHash, project.LockedBy, project.LockedAtUtc });
 
-            var payload = new { project.Id, project.Name, Configuration = ToConfigurationDto(project), Screening = await db.ScreeningRecords.AsNoTracking().Where(x => x.StudyId != Guid.Empty).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken), Extractions = await db.DataExtractions.AsNoTracking().OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken), Outcomes = await db.ResearchOutcomes.AsNoTracking().Where(x => !x.ProjectId.HasValue || x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken) };
+            var screening = await db.ScreeningRecords.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
+            var extractions = await db.DataExtractions.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
+            var outcomes = await db.ResearchOutcomes.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
+            var payload = new { project.Id, project.Name, Configuration = ToConfigurationDto(project), Screening = screening, Extractions = extractions, Outcomes = outcomes };
             var canonical = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = false });
             project.FinalHash = ResearchHash.Compute(canonical);
             project.IsLocked = true;
             project.LockedAtUtc = DateTime.UtcNow;
             project.LockedBy = request.Reviewer.Trim();
             await db.SaveChangesAsync(cancellationToken);
-            await AppendAuditAsync(db, "ResearchProject", project.Id.ToString(), "Finalized", project.LockedBy, new { project.FinalHash, Configuration = ToConfigurationDto(project) }, cancellationToken);
+            if (project.EnableAuditTrail)
+                await AppendAuditAsync(db, "ResearchProject", project.Id.ToString(), "Finalized", project.LockedBy, new { project.FinalHash, Configuration = ToConfigurationDto(project) }, cancellationToken);
             return Results.Ok(new { projectId, finalized = true, project.FinalHash, project.LockedAtUtc, project.LockedBy, configuration = ToConfigurationDto(project) });
         });
 
@@ -190,4 +259,3 @@ public static class ResearchOperationsEndpoints
         await db.SaveChangesAsync(cancellationToken);
     }
 }
-
