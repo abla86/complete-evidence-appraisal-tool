@@ -9,6 +9,7 @@ public sealed class ScreeningRecordEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid StudyId { get; set; }
+    public Guid ProjectId { get; set; }
     public string Reviewer { get; set; } = string.Empty;
     public ScreeningStatus Status { get; set; } = ScreeningStatus.Pending;
     public string? ExclusionReason { get; set; }
@@ -21,6 +22,7 @@ public sealed class DataExtractionEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid StudyId { get; set; }
+    public Guid? ProjectId { get; set; }
     public string Parameter { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
     public string? Unit { get; set; }
@@ -104,9 +106,9 @@ public sealed class AccessAuditEntity
     public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
 }
 
-public sealed record ScreeningDecisionRequest(Guid StudyId, string Reviewer, ScreeningStatus Status, bool IsFullTextStage, string? ExclusionReason, string? Notes);
+public sealed record ScreeningDecisionRequest(Guid ProjectId, Guid StudyId, string Reviewer, ScreeningStatus Status, bool IsFullTextStage, string? ExclusionReason, string? Notes);
 public sealed record ScreeningStats(int TotalIdentified, int TitleScreened, int TitleExcluded, int FullTextAssessed, int FullTextExcluded, int Included, IReadOnlyDictionary<string, int> ExclusionBreakdown);
-public sealed record ExtractionRequest(Guid StudyId, string Parameter, string Value, string? Unit, string? SourceLocation, string Reviewer, string? Notes);
+public sealed record ExtractionRequest(Guid StudyId, string Value, string Parameter, string? Unit, string? SourceLocation, string Reviewer, string? Notes, Guid? ProjectId = null);
 public sealed record OutcomeRequest(string Name, string? Definition, string? Timepoint, string? Certainty, string? Justification, string? RelativeEffect, string? AbsoluteEffect, string? ParticipantsAndStudies, Guid? ProjectId);
 public sealed record FinalizeProjectRequest(string Reviewer, string? Name);
 public sealed record ReviewerAccessRequest(Guid ProjectId, int ValidDays = 30);
