@@ -9,20 +9,15 @@ public static class ResearchIntegrityEndpoints
 {
     public static void MapResearchIntegrityEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/api/research/integrity/protocol", async (ResearchProtocolRequest request, EvidenceDbContext db, CancellationToken ct) =>
+        endpoints.MapPost("/api/research/integrity/protocol", async (ResearchProtocolRequest request, EvidenceDbContext db, ResearchSystemGate gate, CancellationToken ct) =>
         {
             if (request.ProjectId == Guid.Empty || string.IsNullOrWhiteSpace(request.ResearchQuestion) || string.IsNullOrWhiteSpace(request.Reviewer))
                 return Results.BadRequest(new { error = "ProjectId, ResearchQuestion and Reviewer are required." });
 
-            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, ct);
-            if (project is null) return Results.NotFound(new { error = "Research project not found." });
-            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
+            var access = await gate.CheckWriteAccessAsync(request.ProjectId, request.Reviewer, ct);
+            if (!access.Allowed) return Results.Conflict(new { error = access.Error });
 
-            var lastVersion = await db.ResearchProtocols
-                .Where(x => x.ProjectId == request.ProjectId)
-                .Select(x => (int?)x.Version)
-                .MaxAsync(ct) ?? 0;
-
+            var lastVersion = await db.ResearchProtocols.Where(x => x.ProjectId == request.ProjectId).Select(x => (int?)x.Version).MaxAsync(ct) ?? 0;
             var entity = new ResearchProtocolEntity
             {
                 ProjectId = request.ProjectId,
@@ -43,38 +38,26 @@ public static class ResearchIntegrityEndpoints
 
             var canonical = JsonSerializer.Serialize(new
             {
-                entity.ProjectId,
-                entity.Version,
-                entity.ResearchQuestion,
-                entity.P,
-                entity.I,
-                entity.C,
-                entity.O,
-                entity.InclusionCriteria,
-                entity.ExclusionCriteria,
-                entity.SearchStrategy,
-                entity.Databases,
-                entity.MethodologyVersion,
-                entity.CreatedBy
+                entity.ProjectId, entity.Version, entity.ResearchQuestion, entity.P, entity.I, entity.C, entity.O,
+                entity.InclusionCriteria, entity.ExclusionCriteria, entity.SearchStrategy, entity.Databases,
+                entity.MethodologyVersion, entity.CreatedBy
             });
             entity.Hash = ResearchIntegrityHash.Compute(canonical);
             db.ResearchProtocols.Add(entity);
             await db.SaveChangesAsync(ct);
-
             return Results.Created($"/api/research/integrity/protocol/{entity.Id}", entity);
         });
 
         endpoints.MapGet("/api/research/integrity/protocol/{projectId:guid}", async (Guid projectId, EvidenceDbContext db, CancellationToken ct) =>
             Results.Ok(await db.ResearchProtocols.AsNoTracking().Where(x => x.ProjectId == projectId).OrderByDescending(x => x.Version).ToListAsync(ct)));
 
-        endpoints.MapPost("/api/research/integrity/reviewer-decision", async (ReviewerDecisionRequest request, EvidenceDbContext db, CancellationToken ct) =>
+        endpoints.MapPost("/api/research/integrity/reviewer-decision", async (ReviewerDecisionRequest request, EvidenceDbContext db, ResearchSystemGate gate, CancellationToken ct) =>
         {
             if (request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.Stage) || string.IsNullOrWhiteSpace(request.Reviewer) || string.IsNullOrWhiteSpace(request.Decision))
                 return Results.BadRequest(new { error = "ProjectId, StudyId, Stage, Reviewer and Decision are required." });
 
-            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, ct);
-            if (project is null) return Results.NotFound(new { error = "Research project not found." });
-            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
+            var access = await gate.CheckWriteAccessAsync(request.ProjectId, request.Reviewer, ct);
+            if (!access.Allowed) return Results.Conflict(new { error = access.Error });
 
             var decision = new ReviewerDecisionEntity
             {
@@ -87,7 +70,6 @@ public static class ResearchIntegrityEndpoints
                 EvidenceReference = request.EvidenceReference?.Trim(),
                 CreatedAtUtc = DateTime.UtcNow
             };
-
             db.ReviewerDecisions.Add(decision);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/research/integrity/reviewer-decision/{decision.Id}", decision);
@@ -96,14 +78,13 @@ public static class ResearchIntegrityEndpoints
         endpoints.MapGet("/api/research/integrity/reviewer-decisions/{projectId:guid}/{studyId:guid}", async (Guid projectId, Guid studyId, string stage, EvidenceDbContext db, CancellationToken ct) =>
             Results.Ok(await db.ReviewerDecisions.AsNoTracking().Where(x => x.ProjectId == projectId && x.StudyId == studyId && x.Stage == stage).OrderBy(x => x.CreatedAtUtc).ToListAsync(ct)));
 
-        endpoints.MapPost("/api/research/integrity/consensus", async (ConsensusRequest request, EvidenceDbContext db, CancellationToken ct) =>
+        endpoints.MapPost("/api/research/integrity/consensus", async (ConsensusRequest request, EvidenceDbContext db, ResearchSystemGate gate, CancellationToken ct) =>
         {
             if (request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || request.ReviewerADecisionId == Guid.Empty || request.ReviewerBDecisionId == Guid.Empty || string.IsNullOrWhiteSpace(request.Decision) || string.IsNullOrWhiteSpace(request.Rationale) || string.IsNullOrWhiteSpace(request.Reviewer))
                 return Results.BadRequest(new { error = "All consensus fields are required." });
 
-            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, ct);
-            if (project is null) return Results.NotFound(new { error = "Research project not found." });
-            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
+            var access = await gate.CheckWriteAccessAsync(request.ProjectId, request.Reviewer, ct);
+            if (!access.Allowed) return Results.Conflict(new { error = access.Error });
 
             var a = await db.ReviewerDecisions.SingleOrDefaultAsync(x => x.Id == request.ReviewerADecisionId && x.ProjectId == request.ProjectId && x.StudyId == request.StudyId && x.Stage == request.Stage, ct);
             var b = await db.ReviewerDecisions.SingleOrDefaultAsync(x => x.Id == request.ReviewerBDecisionId && x.ProjectId == request.ProjectId && x.StudyId == request.StudyId && x.Stage == request.Stage, ct);
@@ -122,9 +103,7 @@ public static class ResearchIntegrityEndpoints
                 Reviewer = request.Reviewer.Trim(),
                 CreatedAtUtc = DateTime.UtcNow
             };
-
-            var canonical = $"{entity.ProjectId}|{entity.StudyId}|{entity.Stage}|{entity.ReviewerADecisionId}|{entity.ReviewerBDecisionId}|{entity.Decision}|{entity.Rationale}|{entity.Reviewer}|{entity.CreatedAtUtc:O}";
-            entity.Hash = ResearchIntegrityHash.Compute(canonical);
+            entity.Hash = ResearchIntegrityHash.Compute($"{entity.ProjectId}|{entity.StudyId}|{entity.Stage}|{entity.ReviewerADecisionId}|{entity.ReviewerBDecisionId}|{entity.Decision}|{entity.Rationale}|{entity.Reviewer}|{entity.CreatedAtUtc:O}");
             db.ConsensusDecisions.Add(entity);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/research/integrity/consensus/{entity.Id}", entity);
@@ -133,22 +112,19 @@ public static class ResearchIntegrityEndpoints
         endpoints.MapGet("/api/research/integrity/consensus/{projectId:guid}", async (Guid projectId, EvidenceDbContext db, CancellationToken ct) =>
             Results.Ok(await db.ConsensusDecisions.AsNoTracking().Where(x => x.ProjectId == projectId).OrderByDescending(x => x.CreatedAtUtc).ToListAsync(ct)));
 
-        endpoints.MapPost("/api/research/integrity/prisma-event", async (PrismaFlowRequest request, EvidenceDbContext db, CancellationToken ct) =>
+        endpoints.MapPost("/api/research/integrity/prisma-event", async (PrismaFlowRequest request, EvidenceDbContext db, ResearchSystemGate gate, CancellationToken ct) =>
         {
             if (request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.PreviousStatus) || string.IsNullOrWhiteSpace(request.NewStatus) || string.IsNullOrWhiteSpace(request.Reviewer))
                 return Results.BadRequest(new { error = "PRISMA event fields are required." });
 
-            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, ct);
+            var access = await gate.CheckWriteAccessAsync(request.ProjectId, request.Reviewer, ct);
+            if (!access.Allowed) return Results.Conflict(new { error = access.Error });
+
+            var project = await db.ResearchProjectControls.AsNoTracking().SingleOrDefaultAsync(x => x.Id == request.ProjectId, ct);
             if (project is null) return Results.NotFound(new { error = "Research project not found." });
-            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
             if (!project.EnablePrismaTracking) return Results.BadRequest(new { error = "PRISMA tracking is disabled for this project." });
 
-            var lastHash = await db.PrismaFlowEvents
-                .Where(x => x.ProjectId == request.ProjectId)
-                .OrderByDescending(x => x.CreatedAtUtc)
-                .Select(x => x.AuditHash)
-                .FirstOrDefaultAsync(ct) ?? string.Empty;
-
+            var lastHash = await db.PrismaFlowEvents.Where(x => x.ProjectId == request.ProjectId).OrderByDescending(x => x.CreatedAtUtc).Select(x => x.AuditHash).FirstOrDefaultAsync(ct) ?? string.Empty;
             var entity = new PrismaFlowEventEntity
             {
                 ProjectId = request.ProjectId,
@@ -168,17 +144,14 @@ public static class ResearchIntegrityEndpoints
         endpoints.MapGet("/api/research/integrity/prisma/{projectId:guid}", async (Guid projectId, EvidenceDbContext db, CancellationToken ct) =>
             Results.Ok(await db.PrismaFlowEvents.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(ct)));
 
-        endpoints.MapPost("/api/research/integrity/provenance", async (EvidenceProvenanceRequest request, EvidenceDbContext db, CancellationToken ct) =>
+        endpoints.MapPost("/api/research/integrity/provenance", async (EvidenceProvenanceRequest request, EvidenceDbContext db, ResearchSystemGate gate, CancellationToken ct) =>
         {
             if (request.ProjectId == Guid.Empty || request.StudyId == Guid.Empty || string.IsNullOrWhiteSpace(request.DocumentHashSha256) || request.DocumentHashSha256.Length != 64 || string.IsNullOrWhiteSpace(request.Reviewer))
                 return Results.BadRequest(new { error = "ProjectId, StudyId, SHA-256 document hash and Reviewer are required." });
+            if (!request.DocumentHashSha256.All(Uri.IsHexDigit)) return Results.BadRequest(new { error = "DocumentHashSha256 must be hexadecimal." });
 
-            if (!request.DocumentHashSha256.All(Uri.IsHexDigit))
-                return Results.BadRequest(new { error = "DocumentHashSha256 must be hexadecimal." });
-
-            var project = await db.ResearchProjectControls.SingleOrDefaultAsync(x => x.Id == request.ProjectId, ct);
-            if (project is null) return Results.NotFound(new { error = "Research project not found." });
-            if (project.IsLocked) return Results.Conflict(new { error = "Project is finalized and locked." });
+            var access = await gate.CheckWriteAccessAsync(request.ProjectId, request.Reviewer, ct);
+            if (!access.Allowed) return Results.Conflict(new { error = access.Error });
 
             var entity = new EvidenceProvenanceEntity
             {
@@ -193,7 +166,6 @@ public static class ResearchIntegrityEndpoints
                 CreatedBy = request.Reviewer.Trim(),
                 CreatedAtUtc = DateTime.UtcNow
             };
-
             db.EvidenceProvenance.Add(entity);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/research/integrity/provenance/{entity.Id}", entity);

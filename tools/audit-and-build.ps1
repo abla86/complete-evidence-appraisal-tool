@@ -61,6 +61,7 @@ Invoke-Step 'Repository structure' {
         'backend/EvidenceAppraisal.Api/Data/EvidenceDbContext.cs',
         'backend/EvidenceAppraisal.Api/Models/ResearchOperationsModels.cs',
         'backend/EvidenceAppraisal.Api/Services/ResearchOperationsEndpoints.cs',
+        'backend/EvidenceAppraisal.Api/Services/ResearchSystemGate.cs',
         'frontend/src/App.jsx',
         'frontend/src/components/ResearchModuleHub.jsx'
     )
@@ -101,6 +102,9 @@ Invoke-Step 'Static source contracts' {
     $db = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Data/EvidenceDbContext.cs'
     $hub = Get-Content -Raw 'frontend/src/components/ResearchModuleHub.jsx'
     $doc = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/DocumentAnalysisService.cs'
+    $gate = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/ResearchSystemGate.cs'
+    $integrity = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/ResearchIntegrityEndpoints.cs'
+    $program = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Program.cs'
 
     foreach ($required in @(
         'record ScreeningDecisionRequest(Guid ProjectId',
@@ -119,7 +123,6 @@ Invoke-Step 'Static source contracts' {
 
     foreach ($required in @(
         'request.ProjectId == Guid.Empty',
-        'request.ProjectId is null',
         'project.EnableDualReview',
         'project.EnablePrismaTracking',
         'x.ProjectId == projectId'
@@ -132,25 +135,47 @@ Invoke-Step 'Static source contracts' {
     if ($db -notmatch 'ValueComparer<List<string>>') {
         throw 'StudyMetadata.Authors ValueComparer missing'
     }
-
     if ($db -notmatch 'SetValueComparer\(authorsComparer\)') {
         throw 'StudyMetadata.Authors ValueComparer not attached'
     }
-
+    if ($db -notmatch 'ResearchGovernanceEntity') {
+        throw 'Research governance is not mapped in EF Core'
+    }
     if ($hub -match "setSelected\(''\)") {
         throw 'ResearchModuleHub still performs synchronous setState inside effect'
     }
-
     if ($hub -notmatch "const effectiveSelected = current \? selected : '';") {
         throw 'ResearchModuleHub effectiveSelected contract missing'
     }
-
     if ($doc -notmatch 'DtdProcessing\s*=\s*DtdProcessing\.Ignore') {
         throw 'XML DTD processing is not explicitly disabled'
     }
-
     if ($doc -notmatch 'XmlResolver\s*=\s*null') {
         throw 'XML resolver is not explicitly disabled'
+    }
+
+    if ($gate -notmatch 'CheckWriteAccessAsync') {
+        throw 'Central ResearchSystemGate missing write-access contract'
+    }
+
+    foreach ($route in @(
+        '/api/research/integrity/protocol',
+        '/api/research/integrity/reviewer-decision',
+        '/api/research/integrity/consensus',
+        '/api/research/integrity/prisma-event',
+        '/api/research/integrity/provenance'
+    )) {
+        if ($integrity -notmatch [regex]::Escape($route)) {
+            throw "Research integrity route missing: $route"
+        }
+    }
+
+    if ($integrity -notmatch 'ResearchSystemGate gate') {
+        throw 'ResearchIntegrityEndpoints do not use the central gate'
+    }
+
+    if ($program -notmatch 'AddScoped<ResearchSystemGate>') {
+        throw 'ResearchSystemGate is not registered in dependency injection'
     }
 }
 

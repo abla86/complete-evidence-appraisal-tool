@@ -36,6 +36,7 @@ builder.Services.AddDbContext<EvidenceDbContext>(options =>
 });
 builder.Services.AddScoped<ImplementationPersistenceService>();
 builder.Services.AddScoped<ProjectOverviewService>();
+builder.Services.AddScoped<ResearchSystemGate>();
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddCors(options => options.AddPolicy("AppClients", policy =>
