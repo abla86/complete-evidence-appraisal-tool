@@ -22,7 +22,7 @@ public sealed class DataExtractionEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid StudyId { get; set; }
-    public Guid? ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public string Parameter { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
     public string? Unit { get; set; }
@@ -69,7 +69,6 @@ public sealed class ResearchProjectControlEntity
     public string? FinalHash { get; set; }
     public string? LockedBy { get; set; }
 
-    // Project-level configuration. These are explicit user choices, not hidden global rules.
     public string EnabledInstrumentsJson { get; set; } = "[\"amstar2\"]";
     public bool RequireHumanVerification { get; set; } = true;
     public bool EnableDualReview { get; set; }
@@ -108,7 +107,7 @@ public sealed class AccessAuditEntity
 
 public sealed record ScreeningDecisionRequest(Guid ProjectId, Guid StudyId, string Reviewer, ScreeningStatus Status, bool IsFullTextStage, string? ExclusionReason, string? Notes);
 public sealed record ScreeningStats(int TotalIdentified, int TitleScreened, int TitleExcluded, int FullTextAssessed, int FullTextExcluded, int Included, IReadOnlyDictionary<string, int> ExclusionBreakdown);
-public sealed record ExtractionRequest(Guid StudyId, string Value, string Parameter, string? Unit, string? SourceLocation, string Reviewer, string? Notes, Guid? ProjectId = null);
+public sealed record ExtractionRequest(Guid ProjectId, Guid StudyId, string Value, string Parameter, string? Unit, string? SourceLocation, string Reviewer, string? Notes);
 public sealed record OutcomeRequest(string Name, string? Definition, string? Timepoint, string? Certainty, string? Justification, string? RelativeEffect, string? AbsoluteEffect, string? ParticipantsAndStudies, Guid? ProjectId);
 public sealed record FinalizeProjectRequest(string Reviewer, string? Name);
 public sealed record ReviewerAccessRequest(Guid ProjectId, int ValidDays = 30);
