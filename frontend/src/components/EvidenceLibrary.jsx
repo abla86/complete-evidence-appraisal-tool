@@ -16,6 +16,7 @@ function statusClass(status) {
 
 export default function EvidenceLibrary() {
   const [file, setFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [selected, setSelected] = useState(['amstar2']);
   const [includePageText, setIncludePageText] = useState(false);
   const [result, setResult] = useState(null);
@@ -30,9 +31,15 @@ export default function EvidenceLibrary() {
   const [error, setError] = useState('');
   const [manualError, setManualError] = useState('');
 
-  function handleFile(event) {
-    setFile(event.target.files?.[0] ?? null);
+  function handleFile(nextFile) {
+    setFile(nextFile ?? null);
     setResult(null); setManualEvidence([]); setSummary(null); setShowManualForm(false); setError('');
+  }
+  function handleFileInput(event) { handleFile(event.target.files?.[0]); }
+  function handleDrop(event) {
+    event.preventDefault();
+    setIsDragging(false);
+    handleFile(event.dataTransfer.files?.[0]);
   }
   function toggleInstrument(id) { setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
   async function refreshEvidence(hash) { const [records, counts] = await Promise.all([getManualEvidence(hash), getEvidenceSummary(hash)]); setManualEvidence(records); setSummary(counts); }
@@ -70,24 +77,45 @@ export default function EvidenceLibrary() {
         <div>
           <p className="eyebrow">Start her</p>
           <h3>Importer forskningsartikkelen</h3>
-          <p className="muted">Last opp PDF, DOCX, TXT eller XML/JATS. Dokumentet analyseres først når du trykker «Analyser dokument».</p>
+          <p className="muted">Start med å legge inn artikkelen. Deretter velger du vurderingsinstrument og starter analysen.</p>
         </div>
-        <span className="document-import-step">Steg 1</span>
+        <span className="document-import-step">STEG 1 · ARTIKKEL</span>
       </div>
 
-      <div className="document-upload-box document-upload-box-primary">
-        <input id="evidence-document" aria-label="Velg dokument" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFile} />
-        <label htmlFor="evidence-document" className="upload-button upload-button-primary">
-          <span className="upload-button-icon" aria-hidden="true">↑</span>
-          <span>
-            <strong>Legg til forskningsartikkel</strong>
-            <small>Velg fil fra PC-en</small>
-          </span>
-        </label>
-        <p className="upload-help">PDF · DOCX · TXT · HTML/HTM · XML/JATS · maks. 25 MB</p>
+      <div
+        className={isDragging ? 'document-upload-box document-upload-box-primary is-dragging' : file ? 'document-upload-box document-upload-box-primary has-file' : 'document-upload-box document-upload-box-primary'}
+        onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+      >
+        <input id="evidence-document" aria-label="Velg dokument" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFileInput} disabled={busy} />
+        {!file ? (
+          <div className="upload-prompt">
+            <div className="upload-icon" aria-hidden="true">＋</div>
+            <strong>Legg inn forskningsartikkelen</strong>
+            <span>Dra og slipp filen her, eller</span>
+            <label htmlFor="evidence-document" className="upload-button upload-button-primary">Velg fil fra PC-en</label>
+            <p className="upload-help">PDF · DOCX · TXT · HTML/HTM · XML/JATS · maks. 25 MB</p>
+          </div>
+        ) : (
+          <div className="file-selected-info">
+            <span className="file-selected-status">✓ ARTIKKEL VALGT</span>
+            <strong className="file-name">{file.name}</strong>
+            <span className="upload-help">{Math.max(1, Math.round(file.size / 1024))} KB · klar for analyse</span>
+            <div className="selected-file-actions">
+              <label htmlFor="evidence-document" className="secondary-upload-btn">Bytt artikkel</label>
+              <button type="button" className="ghost-upload-btn" onClick={() => handleFile(null)}>Fjern</button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {file && <div className="notice" aria-live="polite"><strong>Valgt dokument:</strong> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)</div>}
+      <div className="upload-next-step">
+        <span className="upload-next-step-active">1 · Legg inn artikkel</span>
+        <span>2 · Velg instrument</span>
+        <span>3 · Start analyse</span>
+      </div>
+
       {file && <EvidenceDocumentViewer file={file} />}
       <fieldset><legend>Vurderingsinstrumenter</legend><p className="muted">Instrumentegnethet kontrolleres etter analysen. Forskeren må bekrefte dokumenttype og instrument.</p><div className="research-grid">{instruments.map(([id, label]) => <label key={id} className="checkbox-card"><input type="checkbox" checked={selected.includes(id)} onChange={() => toggleInstrument(id)} /><span>{label}</span></label>)}</div></fieldset>
       <label className="checkbox-card"><input type="checkbox" checked={includePageText} onChange={(event) => setIncludePageText(event.target.checked)} /><span>Ta med ekstraherte tekster i resultatet</span></label>
