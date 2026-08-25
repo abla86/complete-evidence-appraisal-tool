@@ -8,12 +8,18 @@ function kind(file) {
 }
 
 export default function EvidenceDocumentViewer({ file }) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(null);
   const [text, setText] = useState('');
   const [textError, setTextError] = useState('');
 
   useEffect(() => {
-    if (!file) return undefined;
+    if (!file) {
+      setUrl(null);
+      setText('');
+      setTextError('');
+      return undefined;
+    }
+
     const objectUrl = URL.createObjectURL(file);
     setUrl(objectUrl);
     setText('');
@@ -33,10 +39,10 @@ export default function EvidenceDocumentViewer({ file }) {
   return <section className="document-viewer" aria-label="Forskningsdokument">
     <div className="document-viewer-header">
       <strong>{file.name}</strong>
-      <a href={url} download={file.name}>Åpne/last ned</a>
+      {url && <a href={url} download={file.name}>Åpne/last ned</a>}
     </div>
-    {type === 'pdf' && <iframe title={`Forskningsdokument: ${file.name}`} src={url} className="document-viewer-frame" />}
+    {type === 'pdf' && url && <iframe title={`Forskningsdokument: ${file.name}`} src={url} className="document-viewer-frame" />}
     {type === 'text' && (textError ? <p className="notice notice-error">{textError}</p> : <pre className="document-viewer-text">{text}</pre>)}
-    {type === 'office' && <div className="document-viewer-empty"><h4>Dokumentet er lastet opp</h4><p>Nettleseren kan ikke vise DOCX direkte uten en ekstern dokumentviser. Dokumentet er likevel tilgjengelig for analyse i verktøyet.</p><a href={url} download={file.name}>Åpne/last ned dokumentet</a></div>}
+    {type === 'office' && <div className="document-viewer-empty"><h4>Dokumentet er lastet opp</h4><p>Nettleseren kan ikke vise DOCX direkte uten en ekstern dokumentviser. Dokumentet er likevel tilgjengelig for analyse i verktøyet.</p>{url && <a href={url} download={file.name}>Åpne/last ned dokumentet</a>}</div>}
   </section>;
 }
