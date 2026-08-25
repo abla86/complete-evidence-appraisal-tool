@@ -59,7 +59,9 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(screen.getByText(/2.*Velg instrument/)).toBeInTheDocument();
     expect(screen.getByText(/3.*Start analyse/)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
+    const analyzeButton = screen.getByRole('button', { name: /analyser dokument/i });
+    await waitFor(() => expect(analyzeButton).not.toBeDisabled());
+    fireEvent.click(analyzeButton);
 
     expect(screen.getByTestId('document-viewer')).toHaveTextContent('review.pdf');
     expect(screen.getByRole('heading', { name: 'review.pdf' })).toBeInTheDocument();
@@ -88,3 +90,4 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(document.querySelector('.file-name')).toHaveTextContent('dropped.pdf');
   });
 });
+
