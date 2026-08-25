@@ -20,6 +20,11 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
     public DbSet<ResearchProjectControlEntity> ResearchProjectControls => Set<ResearchProjectControlEntity>();
     public DbSet<ReviewerAccessEntity> ReviewerAccess => Set<ReviewerAccessEntity>();
     public DbSet<AccessAuditEntity> AccessAudits => Set<AccessAuditEntity>();
+    public DbSet<ResearchProtocolEntity> ResearchProtocols => Set<ResearchProtocolEntity>();
+    public DbSet<ReviewerDecisionEntity> ReviewerDecisions => Set<ReviewerDecisionEntity>();
+    public DbSet<ConsensusDecisionEntity> ConsensusDecisions => Set<ConsensusDecisionEntity>();
+    public DbSet<PrismaFlowEventEntity> PrismaFlowEvents => Set<PrismaFlowEventEntity>();
+    public DbSet<EvidenceProvenanceEntity> EvidenceProvenance => Set<EvidenceProvenanceEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -157,6 +162,61 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Action).HasMaxLength(100).IsRequired();
             b.Property(x => x.IpAddress).HasMaxLength(64);
             b.HasIndex(x => x.TimestampUtc);
+        });
+
+        modelBuilder.Entity<ResearchProtocolEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.ResearchQuestion).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.MethodologyVersion).HasMaxLength(200).IsRequired();
+            b.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Hash).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => new { x.ProjectId, x.Version }).IsUnique();
+        });
+
+        modelBuilder.Entity<ReviewerDecisionEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Stage).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Decision).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Rationale).HasMaxLength(4000);
+            b.Property(x => x.EvidenceReference).HasMaxLength(1000);
+            b.HasIndex(x => new { x.ProjectId, x.StudyId, x.Stage, x.Reviewer, x.CreatedAtUtc });
+        });
+
+        modelBuilder.Entity<ConsensusDecisionEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Stage).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Decision).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Rationale).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Hash).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => new { x.ProjectId, x.StudyId, x.Stage });
+        });
+
+        modelBuilder.Entity<PrismaFlowEventEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.PreviousStatus).HasMaxLength(100).IsRequired();
+            b.Property(x => x.NewStatus).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Reason).HasMaxLength(1000);
+            b.Property(x => x.Reviewer).HasMaxLength(100).IsRequired();
+            b.Property(x => x.AuditHash).HasMaxLength(64);
+            b.HasIndex(x => new { x.ProjectId, x.StudyId, x.CreatedAtUtc });
+        });
+
+        modelBuilder.Entity<EvidenceProvenanceEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.DocumentHashSha256).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Page).HasMaxLength(100);
+            b.Property(x => x.Excerpt).HasMaxLength(8000);
+            b.Property(x => x.Locator).HasMaxLength(500);
+            b.Property(x => x.SourceType).HasMaxLength(100).IsRequired();
+            b.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
+            b.HasIndex(x => new { x.ProjectId, x.StudyId, x.DocumentHashSha256 });
         });
     }
 }
