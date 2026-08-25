@@ -64,7 +64,7 @@ public sealed class PdfAnalysisService
             throw new ArgumentException("The document exceeds the 25 MB upload limit.");
 
         var extension = Path.GetExtension(file.FileName);
-        var supported = new[] { ".pdf", ".docx", ".txt", ".html", ".htm", ".xml" };
+        var supported = new[] { ".pdf", ".docx", ".txt", ".html", ".htm", ".xml", ".jats" };
         if (!supported.Contains(extension, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException("Supported document formats: PDF, DOCX, TXT, HTML/HTM and XML/JATS.");
 
@@ -87,7 +87,7 @@ public sealed class PdfAnalysisService
 
         if (pages.Count == 0 || pages.All(x => string.IsNullOrWhiteSpace(x.Text)))
             warnings.Add("No selectable text was extracted. A scanned/image-only document may require OCR before reliable analysis.");
-        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
+        if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jats", StringComparison.OrdinalIgnoreCase))
             warnings.Add("XML/JATS structure is preserved only as extracted text in this version; verify section/table context in the source document.");
         if (findings.Count > 0)
             warnings.Add("Findings are text-location candidates, not completed appraisal judgements. A researcher must verify the cited location and context.");
@@ -117,7 +117,7 @@ public sealed class PdfAnalysisService
 
         var text = extension.Equals(".docx", StringComparison.OrdinalIgnoreCase)
             ? ExtractDocx(bytes)
-            : extension.Equals(".xml", StringComparison.OrdinalIgnoreCase)
+            : extension.Equals(".xml", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jats", StringComparison.OrdinalIgnoreCase)
                 ? ExtractXml(bytes)
                 : Encoding.UTF8.GetString(bytes);
 
