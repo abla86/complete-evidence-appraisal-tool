@@ -22,7 +22,10 @@ public static class EvidenceVerificationEndpoints
                 return Results.BadRequest(new { error = "Invalid evidence status.", allowed = AllowedStatuses.OrderBy(x => x) });
             if (string.IsNullOrWhiteSpace(request.Reviewer))
                 return Results.BadRequest(new { error = "Reviewer is required for verification." });
-            if (request.Status.Equals("Verified", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(request.VerificationNote))
+
+            var normalizedStatus = request.Status.Trim();
+            var isVerified = normalizedStatus.Equals("Verified", StringComparison.OrdinalIgnoreCase);
+            if (isVerified && string.IsNullOrWhiteSpace(request.VerificationNote))
                 return Results.BadRequest(new { error = "A verification note is required when evidence is marked Verified." });
 
             await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
@@ -34,10 +37,11 @@ public static class EvidenceVerificationEndpoints
                 return Results.NotFound(new { error = "Evidence record not found." });
             }
 
-            entity.Status = request.Status.Trim();
+            entity.Status = normalizedStatus;
             entity.VerifiedBy = request.Reviewer.Trim();
             entity.VerificationNote = request.VerificationNote?.Trim();
             entity.VerifiedAtUtc = DateTime.UtcNow;
+            entity.IsHumanVerified = isVerified;
 
             var lastVersion = await db.EvidenceRecordHistory
                 .Where(x => x.EvidenceRecordId == id)
@@ -53,7 +57,7 @@ public static class EvidenceVerificationEndpoints
                 VerificationNote = entity.VerificationNote,
                 VerifiedAtUtc = entity.VerifiedAtUtc,
                 RecordedAtUtc = DateTime.UtcNow,
-                Action = "Verification update"
+                Action = isVerified ? "Human verification" : "Verification update"
             });
 
             await db.SaveChangesAsync(cancellationToken);
@@ -73,8 +77,15 @@ public static class EvidenceVerificationEndpoints
 
             return Results.Ok(history.Select(x => new
             {
-                x.Id, x.EvidenceRecordId, x.Version, x.Status, x.Reviewer,
-                x.VerificationNote, x.VerifiedAtUtc, x.RecordedAtUtc, x.Action
+                x.Id,
+                x.EvidenceRecordId,
+                x.Version,
+                x.Status,
+                x.Reviewer,
+                x.VerificationNote,
+                x.VerifiedAtUtc,
+                x.RecordedAtUtc,
+                x.Action
             }));
         });
 
@@ -88,11 +99,16 @@ public static class EvidenceVerificationEndpoints
                 .Where(x => x.DocumentHashSha256 == normalizedHash)
                 .ToListAsync(cancellationToken);
 
-            var byStatus = records.GroupBy(x => x.Status).ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+            var byStatus = records
+                .GroupBy(x => x.Status)
+                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+
             return Results.Ok(new
             {
                 documentHashSha256 = normalizedHash,
                 total = records.Count,
+                verified = records.Count(x => x.IsHumanVerified),
+                provisional = records.Count(x => !x.IsHumanVerified),
                 byStatus,
                 methodologicalNotice = "Evidence status records researcher verification state; it does not constitute an appraisal judgement or quality score."
             });
@@ -137,10 +153,28 @@ public static class EvidenceVerificationEndpoints
     }
 
     private static EvidenceRecordDto ToDto(EvidenceRecordEntity entity) => new(
-        entity.Id, entity.DocumentHashSha256, entity.Instrument, entity.ItemOrDomain, entity.EvidenceText,
-        entity.SourceType, entity.Page, entity.Section, entity.Table, entity.Figure, entity.Url, entity.Doi,
-        entity.Reviewer, entity.Rationale, entity.Status, entity.VerificationNote, entity.VerifiedBy,
-        entity.VerifiedAtUtc, entity.CreatedAtUtc);
+        entity.Id,
+        entity.DocumentHashSha256,
+        entity.Instrument,
+        entity.ItemOrDomain,
+        entity.EvidenceText,
+        entity.SourceType,
+        entity.Page,
+        entity.Section,
+        entity.Table,
+        entity.Figure,
+        entity.Url,
+        entity.Doi,
+        entity.Reviewer,
+        entity.Rationale,
+        entity.Status,
+        entity.VerificationNote,
+        entity.VerifiedBy,
+        entity.VerifiedAtUtc,
+        entity.IsHumanVerified,
+        entity.MethodologyVersion,
+        entity.EvidenceQuote,
+        entity.CreatedAtUtc);
 }
 
 public sealed record CollaborationHeartbeat(string ReviewerId, string DisplayName);
