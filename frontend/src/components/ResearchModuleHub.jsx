@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   calculateAgree2,
   evaluateGrade,
@@ -338,4 +338,3 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
     </section>
   );
 }
-
