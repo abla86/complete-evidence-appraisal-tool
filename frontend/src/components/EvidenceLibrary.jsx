@@ -68,7 +68,7 @@ export default function EvidenceLibrary() {
     <section className="assessment-card evidence-analyser">
       <p className="eyebrow">Dokumentanalyse</p><h3>Analyser forskningsdokument</h3>
       <p className="muted">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB.</p>
-      <div className="document-upload-box"><input id="evidence-document" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFile} /><label htmlFor="evidence-document" className="upload-button">+ Legg til forskningsdokument</label><p className="upload-help">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB</p></div>
+      <div className="document-upload-box"><input id="evidence-document" aria-label="Velg dokument" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFile} /><label htmlFor="evidence-document" className="upload-button">+ Legg til forskningsdokument</label><p className="upload-help">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB</p></div>
       {file && <div className="notice" aria-live="polite"><strong>Valgt dokument:</strong> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)</div>}
       {file && <EvidenceDocumentViewer file={file} />}
       <fieldset><legend>Vurderingsinstrumenter</legend><p className="muted">Instrumentegnethet kontrolleres etter analysen. Forskeren må bekrefte dokumenttype og instrument.</p><div className="research-grid">{instruments.map(([id, label]) => <label key={id} className="checkbox-card"><input type="checkbox" checked={selected.includes(id)} onChange={() => toggleInstrument(id)} /><span>{label}</span></label>)}</div></fieldset>
