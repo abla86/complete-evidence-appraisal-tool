@@ -45,7 +45,7 @@ public sealed class DocumentAnalysisServiceTests
 
         var result = await service.AnalyzeAsync(file, ["amstar2"], false, CancellationToken.None);
 
-        var finding = Assert.Single(result.Findings.Where(x => x.Topic == "Protocol/registration"));
+        var finding = Assert.Single(result.Findings, x => x.Topic == "Protocol/registration");
         Assert.Equal("Candidate", finding.Status);
         Assert.Equal("Uncertain", finding.Confidence);
         Assert.DoesNotContain(result.Warnings, x => x.Contains("No candidate passage", StringComparison.OrdinalIgnoreCase));
