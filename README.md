@@ -1,4 +1,4 @@
-# Evidence Appraisal Tool
+﻿# Evidence Appraisal Tool
 
 ![CI](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/ci.yml/badge.svg)
 ![CodeQL](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/codeql.yml/badge.svg)
@@ -7,11 +7,7 @@
 ![React 19](https://img.shields.io/badge/React-19-61DAFB)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-**Public deployment target:** https://evidence-appraisal-tool.onrender.com
-
-**Deployment status:** Render deployment is configured from `main` via `render.yaml`. The URL above is the intended public application address; live availability must be confirmed in the Render service dashboard because this repository does not expose Render's runtime deployment state.
-
-A research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
+**Live application:** https://evidence-appraisal-tool.onrender.com`r`n`r`n**Status:** Published research-support application. Technical validation is green locally; Render health endpoint is live.`r`n`r`nA research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
 
 ## Core principle
 
@@ -253,8 +249,38 @@ The prototype is intended to be functionally useful and technically demonstrable
 
 Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Mulrow, C. D., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71. https://doi.org/10.1136/bmj.n71
 
-Sterne, J. A. C., Savović, J., Page, M. J., Elbers, R. G., Blencowe, N. S., Boutron, I., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
+Sterne, J. A. C., SavoviÄ‡, J., Page, M. J., Elbers, R. G., Blencowe, N. S., Boutron, I., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
 
 ## License
 
 See [LICENSE](LICENSE). The repository source is publicly viewable as a professional portfolio; the original source code, architecture and documentation remain proprietary unless otherwise stated by their respective rights holders.
+
+### Researcher verification and accountability
+
+- Human verification required for candidate evidence
+- Reviewer identity and verification note capture
+- Verification history retained
+- Researcher remains final decision-maker
+- Candidate finding is never equivalent to a methodological judgement
+
+### Methodology provenance
+
+Every appraisal workflow should be interpreted together with:
+- methodology/checklist version
+- application Git commit SHA
+- input provenance
+- reviewer identity
+- verification history
+- known limitations
+
+### Dual-review and consensus
+
+The project supports reviewer comparison, conflict identification and consensus-oriented workflows. These features support research workflow; they do not themselves establish inter-rater reliability or methodological validity.
+
+### PRISMA and research workflow traceability
+
+Screening, exclusion reasons, inclusion status and flow-count information are retained as structured research workflow data. PRISMA reporting is kept separate from methodological quality appraisal.
+
+### Integrity and auditability
+
+SHA-256 document fingerprints, verification history and finalization integrity markers support traceability. They are not substitutes for institutional information-security controls or independent scientific validation.

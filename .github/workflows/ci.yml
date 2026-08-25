@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -11,45 +11,43 @@ permissions:
   contents: read
 
 jobs:
-  test-and-build:
+  build-test:
     runs-on: windows-latest
     timeout-minutes: 20
-
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Restore backend
+      - name: Backend restore
         run: dotnet restore EvidenceAppraisalTool.sln
 
-      - name: Build backend
-        run: dotnet build EvidenceAppraisalTool.sln --no-restore --configuration Release
+      - name: Backend build
+        run: dotnet build EvidenceAppraisalTool.sln --configuration Release --no-restore
 
-      - name: Test backend
-        run: dotnet test EvidenceAppraisalTool.sln --no-build --configuration Release --logger "trx;LogFileName=backend-tests.trx"
+      - name: Backend test
+        run: dotnet test EvidenceAppraisalTool.sln --configuration Release --no-build
 
-      - name: Install frontend
+      - name: Frontend install
         working-directory: frontend
         run: npm ci
 
-      - name: Test frontend
+      - name: Frontend test
         working-directory: frontend
         run: npm test
 
-      - name: Lint frontend
+      - name: Frontend lint
         working-directory: frontend
         run: npm run lint
 
-      - name: Build frontend
+      - name: Frontend build
         working-directory: frontend
         run: npm run build
-
