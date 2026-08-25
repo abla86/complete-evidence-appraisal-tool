@@ -17,23 +17,18 @@ export default function EvidenceDocumentViewer({ file }) {
 
   useEffect(() => {
     if (!file) {
-      queueMicrotask(() => {
-        setUrl(null);
-        setText('');
-        setTextError('');
-      });
+      setUrl(null);
+      setText('');
+      setTextError('');
       return undefined;
     }
 
     const objectUrl = URL.createObjectURL(file);
     let active = true;
 
-    queueMicrotask(() => {
-      if (!active) return;
-      setUrl(objectUrl);
-      setText('');
-      setTextError('');
-    });
+    setUrl(objectUrl);
+    setText('');
+    setTextError('');
 
     if (getFileKind(file) === 'text') {
       file.text()
