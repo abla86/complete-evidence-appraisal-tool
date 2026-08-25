@@ -11,18 +11,20 @@ Set-StrictMode -Version Latest
 if ([string]::IsNullOrWhiteSpace($RepoPath)) {
     if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
         $RepoPath = Split-Path -Parent $PSScriptRoot
-    }
-    else {
+    } else {
         $RepoPath = (Get-Location).Path
     }
 }
 
 function Invoke-Step {
     param([string]$Name, [scriptblock]$Action)
+
     Write-Host "`n=== $Name ===" -ForegroundColor Cyan
+    $global:LASTEXITCODE = 0
     & $Action
-    if ($LASTEXITCODE -ne 0) {
-        throw "$Name failed with exit code $LASTEXITCODE"
+    $exitCode = if ($null -eq $global:LASTEXITCODE) { 0 } else { [int]$global:LASTEXITCODE }
+    if ($exitCode -ne 0) {
+        throw "$Name failed with exit code $exitCode"
     }
 }
 
@@ -166,8 +168,7 @@ if (-not $SkipTests) {
     Invoke-Step 'Backend tests' {
         if ($SkipBuild) {
             dotnet test EvidenceAppraisalTool.sln --configuration Release
-        }
-        else {
+        } else {
             dotnet test EvidenceAppraisalTool.sln --configuration Release --no-build
         }
     }
@@ -201,14 +202,7 @@ finally {
 
 Invoke-Step 'Methodological boundary audit' {
     $readme = Get-Content -Raw README.md
-    $requiredNotices = @(
-        'researcher',
-        'CFIR',
-        'KTA',
-        'limitations'
-    )
-
-    foreach ($notice in $requiredNotices) {
+    foreach ($notice in @('researcher','CFIR','KTA','limitations')) {
         if ($readme -notmatch [regex]::Escape($notice)) {
             throw "README methodological notice missing: $notice"
         }
