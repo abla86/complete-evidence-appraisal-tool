@@ -292,28 +292,49 @@ function Result({ result }) {
   </div>;
 }
 
-export default function ResearchModuleHub() {
+export default function ResearchModuleHub({ workflowRules = {} }) {
   const [instruments, setInstruments] = useState([]);
   const [selected, setSelected] = useState('');
 
-  useEffect(() => { getInstruments().then(setInstruments).catch(() => setInstruments([])); }, []);
-  const current = useMemo(() => instruments.find((item) => item.id === selected), [instruments, selected]);
+  useEffect(() => {
+    getInstruments().then(setInstruments).catch(() => setInstruments([]));
+  }, []);
+
+  const allowed = useMemo(() => new Set(workflowRules.instruments ?? []), [workflowRules.instruments]);
+  const visibleInstruments = useMemo(
+    () => instruments.filter((item) => item.id !== 'amstar2' && allowed.has(item.id)),
+    [instruments, allowed],
+  );
+  const current = useMemo(() => visibleInstruments.find((item) => item.id === selected), [visibleInstruments, selected]);
+
+  useEffect(() => {
+    if (selected && !allowed.has(selected)) setSelected('');
+  }, [selected, allowed]);
 
   return (
     <section className="research-hub">
       <p className="eyebrow">Forskningsmoduler</p>
       <h2>Velg vurderingsmetode</h2>
-      <div className="instrument-picker">
-        {instruments.filter((item) => item.id !== 'amstar2').map((item) =>
-          <button type="button" className={selected === item.id ? 'instrument-option selected' : 'instrument-option'}
-            key={item.id} onClick={() => setSelected(item.id)}>
-            <strong>{item.name}</strong><span>{item.purpose}</span>
-          </button>)}
-      </div>
-      {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.scoring}</p>}
-      {selected === 'casp' && <CaspForm />}
-      {selected === 'agree2' && <Agree2Form />}
-      {selected === 'grade' && <GradeForm />}
+      {visibleInstruments.length === 0 ? (
+        <div className="notice notice-warning">
+          <strong>Ingen ekstra vurderingsmoduler er aktivert.</strong>
+          <p>Aktiver CASP, AGREE II eller GRADE i prosjektoppsettet dersom de skal brukes.</p>
+        </div>
+      ) : (
+        <>
+          <div className="instrument-picker">
+            {visibleInstruments.map((item) =>
+              <button type="button" className={selected === item.id ? 'instrument-option selected' : 'instrument-option'}
+                key={item.id} onClick={() => setSelected(item.id)}>
+                <strong>{item.name}</strong><span>{item.purpose}</span>
+              </button>)}
+          </div>
+          {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.scoring}</p>}
+          {selected === 'casp' && <CaspForm />}
+          {selected === 'agree2' && <Agree2Form />}
+          {selected === 'grade' && <GradeForm />}
+        </>
+      )}
     </section>
   );
 }
