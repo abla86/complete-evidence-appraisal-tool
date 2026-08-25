@@ -39,8 +39,11 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.Status).HasMaxLength(50).IsRequired();
             b.Property(x => x.VerificationNote).HasMaxLength(4000);
             b.Property(x => x.VerifiedBy).HasMaxLength(100);
+            b.Property(x => x.MethodologyVersion).HasMaxLength(200);
+            b.Property(x => x.EvidenceQuote).HasMaxLength(8000);
             b.HasIndex(x => new { x.DocumentHashSha256, x.Instrument });
             b.HasIndex(x => new { x.DocumentHashSha256, x.Status });
+            b.HasIndex(x => new { x.DocumentHashSha256, x.MethodologyVersion });
         });
 
         modelBuilder.Entity<EvidenceRecordHistoryEntity>(b =>
@@ -170,5 +173,8 @@ public sealed class EvidenceRecordEntity
     public string? VerificationNote { get; set; }
     public string? VerifiedBy { get; set; }
     public DateTime? VerifiedAtUtc { get; set; }
+    public bool IsHumanVerified { get; set; }
+    public string? MethodologyVersion { get; set; }
+    public string? EvidenceQuote { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
