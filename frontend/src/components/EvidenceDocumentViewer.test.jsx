@@ -47,14 +47,14 @@ describe('EvidenceDocumentViewer', () => {
     expect(file.text).toHaveBeenCalledTimes(1);
   });
 
-  it('viser DOCX som opplastet dokument uten å late som nettleseren kan forhåndsvise det', () => {
+  it('viser DOCX som opplastet dokument uten å late som nettleseren kan forhåndsvise det', async () => {
     const file = new File(['dummy'], 'study.docx', {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     });
     render(<EvidenceDocumentViewer file={file} />);
 
     expect(screen.getByText(/Nettleseren kan ikke vise DOCX direkte/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Åpne/last ned dokumentet' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Åpne/last ned dokumentet' })).toBeInTheDocument();
   });
 
   it('viser feil når tekstfilen ikke kan leses', async () => {
