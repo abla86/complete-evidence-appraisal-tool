@@ -9,7 +9,7 @@
 
 **Live prototype:** https://evidence-appraisal-tool.onrender.com
 
-A research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, master's students, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
+A research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
 
 ## Core principle
 
@@ -175,7 +175,7 @@ This repository should **not** be described as a validated clinical decision-sup
 
 The public deployment is a demonstration environment. It is intended for public, synthetic, or otherwise non-sensitive material. Do not upload participant information, patient information, confidential unpublished research data, credentials, API keys, access tokens, or other restricted information to the public deployment, GitHub issues, pull requests, or example datasets.
 
-If a research or master's project involves personal data or other restricted research data, processing must take place within the applicable institutional research, privacy, information-security and ethics framework. The technical controls in this repository do not by themselves establish GDPR compliance or approval for a particular research project.
+If a research project involves personal data or other restricted research data, processing must take place within the applicable institutional research, privacy, information-security and ethics framework. The technical controls in this repository do not by themselves establish GDPR compliance or approval for a particular research project.
 
 For reproducible research use, record the exact Git commit SHA or release tag, relevant configuration, input-data provenance, software changes, verification/test results and known limitations. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
 
