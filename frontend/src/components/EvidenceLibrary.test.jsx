@@ -45,12 +45,12 @@ describe('EvidenceLibrary research-document analysis', () => {
     const input = screen.getByLabelText(/velg dokument/i);
     expect(screen.getByText('Importer forskningsartikkelen')).toBeInTheDocument();
     expect(screen.getByText(/Start med å legge inn artikkelen/i)).toBeInTheDocument();
-    expect(screen.getByText('STEg 1 · ARTIKKEL'.replace('STEg', 'STEG'))).toBeInTheDocument();
+    expect(screen.getByText(/STEG 1 · ARTIKKEL/i)).toBeInTheDocument();
     expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml,.jats');
 
     fireEvent.change(input, { target: { files: [file] } });
 
-    expect(screen.getByText('ARTIKKEL VALGT')).toBeInTheDocument();
+    expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
     expect(screen.getByText('review.pdf')).toBeInTheDocument();
     expect(screen.getByText('2 · Velg instrument')).toBeInTheDocument();
     expect(screen.getByText('3 · Start analyse')).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('EvidenceLibrary research-document analysis', () => {
       dataTransfer: { files: [file] },
     });
 
-    expect(screen.getByText('ARTIKKEL VALGT')).toBeInTheDocument();
+    expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
     expect(screen.getByText('dropped.pdf')).toBeInTheDocument();
   });
 });
