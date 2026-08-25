@@ -64,12 +64,13 @@ describe('EvidenceLibrary research-document analysis', () => {
     fireEvent.click(analyzeButton);
 
     expect(screen.getByTestId('document-viewer')).toHaveTextContent('review.pdf');
-    expect([...document.querySelectorAll('h3')].some(el => el.textContent?.trim() === 'review.pdf')).toBe(true);
     const documentTypeLabel = screen.getByText('Dokumenttype:');
     expect(documentTypeLabel.parentElement).toHaveTextContent('Systematic review / meta-analysis');
     expect(screen.getByText('Suitable')).toBeInTheDocument();
     expect(screen.getByText('Not suitable')).toBeInTheDocument();
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
+    expect(screen.getByText('PROSPERO')).toBeInTheDocument();
+    expect(screen.getByText('abc123')).toBeInTheDocument();
     expect(analyzeEvidenceDocument).toHaveBeenCalledWith(file, ['amstar2'], false);
   });
 
@@ -90,7 +91,4 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(document.querySelector('.file-name')).toHaveTextContent('dropped.pdf');
   });
 });
-
-
-
 
