@@ -23,7 +23,7 @@ describe('PreAppraisalSetup', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: /kontroller vurderingsoppsettet/i,
+        name: /lagre prosjektoppsettet/i,
       }),
     );
 
@@ -46,11 +46,11 @@ describe('PreAppraisalSetup', () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.queryByText(/oppsettet er kontrollert/i),
+      screen.queryByText(/prosjektoppsettet er kontrollert/i),
     ).not.toBeInTheDocument();
   });
 
-  it('confirms a completely documented setup', () => {
+  it('confirms a completely documented setup including configurable rules', () => {
     const onConfirmed = vi.fn();
 
     render(
@@ -93,29 +93,46 @@ describe('PreAppraisalSetup', () => {
     );
 
     fireEvent.click(
+      screen.getByLabelText(/dual review/i),
+    );
+
+    fireEvent.click(
       screen.getByRole('button', {
-        name: /kontroller vurderingsoppsettet/i,
+        name: /lagre prosjektoppsettet/i,
       }),
     );
 
     expect(
-      screen.getByText(/oppsettet er kontrollert/i),
+      screen.getByText(/prosjektoppsettet er kontrollert/i),
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/1 kritiske domener/i),
+      screen.getByText(/arbeidsflytregler er aktive/i),
     ).toBeInTheDocument();
 
-    expect(onConfirmed).toHaveBeenCalledWith({
-      reviewTitle: 'Eksempeloversikt',
-      reviewer: 'Forsker 01',
-      criticalDomains: [
-        {
-          itemNumber: 2,
-          rationale:
-            'Domenet er forhåndsdefinert i protokollen.',
-        },
-      ],
-    });
+    expect(onConfirmed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reviewTitle: 'Eksempeloversikt',
+        reviewer: 'Forsker 01',
+        criticalDomains: [
+          {
+            itemNumber: 2,
+            rationale:
+              'Domenet er forhåndsdefinert i protokollen.',
+          },
+        ],
+        workflowRules: expect.objectContaining({
+          humanVerificationRequired: true,
+          dualReview: true,
+          prismaTracking: true,
+          auditTrail: true,
+          doiLookup: true,
+          picoAssistance: false,
+          pdfEvidenceMapping: true,
+          offlineMode: false,
+          includePageText: false,
+        }),
+      }),
+    );
   });
 });
