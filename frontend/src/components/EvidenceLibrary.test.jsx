@@ -5,6 +5,10 @@ import { analyzeEvidenceDocument } from '../api/evidenceApi';
 
 vi.mock('../api/evidenceApi', () => ({
   analyzeEvidenceDocument: vi.fn(),
+  addManualEvidence: vi.fn(),
+  getEvidenceSummary: vi.fn().mockResolvedValue({ total: 0, byStatus: {} }),
+  getManualEvidence: vi.fn().mockResolvedValue([]),
+  verifyEvidence: vi.fn(),
 }));
 
 describe('EvidenceLibrary research-document analysis', () => {
@@ -40,7 +44,7 @@ describe('EvidenceLibrary research-document analysis', () => {
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
     expect(await screen.findByText('review.pdf')).toBeInTheDocument();
-    expect(screen.getByText('Systematic review / meta-analysis')).toBeInTheDocument();
+    expect(screen.getAllByText('Systematic review / meta-analysis').length).toBeGreaterThan(0);
     expect(screen.getByText('Suitable')).toBeInTheDocument();
     expect(screen.getByText('Not suitable')).toBeInTheDocument();
     expect(screen.getByText('Search strategy')).toBeInTheDocument();
