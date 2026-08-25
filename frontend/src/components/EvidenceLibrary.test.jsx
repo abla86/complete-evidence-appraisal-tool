@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+﻿import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import EvidenceLibrary from './EvidenceLibrary';
 import { analyzeEvidenceDocument } from '../api/evidenceApi';
@@ -44,16 +44,16 @@ describe('EvidenceLibrary research-document analysis', () => {
 
     const input = screen.getByLabelText(/velg dokument/i);
     expect(screen.getByText('Importer forskningsartikkelen')).toBeInTheDocument();
-    expect(screen.getByText(/Start med å legge inn artikkelen/i)).toBeInTheDocument();
-    expect(screen.getByText(/STEG 1 · ARTIKKEL/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start med Ã¥ legge inn artikkelen/i)).toBeInTheDocument();
+    expect(screen.getByText(/STEG 1 Â· ARTIKKEL/i)).toBeInTheDocument();
     expect(input).toHaveAttribute('accept', '.pdf,.docx,.txt,.html,.htm,.xml,.jats');
 
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(screen.getByText(/ARTIKKEL VALGT/i)).toBeInTheDocument();
     expect(screen.getByText('review.pdf')).toBeInTheDocument();
-    expect(screen.getByText('2 · Velg instrument')).toBeInTheDocument();
-    expect(screen.getByText('3 · Start analyse')).toBeInTheDocument();
+    expect(screen.getByText('2 Â· Velg instrument')).toBeInTheDocument();
+    expect(screen.getByText('3 Â· Start analyse')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /analyser dokument/i }));
 
@@ -81,3 +81,4 @@ describe('EvidenceLibrary research-document analysis', () => {
     expect(screen.getByText('dropped.pdf')).toBeInTheDocument();
   });
 });
+
