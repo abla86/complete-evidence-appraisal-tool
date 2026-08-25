@@ -66,9 +66,27 @@ export default function EvidenceLibrary() {
     <p>Last opp et forskningsdokument. Programmet ekstraherer tekst, klassifiserer dokumenttypen heuristisk og lokaliserer kandidatpassasjer. Endelig evidensstatus avgjøres av forskeren.</p>
 
     <section className="assessment-card evidence-analyser">
-      <p className="eyebrow">Dokumentanalyse</p><h3>Analyser forskningsdokument</h3>
-      <p className="muted">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB.</p>
-      <div className="document-upload-box"><input id="evidence-document" aria-label="Velg dokument" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFile} /><label htmlFor="evidence-document" className="upload-button">+ Legg til forskningsdokument</label><p className="upload-help">PDF, DOCX, TXT, HTML/HTM eller XML/JATS · maks. 25 MB</p></div>
+      <div className="document-import-header">
+        <div>
+          <p className="eyebrow">Start her</p>
+          <h3>Importer forskningsartikkelen</h3>
+          <p className="muted">Last opp PDF, DOCX, TXT eller XML/JATS. Dokumentet analyseres først når du trykker «Analyser dokument».</p>
+        </div>
+        <span className="document-import-step">Steg 1</span>
+      </div>
+
+      <div className="document-upload-box document-upload-box-primary">
+        <input id="evidence-document" aria-label="Velg dokument" className="document-file-input" type="file" accept={acceptedFormats} onChange={handleFile} />
+        <label htmlFor="evidence-document" className="upload-button upload-button-primary">
+          <span className="upload-button-icon" aria-hidden="true">↑</span>
+          <span>
+            <strong>Legg til forskningsartikkel</strong>
+            <small>Velg fil fra PC-en</small>
+          </span>
+        </label>
+        <p className="upload-help">PDF · DOCX · TXT · HTML/HTM · XML/JATS · maks. 25 MB</p>
+      </div>
+
       {file && <div className="notice" aria-live="polite"><strong>Valgt dokument:</strong> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)</div>}
       {file && <EvidenceDocumentViewer file={file} />}
       <fieldset><legend>Vurderingsinstrumenter</legend><p className="muted">Instrumentegnethet kontrolleres etter analysen. Forskeren må bekrefte dokumenttype og instrument.</p><div className="research-grid">{instruments.map(([id, label]) => <label key={id} className="checkbox-card"><input type="checkbox" checked={selected.includes(id)} onChange={() => toggleInstrument(id)} /><span>{label}</span></label>)}</div></fieldset>
