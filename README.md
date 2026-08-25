@@ -45,7 +45,7 @@ The document-analysis workflow explicitly distinguishes **not found** from **No*
 - Reviewer comparison and conflict identification
 - Cohen's kappa calculation
 - Consensus-oriented workflow
-- Final dataset integrity hash
+- Research-project finalization with an integrity hash
 
 ### Evidence & traceability
 
@@ -68,7 +68,7 @@ The document-analysis workflow provides:
 - uncertainty and methodological warnings
 - manual evidence entry
 - researcher verification status
-- immutable verification-history records
+- versioned verification-history records
 - audit-history viewer
 
 The application is deliberately conservative: an automated text match is a **candidate finding**, not an appraisal conclusion.
@@ -83,7 +83,7 @@ The project includes a collaboration workspace with:
 - conflict detection
 - reviewer comparison
 
-The current collaboration implementation uses polling. Presence and locks are convenience controls and do not replace durable audit history or database-level concurrency control.
+The current collaboration implementation uses polling. Presence and locks are convenience controls and do not by themselves establish durable, cryptographically immutable audit records or replace database-level concurrency controls.
 
 ### Implementation research
 
@@ -169,25 +169,15 @@ The repository has automated GitHub Actions for backend/frontend build and test 
 
 The current CI workflow runs on pushes and pull requests targeting `main` and performs backend restore/build/test followed by frontend install/test/lint/build.
 
-## Production and academic-use limitations
+## Production and academic-use boundary
 
 This repository should **not** be described as a validated clinical decision-support system or as a substitute for authorised appraisal instruments.
 
-Before handling confidential research material or deploying for multi-user production use, the following remain necessary engineering work:
+The public deployment is a demonstration environment. It is intended for public, synthetic, or otherwise non-sensitive material. Do not upload participant information, patient information, confidential unpublished research data, credentials, API keys, access tokens, or other restricted information to the public deployment, GitHub issues, pull requests, or example datasets.
 
-- real authentication and authorization
-- durable project/reviewer identity and permissions
-- database-backed concurrency for the complete appraisal model
-- production document storage and retention policy
-- encrypted storage and transport configuration appropriate to the deployment
-- secure secrets management
-- formal backup/recovery procedures
-- security testing and dependency review
-- validated instrument content/version governance
-- a genuinely blind dual-review workflow if blinding is required
-- formal validation of any reporting-standard checklist before publication use
+If a research or master's project involves personal data or other restricted research data, processing must take place within the applicable institutional research, privacy, information-security and ethics framework. The technical controls in this repository do not by themselves establish GDPR compliance or approval for a particular research project.
 
-These are intentionally not faked by the application. The UI and documentation should make the boundary visible to researchers.
+For reproducible research use, record the exact Git commit SHA or release tag, relevant configuration, input-data provenance, software changes, verification/test results and known limitations. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
 
 ## Methodological scope
 
@@ -201,7 +191,7 @@ PRISMA 2020 provides updated reporting guidance for systematic reviews and expli
 
 The repository contains substantially more than a checklist demo: it includes document analysis, evidence traceability, appraisal validation, RoB 2 prototype support, research workflow support, reviewer comparison, implementation modules, tests, CI, CodeQL, Dependabot and research-safety documentation.
 
-The public deployment is a demonstration prototype. It is **not** a validated clinical decision-support system, not a certification of research quality, and not a replacement for the official appraisal instruments or researcher judgement.
+The prototype is intended to be functionally useful and technically demonstrable. **Functional completeness does not mean methodological validation, clinical validation, medical-device certification, GDPR compliance for arbitrary deployments, or scientific certification of appraisal results.**
 
 ## References
 
