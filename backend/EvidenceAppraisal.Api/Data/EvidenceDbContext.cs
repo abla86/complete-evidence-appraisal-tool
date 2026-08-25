@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using EvidenceAppraisal.Api.Models;
@@ -25,6 +25,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
     public DbSet<ConsensusDecisionEntity> ConsensusDecisions => Set<ConsensusDecisionEntity>();
     public DbSet<PrismaFlowEventEntity> PrismaFlowEvents => Set<PrismaFlowEventEntity>();
     public DbSet<EvidenceProvenanceEntity> EvidenceProvenance => Set<EvidenceProvenanceEntity>();
+    public DbSet<ResearchGovernanceEntity> ResearchGovernance => Set<ResearchGovernanceEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -207,6 +208,18 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.HasIndex(x => new { x.ProjectId, x.StudyId, x.CreatedAtUtc });
         });
 
+        modelBuilder.Entity<ResearchGovernanceEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.DataClassification).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ApprovalReference).HasMaxLength(500);
+            b.Property(x => x.ResponsibleOrganization).HasMaxLength(500).IsRequired();
+            b.Property(x => x.ResearchLead).HasMaxLength(200).IsRequired();
+            b.Property(x => x.StorageLocation).HasMaxLength(500).IsRequired();
+            b.Property(x => x.RetentionPolicy).HasMaxLength(1000).IsRequired();
+            b.Property(x => x.UpdatedBy).HasMaxLength(200).IsRequired();
+            b.HasIndex(x => x.ProjectId).IsUnique();
+        });
         modelBuilder.Entity<EvidenceProvenanceEntity>(b =>
         {
             b.HasKey(x => x.Id);
@@ -246,3 +259,4 @@ public sealed class EvidenceRecordEntity
     public string? EvidenceQuote { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
+
