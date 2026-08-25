@@ -69,7 +69,9 @@ public sealed record ManualEvidenceRequest(
     string? Url,
     string? Doi,
     string Reviewer,
-    string Rationale);
+    string Rationale,
+    string? MethodologyVersion = null,
+    string? EvidenceQuote = null);
 
 public sealed record EvidenceRecordDto(
     Guid Id,
@@ -90,6 +92,9 @@ public sealed record EvidenceRecordDto(
     string? VerificationNote,
     string? VerifiedBy,
     DateTime? VerifiedAtUtc,
+    bool IsHumanVerified,
+    string? MethodologyVersion,
+    string? EvidenceQuote,
     DateTime CreatedAtUtc);
 
 public sealed record EvidenceVerificationRequest(
