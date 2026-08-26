@@ -6,36 +6,25 @@
 ![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB)
 
-## Status at a glance
+## Status
 
 **Advanced research-support prototype / public demonstration deployment.**
 
 This repository demonstrates software engineering for evidence and research workflows. It is not presented as a clinically, scientifically or methodologically validated decision system.
 
-**Key evidence:** structured appraisal workflows, source/evidence traceability, researcher verification, automated tests/CI, CodeQL and documented research-safety boundaries.
+## What it does
 
-**Live demonstration:** https://evidence-appraisal-tool.onrender.com
+The application supports structured evidence workflows including critical appraisal, screening, extraction, reviewer comparison, evidence traceability, implementation-research workflows and integrity-preserving finalisation.
 
-## Why this project matters
-
-The application is designed to help researchers and reviewers organise appraisal information and research workflow data. It deliberately separates **software assistance** from **researcher judgement**.
-
-> **The application assists; the researcher decides.**
-
-Automated document analysis produces candidate findings and evidence locations. It does not decide whether a study is methodologically sound or whether an appraisal, certainty or recommendation judgement is correct.
-
-## Implemented workflow areas
-
-### Critical appraisal
+### Appraisal workflows
 
 - AMSTAR 2
 - CASP
 - AGREE II
 - GRADE
-- Cochrane Risk of Bias 2 (RoB 2) prototype workflow
+- RoB 2 prototype workflow
 - structured rationale and evidence-location capture
 - researcher-controlled final judgements
-- validation and methodological notices
 
 ### Research workflow
 
@@ -43,60 +32,53 @@ Automated document analysis produces candidate findings and evidence locations. 
 - DOI and metadata handling
 - duplicate-candidate detection without automatic deletion
 - PICO/PECO project setup
-- screening records and exclusion reasons
-- structured data extraction with source location
+- screening and exclusion reasons
+- structured extraction with source locations
 - PRISMA flow-count validation
 - reviewer comparison and conflict identification
 - Cohen's kappa calculation
-- consensus-oriented workflow
-- project finalization with an integrity hash
+- consensus workflow support
 
 ### Evidence traceability
 
-Supported document inputs include PDF, DOCX, TXT, HTML/HTM and XML/JATS.
+Supported inputs include PDF, DOCX, TXT, HTML/HTM and XML/JATS. The document workflow supports classification signals, extraction status, SHA-256 fingerprinting, candidate evidence passages, source/page locations, uncertainty notices, manual evidence entry, researcher verification and versioned verification history.
 
-The document workflow includes document-classification signals, extraction status, SHA-256 fingerprinting, instrument-suitability warnings, candidate evidence passages, source/page locations, uncertainty and methodological warnings, manual evidence entry, researcher verification status and versioned verification history.
-
-An automated text match remains a **candidate finding**, not an appraisal conclusion.
+Automated text matching produces candidate findings only. It does not determine methodological quality or final appraisal judgements.
 
 ### Human verification
 
-The verification workflow supports provisional findings pending researcher review, reviewer identity/notes where supported, retained verification history, source-first verification, reviewer comparison and conflict identification.
-
-These features support research workflow. They do not by themselves establish inter-rater reliability, methodological validity or scientific validity.
+The workflow keeps provisional findings separate from researcher-reviewed findings and retains verification history where supported. The original source remains authoritative.
 
 ### Implementation research
 
-The repository includes workflow support for CFIR 2.0, Knowledge-to-Action (KTA), implementation validation, implementation audit history and implementation exports.
+The repository includes workflow support for CFIR 2.0 and Knowledge-to-Action (KTA), including implementation validation and audit-oriented workflow support.
 
-### Collaboration
+### Collaboration and export
 
-The collaboration workspace includes reviewer presence, heartbeat-based active-user status, field locks with expiry and conflict detection. The current collaboration implementation uses polling; these controls are convenience controls, not immutable audit infrastructure.
+The collaboration workspace uses polling-based presence, field locks and conflict detection. These are workflow controls, not immutable audit infrastructure.
 
-### Export and integrity
-
-Implemented export/integrity functionality includes supported structured exports and SHA-256 integrity markers for finalization packages. An integrity hash identifies represented data; it is not a substitute for institutional information-security controls or scientific verification.
+Exports and finalisation include structured outputs and SHA-256 integrity markers. The integrity marker identifies represented data; it is not scientific certification or an institutional information-security control.
 
 ## Architecture
 
 ```text
-frontend/                         React 19 + Vite
-  src/components/                Research workflow UI
-  src/api/                        API clients
-  src/domain/                    Appraisal/domain logic
+frontend/                       React 19 + Vite
+  src/components/              Research workflow UI
+  src/api/                     API clients
+  src/domain/                  Appraisal/domain logic
 
-backend/EvidenceAppraisal.Api/   ASP.NET Core .NET 9
-  Models/                        Research models
-  Services/                      Validation, analysis, export and workflow services
-  Data/                          EF Core persistence
+backend/EvidenceAppraisal.Api/ ASP.NET Core .NET 9
+  Models/                      Research models
+  Services/                    Validation, analysis and workflow services
+  Data/                        EF Core persistence
 
-tests/                            Backend regression tests
-docs/                             Architecture, safety and methodology notes
+tests/                          Backend regression tests
+docs/                           Architecture, safety and methodology notes
 ```
 
-The backend supports SQLite for local development and SQL Server when configured.
+SQLite is supported for local development; SQL Server is supported when configured.
 
-## Verification and reproducibility
+## Verification
 
 ### Backend
 
@@ -116,15 +98,17 @@ npm run lint
 npm run build
 ```
 
-The repository also contains GitHub Actions workflows for build/test validation and CodeQL analysis. A successful CI run demonstrates the tested software behaviour for that workflow; it does not establish scientific validity.
+The repository contains GitHub Actions workflows for build/test validation and CodeQL analysis.
 
-For reproducible research use, record the appraisal methodology/checklist version, application Git commit SHA or release tag, configuration/workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
+A successful software test establishes the tested software behaviour for those scenarios. It does not establish methodological validity, scientific validity, clinical validity or agreement with expert reviewers.
+
+## Reproducible research use
+
+For reproducible use, record the appraisal/checklist version, application Git commit SHA or release tag, configuration and workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See `docs/RESEARCH_USE.md`.
 
 ## Deployment boundary
 
-`render.yaml` contains deployment configuration for the public demonstration. Runtime availability must be checked from the deployment platform rather than inferred from a GitHub build result.
-
-The public deployment is intended for demonstration, synthetic or otherwise non-sensitive material. Do not upload patient information, participant information, confidential unpublished research data, credentials, API keys or access tokens.
+`render.yaml` contains deployment configuration for the public demonstration. The public deployment is for demonstration and non-sensitive material. Do not upload patient information, participant information, confidential unpublished research data, credentials, API keys or access tokens.
 
 ## Research-safety rules
 
@@ -137,33 +121,18 @@ The public deployment is intended for demonstration, synthetic or otherwise non-
 7. GRADE certainty is not inferred solely from text matching.
 8. RoB 2 overall judgement remains subject to methodological review.
 9. Duplicate candidates are not silently deleted.
-10. Finalization produces an integrity marker, not scientific certification.
+10. Finalisation produces an integrity marker, not scientific certification.
 
-## Validation boundary
+## Portfolio / employer value
 
-This is **research-support software**, not a self-validating scientific instrument. Technical tests establish software behaviour for tested scenarios; they do not establish methodological validity, construct validity, clinical validity, agreement with expert reviewers or scientific certification.
-
-Claims about automated agreement with expert reviewers would require a separate empirical validation study with a defined sample, reference standard, reviewer procedure and appropriate accuracy/reliability analyses.
-
-The project must not be presented as a CE-marked medical device or clinically validated decision-support system solely because the software exists.
-
-## Portfolio / employer view
-
-This project demonstrates:
-
-- translating a complex professional/research workflow into software
-- full-stack application development
-- evidence traceability and human-in-the-loop design
-- explicit safety and validation boundaries
-- testing, CI/CD and security tooling
-- documentation intended to make technical and methodological limitations inspectable
+This project demonstrates full-stack application development, evidence traceability, human-in-the-loop design, structured research workflows, testing, CI/CD, security tooling and explicit validation boundaries.
 
 ## Reference
 
-Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Mulrow, C. D., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71. https://doi.org/10.1136/bmj.n71
+Page, M. J., McKenzie, J. E., Bossuyt, P. M., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71. https://doi.org/10.1136/bmj.n71
 
-Sterne, J. A. C., Savović, J., Page, M. J., Elbers, R. G., Blencowe, N. S., Boutron, I., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
+Sterne, J. A. C., Savović, J., Page, M. J., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
 
 ## License
 
-See [LICENSE](LICENSE). The repository source and documentation are subject to the licence and rights stated in the repository.
+See [LICENSE](LICENSE).
