@@ -5,27 +5,28 @@
 ![Dependabot](https://img.shields.io/badge/dependencies-Dependabot-blue)
 ![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB)
-![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-**Live application:** https://evidence-appraisal-tool.onrender.com
+## Status at a glance
 
-**Status:** Advanced research-support prototype / public demonstration deployment.
+**Advanced research-support prototype / public demonstration deployment.**
 
-A research-oriented web application for structured critical appraisal and evidence-workflow support. The application is intended to assist researchers and reviewers with organising appraisal information and research workflow data; it does not replace methodological judgement.
+This repository demonstrates software engineering for evidence and research workflows. It is not presented as a clinically, scientifically or methodologically validated decision system.
 
-## Core principle
+**Key evidence:** structured appraisal workflows, source/evidence traceability, researcher verification, automated tests/CI, CodeQL and documented research-safety boundaries.
 
-**The application assists; the researcher decides.**
+**Live demonstration:** https://evidence-appraisal-tool.onrender.com
 
-Automated document analysis produces candidate findings and evidence locations. It does not determine whether a study is methodologically sound or whether an appraisal, certainty or recommendation judgement is correct.
+## Why this project matters
 
-The workflow distinguishes **not found** from **No** and keeps candidate findings subject to researcher verification.
+The application is designed to help researchers and reviewers organise appraisal information and research workflow data. It deliberately separates **software assistance** from **researcher judgement**.
+
+> **The application assists; the researcher decides.**
+
+Automated document analysis produces candidate findings and evidence locations. It does not decide whether a study is methodologically sound or whether an appraisal, certainty or recommendation judgement is correct.
 
 ## Implemented workflow areas
 
 ### Critical appraisal
-
-The repository contains workflow support for:
 
 - AMSTAR 2
 - CASP
@@ -52,82 +53,78 @@ The repository contains workflow support for:
 
 ### Evidence traceability
 
-Supported document inputs include:
+Supported document inputs include PDF, DOCX, TXT, HTML/HTM and XML/JATS.
 
-- PDF
-- DOCX
-- TXT
-- HTML/HTM
-- XML/JATS
-
-The document workflow includes functionality for:
-
-- document classification signals
-- extraction status
-- SHA-256 document fingerprinting
-- instrument-suitability warnings
-- candidate evidence passages
-- source/page locations
-- uncertainty and methodological warnings
-- manual evidence entry
-- researcher verification status
-- versioned verification history
-- audit-history viewing
+The document workflow includes document-classification signals, extraction status, SHA-256 fingerprinting, instrument-suitability warnings, candidate evidence passages, source/page locations, uncertainty and methodological warnings, manual evidence entry, researcher verification status and versioned verification history.
 
 An automated text match remains a **candidate finding**, not an appraisal conclusion.
 
 ### Human verification
 
-The verification workflow supports:
-
-- provisional automated findings pending researcher review
-- reviewer identity and verification notes where supported
-- retained verification history
-- source-first verification
-- reviewer comparison and conflict identification
+The verification workflow supports provisional findings pending researcher review, reviewer identity/notes where supported, retained verification history, source-first verification, reviewer comparison and conflict identification.
 
 These features support research workflow. They do not by themselves establish inter-rater reliability, methodological validity or scientific validity.
 
-### Methodology provenance
+### Implementation research
 
-For reproducible research use, record:
-
-- the appraisal methodology and checklist version
-- the application Git commit SHA or release tag
-- relevant configuration and workflow choices
-- input-data provenance
-- verification and test results
-- known limitations and researcher decisions
-
-Software versioning does not itself establish scientific validity.
+The repository includes workflow support for CFIR 2.0, Knowledge-to-Action (KTA), implementation validation, implementation audit history and implementation exports.
 
 ### Collaboration
 
-The collaboration workspace includes:
-
-- reviewer presence
-- heartbeat-based active-user status
-- field locks with expiry
-- conflict detection
-- reviewer comparison
-
-The current collaboration implementation uses polling. Presence and locks are convenience controls and should not be interpreted as cryptographically immutable audit infrastructure or a substitute for database-level concurrency controls.
-
-### Implementation research
-
-The repository includes implementation-oriented workflow support for:
-
-- CFIR 2.0
-- Knowledge-to-Action (KTA)
-- implementation validation
-- implementation audit history
-- implementation exports
+The collaboration workspace includes reviewer presence, heartbeat-based active-user status, field locks with expiry and conflict detection. The current collaboration implementation uses polling; these controls are convenience controls, not immutable audit infrastructure.
 
 ### Export and integrity
 
-Implemented export/integrity functionality includes supported structured exports and SHA-256 integrity markers for finalization packages.
+Implemented export/integrity functionality includes supported structured exports and SHA-256 integrity markers for finalization packages. An integrity hash identifies represented data; it is not a substitute for institutional information-security controls or scientific verification.
 
-An integrity hash is an identifier for the represented data. It is not a substitute for institutional information-security controls, authenticated audit infrastructure or independent scientific verification.
+## Architecture
+
+```text
+frontend/                         React 19 + Vite
+  src/components/                Research workflow UI
+  src/api/                        API clients
+  src/domain/                    Appraisal/domain logic
+
+backend/EvidenceAppraisal.Api/   ASP.NET Core .NET 9
+  Models/                        Research models
+  Services/                      Validation, analysis, export and workflow services
+  Data/                          EF Core persistence
+
+tests/                            Backend regression tests
+docs/                             Architecture, safety and methodology notes
+```
+
+The backend supports SQLite for local development and SQL Server when configured.
+
+## Verification and reproducibility
+
+### Backend
+
+```bash
+dotnet restore EvidenceAppraisalTool.sln
+dotnet build EvidenceAppraisalTool.sln
+dotnet test EvidenceAppraisalTool.sln
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm ci
+npm test
+npm run lint
+npm run build
+```
+
+The repository also contains GitHub Actions workflows for build/test validation and CodeQL analysis. A successful CI run demonstrates the tested software behaviour for that workflow; it does not establish scientific validity.
+
+For reproducible research use, record the appraisal methodology/checklist version, application Git commit SHA or release tag, configuration/workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
+
+## Deployment boundary
+
+`render.yaml` contains deployment configuration for the public demonstration. Runtime availability must be checked from the deployment platform rather than inferred from a GitHub build result.
+
+The public deployment is intended for demonstration, synthetic or otherwise non-sensitive material. Do not upload patient information, participant information, confidential unpublished research data, credentials, API keys or access tokens.
 
 ## Research-safety rules
 
@@ -142,97 +139,24 @@ An integrity hash is an identifier for the represented data. It is not a substit
 9. Duplicate candidates are not silently deleted.
 10. Finalization produces an integrity marker, not scientific certification.
 
-## Architecture
+## Validation boundary
 
-```text
-frontend/                         React 19 + Vite 8
-  src/components/                Research workflow UI
-  src/api/                       API clients
-  src/domain/                    Appraisal/domain logic
-
-backend/EvidenceAppraisal.Api/   ASP.NET Core .NET 9
-  Models/                        Research models
-  Services/                      Validation, analysis, export and workflow services
-  Data/                          EF Core persistence
-
-tests/                            Backend regression tests
-docs/                             Architecture, safety and methodology notes
-```
-
-The backend supports SQLite for local development and SQL Server when the configured connection is used.
-
-## Running locally
-
-### Backend
-
-```bash
-dotnet restore EvidenceAppraisalTool.sln
-dotnet build EvidenceAppraisalTool.sln
-dotnet run --project backend/EvidenceAppraisal.Api
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm ci
-npm run dev
-```
-
-If required, set `VITE_API_URL` to the backend URL. In the published same-origin deployment, the frontend uses the application origin and calls `/api/...` directly.
-
-### Tests
-
-```bash
-dotnet test EvidenceAppraisalTool.sln
-
-cd frontend
-npm test
-npm run lint
-npm run build
-```
-
-## Deployment
-
-Render configuration is stored in [`render.yaml`](render.yaml). The repository includes configuration for a Docker-based deployment, a `/health` endpoint and serving the frontend through the ASP.NET application.
-
-The public deployment is a demonstration environment. Runtime availability should be checked from the deployment platform rather than inferred from a GitHub build result.
-
-## CI and security
-
-The repository contains GitHub Actions workflows for build/test validation and CodeQL analysis. Dependabot configuration is included for supported dependency ecosystems.
-
-A successful CI build demonstrates the tested software behaviour for the workflow that ran. It does not establish methodological validity, clinical validity or scientific certification.
-
-## Validation and scientific-use boundary
-
-This is **research-support software**, not a self-validating scientific instrument. Software tests establish technical behaviour for tested scenarios; they do not establish methodological validity, construct validity, clinical validity, agreement with expert reviewers or scientific certification of appraisal results.
+This is **research-support software**, not a self-validating scientific instrument. Technical tests establish software behaviour for tested scenarios; they do not establish methodological validity, construct validity, clinical validity, agreement with expert reviewers or scientific certification.
 
 Claims about automated agreement with expert reviewers would require a separate empirical validation study with a defined sample, reference standard, reviewer procedure and appropriate accuracy/reliability analyses.
 
-## Privacy, security and deployment boundary
+The project must not be presented as a CE-marked medical device or clinically validated decision-support system solely because the software exists.
 
-The public deployment is intended for demonstration, synthetic or otherwise non-sensitive material. Do not upload patient information, participant information, confidential unpublished research data, credentials, API keys, access tokens or other restricted information to the public deployment or public repository workflows.
+## Portfolio / employer view
 
-If restricted research data are processed, the responsible organisation must assess the applicable privacy, information-security, research-governance and ethics requirements. The controls in this repository do not by themselves establish GDPR compliance, ISO certification, institutional approval or authorisation for a particular research project.
+This project demonstrates:
 
-## Regulatory boundary
-
-This repository must not be presented as a CE-marked medical device or clinically validated decision-support system solely because the software exists. The regulatory classification of a particular deployment or use case must be assessed for its intended purpose and context by the responsible organisation and relevant authorities.
-
-## Reproducible research use
-
-Record the exact Git commit SHA or release tag, relevant configuration, input-data provenance, software changes, verification/test results and known limitations. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
-
-## Methodological scope
-
-PRISMA is a reporting guideline and is kept separate from methodological quality appraisal. PRISMA flow validation therefore does not replace AMSTAR 2, CASP, AGREE II, GRADE or RoB 2 judgement.
-
-## Project status
-
-**Advanced research-support prototype / public demonstration deployment.**
-
-The project contains substantially more than a static checklist interface, but the software should not be represented as methodologically, clinically or scientifically validated merely because the implementation and automated tests are functional.
+- translating a complex professional/research workflow into software
+- full-stack application development
+- evidence traceability and human-in-the-loop design
+- explicit safety and validation boundaries
+- testing, CI/CD and security tooling
+- documentation intended to make technical and methodological limitations inspectable
 
 ## Reference
 
