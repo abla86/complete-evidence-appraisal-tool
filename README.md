@@ -1,4 +1,4 @@
-﻿# Evidence Appraisal Tool
+# Evidence Appraisal Tool
 
 ![CI](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/ci.yml/badge.svg)
 ![CodeQL](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/codeql.yml/badge.svg)
@@ -7,47 +7,52 @@
 ![React 19](https://img.shields.io/badge/React-19-61DAFB)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-**Live application:** https://evidence-appraisal-tool.onrender.com`r`n`r`n**Status:** Published research-support application. Technical validation is green locally; Render health endpoint is live.`r`n`r`nA research-oriented web application for transparent, traceable critical appraisal and evidence-workflow support. The project is designed for researchers, reviewers and academic professionals who need structured appraisal data without delegating methodological judgement to software.
+**Live application:** https://evidence-appraisal-tool.onrender.com
+
+**Status:** Advanced research-support prototype / public demonstration deployment.
+
+A research-oriented web application for structured critical appraisal and evidence-workflow support. The application is intended to assist researchers and reviewers with organising appraisal information and research workflow data; it does not replace methodological judgement.
 
 ## Core principle
 
 **The application assists; the researcher decides.**
 
-Document analysis identifies candidate passages and structures evidence. It does not decide whether a study is methodologically sound, whether an AMSTAR 2/CASP/AGREE II/GRADE/RoB 2 judgement is correct, or whether evidence supports a clinical or policy recommendation.
+Automated document analysis produces candidate findings and evidence locations. It does not determine whether a study is methodologically sound or whether an appraisal, certainty or recommendation judgement is correct.
 
-The document-analysis workflow explicitly distinguishes **not found** from **No** and requires researcher verification before evidence can be treated as verified.
+The workflow distinguishes **not found** from **No** and keeps candidate findings subject to researcher verification.
 
-## Current capabilities
+## Implemented workflow areas
 
 ### Critical appraisal
 
+The repository contains workflow support for:
+
 - AMSTAR 2
-- Cochrane Risk of Bias 2 (RoB 2) prototype workflow for randomized trials
 - CASP
 - AGREE II
 - GRADE
-- Structured rationale and evidence-location capture
-- Methodological notices and validation
-- Researcher-controlled final judgements
-- Non-destructive AMSTAR 2 advisory consistency checks
+- Cochrane Risk of Bias 2 (RoB 2) prototype workflow
+- structured rationale and evidence-location capture
+- researcher-controlled final judgements
+- validation and methodological notices
 
 ### Research workflow
 
-- RIS reference import for EndNote/Zotero workflows
+- RIS reference import
 - DOI and metadata handling
-- Duplicate-candidate detection without automatic deletion
+- duplicate-candidate detection without automatic deletion
 - PICO/PECO project setup
-- Screening records and exclusion reasons
-- Structured data extraction with source location
+- screening records and exclusion reasons
+- structured data extraction with source location
 - PRISMA flow-count validation
-- Reviewer comparison and conflict identification
+- reviewer comparison and conflict identification
 - Cohen's kappa calculation
-- Consensus-oriented workflow
-- Research-project finalization with an integrity hash
+- consensus-oriented workflow
+- project finalization with an integrity hash
 
-### Evidence & traceability
+### Evidence traceability
 
-Supported research-document input:
+Supported document inputs include:
 
 - PDF
 - DOCX
@@ -55,50 +60,50 @@ Supported research-document input:
 - HTML/HTM
 - XML/JATS
 
-The document-analysis workflow provides:
+The document workflow includes functionality for:
 
 - document classification signals
 - extraction status
-- SHA-256 document fingerprint
-- instrument suitability warnings
+- SHA-256 document fingerprinting
+- instrument-suitability warnings
 - candidate evidence passages
-- source/page location
+- source/page locations
 - uncertainty and methodological warnings
 - manual evidence entry
 - researcher verification status
-- versioned verification-history records
-- audit-history viewer
+- versioned verification history
+- audit-history viewing
 
-The application is deliberately conservative: an automated text match is a **candidate finding**, not an appraisal conclusion.
+An automated text match remains a **candidate finding**, not an appraisal conclusion.
 
-### Human verification and accountability
+### Human verification
 
-The verification workflow is designed around human-in-the-loop research practice:
+The verification workflow supports:
 
-- automated findings remain provisional until researcher review
-- verification records capture reviewer identity, status and verification note where supported by the workflow
-- the original source remains authoritative
-- verification history is versioned rather than silently overwritten
-- an automated finding must never be interpreted as equivalent to a methodological judgement
+- provisional automated findings pending researcher review
+- reviewer identity and verification notes where supported
+- retained verification history
+- source-first verification
+- reviewer comparison and conflict identification
 
-Where a project requires independent dual review, the application provides reviewer comparison, conflict identification and consensus-oriented workflow support. These technical features do not themselves establish inter-rater reliability or methodological validity for a research project.
+These features support research workflow. They do not by themselves establish inter-rater reliability, methodological validity or scientific validity.
 
 ### Methodology provenance
 
-Appraisal results should be interpreted together with the exact methodology and software version used. For reproducible research use, record:
+For reproducible research use, record:
 
-- the relevant appraisal methodology/version or checklist edition
-- the exact application Git commit SHA or release tag
+- the appraisal methodology and checklist version
+- the application Git commit SHA or release tag
 - relevant configuration and workflow choices
 - input-data provenance
-- verification/test results
+- verification and test results
 - known limitations and researcher decisions
 
-The application treats methodology provenance as part of research reproducibility rather than as a claim that a software registry makes an appraisal scientifically valid.
+Software versioning does not itself establish scientific validity.
 
 ### Collaboration
 
-The project includes a collaboration workspace with:
+The collaboration workspace includes:
 
 - reviewer presence
 - heartbeat-based active-user status
@@ -106,9 +111,11 @@ The project includes a collaboration workspace with:
 - conflict detection
 - reviewer comparison
 
-The current collaboration implementation uses polling. Presence and locks are convenience controls and do not by themselves establish durable, cryptographically immutable audit records or replace database-level concurrency controls.
+The current collaboration implementation uses polling. Presence and locks are convenience controls and should not be interpreted as cryptographically immutable audit infrastructure or a substitute for database-level concurrency controls.
 
 ### Implementation research
+
+The repository includes implementation-oriented workflow support for:
 
 - CFIR 2.0
 - Knowledge-to-Action (KTA)
@@ -118,25 +125,22 @@ The current collaboration implementation uses polling. Presence and locks are co
 
 ### Export and integrity
 
-- structured exports for supported appraisal workflows
-- PDF/report generation where implemented
-- CSV/XLSX/DOCX/PDF support in implementation workflows
-- SHA-256 integrity markers for finalization packages
+Implemented export/integrity functionality includes supported structured exports and SHA-256 integrity markers for finalization packages.
 
-SHA-256 is used as a document/integrity identifier. It is not a substitute for institutional information-security controls, authenticated audit infrastructure, or independent scientific verification.
+An integrity hash is an identifier for the represented data. It is not a substitute for institutional information-security controls, authenticated audit infrastructure or independent scientific verification.
 
 ## Research-safety rules
 
-1. **Candidate evidence is not final evidence.**
-2. **Not found is never equivalent to No.**
-3. **Uncertain findings require researcher verification.**
-4. **The original source remains authoritative.**
-5. **Automated classification is a signal, not a methodological judgement.**
-6. **AMSTAR 2 is not reduced to an inappropriate numerical total score.**
-7. **GRADE certainty is not inferred solely from text matching.**
-8. **RoB 2 overall judgement remains subject to researcher review where methodological judgement is required.**
-9. **Duplicate candidates are not silently deleted.**
-10. **Finalization produces an integrity marker, not scientific certification.**
+1. Candidate evidence is not final evidence.
+2. Not found is never equivalent to No.
+3. Uncertain findings require researcher verification.
+4. The original source remains authoritative.
+5. Automated classification is a signal, not a methodological judgement.
+6. AMSTAR 2 must not be reduced to an inappropriate numerical total score.
+7. GRADE certainty is not inferred solely from text matching.
+8. RoB 2 overall judgement remains subject to methodological review.
+9. Duplicate candidates are not silently deleted.
+10. Finalization produces an integrity marker, not scientific certification.
 
 ## Architecture
 
@@ -147,7 +151,7 @@ frontend/                         React 19 + Vite 8
   src/domain/                    Appraisal/domain logic
 
 backend/EvidenceAppraisal.Api/   ASP.NET Core .NET 9
-  Models/                        Typed research models
+  Models/                        Research models
   Services/                      Validation, analysis, export and workflow services
   Data/                          EF Core persistence
 
@@ -155,7 +159,7 @@ tests/                            Backend regression tests
 docs/                             Architecture, safety and methodology notes
 ```
 
-The backend currently supports SQLite by default for local development and SQL Server when `DefaultConnection` is configured.
+The backend supports SQLite for local development and SQL Server when the configured connection is used.
 
 ## Running locally
 
@@ -190,97 +194,52 @@ npm run build
 
 ## Deployment
 
-Render is configured through [`render.yaml`](render.yaml):
+Render configuration is stored in [`render.yaml`](render.yaml). The repository includes configuration for a Docker-based deployment, a `/health` endpoint and serving the frontend through the ASP.NET application.
 
-- Docker runtime
-- deploy from `main`
-- automatic deployment on changes to `main`
-- health check at `/health`
-- frontend build copied into the ASP.NET `wwwroot`
-- API and frontend served from the same origin
-
-The live application address is intended to be:
-
-**https://evidence-appraisal-tool.onrender.com**
-
-A green GitHub build confirms repository build/test status. It does not by itself confirm that the Render runtime is healthy; runtime availability must be confirmed from Render's service dashboard or health endpoint.
+The public deployment is a demonstration environment. Runtime availability should be checked from the deployment platform rather than inferred from a GitHub build result.
 
 ## CI and security
 
-The repository has automated GitHub Actions for backend/frontend build and test plus CodeQL analysis. Dependabot is configured for NuGet, npm and GitHub Actions dependencies. The CI workflow targets .NET 9 and Node 24, matching the current project configuration.
+The repository contains GitHub Actions workflows for build/test validation and CodeQL analysis. Dependabot configuration is included for supported dependency ecosystems.
 
-The current CI workflow runs on pushes and pull requests targeting `main` and performs backend restore/build/test followed by frontend install/test/lint/build.
+A successful CI build demonstrates the tested software behaviour for the workflow that ran. It does not establish methodological validity, clinical validity or scientific certification.
 
 ## Validation and scientific-use boundary
 
-The application is designed as **research support software**, not as a self-validating scientific instrument. Passing software tests establishes technical behavior for the tested scenarios; it does **not** establish methodological validity, construct validity, clinical validity, inter-rater equivalence to expert panels, or scientific certification of appraisal results.
+This is **research-support software**, not a self-validating scientific instrument. Software tests establish technical behaviour for tested scenarios; they do not establish methodological validity, construct validity, clinical validity, agreement with expert reviewers or scientific certification of appraisal results.
 
-A separate empirical validation study would be required to support claims that automated findings agree with expert human reviewers, including clearly defined samples, reference standards, reviewer procedures and appropriate reliability/accuracy analyses.
+Claims about automated agreement with expert reviewers would require a separate empirical validation study with a defined sample, reference standard, reviewer procedure and appropriate accuracy/reliability analyses.
 
 ## Privacy, security and deployment boundary
 
-The public deployment is a demonstration environment. It is intended for public, synthetic, or otherwise non-sensitive material. Do not upload participant information, patient information, confidential unpublished research data, credentials, API keys, access tokens, or other restricted information to the public deployment, GitHub issues, pull requests, or example datasets.
+The public deployment is intended for demonstration, synthetic or otherwise non-sensitive material. Do not upload patient information, participant information, confidential unpublished research data, credentials, API keys, access tokens or other restricted information to the public deployment or public repository workflows.
 
-If a research project involves personal data or other restricted research data, processing must take place within the applicable institutional research, privacy, information-security and ethics framework. The technical controls in this repository do **not** by themselves establish GDPR compliance, ISO certification, institutional approval, data-processing authorization, or suitability for a particular research project.
+If restricted research data are processed, the responsible organisation must assess the applicable privacy, information-security, research-governance and ethics requirements. The controls in this repository do not by themselves establish GDPR compliance, ISO certification, institutional approval or authorisation for a particular research project.
 
 ## Regulatory boundary
 
-This repository must not be presented as a CE-marked medical device or as a clinically validated decision-support system on the basis of the software implementation alone. Whether a particular deployment or use case falls within applicable medical-device, research-governance, privacy or institutional requirements must be assessed for that context by the responsible organization and relevant authorities.
+This repository must not be presented as a CE-marked medical device or clinically validated decision-support system solely because the software exists. The regulatory classification of a particular deployment or use case must be assessed for its intended purpose and context by the responsible organisation and relevant authorities.
 
 ## Reproducible research use
 
-For reproducible research use, record the exact Git commit SHA or release tag, relevant configuration, input-data provenance, software changes, verification/test results and known limitations. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
+Record the exact Git commit SHA or release tag, relevant configuration, input-data provenance, software changes, verification/test results and known limitations. See [`docs/RESEARCH_USE.md`](docs/RESEARCH_USE.md).
 
 ## Methodological scope
 
-PRISMA is a reporting guideline and should not be used as a substitute for methodological quality appraisal. The application therefore treats PRISMA flow validation separately from AMSTAR 2, CASP, AGREE II, GRADE and RoB 2 judgement workflows.
-
-PRISMA 2020 provides updated reporting guidance for systematic reviews and explicitly distinguishes reporting guidance from assessment of review conduct or methodological quality (Page et al., 2021).
+PRISMA is a reporting guideline and is kept separate from methodological quality appraisal. PRISMA flow validation therefore does not replace AMSTAR 2, CASP, AGREE II, GRADE or RoB 2 judgement.
 
 ## Project status
 
-**Status: advanced research-tool prototype / published demonstration deployment.**
+**Advanced research-support prototype / public demonstration deployment.**
 
-The repository contains substantially more than a checklist demo: it includes document analysis, evidence traceability, appraisal validation, RoB 2 prototype support, research workflow support, reviewer comparison, implementation modules, tests, CI, CodeQL, Dependabot and research-safety documentation.
+The project contains substantially more than a static checklist interface, but the software should not be represented as methodologically, clinically or scientifically validated merely because the implementation and automated tests are functional.
 
-The prototype is intended to be functionally useful and technically demonstrable. **Functional completeness does not mean methodological validation, clinical validation, medical-device certification, GDPR compliance for arbitrary deployments, or scientific certification of appraisal results.**
-
-## References
+## Reference
 
 Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Mulrow, C. D., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71. https://doi.org/10.1136/bmj.n71
 
-Sterne, J. A. C., SavoviÄ‡, J., Page, M. J., Elbers, R. G., Blencowe, N. S., Boutron, I., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
+Sterne, J. A. C., Savović, J., Page, M. J., Elbers, R. G., Blencowe, N. S., Boutron, I., et al. (2019). RoB 2: A revised tool for assessing risk of bias in randomised trials. *BMJ, 366*, l4898. https://doi.org/10.1136/bmj.l4898
 
 ## License
 
-See [LICENSE](LICENSE). The repository source is publicly viewable as a professional portfolio; the original source code, architecture and documentation remain proprietary unless otherwise stated by their respective rights holders.
-
-### Researcher verification and accountability
-
-- Human verification required for candidate evidence
-- Reviewer identity and verification note capture
-- Verification history retained
-- Researcher remains final decision-maker
-- Candidate finding is never equivalent to a methodological judgement
-
-### Methodology provenance
-
-Every appraisal workflow should be interpreted together with:
-- methodology/checklist version
-- application Git commit SHA
-- input provenance
-- reviewer identity
-- verification history
-- known limitations
-
-### Dual-review and consensus
-
-The project supports reviewer comparison, conflict identification and consensus-oriented workflows. These features support research workflow; they do not themselves establish inter-rater reliability or methodological validity.
-
-### PRISMA and research workflow traceability
-
-Screening, exclusion reasons, inclusion status and flow-count information are retained as structured research workflow data. PRISMA reporting is kept separate from methodological quality appraisal.
-
-### Integrity and auditability
-
-SHA-256 document fingerprints, verification history and finalization integrity markers support traceability. They are not substitutes for institutional information-security controls or independent scientific validation.
+See [LICENSE](LICENSE). The repository source and documentation are subject to the licence and rights stated in the repository.
