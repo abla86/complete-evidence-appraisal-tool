@@ -1,4 +1,4 @@
-﻿import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import EvidenceDocumentViewer from './EvidenceDocumentViewer';
 
@@ -74,5 +74,3 @@ describe('EvidenceDocumentViewer', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('https://example.test/mock-document');
   });
 });
-
-
