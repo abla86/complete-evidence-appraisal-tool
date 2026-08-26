@@ -1,4 +1,4 @@
-﻿import { render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import AnalysisVerification from './AnalysisVerification';
 
@@ -21,4 +21,3 @@ describe('AnalysisVerification', () => {
     expect(screen.getByRole('button', { name: 'Marker usikkert' })).toBeInTheDocument();
   });
 });
-

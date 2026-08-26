@@ -1,4 +1,4 @@
-﻿import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { fetchMetadataByDoi } from './doiService';
 
 describe('fetchMetadataByDoi', () => {
@@ -34,4 +34,3 @@ describe('fetchMetadataByDoi', () => {
     expect(result.journal).toBe('Journal of Evidence');
   });
 });
-
