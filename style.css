@@ -1,97 +1,17 @@
-﻿body {
-    font-family: system-ui, sans-serif;
-    background: #f4f6f8;
-    color: #172033;
-    margin: 0;
-}
-
-main {
-    max-width: 900px;
-    margin: auto;
-    padding: 42px 20px;
-}
-
-header span {
-    font-size: 12px;
-    letter-spacing: .16em;
-    color: #667085;
-}
-
-h1 {
-    font-size: 42px;
-    margin: 8px 0;
-}
-
-p {
-    color: #667085;
-}
-
-.card {
-    background: white;
-    border: 1px solid #d9dee7;
-    border-radius: 14px;
-    padding: 22px;
-    margin: 18px 0;
-}
-
-input,
-textarea {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px;
-    border: 1px solid #cbd2dc;
-    border-radius: 9px;
-    font: inherit;
-}
-
-button {
-    padding: 11px 16px;
-    border: 0;
-    border-radius: 9px;
-    margin: 10px 8px 0 0;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.metrics {
-    display: flex;
-    gap: 50px;
-    margin-bottom: 18px;
-}
-
-.metrics strong {
-    display: block;
-    font-size: 28px;
-}
-
-.metrics span {
-    color: #667085;
-}
-
-.ok,
-.gap {
-    padding: 14px;
-    margin: 9px 0;
-    border-left: 5px solid;
-}
-
-.ok {
-    border-color: #12b76a;
-    background: #f2fbf6;
-}
-
-.gap {
-    border-color: #d92d20;
-    background: #fff5f4;
-}
-
-.hint,
-.note {
-    font-size: 13px;
-}
-
-.boundary {
-    background: #eef1f5;
-    border-radius: 10px;
-    padding: 18px;
-}
+body{font-family:system-ui,sans-serif;background:#f4f6f8;color:#172033;margin:0}
+main{max-width:900px;margin:auto;padding:42px 20px}
+header span{font-size:12px;letter-spacing:.16em;color:#667085}
+h1{font-size:42px;margin:8px 0}
+p{color:#667085}
+.card{background:#fff;border:1px solid #d9dee7;border-radius:14px;padding:22px;margin:18px 0}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd2dc;border-radius:9px;font:inherit}
+button{padding:11px 16px;border:0;border-radius:9px;margin:10px 8px 0 0;font-weight:700;cursor:pointer}
+.metrics{display:flex;gap:50px;flex-wrap:wrap;margin-bottom:18px}
+.metrics strong{display:block;font-size:28px}
+.metrics span{color:#667085}
+.ok,.gap{padding:14px;margin:9px 0;border-left:5px solid}
+.ok{border-color:#12b76a;background:#f2fbf6}
+.gap{border-color:#d92d20;background:#fff5f4}
+.score{float:right;font-weight:700}
+.hint,.note{font-size:13px}
+.boundary{background:#eef1f5;border-radius:10px;padding:18px}
