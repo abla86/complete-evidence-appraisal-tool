@@ -15,3 +15,8 @@ button{padding:11px 16px;border:0;border-radius:9px;margin:10px 8px 0 0;font-wei
 .score{float:right;font-weight:700}
 .hint,.note{font-size:13px}
 .boundary{background:#eef1f5;border-radius:10px;padding:18px}
+label{display:block;font-weight:600;margin-bottom:7px}
+.upload{display:inline-block;margin-top:10px;padding:10px 14px;border:1px solid #cbd2dc;border-radius:9px;cursor:pointer;background:#fff}
+.upload input{display:none}
+.error{color:#b42318;font-weight:600;min-height:1.2em}
+.ok div,.gap div{margin-top:6px}
