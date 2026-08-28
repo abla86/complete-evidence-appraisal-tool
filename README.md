@@ -136,3 +136,7 @@ Sterne, J. A. C., Savović, J., Page, M. J., et al. (2019). RoB 2: A revised too
 ## License
 
 See [LICENSE](LICENSE).
+
+## Change-control audit
+
+See [docs/REPOSITORY-CHANGE-AUDIT-2026-08-28.md](docs/REPOSITORY-CHANGE-AUDIT-2026-08-28.md) for the repository change-control and traceability record.
