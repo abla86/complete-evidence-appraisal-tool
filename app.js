@@ -198,3 +198,7 @@ $("file").addEventListener("change", async event => {
         showError(error.message);
     }
 });
+// Exposed for automated/browser-console verification.
+if (typeof window !== "undefined") {
+    window.EvidencePracticeProof = { parseCsv, compareSequence };
+}
