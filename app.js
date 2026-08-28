@@ -107,7 +107,7 @@ function compareSequence(expected, actual) {
         orderViolations.length === 0 &&
         duplicateExpected.length === 0;
 
-    return { missing, unexpected, orderViolations, duplicateExpected, presenceRate, structurallyPass };
+    return { missing, unexpected, orderViolations, duplicateExpected, presenceRate, sequenceOk, structurallyPass };
 }
 
 function escapeHtml(value) {
@@ -175,6 +175,7 @@ function analyse() {
     }
 }
 
+if (typeof document !== "undefined") {
 $("demo").addEventListener("click", () => {
     $("csv").value = demo;
     analyse();
@@ -201,4 +202,6 @@ $("file").addEventListener("change", async event => {
 // Exposed for automated/browser-console verification.
 if (typeof window !== "undefined") {
     window.EvidencePracticeProof = { parseCsv, compareSequence };
+}
+
 }
