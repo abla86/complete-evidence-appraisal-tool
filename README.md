@@ -76,12 +76,12 @@ Synthetic dataset expected results:
 |---|---|
 | C001 | Structurally compliant; 100% presence |
 | C002 | Gap; missing Intervention |
-| C003 | Structurally compliant; 100% presence |
+| C003 | Gap; missing FollowUp |
 | C004 | Gap; order violation |
 | C005 | Gap; duplicate Intervention |
 | C006 | Gap; unexpected Documentation |
 
-Overall expected result: **6 cases, 2 structurally compliant, 91.7% mean activity presence**.
+Overall expected result: **6 cases, 1 structurally compliant, 77.8% mean activity presence**.
 
 The browser smoke test is: load the synthetic example, verify the six case outcomes above, clear the data, then upload a valid CSV and analyse it.
 
