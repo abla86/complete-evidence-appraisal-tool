@@ -66,3 +66,23 @@ Synthetic data is used for development.
 Open `index.html` in a modern browser.
 
 No backend or external service is required for this MVP.
+
+
+## Verification
+
+Synthetic dataset expected results:
+
+| Case | Expected result |
+|---|---|
+| C001 | Structurally compliant; 100% presence |
+| C002 | Gap; missing Intervention |
+| C003 | Structurally compliant; 100% presence |
+| C004 | Gap; order violation |
+| C005 | Gap; duplicate Intervention |
+| C006 | Gap; unexpected Documentation |
+
+Overall expected result: **6 cases, 2 structurally compliant, 91.7% mean activity presence**.
+
+The browser smoke test is: load the synthetic example, verify the six case outcomes above, clear the data, then upload a valid CSV and analyse it.
+
+The calculation is deliberately record-structural. It is not a clinical-quality score.
