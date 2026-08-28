@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,85 +6,48 @@
 <title>Evidence Practice Proof</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <main>
-
 <header>
-    <span>IMPLEMENTATION FIDELITY</span>
-    <h1>Evidence → Practice Proof</h1>
-    <p>
-        Compare expected practice with observed activity
-        and make structural gaps visible.
-    </p>
+<span>IMPLEMENTATION FIDELITY</span>
+<h1>Evidence Practice Proof</h1>
+<p>Compare expected practice with observed event records and identify structural gaps.</p>
 </header>
 
 <section class="card">
-
-    <h2>1. Expected practice</h2>
-
-    <input
-        id="expected"
-        value="Assessment,Intervention,FollowUp"
-    >
-
-    <p class="hint">
-        Activities separated by commas.
-    </p>
-
+<h2>1. Expected practice</h2>
+<label for="expected">Expected activities, in required order</label>
+<input id="expected" value="Assessment,Intervention,FollowUp" autocomplete="off">
+<p class="hint">Separate activities with commas. Order matters.</p>
 </section>
 
 <section class="card">
-
-    <h2>2. Observed events</h2>
-
-    <textarea
-        id="csv"
-        rows="12"
-        placeholder="CaseId,Timestamp,Activity,PerformedBy"
-    ></textarea>
-
-    <button id="demo">
-        Load synthetic example
-    </button>
-
-    <button id="run">
-        Analyse
-    </button>
-
-    <p class="hint">
-        CSV:
-        CaseId,Timestamp,Activity,PerformedBy
-    </p>
-
+<h2>2. Observed events</h2>
+<label for="csv">CSV event data</label>
+<textarea id="csv" rows="12" placeholder="CaseId,Timestamp,Activity,PerformedBy"></textarea>
+<div>
+<button id="demo" type="button">Load synthetic example</button>
+<button id="run" type="button">Analyse</button>
+<button id="clear" type="button">Clear</button>
+</div>
+<label class="upload">
+<input id="file" type="file" accept=".csv,text/csv">
+Load CSV file
+</label>
+<p class="hint">Required columns: CaseId, Timestamp, Activity, PerformedBy.</p>
+<p id="inputError" class="error" role="alert"></p>
 </section>
 
-<section id="out" class="card">
-
-    <h2>3. Result</h2>
-
-    <p>
-        Load the synthetic example or provide CSV data.
-    </p>
-
+<section id="out" class="card" aria-live="polite">
+<h2>3. Result</h2>
+<p>Load the synthetic example or provide CSV data.</p>
 </section>
 
 <section class="boundary">
-
-    <strong>Interpretation boundary</strong>
-
-    <p>
-        This tool identifies structural mismatches in supplied
-        records. It does not establish causality, clinical quality,
-        effectiveness, regulatory compliance or misconduct.
-    </p>
-
+<strong>Interpretation boundary</strong>
+<p>This tool identifies structural mismatches in supplied records. It does not establish causality, clinical quality, effectiveness, regulatory compliance or misconduct.</p>
 </section>
-
 </main>
-
 <script src="app.js"></script>
-
 </body>
 </html>
