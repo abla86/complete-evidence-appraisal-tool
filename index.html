@@ -1,1 +1,90 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Evidence Practice Proof</title><link rel="stylesheet" href="style.css"></head><body><main><h1>Evidence → Practice Proof</h1><p>Expected practice versus observed activity.</p><section><label>Expected sequence<input id="expected" value="Assessment,Intervention,FollowUp"></label></section><section><label>CSV events<textarea id="csv" rows="12"></textarea></label><button id="demo">Example</button><button id="run">Analyse</button></section><section id="out"></section></main><script src="app.js"></script></body></html>
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence Practice Proof</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main>
+
+<header>
+    <span>IMPLEMENTATION FIDELITY</span>
+    <h1>Evidence → Practice Proof</h1>
+    <p>
+        Compare expected practice with observed activity
+        and make structural gaps visible.
+    </p>
+</header>
+
+<section class="card">
+
+    <h2>1. Expected practice</h2>
+
+    <input
+        id="expected"
+        value="Assessment,Intervention,FollowUp"
+    >
+
+    <p class="hint">
+        Activities separated by commas.
+    </p>
+
+</section>
+
+<section class="card">
+
+    <h2>2. Observed events</h2>
+
+    <textarea
+        id="csv"
+        rows="12"
+        placeholder="CaseId,Timestamp,Activity,PerformedBy"
+    ></textarea>
+
+    <button id="demo">
+        Load synthetic example
+    </button>
+
+    <button id="run">
+        Analyse
+    </button>
+
+    <p class="hint">
+        CSV:
+        CaseId,Timestamp,Activity,PerformedBy
+    </p>
+
+</section>
+
+<section id="out" class="card">
+
+    <h2>3. Result</h2>
+
+    <p>
+        Load the synthetic example or provide CSV data.
+    </p>
+
+</section>
+
+<section class="boundary">
+
+    <strong>Interpretation boundary</strong>
+
+    <p>
+        This tool identifies structural mismatches in supplied
+        records. It does not establish causality, clinical quality,
+        effectiveness, regulatory compliance or misconduct.
+    </p>
+
+</section>
+
+</main>
+
+<script src="app.js"></script>
+
+</body>
+</html>
