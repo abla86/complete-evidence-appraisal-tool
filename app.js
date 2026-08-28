@@ -100,6 +100,7 @@ function compareSequence(expected, actual) {
 
     const matched = expected.filter(activity => actual.includes(activity)).length;
     const presenceRate = expected.length ? matched / expected.length * 100 : 0;
+    const sequenceOk = orderViolations.length === 0;
     const structurallyPass =
         missing.length === 0 &&
         unexpected.length === 0 &&
