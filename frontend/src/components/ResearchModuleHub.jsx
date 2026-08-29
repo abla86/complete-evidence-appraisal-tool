@@ -4,6 +4,7 @@ import {
   evaluateGrade,
   getInstruments,
   validateCasp,
+  validateJbiQualitative2017,
 } from '../api/researchApi';
 import './ResearchModuleHub.css';
 
@@ -55,6 +56,8 @@ function EvidenceFields({ items, setItems, mode }) {
                 <option value="Yes">Ja</option>
                 <option value="No">Nei</option>
                 <option value="CannotTell">Kan ikke avgjøres</option>
+                {mode === 'jbi' && <option value="Unclear">Uklart</option>}
+                {mode === 'jbi' && <option value="NotApplicable">Ikke relevant</option>}
               </select>
             </label>
           )}
@@ -70,6 +73,59 @@ function EvidenceFields({ items, setItems, mode }) {
         </fieldset>
       ))}
     </div>
+  );
+}
+
+function JbiQualitative2017Form() {
+  const [items, setItems] = useState(() => emptyEvidence(10));
+  const [result, setResult] = useState(null);
+  const [meta, setMeta] = useState({
+    studyTitle: '', reviewerCode: '', overallAppraisal: '', overallAppraisalRationale: '',
+  });
+
+  async function submit(event) {
+    event.preventDefault();
+    setResult(await validateJbiQualitative2017({
+      instrumentId: 'jbi-qualitative-2017',
+      instrumentVersion: '2017',
+      studyTitle: meta.studyTitle,
+      reviewerCode: meta.reviewerCode,
+      assessmentDateUtc: new Date().toISOString(),
+      items,
+      overallAppraisal: meta.overallAppraisal || null,
+      overallAppraisalRationale: meta.overallAppraisalRationale,
+    }));
+  }
+
+  return (
+    <form className="research-form" onSubmit={submit}>
+      <h3>JBI – kvalitativ forskning (2017)</h3>
+      <p className="module-warning">
+        Historisk, versjonert instrument. Den autoriserte JBI-sjekklisten skal brukes som
+        originalkilde; instrumentteksten gjengis ikke i applikasjonen.
+      </p>
+      <div className="research-grid">
+        <label>Studietittel<input required value={meta.studyTitle}
+          onChange={(e) => setMeta({ ...meta, studyTitle: e.target.value })} /></label>
+        <label>Pseudonym vurdererkode<input required value={meta.reviewerCode}
+          onChange={(e) => setMeta({ ...meta, reviewerCode: e.target.value })} /></label>
+      </div>
+      <EvidenceFields items={items} setItems={setItems} mode="jbi" />
+      <div className="research-grid">
+        <label>Samlet vurdering<select required value={meta.overallAppraisal}
+          onChange={(e) => setMeta({ ...meta, overallAppraisal: e.target.value })}>
+          <option value="">Velg</option>
+          <option value="Include">Include</option>
+          <option value="Exclude">Exclude</option>
+          <option value="SeekFurtherInformation">Seek further information</option>
+        </select></label>
+      </div>
+      <label>Begrunnelse for samlet vurdering<textarea required rows="3"
+        value={meta.overallAppraisalRationale}
+        onChange={(e) => setMeta({ ...meta, overallAppraisalRationale: e.target.value })} /></label>
+      <button className="primary-button">Valider JBI-vurdering</button>
+      <Result result={result} />
+    </form>
   );
 }
 
@@ -140,7 +196,7 @@ function Agree2Form() {
   async function submit(event) {
     event.preventDefault();
     setResult(await calculateAgree2({
-      instrumentName: 'AGREE II', instrumentVersion: '2017',
+      instrumentName: 'AGREE II', instrumentVersion: 'AGREE II',
       guidelineTitle: meta.guidelineTitle,
       guidelineCitation: meta.guidelineCitation,
       assessmentDateUtc: new Date().toISOString(),
@@ -331,6 +387,7 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
           </div>
           {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.scoring}</p>}
           {effectiveSelected === 'casp' && <CaspForm />}
+          {effectiveSelected === 'jbi' && <JbiQualitative2017Form />}
           {effectiveSelected === 'agree2' && <Agree2Form />}
           {effectiveSelected === 'grade' && <GradeForm />}
         </>
