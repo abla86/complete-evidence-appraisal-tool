@@ -87,6 +87,8 @@ app.MapGet("/api/methodologies", () => Results.Ok(MethodologyRegistry.Definition
     definition.PublicationYear,
     definition.OfficialSourceUrl,
     definition.PrimaryPublicationUrl,
+    definition.SourceCheckedDate,
+    definition.SourceStatus,
     definition.VerificationStatus,
     definition.VerificationNote,
     CompatibleStudyDesigns = definition.CompatibleStudyDesigns ?? Array.Empty<string>(),
@@ -94,17 +96,20 @@ app.MapGet("/api/methodologies", () => Results.Ok(MethodologyRegistry.Definition
     definition.LicenceUrl
 })));
 
-app.MapGet("/api/instruments", () => Results.Ok(new object[]
+app.MapGet("/api/instruments", () => Results.Ok(MethodologyRegistry.Definitions.Values.Select(definition => new
 {
-    new { id = "amstar2", name = "AMSTAR 2", purpose = "Critical appraisal of systematic reviews of healthcare interventions", status = "Available", itemCount = 16, scoring = "No numerical total score", methodologyId = "amstar2" },
-    new { id = "casp", name = "CASP", purpose = "Study-design-specific critical appraisal; select the exact checklist/version", status = "Family / select variant", itemCount = (int?)null, scoring = "No automatic quality total", methodologyId = (string?)null, variants = new[] { "casp-qualitative-2024" } },
-    new { id = "jbi", name = "JBI", purpose = "Study-design-specific critical appraisal; select the exact tool/version", status = "Family / select verified variant", itemCount = (int?)null, scoring = "Instrument-specific; no universal quality total", methodologyId = (string?)null, variants = new[] { "jbi-qualitative-2017" } },
-    new { id = "agree2", name = "AGREE II", purpose = "Appraisal of clinical practice guidelines", status = "Available", itemCount = 23, scoring = "Six standardised domain scores plus two overall assessments", methodologyId = "agree2" },
-    new { id = "grade", name = "GRADE", purpose = "Outcome-level certainty of a body of evidence", status = "Available", itemCount = 5, scoring = "Certainty categories with explicit domain judgements; upgrading criteria are conditional", methodologyId = "grade" },
-    new { id = "cfir2", name = "CFIR 2.0", purpose = "Implementation determinant assessment", status = "Available", itemCount = 48, scoring = "Researcher judgement; no automatic barrier/facilitator total", methodologyId = "cfir2" },
-    new { id = "kta", name = "Knowledge-to-Action", purpose = "Documentation of the action cycle", status = "Available", itemCount = 7, scoring = "No validated implementation-progress percentage", methodologyId = "kta" },
-    new { id = "rob2", name = "Cochrane RoB 2", purpose = "Risk-of-bias assessment for randomised trials", status = "Prototype", itemCount = 5, scoring = "Researcher judgement required; signalling-question algorithm not fully reproduced", methodologyId = "rob2" }
-}));
+    id = definition.Id,
+    name = definition.Name,
+    purpose = definition.VerificationNote,
+    status = definition.VerificationStatus.ToString(),
+    methodologyId = definition.Id,
+    methodologyVersion = definition.Version,
+    source = definition.OfficialSourceUrl,
+    sourceCheckedDate = definition.SourceCheckedDate,
+    sourceStatus = definition.SourceStatus,
+    compatibleStudyDesigns = definition.CompatibleStudyDesigns ?? Array.Empty<string>(),
+    supportsNumericalScoring = definition.SupportsNumericalScoring
+})));
 
 app.MapGet("/api/amstar2/metadata", () =>
 {
