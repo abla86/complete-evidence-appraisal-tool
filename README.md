@@ -19,10 +19,11 @@ The application supports structured evidence workflows including critical apprai
 ### Appraisal workflows
 
 - AMSTAR 2
-- CASP
+- CASP (study-design-specific variants)
+- JBI qualitative 2017 (historical instrument)
 - AGREE II
 - GRADE
-- RoB 2 prototype workflow
+- RoB 2 prototype workflow; the current implementation is explicitly not presented as a complete RoB 2 implementation
 - structured rationale and evidence-location capture
 - researcher-controlled final judgements
 
@@ -113,15 +114,16 @@ For reproducible use, record the appraisal/checklist version, application Git co
 ## Research-safety rules
 
 1. Candidate evidence is not final evidence.
-2. Not found is never equivalent to No.
-3. Uncertain findings require researcher verification.
-4. The original source remains authoritative.
-5. Automated classification is a signal, not a methodological judgement.
-6. AMSTAR 2 must not be reduced to an inappropriate numerical total score.
-7. GRADE certainty is not inferred solely from text matching.
-8. RoB 2 overall judgement remains subject to methodological review.
-9. Duplicate candidates are not silently deleted.
-10. Finalisation produces an integrity marker, not scientific certification.
+2. Methodology versions are immutable for existing assessments.
+3. Not found is never equivalent to No.
+4. Uncertain findings require researcher verification.
+5. The original source remains authoritative.
+6. Automated classification is a signal, not a methodological judgement.
+7. AMSTAR 2 must not be reduced to an inappropriate numerical total score.
+8. GRADE certainty is not inferred solely from text matching.
+9. RoB 2 overall judgement remains subject to methodological review.
+10. Duplicate candidates are not silently deleted.
+11. Finalisation produces an integrity marker, not scientific certification.
 
 ## Portfolio / employer value
 
