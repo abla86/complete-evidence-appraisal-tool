@@ -11,4 +11,12 @@ public sealed class MethodologyMetadataService
                 instrument => instrument,
                 MethodologyRegistry.GetVersion,
                 StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyCollection<MethodologyDefinition> GetDefinitions(IEnumerable<string> instruments) =>
+        instruments
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(MethodologyRegistry.Get)
+            .Where(definition => definition is not null)
+            .Cast<MethodologyDefinition>()
+            .ToArray();
 }
