@@ -80,6 +80,9 @@ public sealed class DocumentAnalysisService
         var combinedText = string.Join("\n", sourceUnits.Select(x => x.Text));
         var classification = ClassifyDocument(file.FileName, combinedText);
         var suitability = EvaluateSuitability(selected, classification.DocumentType);
+        var recommended = classification.Signals.Count > 1 && classification.Confidence.Equals("Low", StringComparison.OrdinalIgnoreCase)
+            ? Array.Empty<string>()
+            : RecommendInstruments(classification);
         var findings = FindEvidence(sourceUnits, selected);
         var hasText = sourceUnits.Any(x => !string.IsNullOrWhiteSpace(x.Text));
 
@@ -103,6 +106,7 @@ public sealed class DocumentAnalysisService
             warnings.Distinct().ToArray(),
             classification,
             suitability,
+            recommended,
             "Automated analysis identifies candidate evidence locations only. It never converts a missing text match into a No judgement. The researcher must verify the original source, context, supplement/protocol where relevant, and the authorised instrument before making a final appraisal.");
     }
 
@@ -277,8 +281,11 @@ public sealed class DocumentAnalysisService
         }
 
         var positiveDesigns = flags.Count(x => x.Value);
+        var primaryDesignSignals = flags.Where(x => x.Value).Select(x => x.Key).ToArray();
         if (positiveDesigns > 1)
             ambiguity = positiveDesigns - 1;
+
+        // A keyword hit is not sufficient to establish study design. Multiple design signals are explicitly treated as unresolved until human verification.
 
         var notice = ambiguity > 0
             ? $"Multiple design signals were detected ({positiveDesigns}). Classification is a candidate classification, not a definitive study-design determination. Confirm the primary design from the methods section before appraisal."
