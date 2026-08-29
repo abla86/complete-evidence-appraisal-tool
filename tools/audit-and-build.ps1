@@ -105,6 +105,38 @@ Invoke-Step 'Static source contracts' {
     $gate = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/ResearchSystemGate.cs'
     $integrity = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Services/ResearchIntegrityEndpoints.cs'
     $program = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Program.cs'
+    $registry = Get-Content -Raw 'backend/EvidenceAppraisal.Api/Models/MethodologyRegistry.cs'
+    $workflowDoc = Get-Content -Raw 'docs/WORKFLOW.md'
+    $methodologyDoc = Get-Content -Raw 'docs/METHODOLOGY-SOURCES-AND-VERSIONS.md'
+
+    foreach ($required in @(
+        'RegistryReviewedDate',
+        'SourceReferenceStatus',
+        'jbi-qualitative-2017',
+        'casp-qualitative-2024',
+        'MethodologyRegistry.Definitions'
+    )) {
+        if ($registry -notmatch [regex]::Escape($required)) {
+            throw "Methodology registry contract missing: $required"
+        }
+    }
+
+    foreach ($required in @(
+        'Historical and legacy functionality',
+        'exact methodology ID/version',
+        'Release gate'
+    )) {
+        if ($workflowDoc -notmatch [regex]::Escape($required)) {
+            throw "Workflow governance contract missing: $required"
+        }
+    }
+
+    if ($methodologyDoc -match '|s*casps*|') {
+        throw 'Ambiguous generic CASP methodology entry remains in methodology documentation'
+    }
+    if ($methodologyDoc -match '|s*jbis*|') {
+        throw 'Ambiguous generic JBI methodology entry remains in methodology documentation'
+    }
 
     foreach ($required in @(
         'record ScreeningDecisionRequest(Guid ProjectId',
