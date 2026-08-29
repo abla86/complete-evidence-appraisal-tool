@@ -40,7 +40,7 @@ const PROJECT_ID_KEY = 'eat-project-id';
 const DEFAULT_PROJECT_ID = 'default-research-project';
 
 const DEFAULT_WORKFLOW_RULES = {
-  instruments: ['amstar2'],
+  instruments: [],
   requireHumanVerification: true,
   dualReview: false,
   prismaTracking: true,
@@ -60,9 +60,7 @@ function normalizeWorkflowRules(rules) {
   return {
     ...DEFAULT_WORKFLOW_RULES,
     ...(rules ?? {}),
-    instruments: Array.isArray(rules?.instruments) && rules.instruments.length > 0
-      ? rules.instruments
-      : DEFAULT_WORKFLOW_RULES.instruments,
+    instruments: Array.isArray(rules?.instruments) ? rules.instruments : DEFAULT_WORKFLOW_RULES.instruments,
   };
 }
 
