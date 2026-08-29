@@ -106,4 +106,35 @@ public class MethodologyRegistryTests
             MethodologyVerificationStatus.Prototype,
             MethodologyRegistry.Definitions["rob2"].VerificationStatus);
     }
+
+    [Fact]
+    public void AMSTAR2_critical_domains_reject_non_authoritative_item_numbers()
+    {
+        var assessment = new Amstar2Assessment
+        {
+            ReviewTitle = "Test review",
+            Reviewer = "R1",
+            CriticalDomains =
+            [
+                new CriticalDomainDefinition { ItemNumber = 1, Rationale = "Invalid test domain." }
+            ],
+            Items = Enumerable.Range(1, 16)
+                .Select(i => new Amstar2ItemAssessment
+                {
+                    ItemNumber = i,
+                    Response = Amstar2Response.Yes,
+                    Rationale = "Documented rationale.",
+                    EvidenceLocation = "Test location.",
+                    IsWeakness = false,
+                    IsCriticalFlaw = false
+                })
+                .ToArray()
+        };
+
+        var result = new EvidenceAppraisal.Api.Services.Amstar2ValidationService().Validate(assessment);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Contains("critical-domain set", StringComparison.OrdinalIgnoreCase));
+    }
+
 }
