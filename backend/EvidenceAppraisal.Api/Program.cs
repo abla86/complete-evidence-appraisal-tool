@@ -13,6 +13,7 @@ builder.Services.AddSingleton<AssessmentReportFactory>();
 builder.Services.AddSingleton<AssessmentExportService>();
 builder.Services.AddSingleton<Agree2ScoringService>();
 builder.Services.AddSingleton<CaspValidationService>();
+builder.Services.AddSingleton<JbiQualitativeValidationService>();
 builder.Services.AddSingleton<GradeCertaintyService>();
 builder.Services.AddSingleton<ImplementationValidationService>();
 builder.Services.AddSingleton<ImplementationExportService>();
@@ -137,6 +138,7 @@ app.MapPost("/api/amstar2/export/{format}", (string format, Amstar2Assessment as
     }
 });
 app.MapPost("/api/casp/validate", (CaspAssessment assessment, CaspValidationService service) => Results.Ok(service.Validate(assessment)));
+app.MapPost("/api/jbi/qualitative-2017/validate", (JbiQualitativeAssessment assessment, JbiQualitativeValidationService service) => Results.Ok(service.Validate(assessment)));
 app.MapPost("/api/agree2/calculate", (Agree2Assessment assessment, Agree2ScoringService service) => Results.Ok(service.Calculate(assessment)));
 app.MapPost("/api/grade/evaluate", (GradeOutcomeAssessment assessment, GradeCertaintyService service) => Results.Ok(service.Evaluate(assessment)));
 app.MapPost("/api/cfir2/validate", (CfirAssessment assessment, ImplementationValidationService service) => Results.Ok(service.Validate(assessment)));
