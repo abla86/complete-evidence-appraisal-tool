@@ -17,6 +17,7 @@ public sealed class ResearchProtocolEntity
     public string? ExclusionCriteria { get; set; }
     public string? SearchStrategy { get; set; }
     public string? Databases { get; set; }
+    public string MethodologyId { get; set; } = string.Empty;
     public string MethodologyVersion { get; set; } = string.Empty;
     public string CreatedBy { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
@@ -92,6 +93,7 @@ public sealed record ResearchProtocolRequest(
     string? ExclusionCriteria,
     string? SearchStrategy,
     string? Databases,
+    string MethodologyId,
     string MethodologyVersion,
     string Reviewer);
 
