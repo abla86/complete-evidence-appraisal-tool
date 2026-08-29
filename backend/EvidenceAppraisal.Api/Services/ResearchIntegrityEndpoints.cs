@@ -31,6 +31,7 @@ public static class ResearchIntegrityEndpoints
                 ExclusionCriteria = request.ExclusionCriteria?.Trim(),
                 SearchStrategy = request.SearchStrategy?.Trim(),
                 Databases = request.Databases?.Trim(),
+                MethodologyId = request.MethodologyId.Trim(),
                 MethodologyVersion = request.MethodologyVersion.Trim(),
                 CreatedBy = request.Reviewer.Trim(),
                 CreatedAtUtc = DateTime.UtcNow
@@ -40,7 +41,7 @@ public static class ResearchIntegrityEndpoints
             {
                 entity.ProjectId, entity.Version, entity.ResearchQuestion, entity.P, entity.I, entity.C, entity.O,
                 entity.InclusionCriteria, entity.ExclusionCriteria, entity.SearchStrategy, entity.Databases,
-                entity.MethodologyVersion, entity.CreatedBy
+                entity.MethodologyId, entity.MethodologyVersion, entity.CreatedBy
             });
             entity.Hash = ResearchIntegrityHash.Compute(canonical);
             db.ResearchProtocols.Add(entity);
