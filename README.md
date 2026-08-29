@@ -29,6 +29,9 @@ The application supports structured evidence workflows including critical apprai
 
 ### Research workflow
 
+The recommended workflow is documented in [`docs/WORKFLOW.md`](docs/WORKFLOW.md). Methodology versions, evidence provenance, reviewer decisions and finalisation are treated as one traceable workflow. Historical and legacy components are preserved unless there is a documented compatibility/safety reason to remove them.
+
+
 - RIS reference import
 - DOI and metadata handling
 - duplicate-candidate detection without automatic deletion
@@ -105,7 +108,7 @@ A successful software test establishes the tested software behaviour for those s
 
 ## Reproducible research use
 
-For reproducible use, record the appraisal/checklist version, application Git commit SHA or release tag, configuration and workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See `docs/RESEARCH_USE.md`.
+For reproducible use, record the appraisal/checklist version, application Git commit SHA or release tag, configuration and workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See `docs/RESEARCH_USE.md` and [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 
 ## Deployment boundary
 
