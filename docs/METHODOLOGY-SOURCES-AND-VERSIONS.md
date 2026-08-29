@@ -22,7 +22,7 @@ This repository treats methodological instruments as versioned research dependen
 | amstar2 | AMSTAR 2 | 2017 | 2017 | Critical appraisal of systematic reviews | Verified |
 | agree2 | AGREE II | No separate version number in registry | 2010 | Appraisal of clinical practice guidelines | Verified |
 | rob2 | Cochrane RoB 2 | 22 Aug 2019 (individual parallel-group RCTs) | 2019 | Risk of bias | Prototype — implementation incomplete |
-| prisma2020 | PRISMA 2020 | 2020 update | 2021 | Reporting guideline | Verified |\n| grade | GRADE | No single version field | — | Certainty of evidence | Verified |
+| prisma2020 | PRISMA 2020 | 2020 update | 2021 | Reporting guideline | Verified || grade | GRADE | No single version field | — | Certainty of evidence | Verified |
 | cfir2 | CFIR 2.0 | 2022 | 2022 | Implementation determinant framework | Verified |
 | kta | Knowledge-to-Action Framework | Original framework | 2006 | Knowledge translation / implementation framework | Verified |
 | jbi-qualitative-2017 | JBI Critical Appraisal Checklist for Qualitative Research | 2017 | 2017 | Critical appraisal of qualitative research | Verified historical instrument |
