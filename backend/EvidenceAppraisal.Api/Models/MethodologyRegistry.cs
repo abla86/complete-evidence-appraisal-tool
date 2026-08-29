@@ -18,14 +18,17 @@ public sealed record MethodologyDefinition(
     string OfficialSourceUrl,
     string? PrimaryPublicationUrl,
     MethodologyVerificationStatus VerificationStatus,
-    string VerificationNote
+    string VerificationNote,
+    IReadOnlyCollection<string>? CompatibleStudyDesigns = null,
+    bool SupportsNumericalScoring = false,
+    string? LicenceUrl = null
 );
 
 public static class MethodologyRegistry
 {
-    // This registry is deliberately conservative. A methodology is not marked
-    // Verified unless its identity/version/source has been checked against an
-    // authoritative source. Do not substitute "latest" for a documented version.
+    // Conservative registry: "Verified" means identity/version/source and the
+    // methodological scope have been checked. It does NOT mean every feature
+    // of the software implementation is complete.
     public static IReadOnlyDictionary<string, MethodologyDefinition> Definitions { get; } =
         new Dictionary<string, MethodologyDefinition>(StringComparer.OrdinalIgnoreCase)
         {
@@ -38,7 +41,9 @@ public static class MethodologyRegistry
                 "https://amstar.ca/Amstar-2.php",
                 "https://doi.org/10.1136/bmj.j4008",
                 MethodologyVerificationStatus.Verified,
-                "16-item AMSTAR 2; overall confidence is based on weaknesses in critical/non-critical domains, not a numerical total score."
+                "16-item instrument. Overall confidence is based on weaknesses in critical/non-critical domains; no numerical total score.",
+                ["systematic review", "systematic review of healthcare interventions"],
+                false
             ),
             ["agree2"] = new(
                 "agree2",
@@ -49,7 +54,9 @@ public static class MethodologyRegistry
                 "https://www.agreetrust.org/",
                 "https://doi.org/10.1016/j.jclinepi.2010.07.001",
                 MethodologyVerificationStatus.Verified,
-                "AGREE II is a 23-item instrument organised into six domains. The registry does not label it as a 2017 version."
+                "23-item instrument organised into six domains. Publication year is 2010; a 2017-hosted manual must not be misrepresented as a 2017 instrument version.",
+                ["clinical practice guideline", "guideline"],
+                true
             ),
             ["rob2"] = new(
                 "rob2",
@@ -59,8 +66,39 @@ public static class MethodologyRegistry
                 2019,
                 "https://www.riskofbias.info/welcome/rob-2-0-tool/current-version-of-rob-2",
                 "https://doi.org/10.1136/bmj.l4898",
-                MethodologyVerificationStatus.Verified,
-                "Current parallel-group individually-randomised version is dated 22 August 2019; cluster and crossover variants have separate versions."
+                MethodologyVerificationStatus.Prototype,
+                "The registry identity is verified, but this repository's implementation is explicitly incomplete because the signalling-question algorithm is not fully reproduced. Parallel-group, cluster and crossover variants must remain separate.",
+                ["individually randomised parallel-group trial"],
+                false,
+                "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+            ),
+            ["rob2-cluster-2021"] = new(
+                "rob2-cluster-2021",
+                "Cochrane RoB 2 – cluster-randomised trials",
+                "risk-of-bias",
+                "18 March 2021 revision",
+                2021,
+                "https://www.riskofbias.info/welcome/rob-2-0-tool/current-version-of-rob-2",
+                "https://doi.org/10.1136/bmj.l4898",
+                MethodologyVerificationStatus.Unverified,
+                "Separate RoB 2 variant. Do not reuse the parallel-group item logic until this variant is independently implemented and tested.",
+                ["cluster-randomised trial"],
+                false,
+                "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+            ),
+            ["rob2-crossover-2021"] = new(
+                "rob2-crossover-2021",
+                "Cochrane RoB 2 – crossover trials",
+                "risk-of-bias",
+                "18 March 2021 revision",
+                2021,
+                "https://www.riskofbias.info/welcome/rob-2-0-tool/current-version-of-rob-2",
+                "https://doi.org/10.1136/bmj.l4898",
+                MethodologyVerificationStatus.Unverified,
+                "Separate RoB 2 variant. Do not reuse the parallel-group item logic until this variant is independently implemented and tested.",
+                ["crossover trial"],
+                false,
+                "https://creativecommons.org/licenses/by-nc-nd/4.0/"
             ),
             ["prisma2020"] = new(
                 "prisma2020",
@@ -71,7 +109,9 @@ public static class MethodologyRegistry
                 "https://www.prisma-statement.org/prisma-2020",
                 "https://doi.org/10.1136/bmj.n71",
                 MethodologyVerificationStatus.Verified,
-                "PRISMA 2020 statement was published in 2021; the name identifies the 2020 update, not a 2020 publication year."
+                "PRISMA 2020 is the name of the 2020 update; the main statement was published in 2021. It is a reporting guideline, not a critical-appraisal score.",
+                ["systematic review", "meta-analysis", "scoping review when the relevant PRISMA extension applies"],
+                false
             ),
             ["cfir2"] = new(
                 "cfir2",
@@ -82,7 +122,9 @@ public static class MethodologyRegistry
                 "https://cfirguide.org/",
                 "https://doi.org/10.1186/s13012-022-01245-0",
                 MethodologyVerificationStatus.Verified,
-                "Updated CFIR was published in 2022. CFIR 2.0 requires project-level operationalisation and should not be treated as a generic scoring instrument."
+                "Updated CFIR was published in 2022. CFIR is an implementation determinant framework and must not be represented as a generic validated quality score.",
+                ["implementation research", "implementation project"],
+                false
             ),
             ["kta"] = new(
                 "kta",
@@ -93,7 +135,9 @@ public static class MethodologyRegistry
                 "https://rnao.ca/bpg/leading-change-toolkit/knowledge-to-action-framework",
                 "https://doi.org/10.1002/chp.47",
                 MethodologyVerificationStatus.Verified,
-                "Original framework publication is Graham et al. (2006). KTA is a conceptual framework, not a validated numerical scoring instrument."
+                "Graham et al. (2006) introduced the Knowledge-to-Action framework. It is a conceptual implementation/knowledge-translation framework, not a validated numerical appraisal scale.",
+                ["implementation project", "knowledge translation"],
+                false
             ),
             ["jbi-qualitative-2017"] = new(
                 "jbi-qualitative-2017",
@@ -104,18 +148,23 @@ public static class MethodologyRegistry
                 "https://jbi.global/sites/default/files/2019-05/JBI_Critical_Appraisal-Checklist_for_Qualitative_Research2017_0.pdf",
                 null,
                 MethodologyVerificationStatus.Verified,
-                "The 2017 qualitative checklist is retained as an explicit historical instrument. JBI now also publishes revised tools, so this version must not be silently replaced by a newer tool."
+                "Historical 2017 qualitative checklist. JBI states that its critical appraisal tools have been revised; this historical instrument must not be silently replaced by a newer JBI tool.",
+                ["qualitative research"],
+                false
             ),
-            ["casp-qualitative-2022"] = new(
-                "casp-qualitative-2022",
+            ["casp-qualitative-2024"] = new(
+                "casp-qualitative-2024",
                 "CASP Qualitative Studies Checklist",
                 "critical-appraisal",
-                "2022",
-                2022,
-                "https://casp-uk.net/casp-tools-checklists/checklist-archive/",
+                "2024",
+                2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-qualitative-2024.pdf",
                 null,
                 MethodologyVerificationStatus.Verified,
-                "CASP publishes study-design-specific checklists. This registry entry is the qualitative checklist and must not be treated as a generic CASP instrument."
+                "CASP's current referencing page identifies the qualitative checklist as a 2024 checklist. CASP checklists are educational appraisal tools and should not be converted into a numerical quality total.",
+                ["qualitative research"],
+                false,
+                "https://creativecommons.org/licenses/by-nc-sa/3.0/"
             )
         };
 
