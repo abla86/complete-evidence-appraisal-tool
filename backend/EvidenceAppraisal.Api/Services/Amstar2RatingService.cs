@@ -29,6 +29,22 @@ public sealed class Amstar2RatingService
         if (assessment is null)
             throw new ArgumentNullException(nameof(assessment));
 
+        var officialCriticalDomains = new HashSet<int> { 2, 4, 7, 9, 11, 13, 15 };
+        var configuredCriticalDomains = assessment.CriticalDomains
+            .Select(domain => domain.ItemNumber)
+            .ToHashSet();
+
+        var unsupportedCriticalDomains = configuredCriticalDomains
+            .Where(item => !officialCriticalDomains.Contains(item))
+            .Order()
+            .ToArray();
+
+        if (unsupportedCriticalDomains.Length > 0)
+            throw new InvalidOperationException(
+                $"AMSTAR 2 critical-domain configuration contains unsupported item(s): {string.Join(", ", unsupportedCriticalDomains)}. " +
+                "The default AMSTAR 2 critical domains are 2, 4, 7, 9, 11, 13 and 15. " +
+                "If a review-specific adaptation is used, it must be explicitly identified as an adaptation and must not be presented as the unmodified AMSTAR 2 algorithm.");
+
         var criticalNumbers = assessment.CriticalDomains
             .Select(domain => domain.ItemNumber)
             .ToHashSet();
