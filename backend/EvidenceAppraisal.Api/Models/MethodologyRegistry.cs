@@ -192,6 +192,86 @@ public static class MethodologyRegistry
                 false,
                 "https://creativecommons.org/licenses/by-nc-sa/3.0/"
             ),
+            ["casp-systematic-review-2024"] = new(
+                "casp-systematic-review-2024", "CASP Systematic Review Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-systematic-reviews-checklist-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist. CASP checklists are pedagogic appraisal tools and are not converted to a numerical quality total.",
+                ["systematic review"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-systematic-review-rct-meta-2024"] = new(
+                "casp-systematic-review-rct-meta-2024", "CASP Systematic Review with Meta-analysis of RCTs Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-systematic-reviews-meta-analysis-rct-checklist-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for systematic reviews with meta-analysis of randomised controlled trials.",
+                ["systematic review", "meta-analysis of randomised controlled trials"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-systematic-review-observational-meta-2024"] = new(
+                "casp-systematic-review-observational-meta-2024", "CASP Systematic Review with Meta-analysis of Observational Studies Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-systematic-reviews-observational-studies-checklist-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for systematic reviews with meta-analysis of observational studies.",
+                ["systematic review", "meta-analysis of observational studies"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-rct-2024"] = new(
+                "casp-rct-2024", "CASP Randomised Controlled Trial Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-randomised-controlled-trials-RCT-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for randomised controlled trials.",
+                ["randomised controlled trial"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-cohort-2024"] = new(
+                "casp-cohort-2024", "CASP Cohort Study Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-cohort-study-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for cohort studies.",
+                ["cohort study"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-case-control-2024"] = new(
+                "casp-case-control-2024", "CASP Case Control Study Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-case-control-study-2024x.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for case-control studies.",
+                ["case-control study"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-economic-evaluation-2024"] = new(
+                "casp-economic-evaluation-2024", "CASP Economic Evaluation Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-economic-evaluation-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for economic evaluations.",
+                ["economic evaluation"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-diagnostic-2024"] = new(
+                "casp-diagnostic-2024", "CASP Diagnostic Test Study Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-diagnostic-test-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for diagnostic test studies.",
+                ["diagnostic test study"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-cross-sectional-2024"] = new(
+                "casp-cross-sectional-2024", "CASP Descriptive/Cross-sectional Studies Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-cross-sectional-study-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for descriptive/cross-sectional studies.",
+                ["cross-sectional study", "descriptive study"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
+            ["casp-clinical-prediction-rule-2024"] = new(
+                "casp-clinical-prediction-rule-2024", "CASP Clinical Prediction Rule Checklist", "critical-appraisal", "2024", 2024,
+                "https://casp-uk.net/casp-checklists/CASP-checklist-clinical-prediction-rule-2024.pdf", null,
+                "2026-08-29", "official CASP referencing page and checklist recorded",
+                MethodologyVerificationStatus.Verified,
+                "Current 2024 CASP checklist for clinical prediction rules.",
+                ["clinical prediction rule"], false, "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            ),
             ["jbi-qualitative-2024"] = new(
                 "jbi-qualitative-2024",
                 "JBI Critical Appraisal Checklist for Qualitative Research",
