@@ -52,6 +52,7 @@ public sealed record DocumentAnalysisResult(
     IReadOnlyCollection<string> Warnings,
     DocumentClassification Classification,
     IReadOnlyCollection<InstrumentSuitability> InstrumentSuitability,
+    IReadOnlyCollection<string> RecommendedInstruments,
     string MethodologicalNotice);
 
 public sealed record DocumentSourceUnit(int Page, string Text);
