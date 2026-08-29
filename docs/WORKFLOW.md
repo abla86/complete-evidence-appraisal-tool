@@ -1,6 +1,6 @@
 # Research workflow
 
-This document describes the recommended current workflow while preserving the distinction between historical/legacy functionality and the current recommended path.
+This document describes the recommended end-to-end workflow while preserving the distinction between historical/legacy functionality and the current recommended path.
 
 ## 1. Create a research project
 
@@ -45,14 +45,14 @@ Finalisation creates an integrity-preserving snapshot. Reopening requires an exp
 Record:
 
 - exact methodology ID/version
-- application Git commit or release
+- exact application release/version
 - source-document identity/hash where available
 - reviewer decisions
 - evidence locations
 - verification status
 - consensus decisions
 - configuration and relevant workflow choices
-- known limitations.
+- known limitations
 
 ## Method-specific boundaries
 
@@ -62,7 +62,7 @@ AMSTAR 2, CASP, JBI and AGREE II are not interchangeable. Each uses its own inst
 
 ### Risk of bias
 
-RoB 2 is a risk-of-bias methodology for randomised trials. Design variants must not be mixed. The repository's current RoB 2 workflow is explicitly a prototype where the complete algorithm has not been reproduced.
+RoB 2 is a risk-of-bias methodology for randomised trials. Design variants must not be mixed. The current RoB 2 workflow is explicitly a prototype where the complete algorithm has not been reproduced.
 
 ### Certainty of evidence
 
