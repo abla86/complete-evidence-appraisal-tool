@@ -100,6 +100,7 @@ public static class MethodologyRegistry
                 2021,
                 "https://www.riskofbias.info/welcome/rob-2-0-tool/current-version-of-rob-2",
                 "https://doi.org/10.1136/bmj.l4898",
+                "2026-08-29", "official source recorded",
                 MethodologyVerificationStatus.Unverified,
                 "Separate RoB 2 variant. Do not reuse the parallel-group item logic until this variant is independently implemented and tested.",
                 ["crossover trial"],
