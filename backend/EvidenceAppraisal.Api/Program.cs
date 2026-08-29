@@ -75,7 +75,15 @@ app.UseCors("AppClients");
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/api", () => Results.Ok(new { application = "Evidence Appraisal Tool API", status = "Research tool / prototype", modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "RoB 2 prototype", "CFIR 2.0", "KTA", "Research Document Analysis", "Multi-format Bibliography Import", "PRISMA workflow", "Inter-rater reliability", "Deduplication", "Conflict resolution" }, methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.", safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.", securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted." }));
+app.MapGet("/api", () => Results.Ok(new
+{
+    application = "Evidence Appraisal Tool API",
+    status = "Research tool / prototype",
+    modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "RoB 2 prototype", "CFIR 2.0", "KTA", "Research Document Analysis", "Multi-format Bibliography Import", "PRISMA workflow", "Inter-rater reliability", "Deduplication", "Conflict resolution" },
+    methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.",
+    safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.",
+    securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted."
+}));
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
 
 app.MapGet("/api/methodologies", () => Results.Ok(MethodologyRegistry.Definitions.Values.Select(definition => new
@@ -105,8 +113,8 @@ app.MapGet("/api/instruments", () => Results.Ok(MethodologyRegistry.Definitions.
     methodologyId = definition.Id,
     methodologyVersion = definition.Version,
     source = definition.OfficialSourceUrl,
-    sourceCheckedDate = definition.SourceCheckedDate,
-    sourceStatus = definition.SourceStatus,
+    sourceCheckedDate = definition.RegistryReviewedDate,
+    sourceStatus = definition.SourceReferenceStatus,
     compatibleStudyDesigns = definition.CompatibleStudyDesigns ?? Array.Empty<string>(),
     supportsNumericalScoring = definition.SupportsNumericalScoring
 })));
