@@ -163,40 +163,140 @@ public sealed class DocumentAnalysisService
 
     private static DocumentClassification ClassifyDocument(string fileName, string text)
     {
-        var corpus = $"{fileName}\n{text}";
+        var corpus = $" {fileName}\n{text}";
         var signals = new List<string>();
-        var systematicReview = ContainsAny(corpus, "systematic review", "systematic literature review", "meta-analysis", "meta analysis", "PRISMA");
-        var guideline = ContainsAny(corpus, "clinical practice guideline", "practice guideline", "clinical guideline", "guideline development", "recommendation development", "AGREE II");
-        var protocol = ContainsAny(corpus, "study protocol", "protocol for", "protocol registration", "PROSPERO") && !systematicReview;
-        var qualitative = ContainsAny(corpus, "qualitative study", "thematic analysis", "phenomenological", "grounded theory", "focus group");
-        var primaryTrial = ContainsAny(corpus, "randomized controlled trial", "randomised controlled trial", "randomized trial", "randomised trial", "RCT");
-        var diagnostic = ContainsAny(corpus, "diagnostic accuracy", "sensitivity and specificity", "QUADAS-2");
+        var flags = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["systematic-review"] = ContainsAny(corpus, "systematic review", "systematic literature review"),
+            ["meta-analysis"] = ContainsAny(corpus, "meta-analysis", "meta analysis"),
+            ["guideline"] = ContainsAny(corpus, "clinical practice guideline", "clinical guideline", "guideline development"),
+            ["national-guideline"] = ContainsAny(corpus, "national guideline", "nasjonal faglig retningslinje", "national clinical guideline"),
+            ["protocol"] = ContainsAny(corpus, "study protocol", "protocol for", "protocol registration", "registered protocol", "prospective registration"),
+            ["qualitative"] = ContainsAny(corpus, "qualitative study", "qualitative research", "thematic analysis", "phenomenological", "grounded theory", "ethnograph", "focus group"),
+            ["mixed-methods"] = ContainsAny(corpus, "mixed methods", "mixed-methods", "convergent mixed", "sequential mixed"),
+            ["rct"] = ContainsAny(corpus, "randomized controlled trial", "randomised controlled trial", "randomized trial", "randomised trial"),
+            ["cohort"] = ContainsAny(corpus, "cohort study", "prospective cohort", "retrospective cohort"),
+            ["case-control"] = ContainsAny(corpus, "case-control", "case control study"),
+            ["cross-sectional"] = ContainsAny(corpus, "cross-sectional", "cross sectional study"),
+            ["diagnostic"] = ContainsAny(corpus, "diagnostic accuracy", "sensitivity and specificity", "index test", "reference standard"),
+            ["scoping-review"] = ContainsAny(corpus, "scoping review", "evidence mapping"),
+            ["umbrella-review"] = ContainsAny(corpus, "umbrella review", "overview of reviews"),
+            ["rapid-review"] = ContainsAny(corpus, "rapid review"),
+            ["editorial"] = ContainsAny(corpus, "editorial", "commentary"),
+            ["methodology"] = ContainsAny(corpus, "methodological study", "methods paper", "methodology paper")
+        };
 
-        if (systematicReview) signals.Add("systematic-review/meta-analysis terminology detected");
-        if (guideline) signals.Add("guideline terminology detected");
-        if (protocol) signals.Add("protocol terminology detected");
-        if (qualitative) signals.Add("qualitative-research terminology detected");
-        if (primaryTrial) signals.Add("randomized-trial terminology detected");
-        if (diagnostic) signals.Add("diagnostic-accuracy terminology detected");
+        foreach (var flag in flags.Where(x => x.Value))
+            signals.Add($"{flag.Key} signal detected");
 
         string type;
         string confidence;
-        if (guideline && systematicReview) { type = "Guideline with evidence review"; confidence = "Moderate"; }
-        else if (guideline) { type = "Clinical practice guideline"; confidence = "High"; }
-        else if (systematicReview) { type = "Systematic review / meta-analysis"; confidence = "High"; }
-        else if (protocol) { type = "Research protocol"; confidence = "Moderate"; }
-        else if (diagnostic) { type = "Diagnostic accuracy study"; confidence = "Moderate"; }
-        else if (qualitative) { type = "Qualitative research"; confidence = "Moderate"; }
-        else if (primaryTrial) { type = "Randomized trial"; confidence = "Moderate"; }
-        else { type = "Research document (type not confidently classified)"; confidence = "Low"; }
+        var ambiguity = 0;
 
-        var notice = "Document type is a heuristic classification based on filename and extracted text. The researcher must confirm the study/document design before selecting or interpreting an appraisal instrument.";
+        if (flags["national-guideline"] || flags["guideline"])
+        {
+            type = flags["national-guideline"] ? "National clinical practice guideline" : "Clinical practice guideline";
+            confidence = flags["national-guideline"] && flags["guideline"] ? "High" : "Moderate";
+        }
+        else if (flags["protocol"])
+        {
+            type = "Research protocol";
+            confidence = "Moderate";
+        }
+        else if (flags["scoping-review"])
+        {
+            type = "Scoping review";
+            confidence = "Moderate";
+        }
+        else if (flags["umbrella-review"])
+        {
+            type = "Umbrella review / overview of reviews";
+            confidence = "Moderate";
+        }
+        else if (flags["rapid-review"])
+        {
+            type = "Rapid review";
+            confidence = "Moderate";
+        }
+        else if (flags["systematic-review"] || flags["meta-analysis"])
+        {
+            type = flags["systematic-review"] && flags["meta-analysis"]
+                ? "Systematic review with meta-analysis"
+                : flags["systematic-review"] ? "Systematic review" : "Meta-analysis";
+            confidence = flags["systematic-review"] && flags["meta-analysis"] ? "High" : "Moderate";
+        }
+        else if (flags["mixed-methods"])
+        {
+            type = "Mixed-methods primary research";
+            confidence = "Moderate";
+        }
+        else if (flags["rct"])
+        {
+            type = "Randomized controlled trial";
+            confidence = "Moderate";
+        }
+        else if (flags["diagnostic"])
+        {
+            type = "Diagnostic accuracy study";
+            confidence = "Moderate";
+        }
+        else if (flags["cohort"])
+        {
+            type = "Cohort study";
+            confidence = "Moderate";
+        }
+        else if (flags["case-control"])
+        {
+            type = "Case-control study";
+            confidence = "Moderate";
+        }
+        else if (flags["cross-sectional"])
+        {
+            type = "Cross-sectional study";
+            confidence = "Moderate";
+        }
+        else if (flags["qualitative"])
+        {
+            type = "Qualitative primary research";
+            confidence = "Moderate";
+        }
+        else if (flags["methodology"])
+        {
+            type = "Methodological research";
+            confidence = "Low";
+        }
+        else if (flags["editorial"])
+        {
+            type = "Editorial/commentary";
+            confidence = "Moderate";
+        }
+        else
+        {
+            type = "Research/document type not confidently classified";
+            confidence = "Low";
+        }
+
+        var positiveDesigns = flags.Count(x => x.Value);
+        if (positiveDesigns > 1)
+            ambiguity = positiveDesigns - 1;
+
+        var notice = ambiguity > 0
+            ? $"Multiple design signals were detected ({positiveDesigns}). Classification is a candidate classification, not a definitive study-design determination. Confirm the primary design from the methods section before appraisal."
+            : "Document type is a candidate classification based on filename and extracted text. Confirm the design, purpose and publication type from the methods/source before selecting or interpreting an appraisal instrument.";
+
         return new DocumentClassification(type, confidence, signals, notice);
     }
 
     private static IReadOnlyCollection<string> RecommendInstruments(DocumentClassification classification)
     {
-        return classification.DocumentType switch\n        {\n            var type when type.Contains("Systematic review", StringComparison.OrdinalIgnoreCase) => ["AMSTAR 2"],\n            var type when type.Contains("Guideline", StringComparison.OrdinalIgnoreCase) => ["AGREE II"],\n            var type when type.Contains("Randomized", StringComparison.OrdinalIgnoreCase) => ["RoB 2"],\n            var type when type.Contains("Qualitative", StringComparison.OrdinalIgnoreCase) => ["JBI Qualitative", "CASP (design-specific)"],\n            var type when type.Contains("Diagnostic", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate diagnostic accuracy tool"],\n            _ => Array.Empty<string>()
+        return classification.DocumentType switch
+        {
+            var type when type.Contains("Systematic review", StringComparison.OrdinalIgnoreCase) => ["AMSTAR 2"],
+            var type when type.Contains("Guideline", StringComparison.OrdinalIgnoreCase) => ["AGREE II"],
+            var type when type.Contains("Randomized", StringComparison.OrdinalIgnoreCase) => ["RoB 2"],
+            var type when type.Contains("Qualitative", StringComparison.OrdinalIgnoreCase) => ["JBI Qualitative", "CASP (design-specific)"],
+            var type when type.Contains("Diagnostic", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate diagnostic accuracy tool"],
+            _ => Array.Empty<string>()
         };
     }
 
