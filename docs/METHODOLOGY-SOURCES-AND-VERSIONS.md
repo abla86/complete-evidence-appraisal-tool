@@ -21,12 +21,12 @@ This repository treats methodological instruments as versioned research dependen
 |---|---|---|---:|---|---|
 | amstar2 | AMSTAR 2 | 2017 | 2017 | Critical appraisal of systematic reviews | Verified |
 | agree2 | AGREE II | No separate version number in registry | 2010 | Appraisal of clinical practice guidelines | Verified |
-| rob2 | Cochrane RoB 2 | 22 Aug 2019 (individual parallel-group RCTs) | 2019 | Risk of bias | Verified |
-| prisma2020 | PRISMA 2020 | 2020 update | 2021 | Reporting guideline | Verified |
+| rob2 | Cochrane RoB 2 | 22 Aug 2019 (individual parallel-group RCTs) | 2019 | Risk of bias | Prototype — implementation incomplete |
+| prisma2020 | PRISMA 2020 | 2020 update | 2021 | Reporting guideline | Verified |\n| grade | GRADE | No single version field | — | Certainty of evidence | Verified |
 | cfir2 | CFIR 2.0 | 2022 | 2022 | Implementation determinant framework | Verified |
 | kta | Knowledge-to-Action Framework | Original framework | 2006 | Knowledge translation / implementation framework | Verified |
-| jbi-qualitative-2017 | JBI Critical Appraisal Checklist for Qualitative Research | 2017 | 2017 | Critical appraisal of qualitative research | Verified |
-| casp-qualitative-2022 | CASP Qualitative Studies Checklist | 2022 | 2022 | Critical appraisal of qualitative studies | Verified |
+| jbi-qualitative-2017 | JBI Critical Appraisal Checklist for Qualitative Research | 2017 | 2017 | Critical appraisal of qualitative research | Verified historical instrument |
+| casp-qualitative-2024 | CASP Qualitative Studies Checklist | 2024 | 2024 | Critical appraisal of qualitative studies | Verified |
 
 ## Important version notes
 
@@ -60,7 +60,7 @@ The 2017 JBI qualitative checklist is explicitly versioned as a historical instr
 
 ### CASP
 
-CASP publishes different checklists for different study designs and maintains an archive. "CASP" alone is not sufficiently specific to identify the instrument used.
+CASP publishes different checklists for different study designs. Its current referencing page identifies the qualitative checklist as a 2024 checklist. Historical versions must remain separate from the current checklist. "CASP" alone is not sufficiently specific to identify the instrument used.
 
 ## Required release gate
 
@@ -88,4 +88,6 @@ If any critical element is unknown, the status must not be Verified.
 - PRISMA: https://www.prisma-statement.org/prisma-2020
 - CFIR: https://cfirguide.org/
 - CASP: https://casp-uk.net/casp-tools-checklists/
+- CASP referencing/version information: https://casp-uk.net/referencing/
+- GRADE/Cochrane Handbook: https://training.cochrane.org/handbook/current/chapter-14
 - JBI: https://jbi.global/critical-appraisal-tools
