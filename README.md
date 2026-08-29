@@ -102,7 +102,7 @@ npm run lint
 npm run build
 ```
 
-The repository contains GitHub Actions workflows for build/test validation and CodeQL analysis.
+The repository contains GitHub Actions workflows for build/test validation and CodeQL analysis. CI status must be checked from GitHub Actions; the README does not claim a green build merely because the workflow exists.
 
 A successful software test establishes the tested software behaviour for those scenarios. It does not establish methodological validity, scientific validity, clinical validity or agreement with expert reviewers.
 
