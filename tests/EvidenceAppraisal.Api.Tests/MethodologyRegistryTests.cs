@@ -33,6 +33,36 @@ public class MethodologyRegistryTests
             MethodologyRegistry.Definitions["casp-qualitative-2024"].VerificationStatus);
     }
 
+
+    [Fact]
+    public void Every_registry_entry_has_explicit_source_reference_metadata()
+    {
+        foreach (var definition in MethodologyRegistry.Definitions.Values)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(definition.OfficialSourceUrl), definition.Id);
+            Assert.False(string.IsNullOrWhiteSpace(definition.RegistryReviewedDate), definition.Id);
+            Assert.False(string.IsNullOrWhiteSpace(definition.SourceReferenceStatus), definition.Id);
+            Assert.False(string.IsNullOrWhiteSpace(definition.VerificationNote), definition.Id);
+        }
+    }
+
+    [Fact]
+    public void Methodology_families_are_not_registered_as_ambiguous_generic_ids()
+    {
+        Assert.DoesNotContain("casp", MethodologyRegistry.Definitions.Keys, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("jbi", MethodologyRegistry.Definitions.Keys, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Grade_is_registered_as_certainty_of_evidence_not_quality_scoring()
+    {
+        var definition = MethodologyRegistry.Definitions["grade"];
+
+        Assert.Equal("certainty-of-evidence", definition.Category);
+        Assert.False(definition.SupportsNumericalScoring);
+        Assert.Contains("body of evidence", definition.VerificationNote, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public void Agree_II_is_not_mislabelled_as_2017()
     {
