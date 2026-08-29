@@ -387,7 +387,11 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
             {visibleInstruments.map((item) =>
               <button type="button" className={effectiveSelected === item.id ? 'instrument-option selected' : 'instrument-option'}
                 key={item.id} onClick={() => setSelected(item.id)}>
-                <strong>{item.name}</strong><span>{item.purpose}</span>
+                <strong>{item.name}</strong><span>{item.purpose}</span><small className="instrument-meta">
+                  {item.methodologyVersion ? `Version: ${item.methodologyVersion}` : 'Version: not specified'}
+                  {' · '}
+                  {item.status ?? 'Status not specified'}
+                </small>
               </button>)}
           </div>
           {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.purpose}</p>}
