@@ -55,9 +55,14 @@ function EvidenceFields({ items, setItems, mode }) {
                 <option value="">Velg</option>
                 <option value="Yes">Ja</option>
                 <option value="No">Nei</option>
-                <option value="CannotTell">Kan ikke avgjøres</option>
-                {mode === 'jbi' && <option value="Unclear">Uklart</option>}
-                {mode === 'jbi' && <option value="NotApplicable">Ikke relevant</option>}
+                {mode === 'jbi' ? (
+                  <>
+                    <option value="Unclear">Uklart</option>
+                    <option value="NotApplicable">Ikke relevant</option>
+                  </>
+                ) : (
+                  <option value="CannotTell">Kan ikke avgjøres</option>
+                )}
               </select>
             </label>
           )}
@@ -135,7 +140,7 @@ function CaspForm() {
   const [result, setResult] = useState(null);
   const [meta, setMeta] = useState({
     checklistTitle: '', checklistVersion: '2024',
-    officialChecklistUrl: 'https://casp-uk.net/casp-tools-checklists/',
+    officialChecklistUrl: 'https://casp-uk.net/casp-checklists/CASP-checklist-qualitative-2024.pdf',
     studyTitle: '', reviewerCode: '',
     overallJudgement: '', overallJudgementRationale: '',
   });
