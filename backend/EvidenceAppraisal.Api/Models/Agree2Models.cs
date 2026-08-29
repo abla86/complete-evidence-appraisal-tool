@@ -22,7 +22,7 @@ public sealed record Agree2Assessment
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public string InstrumentName { get; init; } = "AGREE II";
-    public string InstrumentVersion { get; init; } = "2017";
+    public string InstrumentVersion { get; init; } = "2010";
     public required string GuidelineTitle { get; init; }
     public required string GuidelineCitation { get; init; }
     public DateTimeOffset AssessmentDateUtc { get; init; } = DateTimeOffset.UtcNow;
