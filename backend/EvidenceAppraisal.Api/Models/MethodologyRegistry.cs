@@ -191,6 +191,20 @@ public static class MethodologyRegistry
                 ["qualitative research"],
                 false,
                 "https://creativecommons.org/licenses/by-nc-sa/3.0/"
+            ),
+            ["jbi-qualitative-2024"] = new(
+                "jbi-qualitative-2024",
+                "JBI Critical Appraisal Checklist for Qualitative Research",
+                "critical-appraisal",
+                "2024",
+                2024,
+                "https://jbi-global-wiki.refined.site/download/attachments/355599504/JBI%20Manual%20for%20Evidence%20Synthesis%20Nov%202024.pdf?download=true",
+                null,
+                "2026-08-29", "official 2024 manual source recorded",
+                MethodologyVerificationStatus.Prototype,
+                "Current JBI qualitative guidance is documented in the 2024 JBI Manual. The ten qualitative appraisal questions remain the same, while accompanying guidance has been revised/clarified. This repository currently implements the historical 2017 instrument only; a 2024 implementation must not be claimed until separately validated.",
+                ["qualitative research"],
+                false
             )
         };
 
