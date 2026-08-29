@@ -5,7 +5,7 @@ namespace EvidenceAppraisal.Api.Tests;
 public class MethodologyRegistryTests
 {
     [Fact]
-    public void Registry_contains_verified_core_methodologies()
+    public void Registry_contains_core_methodology_definitions()
     {
         var required = new[]
         {
@@ -16,17 +16,21 @@ public class MethodologyRegistryTests
             "cfir2",
             "kta",
             "jbi-qualitative-2017",
-            "casp-qualitative-2022"
+            "casp-qualitative-2024"
         };
 
         foreach (var id in required)
         {
             Assert.True(MethodologyRegistry.Definitions.ContainsKey(id), $"Missing methodology: {id}");
-            Assert.Equal(
-                MethodologyVerificationStatus.Verified,
-                MethodologyRegistry.Definitions[id].VerificationStatus);
             Assert.False(string.IsNullOrWhiteSpace(MethodologyRegistry.Definitions[id].OfficialSourceUrl));
         }
+
+        Assert.Equal(MethodologyVerificationStatus.Verified,
+            MethodologyRegistry.Definitions["amstar2"].VerificationStatus);
+        Assert.Equal(MethodologyVerificationStatus.Verified,
+            MethodologyRegistry.Definitions["jbi-qualitative-2017"].VerificationStatus);
+        Assert.Equal(MethodologyVerificationStatus.Verified,
+            MethodologyRegistry.Definitions["casp-qualitative-2024"].VerificationStatus);
     }
 
     [Fact]
@@ -49,9 +53,27 @@ public class MethodologyRegistryTests
     }
 
     [Fact]
+    public void CASP_qualitative_uses_current_2024_registry_entry()
+    {
+        var definition = MethodologyRegistry.Definitions["casp-qualitative-2024"];
+
+        Assert.Equal("2024", definition.Version);
+        Assert.Equal(2024, definition.PublicationYear);
+        Assert.Contains("casp-uk.net/casp-checklists/CASP-checklist-qualitative-2024.pdf", definition.OfficialSourceUrl);
+    }
+
+    [Fact]
     public void CASP_is_study_design_specific()
     {
         Assert.DoesNotContain("casp", MethodologyRegistry.Definitions.Keys, StringComparer.OrdinalIgnoreCase);
-        Assert.Contains("casp-qualitative-2022", MethodologyRegistry.Definitions.Keys, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("casp-qualitative-2024", MethodologyRegistry.Definitions.Keys, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Incomplete_RoB2_implementation_is_not_marked_verified()
+    {
+        Assert.Equal(
+            MethodologyVerificationStatus.Prototype,
+            MethodologyRegistry.Definitions["rob2"].VerificationStatus);
     }
 }
