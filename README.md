@@ -1,20 +1,14 @@
 # Evidence Appraisal Tool
 
-![CI](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/ci.yml/badge.svg)
-![CodeQL](https://github.com/abla86/evidence-appraisal-tool/actions/workflows/codeql.yml/badge.svg)
-![Dependabot](https://img.shields.io/badge/dependencies-Dependabot-blue)
-![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4)
-![React 19](https://img.shields.io/badge/React-19-61DAFB)
-
 ## Status
 
-**Advanced research-support prototype / public demonstration deployment.**
+**Advanced research-support application.**
 
-This repository demonstrates software engineering for evidence and research workflows. It is not presented as a clinically, scientifically or methodologically validated decision system.
+Evidence Appraisal Tool supports structured evidence workflows including critical appraisal, screening, extraction, reviewer comparison, evidence traceability, implementation-research workflows and integrity-preserving finalisation.
+
+The application is designed to operate as a self-contained research-support tool. It is not an automated substitute for methodological judgement and is not presented as a clinically, scientifically or methodologically validated decision system.
 
 ## What it does
-
-The application supports structured evidence workflows including critical appraisal, screening, extraction, reviewer comparison, evidence traceability, implementation-research workflows and integrity-preserving finalisation.
 
 ### Appraisal workflows
 
@@ -29,8 +23,7 @@ The application supports structured evidence workflows including critical apprai
 
 ### Research workflow
 
-The recommended workflow is documented in [`docs/WORKFLOW.md`](docs/WORKFLOW.md). Methodology versions, evidence provenance, reviewer decisions and finalisation are treated as one traceable workflow. Historical and legacy components are preserved unless there is a documented compatibility/safety reason to remove them.
-
+The recommended workflow is documented in [docs/WORKFLOW.md](docs/WORKFLOW.md). Methodology versions, evidence provenance, reviewer decisions and finalisation are treated as one traceable workflow. Historical and legacy components are preserved unless there is a documented compatibility/safety reason to remove them.
 
 - RIS reference import
 - DOI and metadata handling
@@ -55,7 +48,7 @@ The workflow keeps provisional findings separate from researcher-reviewed findin
 
 ### Implementation research
 
-The repository includes workflow support for CFIR 2.0 and Knowledge-to-Action (KTA), including implementation validation and audit-oriented workflow support.
+The application includes workflow support for CFIR 2.0 and Knowledge-to-Action (KTA), including implementation validation and audit-oriented workflow support.
 
 ### Collaboration and export
 
@@ -65,13 +58,13 @@ Exports and finalisation include structured outputs and SHA-256 integrity marker
 
 ## Architecture
 
-```text
-frontend/                       React 19 + Vite
+```
+frontend/                       React + Vite
   src/components/              Research workflow UI
   src/api/                     API clients
   src/domain/                  Appraisal/domain logic
 
-backend/EvidenceAppraisal.Api/ ASP.NET Core .NET 9
+backend/EvidenceAppraisal.Api/ ASP.NET Core
   Models/                      Research models
   Services/                    Validation, analysis and workflow services
   Data/                        EF Core persistence
@@ -102,17 +95,11 @@ npm run lint
 npm run build
 ```
 
-The repository contains GitHub Actions workflows for build/test validation and CodeQL analysis. CI status must be checked from GitHub Actions; the README does not claim a green build merely because the workflow exists.
-
 A successful software test establishes the tested software behaviour for those scenarios. It does not establish methodological validity, scientific validity, clinical validity or agreement with expert reviewers.
 
 ## Reproducible research use
 
-For reproducible use, record the appraisal/checklist version, application Git commit SHA or release tag, configuration and workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See `docs/RESEARCH_USE.md` and [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
-
-## Deployment boundary
-
-`render.yaml` contains deployment configuration for the public demonstration. The public deployment is for demonstration and non-sensitive material. Do not upload patient information, participant information, confidential unpublished research data, credentials, API keys or access tokens.
+For reproducible use, record the exact application release/version, configuration, workflow choices, input-data provenance, verification/test results, known limitations and researcher decisions. See [docs/RESEARCH_USE.md](docs/RESEARCH_USE.md) and [docs/WORKFLOW.md](docs/WORKFLOW.md).
 
 ## Research-safety rules
 
@@ -128,10 +115,6 @@ For reproducible use, record the appraisal/checklist version, application Git co
 10. Duplicate candidates are not silently deleted.
 11. Finalisation produces an integrity marker, not scientific certification.
 
-## Portfolio / employer value
-
-This project demonstrates full-stack application development, evidence traceability, human-in-the-loop design, structured research workflows, testing, CI/CD, security tooling and explicit validation boundaries.
-
 ## Reference
 
 Page, M. J., McKenzie, J. E., Bossuyt, P. M., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71. https://doi.org/10.1136/bmj.n71
@@ -141,7 +124,3 @@ Sterne, J. A. C., Savović, J., Page, M. J., et al. (2019). RoB 2: A revised too
 ## License
 
 See [LICENSE](LICENSE).
-
-## Change-control audit
-
-See [docs/REPOSITORY-CHANGE-AUDIT-2026-08-28.md](docs/REPOSITORY-CHANGE-AUDIT-2026-08-28.md) for the repository change-control and traceability record.
