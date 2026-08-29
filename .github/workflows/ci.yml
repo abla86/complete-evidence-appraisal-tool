@@ -51,3 +51,7 @@ jobs:
       - name: Frontend build
         working-directory: frontend
         run: npm run build
+
+      - name: Repository audit
+        shell: pwsh
+        run: ./tools/audit-and-build.ps1 -SkipBuild -SkipTests
