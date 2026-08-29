@@ -18,6 +18,37 @@ public sealed class Amstar2RatingServiceTests
     }
 
     [Fact]
+    public void One_noncritical_weakness_returns_high()
+    {
+        var result = _service.Calculate(CreateAssessment(
+            weakItems: new[] { 3 }
+        ));
+
+        Assert.Equal("High", result.SuggestedConfidence);
+        Assert.Equal(1, result.NonCriticalWeaknessCount);
+    }
+
+    [Fact]
+    public void Unsupported_critical_domain_is_rejected()
+    {
+        var assessment = CreateAssessment() with
+        {
+            CriticalDomains =
+            [
+                new CriticalDomainDefinition
+                {
+                    ItemNumber = 1,
+                    Rationale = "Invalid test configuration."
+                }
+            ]
+        };
+
+        var exception = Assert.Throws<InvalidOperationException>(() => _service.Calculate(assessment));
+
+        Assert.Contains("unsupported", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Two_noncritical_weaknesses_return_moderate()
     {
         var result = _service.Calculate(CreateAssessment(
