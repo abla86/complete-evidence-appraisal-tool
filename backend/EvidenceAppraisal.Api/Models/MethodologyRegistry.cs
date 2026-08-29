@@ -281,8 +281,8 @@ public static class MethodologyRegistry
                 "https://jbi-global-wiki.refined.site/download/attachments/355599504/JBI%20Manual%20for%20Evidence%20Synthesis%20Nov%202024.pdf?download=true",
                 null,
                 "2026-08-29", "official 2024 manual source recorded",
-                MethodologyVerificationStatus.Prototype,
-                "Current JBI qualitative guidance is documented in the 2024 JBI Manual. The ten qualitative appraisal questions remain the same, while accompanying guidance has been revised/clarified. This repository currently implements the historical 2017 instrument only; a 2024 implementation must not be claimed until separately validated.",
+                MethodologyVerificationStatus.Unverified,
+                "The JBI 2024 Manual contains current qualitative appraisal guidance, but this registry entry does not claim that a separate 2024 checklist implementation exists. The application endpoint intentionally accepts only the historical 2017 instrument until a distinct current-version implementation is independently verified.",
                 ["qualitative research"],
                 false
             )
