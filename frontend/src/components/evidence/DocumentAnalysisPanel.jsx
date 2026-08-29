@@ -4,7 +4,7 @@ const TYPES = '.pdf,.docx,.txt,.html,.htm,.xml,.jats';
 
 export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }) {
   const [file, setFile] = useState(null);
-  const [instruments, setInstruments] = useState(['amstar2']);
+  const [instruments, setInstruments] = useState([]);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [showSourceText, setShowSourceText] = useState(false);
@@ -15,8 +15,7 @@ export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }
 
   const analyze = async () => {
     if (!file) return setError('Velg et dokument først.');
-    if (!instruments.length) return setError('Velg minst ett vurderingsinstrument.');
-    setError('');
+        setError('');
     try {
       const data = await onAnalyze(file, instruments, showSourceText);
       setResult(data);
@@ -28,7 +27,7 @@ export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }
   return (
     <section aria-labelledby="document-analysis-title" className="evidence-panel">
       <h2 id="document-analysis-title">Analyser forskningsdokument</h2>
-      <p>Last opp et dokument og velg vurderingsrammeverk. Automatisk analyse finner kun kandidatpassasjer. Forskeren må kontrollere originalkilden og gjøre den faglige vurderingen.</p>
+      <p>Last opp dokumentet først. Systemet klassifiserer dokumenttype og studiedesign før vurderingsinstrument velges. Automatisk analyse finner kun kandidatpassasjer; forskeren må kontrollere originalkilden og gjøre den faglige vurderingen.</p>
 
       <label htmlFor="evidence-file">Dokument</label>
       <input id="evidence-file" type="file" accept={TYPES} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
@@ -55,7 +54,7 @@ export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }
 
       {file && <p><strong>Valgt:</strong> {file.name} ({Math.round(file.size / 1024)} KB)</p>}
       {error && <div role="alert">{error}</div>}
-      <button type="button" onClick={analyze} disabled={!file || !instruments.length}>Analyser dokument</button>
+      <button type="button" onClick={analyze} disabled={!file}>Analyser og klassifiser dokument</button>
 
       {result && (
         <div className="evidence-results" aria-live="polite">
@@ -71,7 +70,7 @@ export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }
             {result.methodologicalNotice}
           </div>
 
-          <h4>Instrumentegnethet</h4>
+          <h4>Anbefalte instrumenter</h4>\n          {result.recommendedInstruments?.length ? <ul>{result.recommendedInstruments.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Ingen instrumentanbefaling kan gis sikkert fra tilgjengelig informasjon.</p>}\n\n          <h4>Instrumentegnethet</h4>
           {result.instrumentSuitability?.map((item) => (
             <div key={item.instrument} className={`suitability suitability-${item.status.toLowerCase().replaceAll(' ', '-')}`}>
               <strong>{item.instrument}: {item.status}</strong>
