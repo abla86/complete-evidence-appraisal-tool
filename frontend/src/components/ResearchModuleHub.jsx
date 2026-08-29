@@ -81,7 +81,7 @@ function EvidenceFields({ items, setItems, mode }) {
   );
 }
 
-function JbiQualitative2017Form() {
+function JbiQualitative2017Form({ instrument }) {
   const [items, setItems] = useState(() => emptyEvidence(10));
   const [result, setResult] = useState(null);
   const [meta, setMeta] = useState({
@@ -92,7 +92,7 @@ function JbiQualitative2017Form() {
     event.preventDefault();
     setResult(await validateJbiQualitative2017({
       instrumentId: 'jbi-qualitative-2017',
-      instrumentVersion: '2017',
+      instrumentVersion: instrument?.version ?? '2017',
       studyTitle: meta.studyTitle,
       reviewerCode: meta.reviewerCode,
       assessmentDateUtc: new Date().toISOString(),
@@ -104,7 +104,7 @@ function JbiQualitative2017Form() {
 
   return (
     <form className="research-form" onSubmit={submit}>
-      <h3>JBI – kvalitativ forskning (2017)</h3>
+      <h3>{instrument?.name ?? 'JBI – kvalitativ forskning'}</h3>
       <p className="module-warning">
         Historisk, versjonert instrument. Den autoriserte JBI-sjekklisten skal brukes som
         originalkilde; instrumentteksten gjengis ikke i applikasjonen.
@@ -134,13 +134,13 @@ function JbiQualitative2017Form() {
   );
 }
 
-function CaspForm() {
+function CaspForm({ instrument }) {
   const [count, setCount] = useState(10);
   const [items, setItems] = useState(() => emptyEvidence(10));
   const [result, setResult] = useState(null);
   const [meta, setMeta] = useState({
-    checklistTitle: '', checklistVersion: '2024',
-    officialChecklistUrl: 'https://casp-uk.net/casp-checklists/CASP-checklist-qualitative-2024.pdf',
+    checklistTitle: instrument?.name ?? '', checklistVersion: instrument?.version ?? '',
+    officialChecklistUrl: instrument?.source ?? '',
     studyTitle: '', reviewerCode: '',
     overallJudgement: '', overallJudgementRationale: '',
   });
@@ -162,7 +162,7 @@ function CaspForm() {
 
   return (
     <form className="research-form" onSubmit={submit}>
-      <h3>CASP-vurdering</h3>
+      <h3>{instrument?.name ?? 'CASP-vurdering'}</h3>
       <p className="module-warning">Bruk den autoriserte, studiespesifikke CASP-sjekklisten parallelt. Instrumentteksten gjengis ikke her.</p>
       <div className="research-grid">
         <label>Sjekklistens navn<input required value={meta.checklistTitle}
@@ -379,7 +379,7 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
       {visibleInstruments.length === 0 ? (
         <div className="notice notice-warning">
           <strong>Ingen ekstra vurderingsmoduler er aktivert.</strong>
-          <p>Aktiver CASP, AGREE II eller GRADE i prosjektoppsettet dersom de skal brukes.</p>
+          <p>Aktiver de ønskede vurderingsmodulene i prosjektoppsettet dersom de skal brukes.</p>
         </div>
       ) : (
         <>
@@ -390,9 +390,9 @@ export default function ResearchModuleHub({ workflowRules = {} }) {
                 <strong>{item.name}</strong><span>{item.purpose}</span>
               </button>)}
           </div>
-          {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.scoring}</p>}
-          {effectiveSelected === 'casp' && <CaspForm />}
-          {effectiveSelected === 'jbi' && <JbiQualitative2017Form />}
+          {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.purpose}</p>}
+          {effectiveSelected === 'casp-qualitative-2024' && <CaspForm instrument={current} />}
+          {effectiveSelected === 'jbi-qualitative-2017' && <JbiQualitative2017Form instrument={current} />}
           {effectiveSelected === 'agree2' && <Agree2Form />}
           {effectiveSelected === 'grade' && <GradeForm />}
         </>
