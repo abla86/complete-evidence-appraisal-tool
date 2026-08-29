@@ -1,16 +1,17 @@
-﻿version: 2
+version: 2
 updates:
-  - package-ecosystem: dotnet-sdk
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
-
-  - package-ecosystem: npm
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: weekly
-
-  - package-ecosystem: github-actions
-    directory: "/"
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "nuget"
+    directory: "/backend/EvidenceAppraisal.Api"
     schedule:
-      interval: weekly
+      interval: "weekly"
+    open-pull-requests-limit: 5
