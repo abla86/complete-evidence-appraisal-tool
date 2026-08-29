@@ -15,7 +15,7 @@ export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }
 
   const analyze = async () => {
     if (!file) return setError('Velg et dokument først.');
-        setError('');
+    setError('');
     try {
       const data = await onAnalyze(file, instruments, showSourceText);
       setResult(data);
@@ -70,7 +70,10 @@ export default function DocumentAnalysisPanel({ onAnalyze, onAddManualEvidence }
             {result.methodologicalNotice}
           </div>
 
-          <h4>Anbefalte instrumenter</h4>\n          {result.recommendedInstruments?.length ? <ul>{result.recommendedInstruments.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Ingen instrumentanbefaling kan gis sikkert fra tilgjengelig informasjon.</p>}\n\n          <h4>Instrumentegnethet</h4>
+          <h4>Anbefalte instrumenter</h4>
+          {result.recommendedInstruments?.length ? <ul>{result.recommendedInstruments.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Ingen instrumentanbefaling kan gis sikkert fra tilgjengelig informasjon.</p>}
+
+          <h4>Instrumentegnethet</h4>
           {result.instrumentSuitability?.map((item) => (
             <div key={item.instrument} className={`suitability suitability-${item.status.toLowerCase().replaceAll(' ', '-')}`}>
               <strong>{item.instrument}: {item.status}</strong>
