@@ -187,6 +187,9 @@ public sealed class DocumentAnalysisService
             ["umbrella-review"] = ContainsAny(corpus, "umbrella review", "overview of reviews"),
             ["rapid-review"] = ContainsAny(corpus, "rapid review"),
             ["editorial"] = ContainsAny(corpus, "editorial", "commentary"),
+            ["case-report"] = ContainsAny(corpus, "case report", "case report study"),
+            ["qualitative-methods"] = ContainsAny(corpus, "interview", "semi-structured interview", "participant observation", "thematic analysis"),
+            ["quantitative-methods"] = ContainsAny(corpus, "statistical analysis", "regression analysis", "confidence interval", "p-value", "p value"),
             ["methodology"] = ContainsAny(corpus, "methodological study", "methods paper", "methodology paper")
         };
 
@@ -269,6 +272,11 @@ public sealed class DocumentAnalysisService
             type = "Methodological research";
             confidence = "Low";
         }
+        else if (flags["case-report"])
+        {
+            type = "Case report";
+            confidence = "Moderate";
+        }
         else if (flags["editorial"])
         {
             type = "Editorial/commentary";
@@ -281,7 +289,6 @@ public sealed class DocumentAnalysisService
         }
 
         var positiveDesigns = flags.Count(x => x.Value);
-        var primaryDesignSignals = flags.Where(x => x.Value).Select(x => x.Key).ToArray();
         if (positiveDesigns > 1)
             ambiguity = positiveDesigns - 1;
 
@@ -303,6 +310,11 @@ public sealed class DocumentAnalysisService
             var type when type.Contains("Randomized", StringComparison.OrdinalIgnoreCase) => ["RoB 2"],
             var type when type.Contains("Qualitative", StringComparison.OrdinalIgnoreCase) => ["JBI Qualitative", "CASP (design-specific)"],
             var type when type.Contains("Diagnostic", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate diagnostic accuracy tool"],
+            var type when type.Contains("Cohort", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate cohort-study appraisal tool (e.g. JBI or CASP)"],
+            var type when type.Contains("Case-control", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate case-control appraisal tool (e.g. JBI or CASP)"],
+            var type when type.Contains("Cross-sectional", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate cross-sectional appraisal tool (e.g. JBI or CASP)"],
+            var type when type.Contains("Case report", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate case-report appraisal tool (e.g. JBI)"],
+            var type when type.Contains("Mixed-methods", StringComparison.OrdinalIgnoreCase) => ["A mixed-methods appraisal tool appropriate to the confirmed design"],
             _ => Array.Empty<string>()
         };
     }
