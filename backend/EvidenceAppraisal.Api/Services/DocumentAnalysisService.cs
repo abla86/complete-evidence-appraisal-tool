@@ -72,7 +72,7 @@ public sealed class DocumentAnalysisService
 
         var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         var selected = instruments.Where(Rules.ContainsKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if (selected.Length == 0) throw new ArgumentException("Select at least one supported appraisal instrument.");
+        // Instrument selection is optional at analysis time: classification must precede instrument choice.\n        // An empty selection means classify and recommend; it must not default to AMSTAR 2 or another tool.
 
         var warnings = new List<string>();
         var sourceUnits = ExtractSourceUnits(extension, bytes, cancellationToken);
@@ -193,7 +193,7 @@ public sealed class DocumentAnalysisService
         return new DocumentClassification(type, confidence, signals, notice);
     }
 
-    private static IReadOnlyCollection<InstrumentSuitability> EvaluateSuitability(IEnumerable<string> instruments, string documentType)
+    private static IReadOnlyCollection<string> RecommendInstruments(DocumentClassification classification)\n    {\n        return classification.DocumentType switch\n        {\n            var type when type.Contains("Systematic review", StringComparison.OrdinalIgnoreCase) => ["AMSTAR 2"],\n            var type when type.Contains("Guideline", StringComparison.OrdinalIgnoreCase) => ["AGREE II"],\n            var type when type.Contains("Randomized", StringComparison.OrdinalIgnoreCase) => ["RoB 2"],\n            var type when type.Contains("Qualitative", StringComparison.OrdinalIgnoreCase) => ["JBI Qualitative", "CASP (design-specific)"],\n            var type when type.Contains("Diagnostic", StringComparison.OrdinalIgnoreCase) => ["A design-appropriate diagnostic accuracy tool"],\n            _ => Array.Empty<string>()\n        };\n    }\n\n    private static IReadOnlyCollection<InstrumentSuitability> EvaluateSuitability(IEnumerable<string> instruments, string documentType)
     {
         return instruments.Select(instrument => instrument.ToLowerInvariant() switch
         {
