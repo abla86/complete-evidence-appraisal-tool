@@ -113,6 +113,19 @@ public static class MethodologyRegistry
                 ["systematic review", "meta-analysis", "scoping review when the relevant PRISMA extension applies"],
                 false
             ),
+            ["grade"] = new(
+                "grade",
+                "GRADE",
+                "certainty-of-evidence",
+                null,
+                null,
+                "https://training.cochrane.org/handbook/current/chapter-14",
+                "https://doi.org/10.1136/bmj328.7454.1490",
+                MethodologyVerificationStatus.Verified,
+                "GRADE assesses certainty of a body of evidence for a specific outcome. The five core downgrade domains are risk of bias, inconsistency, indirectness, imprecision and publication bias; upgrading criteria are conditional.",
+                ["body of evidence", "systematic review", "guideline evidence"],
+                false
+            ),
             ["cfir2"] = new(
                 "cfir2",
                 "CFIR 2.0",
