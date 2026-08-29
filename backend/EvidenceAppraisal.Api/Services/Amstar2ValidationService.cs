@@ -11,6 +11,7 @@ public sealed record ValidationResult(
 public sealed class Amstar2ValidationService
 {
     public const int TotalItems = 16;
+    private static readonly HashSet<int> OfficialCriticalDomains = [2, 4, 7, 9, 11, 13, 15];
 
     private static readonly HashSet<int> NoMetaAnalysisResponseItems = [11, 12, 15];
     private static readonly HashSet<string> AllowedConfidenceLevels = ["High", "Moderate", "Low", "CriticallyLow"];
@@ -62,6 +63,16 @@ public sealed class Amstar2ValidationService
             .ToArray();
 
         if (invalidNumbers.Length > 0) errors.Add("Critical-domain item numbers must be between 1 and 16.");
+
+        var nonOfficialCriticalNumbers = criticalDomains
+            .Where(domain => !OfficialCriticalDomains.Contains(domain.ItemNumber))
+            .Select(domain => domain.ItemNumber)
+            .Distinct()
+            .Order()
+            .ToArray();
+
+        if (nonOfficialCriticalNumbers.Length > 0)
+            errors.Add($"Critical domains must come from the AMSTAR 2 critical-domain set (2, 4, 7, 9, 11, 13, 15). Invalid: {string.Join(", ", nonOfficialCriticalNumbers)}.");
 
         var duplicates = criticalDomains
             .GroupBy(domain => domain.ItemNumber)
