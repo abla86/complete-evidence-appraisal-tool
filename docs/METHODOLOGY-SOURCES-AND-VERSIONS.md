@@ -57,7 +57,7 @@ The Knowledge-to-Action Framework originates from Graham et al. (2006). It is a 
 
 ### JBI
 
-The 2017 JBI qualitative checklist is explicitly versioned as a historical instrument. JBI has subsequently revised parts of its critical appraisal tool suite. A new JBI tool must therefore be added as a separate registry entry when its exact version/source has been verified; it must not silently overwrite an existing historical assessment.
+The repository keeps the 2017 JBI qualitative checklist as a historical instrument. Current JBI guidance in the 2024 JBI Manual states that the ten qualitative appraisal questions remain the same while the accompanying explanations have been revised/clarified. Therefore the current 2024 guidance is registered separately and marked Prototype until the application implementation is independently checked against the current source. Historical 2017 assessments must never be silently migrated to a newer registry entry.
 
 ### CASP
 
