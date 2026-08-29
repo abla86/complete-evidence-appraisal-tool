@@ -77,15 +77,32 @@ app.UseStaticFiles();
 app.MapGet("/api", () => Results.Ok(new { application = "Evidence Appraisal Tool API", status = "Research tool / prototype", modules = new[] { "AMSTAR 2", "CASP", "AGREE II", "GRADE", "RoB 2 prototype", "CFIR 2.0", "KTA", "Research Document Analysis", "Multi-format Bibliography Import", "PRISMA workflow", "Inter-rater reliability", "Deduplication", "Conflict resolution" }, methodologicalNotice = "Document analysis locates candidate evidence passages but does not complete appraisals or replace methodological expertise.", safetyRule = "Not found is never equivalent to No. Uncertain findings require researcher verification.", securityNotice = "Do not store identifiable patient information or other confidential research data in this public deployment. Uploaded research documents are processed in memory by the analysis endpoint; only explicitly submitted manual evidence is persisted." }));
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
 
+app.MapGet("/api/methodologies", () => Results.Ok(MethodologyRegistry.Definitions.Values.Select(definition => new
+{
+    definition.Id,
+    definition.Name,
+    definition.Category,
+    definition.Version,
+    definition.PublicationYear,
+    definition.OfficialSourceUrl,
+    definition.PrimaryPublicationUrl,
+    definition.VerificationStatus,
+    definition.VerificationNote,
+    CompatibleStudyDesigns = definition.CompatibleStudyDesigns ?? Array.Empty<string>(),
+    definition.SupportsNumericalScoring,
+    definition.LicenceUrl
+})));
+
 app.MapGet("/api/instruments", () => Results.Ok(new object[]
 {
-    new { id = "amstar2", name = "AMSTAR 2", purpose = "Critical appraisal of systematic reviews of healthcare interventions", status = "Available", itemCount = 16, scoring = "No numerical total score" },
-    new { id = "casp", name = "CASP", purpose = "Design-specific critical appraisal using an authorised CASP checklist", status = "Available", itemCount = (int?)null, scoring = "No automatic quality total" },
-    new { id = "agree2", name = "AGREE II", purpose = "Appraisal of clinical practice guidelines", status = "Available", itemCount = 23, scoring = "Six standardised domain scores; no single required aggregate score" },
-    new { id = "grade", name = "GRADE", purpose = "Outcome-level certainty of a body of evidence", status = "Available", itemCount = 5, scoring = "Four certainty categories with explicit domain judgements; upgrading criteria are conditional" },
-    new { id = "cfir2", name = "CFIR 2.0", purpose = "Implementation determinant assessment", status = "Available", itemCount = 48, scoring = "Researcher judgement; no automatic barrier/facilitator total" },
-    new { id = "kta", name = "Knowledge-to-Action", purpose = "Documentation of the seven-step action cycle", status = "Available", itemCount = 7, scoring = "No validated implementation-progress percentage" },
-    new { id = "rob2", name = "Cochrane RoB 2", purpose = "Risk-of-bias assessment for randomised trials", status = "Prototype", itemCount = 5, scoring = "Researcher judgement required; signalling-question algorithm not reproduced" }
+    new { id = "amstar2", name = "AMSTAR 2", purpose = "Critical appraisal of systematic reviews of healthcare interventions", status = "Available", itemCount = 16, scoring = "No numerical total score", methodologyId = "amstar2" },
+    new { id = "casp", name = "CASP", purpose = "Study-design-specific critical appraisal; select the exact checklist/version", status = "Family / select variant", itemCount = (int?)null, scoring = "No automatic quality total", methodologyId = (string?)null, variants = new[] { "casp-qualitative-2024" } },
+    new { id = "jbi", name = "JBI", purpose = "Study-design-specific critical appraisal; select the exact tool/version", status = "Family / select verified variant", itemCount = (int?)null, scoring = "Instrument-specific; no universal quality total", methodologyId = (string?)null, variants = new[] { "jbi-qualitative-2017" } },
+    new { id = "agree2", name = "AGREE II", purpose = "Appraisal of clinical practice guidelines", status = "Available", itemCount = 23, scoring = "Six standardised domain scores plus two overall assessments", methodologyId = "agree2" },
+    new { id = "grade", name = "GRADE", purpose = "Outcome-level certainty of a body of evidence", status = "Available", itemCount = 5, scoring = "Certainty categories with explicit domain judgements; upgrading criteria are conditional", methodologyId = "grade" },
+    new { id = "cfir2", name = "CFIR 2.0", purpose = "Implementation determinant assessment", status = "Available", itemCount = 48, scoring = "Researcher judgement; no automatic barrier/facilitator total", methodologyId = "cfir2" },
+    new { id = "kta", name = "Knowledge-to-Action", purpose = "Documentation of the action cycle", status = "Available", itemCount = 7, scoring = "No validated implementation-progress percentage", methodologyId = "kta" },
+    new { id = "rob2", name = "Cochrane RoB 2", purpose = "Risk-of-bias assessment for randomised trials", status = "Prototype", itemCount = 5, scoring = "Researcher judgement required; signalling-question algorithm not fully reproduced", methodologyId = "rob2" }
 }));
 
 app.MapGet("/api/amstar2/metadata", () => Results.Ok(new { instrumentName = "AMSTAR 2", instrumentVersion = "2017", totalItems = Amstar2ValidationService.TotalItems, proposedDefaultCriticalDomains = new[] { 2, 4, 7, 9, 11, 13, 15 }, criticalDomainNotice = "The seven domains are proposed defaults from the original publication. Critical domains must be prespecified and justified for the appraisal context.", scoringNotice = "AMSTAR 2 item responses must not be combined into a numerical total score.", currentCapabilities = new[] { "Typed assessment submission", "Structural validation", "Required rationale validation", "Required evidence-location validation", "Critical-domain prespecification validation", "Advisory confidence consistency check", "DOCX/XLSX/PDF export" }, unavailableCapabilities = new[] { "Automatic professional judgement", "Clinical or policy recommendation" } }));
