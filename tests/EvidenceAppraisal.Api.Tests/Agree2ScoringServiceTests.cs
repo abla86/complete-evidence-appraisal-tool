@@ -17,6 +17,47 @@ public sealed class Agree2ScoringServiceTests
     }
 
     [Fact]
+    public void AllRatingsAtOne_ReturnsZeroPercentForEveryDomain()
+    {
+        var result = new Agree2ScoringService().Calculate(CreateAssessment(1));
+
+        Assert.True(result.IsValid);
+        Assert.All(result.DomainScores, score =>
+            Assert.Equal(0, score.StandardizedScorePercent));
+    }
+
+    [Fact]
+    public void MixedRatings_UsesOfficialDomainFormula()
+    {
+        var assessment = CreateAssessment(4) with
+        {
+            Appraisers =
+            [
+                new Agree2AppraiserAssessment
+                {
+                    AppraiserCode = "R01",
+                    Items = Enumerable.Range(1, 23).Select(number => new Agree2ItemRating
+                    {
+                        ItemNumber = number,
+                        Score = number <= 3 ? 7 : 1,
+                        Rationale = "Documented rationale",
+                        EvidenceLocation = $"Page {number}"
+                    }).ToArray(),
+                    OverallQualityScore = 4,
+                    Recommendation = "Recommend with modifications",
+                    RecommendationRationale = "Documented overall judgement"
+                }
+            ]
+        };
+
+        var result = new Agree2ScoringService().Calculate(assessment);
+
+        Assert.True(result.IsValid);
+        Assert.Equal(100, result.DomainScores.Single(d => d.DomainNumber == 1).StandardizedScorePercent);
+        Assert.Equal(0, result.DomainScores.Single(d => d.DomainNumber == 2).StandardizedScorePercent);
+    }
+
+    [Fact]
     public void TwoIndependentAppraisers_MeetsMinimumFlag()
     {
         var assessment = CreateAssessment(4) with
