@@ -236,6 +236,20 @@ public static class ResearchOperationsEndpoints
             return project is null ? Results.NotFound(new { error = "Research project not found." }) : Results.Ok(new { project, configuration = ToConfigurationDto(project) });
         });
 
+
+        endpoints.MapGet("/api/research/operations/audit/verify", async (EvidenceDbContext db, CancellationToken cancellationToken) =>
+        {
+            var records = await db.ResearchAudits.AsNoTracking().OrderBy(x => x.Id).ToListAsync(cancellationToken);
+            var previous = string.Empty;
+            foreach (var record in records)
+            {
+                var expected = ResearchHash.Compute($"{previous}|{record.EntityType}|{record.EntityId}|{record.Action}|{record.Reviewer}|{record.Data}");
+                if (!string.Equals(record.PreviousHash, previous, StringComparison.OrdinalIgnoreCase) || !string.Equals(record.CurrentHash, expected, StringComparison.OrdinalIgnoreCase))
+                    return Results.Ok(new { valid = false, failedAuditId = record.Id, checkedRecords = records.IndexOf(record) + 1 });
+                previous = record.CurrentHash;
+            }
+            return Results.Ok(new { valid = true, checkedRecords = records.Count, finalHash = previous });
+        });
         endpoints.MapGet("/api/research/operations/audit", async (string? entityType, string? reviewer, EvidenceDbContext db, CancellationToken cancellationToken) =>
         {
             var query = db.ResearchAudits.AsNoTracking().AsQueryable();
