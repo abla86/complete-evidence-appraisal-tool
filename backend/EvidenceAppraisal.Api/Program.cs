@@ -56,6 +56,7 @@ using (var scope = app.Services.CreateScope())
     await implementationDb.Database.EnsureCreatedAsync();
     var evidenceDb = scope.ServiceProvider.GetRequiredService<EvidenceDbContext>();
     await evidenceDb.Database.EnsureCreatedAsync();
+    await EnsureResearchAssessmentSchemaAsync(evidenceDb);
 }
 
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
@@ -211,6 +212,22 @@ app.MapPost("/api/evidence/manual", async (ManualEvidenceRequest request, Eviden
 app.MapEvidenceVerificationEndpoints();
 
 app.Run();
+
+static async Task EnsureResearchAssessmentSchemaAsync(EvidenceDbContext db)
+{
+    if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+    {
+        await db.Database.ExecuteSqlRawAsync("CREATE TABLE IF NOT EXISTS ResearchAssessments (Id TEXT NOT NULL CONSTRAINT PK_ResearchAssessments PRIMARY KEY, ProjectId TEXT NOT NULL, InstrumentId TEXT NOT NULL, InstrumentVersion TEXT NOT NULL, StudyTitle TEXT NOT NULL, Reviewer TEXT NOT NULL, ValidationStatus TEXT NOT NULL, PayloadJson TEXT NOT NULL, Hash TEXT NOT NULL, CreatedAtUtc TEXT NOT NULL);");
+        await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_ResearchAssessments_ProjectId_InstrumentId_CreatedAtUtc ON ResearchAssessments (ProjectId, InstrumentId, CreatedAtUtc);");
+        return;
+    }
+
+    if (db.Database.ProviderName?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true)
+    {
+        await db.Database.ExecuteSqlRawAsync("IF OBJECT_ID(N'dbo.ResearchAssessments', N'U') IS NULL BEGIN CREATE TABLE [dbo].[ResearchAssessments] ([Id] uniqueidentifier NOT NULL CONSTRAINT [PK_ResearchAssessments] PRIMARY KEY, [ProjectId] uniqueidentifier NOT NULL, [InstrumentId] nvarchar(100) NOT NULL, [InstrumentVersion] nvarchar(100) NOT NULL, [StudyTitle] nvarchar(1000) NOT NULL, [Reviewer] nvarchar(200) NOT NULL, [ValidationStatus] nvarchar(50) NOT NULL, [PayloadJson] nvarchar(max) NOT NULL, [Hash] nvarchar(64) NOT NULL, [CreatedAtUtc] datetime2 NOT NULL); END");
+        await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_ResearchAssessments_ProjectId_InstrumentId_CreatedAtUtc' AND object_id = OBJECT_ID(N'dbo.ResearchAssessments')) CREATE INDEX [IX_ResearchAssessments_ProjectId_InstrumentId_CreatedAtUtc] ON [dbo].[ResearchAssessments] ([ProjectId], [InstrumentId], [CreatedAtUtc]);");
+    }
+}
 
 static object ToEvidenceDto(EvidenceRecordEntity entity) => new { entity.Id, entity.DocumentHashSha256, entity.Instrument, entity.ItemOrDomain, entity.EvidenceText, entity.SourceType, entity.Page, entity.Section, entity.Table, entity.Figure, entity.Url, entity.Doi, entity.Reviewer, entity.Rationale, entity.Status, entity.VerificationNote, entity.VerifiedBy, entity.VerifiedAtUtc, entity.CreatedAtUtc };
 
