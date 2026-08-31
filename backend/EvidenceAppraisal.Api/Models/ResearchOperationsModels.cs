@@ -47,6 +47,20 @@ public sealed class ResearchOutcomeEntity
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
+public sealed class ResearchAssessmentEntity
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ProjectId { get; set; }
+    public string InstrumentId { get; set; } = string.Empty;
+    public string InstrumentVersion { get; set; } = string.Empty;
+    public string StudyTitle { get; set; } = string.Empty;
+    public string Reviewer { get; set; } = string.Empty;
+    public string ValidationStatus { get; set; } = "Validated";
+    public string PayloadJson { get; set; } = "{}";
+    public string Hash { get; set; } = string.Empty;
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+}
+
 public sealed class ResearchAuditEntity
 {
     public long Id { get; set; }
@@ -110,6 +124,7 @@ public sealed record ScreeningStats(int TotalIdentified, int TitleScreened, int 
 public sealed record ExtractionRequest(Guid ProjectId, Guid StudyId, string Value, string Parameter, string? Unit, string? SourceLocation, string Reviewer, string? Notes);
 public sealed record OutcomeRequest(string Name, string? Definition, string? Timepoint, string? Certainty, string? Justification, string? RelativeEffect, string? AbsoluteEffect, string? ParticipantsAndStudies, Guid? ProjectId);
 public sealed record FinalizeProjectRequest(string Reviewer, string? Name);
+public sealed record SaveResearchAssessmentRequest(Guid ProjectId, string InstrumentId, string InstrumentVersion, string StudyTitle, string Reviewer, string PayloadJson, string ValidationStatus = "Validated");
 public sealed record ReviewerAccessRequest(Guid ProjectId, int ValidDays = 30);
 
 public sealed record ResearchProjectConfigurationRequest(

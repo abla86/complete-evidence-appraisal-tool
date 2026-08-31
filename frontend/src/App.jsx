@@ -130,9 +130,9 @@ function App() {
     return <>
       <section className="instrument-card"><div><p className="eyebrow">Systematiske oversikter</p><h2>{metadata.instrumentName} <span>({metadata.instrumentVersion})</span></h2><p>Instrumentet inneholder <strong>{metadata.totalItems} punkter</strong>.</p></div><div className="critical-domains"><h3>Foreslåtte kritiske standarddomener</h3><ul>{metadata.proposedDefaultCriticalDomains.map((item) => <li key={item}>Punkt {item}</li>)}</ul></div></section>
       <section className="notice notice-warning"><h2>Metodisk avgrensning</h2><p>{metadata.criticalDomainNotice}</p><p><strong>Viktig:</strong> {metadata.scoringNotice}</p></section>
-      <PreAppraisalSetup defaultCriticalDomains={metadata.proposedDefaultCriticalDomains} initialWorkflowRules={workflowRules} onConfirmed={persistProjectSetup} />
+      <PreAppraisalSetup defaultCriticalDomains={metadata.proposedDefaultCriticalDomains} initialWorkflowRules={workflowRules} onConfirmed={(setup) => persistProjectSetup({ ...setup, projectId })} />
       {assessmentSetup && <AssessmentForm setup={assessmentSetup} />}
-      <ResearchModuleHub workflowRules={workflowRules} />
+      <ResearchModuleHub workflowRules={workflowRules} projectId={projectId} />
     </>;
   }
 

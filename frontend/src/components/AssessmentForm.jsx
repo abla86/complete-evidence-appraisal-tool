@@ -9,6 +9,7 @@ import {
 import {
   validateAmstar2Assessment,
 } from '../api/amstarApi';
+import { saveResearchAssessment } from '../api/researchApi';
 
 const RESPONSE_OPTIONS = [
   {
@@ -118,11 +119,17 @@ export default function AssessmentForm({
 
       if (validation.isValid) {
         setResult(validation);
-        setValidatedAssessment({
-          ...assessment,
-          advisoryRating:
-            validation.advisoryRating ?? null,
+        const persisted = await saveResearchAssessment({
+          projectId: setup.projectId,
+          instrumentId: assessment.instrumentId,
+          instrumentVersion: assessment.instrumentVersion,
+          studyTitle: assessment.studyTitle,
+          reviewer: assessment.reviewer,
+          payloadJson: JSON.stringify(assessment),
+          validationStatus: 'Validated',
         });
+        setResult({ ...validation, persisted });
+        setValidatedAssessment({ ...assessment, advisoryRating: validation.advisoryRating ?? null, persistence: persisted });
       } else {
         setServerErrors(
           validation.errors ?? [

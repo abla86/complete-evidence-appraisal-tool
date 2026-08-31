@@ -17,6 +17,7 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
     public DbSet<DataExtractionEntity> DataExtractions => Set<DataExtractionEntity>();
     public DbSet<ResearchOutcomeEntity> ResearchOutcomes => Set<ResearchOutcomeEntity>();
     public DbSet<ResearchAuditEntity> ResearchAudits => Set<ResearchAuditEntity>();
+    public DbSet<ResearchAssessmentEntity> ResearchAssessments => Set<ResearchAssessmentEntity>();
     public DbSet<ResearchProjectControlEntity> ResearchProjectControls => Set<ResearchProjectControlEntity>();
     public DbSet<ReviewerAccessEntity> ReviewerAccess => Set<ReviewerAccessEntity>();
     public DbSet<AccessAuditEntity> AccessAudits => Set<AccessAuditEntity>();
@@ -123,6 +124,19 @@ public sealed class EvidenceDbContext(DbContextOptions<EvidenceDbContext> option
             b.Property(x => x.AbsoluteEffect).HasMaxLength(1000);
             b.Property(x => x.ParticipantsAndStudies).HasMaxLength(1000);
             b.HasIndex(x => x.ProjectId);
+        });
+
+        modelBuilder.Entity<ResearchAssessmentEntity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.InstrumentId).HasMaxLength(100).IsRequired();
+            b.Property(x => x.InstrumentVersion).HasMaxLength(100).IsRequired();
+            b.Property(x => x.StudyTitle).HasMaxLength(1000).IsRequired();
+            b.Property(x => x.Reviewer).HasMaxLength(200).IsRequired();
+            b.Property(x => x.ValidationStatus).HasMaxLength(50).IsRequired();
+            b.Property(x => x.PayloadJson).HasMaxLength(100000).IsRequired();
+            b.Property(x => x.Hash).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => new { x.ProjectId, x.InstrumentId, x.CreatedAtUtc });
         });
 
         modelBuilder.Entity<ResearchAuditEntity>(b =>

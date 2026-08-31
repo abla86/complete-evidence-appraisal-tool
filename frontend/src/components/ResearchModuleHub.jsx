@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   calculateAgree2,
   evaluateGrade,
+  saveResearchAssessment,
   getInstruments,
   validateCasp,
   validateJbiQualitative2017,
@@ -81,7 +82,7 @@ function EvidenceFields({ items, setItems, mode }) {
   );
 }
 
-function JbiQualitative2017Form({ instrument }) {
+function JbiQualitative2017Form({ instrument, projectId }) {
   const [items, setItems] = useState(() => emptyEvidence(10));
   const [result, setResult] = useState(null);
   const [meta, setMeta] = useState({
@@ -90,7 +91,7 @@ function JbiQualitative2017Form({ instrument }) {
 
   async function submit(event) {
     event.preventDefault();
-    setResult(await validateJbiQualitative2017({
+    const assessment = {
       instrumentId: 'jbi-qualitative-2017',
       instrumentVersion: instrument?.version ?? '2017',
       studyTitle: meta.studyTitle,
@@ -99,7 +100,12 @@ function JbiQualitative2017Form({ instrument }) {
       items,
       overallAppraisal: meta.overallAppraisal || null,
       overallAppraisalRationale: meta.overallAppraisalRationale,
-    }));
+    };
+    const validation = await validateJbiQualitative2017(assessment);
+    if (validation.isValid && projectId) {
+      await saveResearchAssessment({ projectId, instrumentId: assessment.instrumentId, instrumentVersion: assessment.instrumentVersion, studyTitle: assessment.studyTitle, reviewer: assessment.reviewerCode, payloadJson: JSON.stringify(assessment), validationStatus: 'Validated' });
+    }
+    setResult(validation);
   }
 
   return (
@@ -353,7 +359,7 @@ function Result({ result }) {
   </div>;
 }
 
-export default function ResearchModuleHub({ workflowRules = {}, initialInstrument = '' }) {
+export default function ResearchModuleHub({ workflowRules = {}, initialInstrument = '', projectId }) {
   const [instruments, setInstruments] = useState([]);
   const [selected, setSelected] = useState(initialInstrument);
 
@@ -396,7 +402,7 @@ export default function ResearchModuleHub({ workflowRules = {}, initialInstrumen
           </div>
           {current && <p className="selected-purpose"><strong>{current.name}:</strong> {current.purpose}</p>}
           {effectiveSelected === 'casp-qualitative-2024' && <CaspForm instrument={current} />}
-          {effectiveSelected === 'jbi-qualitative-2017' && <JbiQualitative2017Form instrument={current} />}
+          {effectiveSelected === 'jbi-qualitative-2017' && <JbiQualitative2017Form instrument={current} projectId={projectId} />}
           {effectiveSelected === 'agree2' && <Agree2Form />}
           {effectiveSelected === 'grade' && <GradeForm />}
         </>

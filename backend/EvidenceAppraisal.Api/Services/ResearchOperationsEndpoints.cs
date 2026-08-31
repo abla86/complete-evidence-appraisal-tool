@@ -217,7 +217,8 @@ public static class ResearchOperationsEndpoints
             var screening = await db.ScreeningRecords.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
             var extractions = await db.DataExtractions.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
             var outcomes = await db.ResearchOutcomes.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
-            var payload = new { project.Id, project.Name, Configuration = ToConfigurationDto(project), Screening = screening, Extractions = extractions, Outcomes = outcomes };
+            var assessments = await db.ResearchAssessments.AsNoTracking().Where(x => x.ProjectId == projectId).OrderBy(x => x.CreatedAtUtc).Select(x => new { x.Id, x.InstrumentId, x.InstrumentVersion, x.StudyTitle, x.Reviewer, x.ValidationStatus, x.PayloadJson, x.Hash, x.CreatedAtUtc }).ToListAsync(cancellationToken);
+            var payload = new { project.Id, project.Name, Configuration = ToConfigurationDto(project), Screening = screening, Extractions = extractions, Outcomes = outcomes, Assessments = assessments };
             var canonical = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = false });
             project.FinalHash = ResearchHash.Compute(canonical);
             project.IsLocked = true;

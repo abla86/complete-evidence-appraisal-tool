@@ -19,6 +19,8 @@ export async function getProjectOverview() { return request('/api/project-overvi
 export async function getProjectAudit(cfirId) { return request(`/api/project-overview/${cfirId}/audit`); }
 export const validateCasp = (assessment) => post('/api/casp/validate', assessment);
 export const validateJbiQualitative2017 = (assessment) => post('/api/jbi/qualitative-2017/validate', assessment);
+export const saveResearchAssessment = (assessment) => post('/api/research/operations/assessments', assessment);
+export const getResearchAssessments = (projectId) => request(`/api/research/operations/assessments?projectId=${encodeURIComponent(projectId)}`);
 export const calculateAgree2 = (assessment) => post('/api/agree2/calculate', assessment);
 export const evaluateGrade = (assessment) => post('/api/grade/evaluate', assessment);
 export const validateCfir = (assessment) => post('/api/cfir2/validate', assessment);
