@@ -21,14 +21,14 @@ const ruleCatalog = [
   ['includePageText', 'Ekstraher sidetekst', 'Ta med ekstraherte tekstpassasjer i resultatdata.'],
 ];
 
-export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfirmed }) {
+export default function PreAppraisalSetup({ defaultCriticalDomains = [], initialWorkflowRules, onConfirmed }) {
   const availableItems = useMemo(() => Array.from({ length: 16 }, (_, index) => index + 1), []);
   const [reviewTitle, setReviewTitle] = useState('');
   const [selectedInstruments, setSelectedInstruments] = useState(['amstar2']);
   const [reviewer, setReviewer] = useState('');
   const [criticalDomains, setCriticalDomains] = useState(() => [...defaultCriticalDomains]);
   const [rationales, setRationales] = useState({});
-  const [rules, setRules] = useState({
+  const [rules, setRules] = useState(() => ({
     humanVerificationRequired: true,
     dualReview: false,
     prismaTracking: true,
@@ -38,9 +38,11 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
     pdfEvidenceMapping: true,
     offlineMode: false,
     includePageText: false,
-  });
+    ...(initialWorkflowRules ?? {}),
+  }));
   const [errors, setErrors] = useState({});
   const [confirmed, setConfirmed] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   function toggleInstrument(id) {
     setConfirmed(false);
@@ -93,8 +95,8 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
       workflowRules: { ...rules },
     };
 
-    setConfirmed(true);
-    onConfirmed(setup);
+    setSaving(true);
+    Promise.resolve(onConfirmed(setup)).then(() => setConfirmed(true)).finally(() => setSaving(false));
   }
 
   return (
@@ -114,7 +116,7 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
       <form onSubmit={handleSubmit} noValidate>
         <div className="field-grid">
           <div className="form-field">
-            <label htmlFor="review-title">Tittel på systematisk oversikt <span aria-hidden="true"> *</span></label>
+            <label htmlFor="review-title">Prosjekttittel <span aria-hidden="true"> *</span></label>
             <input id="review-title" type="text" value={reviewTitle} onChange={(event) => { setReviewTitle(event.target.value); setConfirmed(false); }} aria-invalid={Boolean(errors.reviewTitle)} />
             {errors.reviewTitle && <p className="field-error" role="alert">{errors.reviewTitle}</p>}
           </div>
@@ -182,7 +184,7 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
           <strong>Transparent konfigurasjon:</strong> Disse valgene følger prosjektet videre til analyse, verifisering, audit og eksport. Endringer etter finalisering skal ikke være mulig.
         </div>
 
-        <button className="primary-button" type="submit">Lagre prosjektoppsettet</button>
+        <button className="primary-button" type="submit" disabled={saving}>{saving ? 'Lagrer …' : 'Lagre prosjektoppsettet'}</button>
       </form>
 
       {confirmed && (

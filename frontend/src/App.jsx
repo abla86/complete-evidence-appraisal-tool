@@ -100,7 +100,17 @@ function App() {
         body: JSON.stringify({
           name: setup.reviewTitle,
           reviewer: setup.reviewer,
-          workflowRules: normalized,
+          enabledInstruments: normalized.instruments,
+          requireHumanVerification: normalized.requireHumanVerification,
+          enableDualReview: normalized.dualReview,
+          enablePrismaTracking: normalized.prismaTracking,
+          enableAuditTrail: normalized.auditTrail,
+          enableDoiMetadataLookup: normalized.doiLookup,
+          enablePicoAssist: normalized.picoAssistance,
+          enablePdfEvidenceMapping: normalized.pdfEvidenceMapping,
+          enableOfflineMode: normalized.offlineMode,
+          includePageTextInAnalysis: normalized.includePageText,
+          methodologyVersion: 'registry',
         }),
       });
       if (!response.ok) {
@@ -109,6 +119,7 @@ function App() {
       }
     } catch (e) {
       setError(e.message || 'Kunne ikke lagre prosjektoppsettet.');
+      throw e;
     }
   }
 
