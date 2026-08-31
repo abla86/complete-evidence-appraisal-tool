@@ -19,6 +19,7 @@ import './App.css';
 import './workspace.css';
 import './components/EvidenceLibrary.css';
 import './components/ResearchCompleteness.css';
+import './components/JbiQualitativeAssessment.css';
 
 const navItems = [
   ['dashboard', 'Dashboard', 'Oversikt og arbeidsstatus'],
