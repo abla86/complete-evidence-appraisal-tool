@@ -228,7 +228,7 @@ public sealed class DocumentAnalysisService
         else if (flags["systematic-review"] || flags["meta-analysis"])
         {
             type = flags["systematic-review"] && flags["meta-analysis"]
-                ? "Systematic review with meta-analysis"
+                ? "Systematic review / meta-analysis"
                 : flags["systematic-review"] ? "Systematic review" : "Meta-analysis";
             confidence = flags["systematic-review"] && flags["meta-analysis"] ? "High" : "Moderate";
         }
