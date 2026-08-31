@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
 
 const CRITERIA = [
-  'Samsvarer det filosofiske perspektivet med forskningsmetoden?',
-  'Er metodologien og forskningsspørsmålet gjensidig konsistente?',
-  'Er metoden og måten data ble samlet inn på konsistente?',
-  'Er analysemetoden og måten data ble samlet inn på konsistente?',
-  'Er tolkningen av funnene konsistent med data og analyse?',
-  'Er forskerens posisjon og påvirkning på forskningen tilstrekkelig synliggjort?',
-  'Er deltakernes stemmer og deres representasjon i funnene tilstrekkelig belyst?',
-  'Er forskningsetiske forhold ivaretatt og rapportert?',
-  'Er konklusjonene tydelig forankret i analysen og funnene?',
-  'Er forskningsprosessen samlet sett metodologisk sammenhengende?'
+  'Er det samsvar mellom det oppgitte filosofiske perspektivet og forskningsmetodologien?',
+  'Er det samsvar mellom forskningsmetodologien og forskningsspørsmålet eller formålet?',
+  'Er det samsvar mellom forskningsmetodologien og metodene for datainnsamling?',
+  'Er det samsvar mellom forskningsmetodologien og representasjonen og analysen av data?',
+  'Er det samsvar mellom forskningsmetodologien og tolkningen av resultatene?',
+  'Er det en redegjørelse som plasserer forskeren kulturelt eller teoretisk?',
+  'Er forskerens innflytelse på forskningen, og omvendt, adressert?',
+  'Er deltakerne og deres stemmer tilstrekkelig representert?',
+  'Er forskningen etisk i henhold til gjeldende kriterier, og foreligger det dokumentasjon på etisk godkjenning?',
+  'Fremstår konklusjonene som en direkte følge av analysen eller tolkningen av dataene?'
 ];
 
 const RESPONSE_OPTIONS = [
@@ -80,7 +80,7 @@ export default function JbiQualitativeAssessment() {
     <section className="method-card" aria-labelledby="jbi-heading">
       <div className="method-card-heading">
         <div>
-          <p className="eyebrow">JBI · historisk instrumentversjon</p>
+          <p className="eyebrow">JBI · Critical Appraisal Checklist for Qualitative Research</p>
           <h2 id="jbi-heading">Kvalitativ vurdering (2017)</h2>
         </div>
         <span className="pill">10 kriterier · forskerstyrt</span>
