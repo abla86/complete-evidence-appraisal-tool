@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:5237');
 
 function parseResponse(text) {
   try { return text ? JSON.parse(text) : null; } catch { return { error: text }; }
