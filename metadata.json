@@ -1,0 +1,6 @@
+{
+  "name": "JBI Kvalitativ Vurdering",
+  "description": "Forskerverktøy og metavitenskapelig plattform for kunnskapsbasert praksis med komplett bibliotek over 36+ evaluerings- og metodikkinstrumenter (JBI, CASP, RoB 2, ROBINS-I, AMSTAR 2, GRADE, PRISMA, NESH, Helsinki, CFIR 2.0 m.fl.), uavhengig blindet fagfellevurdering (Peer Review Studio), gruppesamarbeid, inter-rater reliability (Cohen's Kappa), autosaving og publiseringsklare protokoller.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
