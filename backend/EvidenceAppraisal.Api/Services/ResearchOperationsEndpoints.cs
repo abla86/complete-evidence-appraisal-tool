@@ -9,7 +9,7 @@ public static class ResearchOperationsEndpoints
 {
     private static readonly HashSet<string> AllowedInstruments = new(StringComparer.OrdinalIgnoreCase)
     {
-        "amstar2", "casp", "agree2", "grade", "rob2"
+        "amstar2", "casp", "casp-qualitative-2024", "jbi-qualitative-2017", "agree2", "grade", "rob2"
     };
 
     public static void MapResearchOperationsEndpoints(this IEndpointRouteBuilder endpoints)

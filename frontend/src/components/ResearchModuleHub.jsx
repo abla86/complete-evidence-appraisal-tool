@@ -353,9 +353,9 @@ function Result({ result }) {
   </div>;
 }
 
-export default function ResearchModuleHub({ workflowRules = {} }) {
+export default function ResearchModuleHub({ workflowRules = {}, initialInstrument = '' }) {
   const [instruments, setInstruments] = useState([]);
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState(initialInstrument);
 
   useEffect(() => {
     getInstruments().then(setInstruments).catch(() => setInstruments([]));

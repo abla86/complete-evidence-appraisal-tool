@@ -61,7 +61,7 @@ function normalizeWorkflowRules(rules) {
   return {
     ...DEFAULT_WORKFLOW_RULES,
     ...(rules ?? {}),
-    instruments: Array.isArray(rules?.instruments) ? rules.instruments : DEFAULT_WORKFLOW_RULES.instruments,
+    instruments: Array.isArray(rules?.instruments) ? rules.instruments : (Array.isArray(rules?.enabledInstruments) ? rules.enabledInstruments : DEFAULT_WORKFLOW_RULES.instruments),
   };
 }
 

@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react';
 
+const instrumentCatalog = [
+  ['amstar2', 'AMSTAR 2', 'Kritisk vurdering av systematiske oversikter.'],
+  ['casp-qualitative-2024', 'CASP', 'Studiespesifikk kritisk vurdering.'],
+  ['jbi-qualitative-2017', 'JBI kvalitativ', 'Kvalitativ forskningsvurdering, versjon 2017.'],
+  ['agree2', 'AGREE II', 'Vurdering av kliniske retningslinjer.'],
+  ['grade', 'GRADE', 'Vurdering av sikkerhet per utfall.'],
+  ['rob2', 'RoB 2', 'Risiko for bias i randomiserte studier.'],
+];
+
 const ruleCatalog = [
   ['humanVerificationRequired', 'Forskerverifisering', 'Krev eksplisitt forskerverifisering før evidens kan regnes som verifisert.'],
   ['dualReview', 'Dual review', 'Bruk to uavhengige reviewere og konflikt-/konsensusflyt.'],
@@ -15,6 +24,7 @@ const ruleCatalog = [
 export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfirmed }) {
   const availableItems = useMemo(() => Array.from({ length: 16 }, (_, index) => index + 1), []);
   const [reviewTitle, setReviewTitle] = useState('');
+  const [selectedInstruments, setSelectedInstruments] = useState(['amstar2']);
   const [reviewer, setReviewer] = useState('');
   const [criticalDomains, setCriticalDomains] = useState(() => [...defaultCriticalDomains]);
   const [rationales, setRationales] = useState({});
@@ -31,6 +41,11 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
   });
   const [errors, setErrors] = useState({});
   const [confirmed, setConfirmed] = useState(false);
+
+  function toggleInstrument(id) {
+    setConfirmed(false);
+    setSelectedInstruments((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  }
 
   function toggleCriticalDomain(itemNumber) {
     setConfirmed(false);
@@ -51,10 +66,11 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
 
   function validate() {
     const nextErrors = {};
-    if (!reviewTitle.trim()) nextErrors.reviewTitle = 'Tittel på den systematiske oversikten er obligatorisk.';
+    if (!reviewTitle.trim()) nextErrors.reviewTitle = 'Prosjekttittel er obligatorisk.';
     if (!reviewer.trim()) nextErrors.reviewer = 'Navn eller identifikator for vurderer er obligatorisk.';
-    if (criticalDomains.length === 0) nextErrors.criticalDomains = 'Minst ett kritisk domene må forhåndsdefineres.';
-    criticalDomains.forEach((itemNumber) => {
+    if (selectedInstruments.length === 0) nextErrors.instruments = 'Velg minst ett vurderingsinstrument.';
+    if (selectedInstruments.includes('amstar2') && criticalDomains.length === 0) nextErrors.criticalDomains = 'Minst ett kritisk domene må forhåndsdefineres.';
+    if (selectedInstruments.includes('amstar2')) criticalDomains.forEach((itemNumber) => {
       if (!rationales[itemNumber]?.trim()) nextErrors[`rationale-${itemNumber}`] = `Begrunnelse for punkt ${itemNumber} er obligatorisk.`;
     });
     setErrors(nextErrors);
@@ -69,6 +85,7 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
     const setup = {
       reviewTitle: reviewTitle.trim(),
       reviewer: reviewer.trim(),
+      enabledInstruments: selectedInstruments,
       criticalDomains: criticalDomains.map((itemNumber) => ({
         itemNumber,
         rationale: rationales[itemNumber].trim(),
@@ -108,6 +125,12 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
           </div>
         </div>
 
+        <section className="critical-fieldset" aria-labelledby="instrument-heading">
+          <div className="setup-subheading"><h3 id="instrument-heading">Vurderingsinstrumenter</h3><p className="fieldset-help">Velg hvilke metodiske motorer som skal inngå i prosjektet.</p></div>
+          {errors.instruments && <p className="field-error" role="alert">{errors.instruments}</p>}
+          <div className="rule-grid">{instrumentCatalog.map(([id, label, help]) => <label key={id} className={selectedInstruments.includes(id) ? 'checkbox-card rule-card rule-card-enabled' : 'checkbox-card rule-card'}><input type="checkbox" checked={selectedInstruments.includes(id)} onChange={() => toggleInstrument(id)} /><span><strong>{label}</strong><small>{help}</small></span></label>)}</div>
+        </section>
+
         <section className="critical-fieldset" aria-labelledby="workflow-rules-heading">
           <div className="setup-subheading">
             <h3 id="workflow-rules-heading">Prosjektregler og arbeidsflyt</h3>
@@ -130,7 +153,7 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
           <legend>Forhåndsdefinerte kritiske domener</legend>
           <p className="fieldset-help">Standardforslaget er forhåndsvalgt. Endringer må gjøres før selve vurderingen og begrunnes eksplisitt.</p>
           {errors.criticalDomains && <p className="field-error" role="alert">{errors.criticalDomains}</p>}
-          <div className="domain-list">
+          {selectedInstruments.includes('amstar2') && <div className="domain-list">
             {availableItems.map((itemNumber) => {
               const selected = criticalDomains.includes(itemNumber);
               return (
@@ -152,7 +175,7 @@ export default function PreAppraisalSetup({ defaultCriticalDomains = [], onConfi
                 </div>
               );
             })}
-          </div>
+          </div>}
         </fieldset>
 
         <div className="notice-inline">
