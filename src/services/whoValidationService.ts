@@ -47,7 +47,7 @@ export class WhoValidationService {
     rules.push({
       id: 'WHO-EVI-02',
       name: 'Fullstendighetskrav (Ingen utelatte kriterier)',
-      standard: 'WHO Handbook (2014) Kapittel 8.3: Omfattende kritisk vurdering uten utelatte dimensjoner',
+      standard: 'Metodisk kontrollregel: Omfattende kritisk vurdering uten utelatte dimensjoner',
       category: 'Fullstendighet',
       passed: allAnswered,
       severity: 'critical',
@@ -70,7 +70,7 @@ export class WhoValidationService {
     rules.push({
       id: 'WHO-RAT-03',
       name: 'Faglig Begrunnelsesplikt (Rationale Transparency)',
-      standard: 'WHO Evidence Standards (2014): Eksplisitt, transparent begrunnelse bak alle metodiske vurderinger',
+      standard: 'Interne kontrollregel basert på oppgitt WHO/JBI-kildemateriale: Eksplisitt, transparent begrunnelse bak alle metodiske vurderinger',
       category: 'Begrunnelse & Rationale',
       passed: hasSufficientRationales,
       severity: 'critical',
@@ -114,7 +114,7 @@ export class WhoValidationService {
     rules.push({
       id: 'WHO-REF-05',
       name: 'Forskerposisjonering & Refleksivitetskontroll',
-      standard: 'WHO Qualitative Evidence Guidance & JBI: Vurdering av forskerposisjonering og bias-potensial',
+      standard: 'JBI-relevant metodisk kontroll: Vurdering av forskerposisjonering og bias-potensial',
       category: 'Forskerrefleksivitet',
       passed: reflexivityAddressed,
       severity: 'warning',
@@ -134,7 +134,7 @@ export class WhoValidationService {
     rules.push({
       id: 'WHO-EPI-06',
       name: 'Vitenskapsteoretisk Avgrensning (Epistemologisk Kausalitetsvakt)',
-      standard: 'WHO Handbook (2014) Kapittel 8: Riktig avgrensning av kvalitative funn uten uberettigede kausalslutninger',
+      standard: 'Metodisk kontrollregel: Riktig avgrensning av kvalitative funn uten uberettigede kausalslutninger',
       category: 'Kausalitetsvakt',
       passed: !hasCausalViolation,
       severity: 'critical',
@@ -151,7 +151,7 @@ export class WhoValidationService {
     const totalCount = rules.length;
     const complianceScore = Math.round((passedCount / totalCount) * 100);
 
-    let summaryVerdict: 'WHO-VALIDERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT' = 'WHO-VALIDERT';
+    let summaryVerdict: 'INTERN_METODISK_KONTROLLERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT' = 'INTERN_METODISK_KONTROLLERT';
     if (!allCriticalPassed) {
       summaryVerdict = 'KREVER_KOMPLETTERING';
     } else if (complianceScore < 70) {
@@ -161,7 +161,7 @@ export class WhoValidationService {
     return {
       overallPassed: allCriticalPassed && complianceScore >= 80,
       complianceScore,
-      whoHandbookStandard: 'WHO Handbook for Guideline Development (2nd Edition, 2014)',
+      whoHandbookStandard: 'WHO Handbook for Guideline Development (2nd ed., 2014) — kildereferanse, ikke sertifisering',
       appraisalModel: instrument.name,
       modelVersion: `${instrument.version} (${instrument.edition})`,
       modelChecksum: instrument.validationChecksum,
