@@ -208,7 +208,7 @@ export default function App() {
                       summaryScore: { ja: 0, uklart: 10, nei: 0, total: 10 },
                       overallVerdict: 'Vurder videre',
                       verdictNote: 'Importert via ekstern database',
-                      keyStrength: 'Fagfellevurdert vitenskapelig publikasjon',
+                      keyStrength: 'Publikasjon importert fra ekstern forskningsdatabase; fagfellevurdering må dokumenteres separat',
                       mainLimitation: 'Kvalitetsvurdering ikke gjennomført ennå',
                       apaReference: `${imported.authors || 'Forfattere'} (${imported.publicationYear || 2024}). ${imported.title || 'Artikkel'}. ${imported.journal || ''}.`,
                       items: createBlankJbiItems('Uklart', 'Vurdering må gjennomføres med fulltekst'),
@@ -604,7 +604,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0" />
               <span>
-                Evidence Appraisal Tool • WHO Handbook for Guideline Development & Joanna Briggs Institute (2017/2024).
+                Evidence Appraisal Tool • WHO Handbook for Guideline Development & Joanna Briggs Institute-kildemateriale.
               </span>
             </div>
 
@@ -619,7 +619,7 @@ export default function App() {
                 onClick={() => setActiveTab('who_validation')}
                 className="text-slate-600 hover:text-teal-700 underline font-semibold flex items-center gap-1"
               >
-                <span>WHO Kvalitetsstandard & Modeller</span>
+                <span>Metodisk kontroll & modeller</span>
               </button>
               <a
                 href="https://jbi.global/critical-appraisal-tools"
