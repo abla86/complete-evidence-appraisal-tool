@@ -164,7 +164,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
       id: initialArticle?.id || `jbi-custom-${Date.now()}`,
       instrumentId: 'jbi-qualitative-2017',
       instrumentVersion: '2017 (2024 WHO Update)',
-      whoValidationStatus: validationReport?.whoCompliance?.summaryVerdict === 'WHO-VALIDERT' ? 'WHO_VALIDATED' : 'PENDING_VERIFICATION',
+      whoValidationStatus: validationReport?.whoCompliance?.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? 'INTERNALLY_COMPLIANCE_CHECKED' : 'PENDING_VERIFICATION',
       title,
       authors: authors || 'Uspesifiserte forfattere',
       shortCitation,
@@ -282,11 +282,11 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
               <div className="flex items-center gap-2">
                 {validationReport.whoCompliance && (
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                    validationReport.whoCompliance.summaryVerdict === 'WHO-VALIDERT'
+                    validationReport.whoCompliance.summaryVerdict === 'INTERN_METODISK_KONTROLLERT'
                       ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                       : 'bg-amber-100 text-amber-900 border border-amber-300'
                   }`}>
-                    {validationReport.whoCompliance.summaryVerdict === 'WHO-VALIDERT' ? (
+                    {validationReport.whoCompliance.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
                     ) : (
                       <AlertCircle className="w-3.5 h-3.5 text-amber-700" />
