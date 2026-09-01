@@ -613,7 +613,7 @@ export interface WhoComplianceReport {
   rules: WhoRuleEvaluation[];
   passedRuleCount: number;
   totalRuleCount: number;
-  summaryVerdict: 'WHO-VALIDERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT';
+  summaryVerdict: 'INTERN_METODISK_KONTROLLERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT';
   recommendations: string[];
 }
 
@@ -689,7 +689,7 @@ export interface ArticleAppraisal {
   snapshot?: AssessmentSnapshot;
   documentHash?: string;
   parsingStatus?: 'PARSED_COMPLETE' | 'PARSED_INCOMPLETE' | 'PARSED_WITH_WARNINGS' | 'NOT_PARSED';
-  whoValidationStatus?: 'WHO_VALIDATED' | 'PENDING_VERIFICATION' | 'NEEDS_REVISION';
+  whoValidationStatus?: 'INTERNALLY_COMPLIANCE_CHECKED' | 'PENDING_VERIFICATION' | 'NEEDS_REVISION';
   authors: string;
   shortCitation: string;
   year: number;
