@@ -48,7 +48,7 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
       'Domene 5: Implementeringsprosessen (Implementation Process - planlegging, interessentinvolvering, gjennomføring, evaluering og refleksjon)'
     ],
     knownLimitations: 'Omfattende; krever prioritering av relevante konstrukter tilpasset studiens fokus.',
-    whoComplianceStatus: 'GOLD_STANDARD',
+    whoComplianceStatus: 'GOLD_STANDARD_REFERENCE',
     whoHandbookRef: 'WHO Implementation Research Guide (Chapter 4: Implementation Frameworks)',
     validationChecksum: 'SHA256:5a9101ff2a01490123cb',
     applicableStudyTypes: ['Implementeringsstudier', 'Prosess-evalueringer'],
@@ -107,7 +107,7 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
       'Trinn 7: Sikre varig opprettholdelse og bærekraft'
     ],
     knownLimitations: 'Fokuserer på prosessens flyt, må kombineres med determinantrammeverk (CFIR) for dybdeanalyse av barrierer.',
-    whoComplianceStatus: 'GOLD_STANDARD',
+    whoComplianceStatus: 'GOLD_STANDARD_REFERENCE',
     whoHandbookRef: 'WHO Knowledge Translation Framework (Annex 4)',
     validationChecksum: 'SHA256:2f88cc1091bca7',
     applicableStudyTypes: ['Implementeringsløp', 'KBP-prosjekter'],
@@ -160,7 +160,7 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
       'Maintenance (Opprettholdes effekten og praksisen over tid etter prosjektslutt?)'
     ],
     knownLimitations: 'Krever data både på individnivå (pasient) og systemnivå (organisasjon).',
-    whoComplianceStatus: 'GOLD_STANDARD',
+    whoComplianceStatus: 'GOLD_STANDARD_REFERENCE',
     whoHandbookRef: 'WHO Implementation Evaluation Guidelines',
     validationChecksum: 'SHA256:44aa55bb66cc',
     applicableStudyTypes: ['Evalueringsstudier', 'Folkehelsetiltak'],
@@ -216,7 +216,7 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
       '8. Bærekraft (Sustainability - varig integrering i drift)'
     ],
     knownLimitations: 'Fokuserer på utfallsmåling; suppleres med strategirammeverk som ERIC.',
-    whoComplianceStatus: 'GOLD_STANDARD',
+    whoComplianceStatus: 'GOLD_STANDARD_REFERENCE',
     whoHandbookRef: 'WHO Implementation Outcomes',
     validationChecksum: 'SHA256:88aa77bb',
     applicableStudyTypes: ['Implementeringsforskning'],
@@ -273,7 +273,7 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
       'Kategori 5: Mixed methods (Integrasjon av kval/kvant, integrasjonsbegrensninger, konsistens)'
     ],
     knownLimitations: '5 spørsmål per design gir en mer overordnet siling enn f.eks. fulle JBI- eller RoB 2-verktøy.',
-    whoComplianceStatus: 'GOLD_STANDARD',
+    whoComplianceStatus: 'GOLD_STANDARD_REFERENCE',
     whoHandbookRef: 'WHO Mixed Methods Synthesis Guidelines',
     validationChecksum: 'SHA256:77bb1190014a',
     applicableStudyTypes: ['Alle forskningsdesign i blandede oversikter'],
@@ -320,7 +320,7 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     interpretationModel: '1. Begrunnelse for mixed methods, 2. Designbeskrivelse, 3. Metoder for hver komponent, 4. Hvor integrasjon skjer, 5. Integrerte funn/innsikter, 6. Begrensninger ved metodekombinasjonen.',
     criticalDomains: ['Begrunnelse for metodeblanding (Item 1)', 'Eksplisitt integrasjonsmetode (Item 4)', 'Integrerte funn (Item 5)', 'Metodiske spenninger og begrensninger (Item 6)'],
     knownLimitations: 'Kortfattet sjekkliste.',
-    whoComplianceStatus: 'GOLD_STANDARD',
+    whoComplianceStatus: 'GOLD_STANDARD_REFERENCE',
     whoHandbookRef: 'WHO Mixed Methods Reporting',
     validationChecksum: 'SHA256:99bb88aa',
     applicableStudyTypes: ['Mixed methods-artikler'],
