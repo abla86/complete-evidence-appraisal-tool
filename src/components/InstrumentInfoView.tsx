@@ -111,7 +111,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
               <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
               <span>{inst.authorityLevel}</span>
             </div>
-            <p className="text-[11px] text-slate-500">{inst.whoComplianceStatus || 'WHO / Internasjonal standard'}</p>
+            <p className="text-[11px] text-slate-500">{inst.methodologyControlStatus || 'Metodisk kilde / internasjonal standard'}</p>
           </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
