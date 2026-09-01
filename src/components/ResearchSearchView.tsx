@@ -56,7 +56,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [results, setResults] = useState<OpenResearchRecord[]>([]);
   const [filterNorwegianOnly, setFilterNorwegianOnly] = useState<boolean>(false);
-  const [filterOpenAccessOnly, setFilterOpenAccessOnly] = useState<boolean>(false);
+  const [filterOpenAccessOnly, setFilterOpenAccessOnly] = useState<boolean>(false);\n  const [verificationByDoi, setVerificationByDoi] = useState<Record<string, any>>({});\n  const [verifyingDoi, setVerifyingDoi] = useState<string | null>(null);
   
   const [history, setHistory] = useState<SearchHistoryEntry[]>(() => {
     const saved = localStorage.getItem('evidence_appraisal_search_history_v2');
@@ -150,7 +150,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({
       if (fetched.length === 0) {
         showToast(`Ingen åpne artikler funnet i ${dbConfig.name} for "${q}"`, 'info');
       } else {
-        showToast(`Fant ${fetched.length} fagfellevurderte åpne publikasjoner i ${dbConfig.name}`, 'success');
+        showToast(`Fant ${fetched.length} treff i ${dbConfig.name}. Treffene er ikke automatisk klassifisert som fagfellevurderte.`, 'success');
       }
     } catch (err: any) {
       console.error('Search error:', err);
@@ -171,6 +171,39 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({
       return true;
     });
   }, [results, filterNorwegianOnly, filterOpenAccessOnly]);
+
+  const handleVerifyDoi = async (doi: string) => {
+    const cleanDoi = doi.trim();
+    if (!cleanDoi) return;
+
+    setVerifyingDoi(cleanDoi);
+    try {
+      const response = await fetch('/api/evidence/verify-doi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ doi: cleanDoi })
+      });
+      const data = await response.json();
+      setVerificationByDoi(prev => ({
+        ...prev,
+        [cleanDoi.toLowerCase()]: data
+      }));
+      if (data.success) {
+        showToast(
+          data.verification?.isRetracted
+            ? 'Kritisk varsel: Crossref har registrert en retraction-relasjon.'
+            : 'DOI verifisert mot Crossref. Fagfellevurdering er ikke konkludert automatisk.',
+          data.verification?.isRetracted ? 'warning' : 'success'
+        );
+      } else {
+        showToast('Ingen verifiserbar Crossref-post funnet. Dette betyr ikke automatisk at publikasjonen er ugyldig.', 'info');
+      }
+    } catch (err: any) {
+      showToast(`Kildeverifisering feilet: ${err.message || 'ukjent feil'}`, 'error');
+    } finally {
+      setVerifyingDoi(null);
+    }
+  };
 
   const handleImport = (rec: OpenResearchRecord) => {
     const formattedApa = Apa7CitationService.formatApa7({
@@ -224,7 +257,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({
             Søk i Globale & Norske Åpne Forskningspublikasjoner
           </h1>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Direktetilkobling til åpne, gratis vitenskapelige databaser (OpenAlex 250M+, Europe PMC, Crossref, PubMed, Semantic Scholar, DOAJ og Norske institusjonsarkiver via NVA/Cristin). Importer artikler direkte med fulltekst, DOI og APA 7th formatering inn i evalueringshvelvet.
+            Direktetilkobling til åpne vitenskapelige databaser (OpenAlex 250M+, Europe PMC, Crossref, PubMed, Semantic Scholar, DOAJ og Norske institusjonsarkiver via NVA/Cristin). Importer artikler direkte med fulltekst, DOI og APA 7th formatering inn i evalueringshvelvet.
           </p>
         </div>
       </div>
@@ -491,6 +524,18 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({
                               <span>Åpen PDF</span>
                             </a>
                           )}
+                          {rec.doi && (
+                            <button
+                              type="button"
+                              onClick={() => handleVerifyDoi(rec.doi!)}
+                              disabled={verifyingDoi === rec.doi}
+                              className="inline-flex items-center gap-1 text-xs text-teal-700 hover:text-teal-900 font-semibold disabled:opacity-50"
+                              title="Kontroller DOI og registrerte retractions/corrections mot Crossref"
+                            >
+                              <FileCheck className="w-3 h-3" />
+                              {verifyingDoi === rec.doi ? 'Kontrollerer...' : 'Verifiser DOI'}
+                            </button>
+                          )}
                           {rec.doiUrl && (
                             <a
                               href={rec.doiUrl}
@@ -505,6 +550,21 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({
                         </div>
                       </div>
                     </div>
+
+                    {rec.doi && verificationByDoi[rec.doi.toLowerCase()]?.success && (
+                      <div className="p-3.5 bg-teal-50/60 rounded-xl border border-teal-200 text-xs space-y-1.5">
+                        <div className="font-bold text-teal-950">Ekstern kildekontroll</div>
+                        <div className="text-slate-700">
+                          Crossref: registrert DOI-post.
+                          {verificationByDoi[rec.doi.toLowerCase()].verification?.isRetracted
+                            ? ' Retraction-relasjon registrert — manuell kontroll kreves.'
+                            : ' Ingen retraction-relasjon registrert i Crossref-data som ble returnert.'}
+                        </div>
+                        <div className="text-slate-500">
+                          Fagfellevurdering: kan ikke konkluderes fra Crossref alene.
+                        </div>
+                      </div>
+                    )}
 
                     {/* Abstract preview */}
                     {rec.abstract && (
