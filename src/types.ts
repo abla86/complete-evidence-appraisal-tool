@@ -296,7 +296,7 @@ export interface AppraisalInstrument {
   interpretationModel: string;
   criticalDomains?: string[];
   knownLimitations: string;
-  whoComplianceStatus: WhoComplianceStatus;
+  methodologyAlignmentStatus: MethodologyAlignmentStatus;
   whoHandbookRef: string;
   validationChecksum: string;
   applicableStudyTypes: string[];
