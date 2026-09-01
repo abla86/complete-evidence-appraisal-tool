@@ -505,7 +505,7 @@ export class MethodIntegrityGate {
         version: appraisal.instrumentVersion || '2017',
         itemId: 0,
         itemTitle: 'MethodIntegrityGate Verifikasjon',
-        previousAnswer: appraisal.whoValidationStatus || 'PENDING_VERIFICATION',
+        previousAnswer: appraisal.methodologyAlignmentStatus || 'PENDING_VERIFICATION',
         newAnswer: 'INTERNALLY_COMPLIANCE_CHECKED',
         previousRationale: 'Uverifisert',
         newRationale: `Godkjent gjennom MethodIntegrityGate (Hash: ${check.gateResult.integrityHash}). Kilde, versjon, antall kriterier og skåringsmodell er validert mot registeret.`,
@@ -518,7 +518,7 @@ export class MethodIntegrityGate {
 
     return {
       ...appraisal,
-      whoValidationStatus: 'INTERNALLY_COMPLIANCE_CHECKED',
+      methodologyAlignmentStatus: 'INTERNALLY_COMPLIANCE_CHECKED',
       snapshot: {
         ...snapshot,
         immutableLockHash: check.gateResult.integrityHash
