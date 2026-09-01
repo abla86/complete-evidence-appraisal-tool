@@ -179,7 +179,7 @@ export const MethodologyAuditView: React.FC = () => {
 
   const renderVersionValidityBadge = (instrument: AppraisalInstrument, auditItem?: MethodAuditItem) => {
     const isVersionPass = auditItem ? auditItem.versionStatus === 'PASS' : true;
-    const isCurrent = instrument.whoComplianceStatus === 'ACTIVE_INTERNATIONAL_STANDARD' || instrument.status === 'Active';
+    const isCurrent = instrument.methodologyControlStatus === 'ACTIVE_INTERNATIONAL_STANDARD' || instrument.status === 'Active';
 
     return (
       <div className="flex flex-col gap-0.5">
@@ -612,7 +612,7 @@ export const MethodologyAuditView: React.FC = () => {
                                       {inst?.edition || `Offisiell ${item.version} Standard`}
                                     </p>
                                     <p className="text-[10px] text-slate-600">
-                                      Status: <strong className="text-emerald-800">{inst?.whoComplianceStatus || 'ACTIVE_INTERNATIONAL_STANDARD'}</strong>
+                                      Status: <strong className="text-emerald-800">{inst?.methodologyControlStatus || 'ACTIVE_INTERNATIONAL_STANDARD'}</strong>
                                     </p>
                                     {inst?.validationChecksum && (
                                       <p className="text-[10px] text-slate-500 font-mono">
@@ -1095,7 +1095,7 @@ export const MethodologyAuditView: React.FC = () => {
                           <span>Gjeldende Versjonsgyldighet</span>
                         </span>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-200 text-emerald-950">
-                          {selectedInstrument.whoComplianceStatus || 'GJELDENDE STANDARD'}
+                          {selectedInstrument.methodologyControlStatus || 'GJELDENDE STANDARD'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-800 font-mono font-bold">
