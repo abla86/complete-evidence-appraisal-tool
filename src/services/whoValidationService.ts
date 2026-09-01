@@ -1,7 +1,7 @@
 import { 
   ArticleAppraisal, 
-  WhoComplianceReport, 
-  WhoRuleEvaluation,
+  MethodologyControlReport, 
+  MethodologyRuleEvaluation,
   AppraisalInstrument
 } from '../types';
 import { INSTRUMENTS_REGISTRY, JBI_QUESTIONS } from '../data/jbiData';
@@ -14,14 +14,14 @@ export class WhoValidationService {
   public static auditArticle(
     article: Partial<ArticleAppraisal>, 
     instrumentId: string = 'jbi-qualitative-2017'
-  ): WhoComplianceReport {
+  ): MethodologyControlReport {
     const instrument = INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId) || INSTRUMENTS_REGISTRY[0];
-    const rules: WhoRuleEvaluation[] = [];
+    const rules: MethodologyRuleEvaluation[] = [];
     const recommendations: string[] = [];
 
     // RULE 1: Model Version & Up-to-date Standard Verification
     const isLatestVersion = instrument.latestUpdateYear >= 2017;
-    const isWhoApproved = instrument.whoComplianceStatus === 'WHO_APPROVED' || instrument.whoComplianceStatus === 'GOLD_STANDARD' || instrument.whoComplianceStatus === 'ACTIVE_INTERNATIONAL_STANDARD';
+    const isWhoApproved = instrument.methodologyAlignmentStatus === 'OFFICIAL_SOURCE_REFERENCED' || instrument.methodologyAlignmentStatus === 'GOLD_STANDARD_REFERENCE' || instrument.methodologyAlignmentStatus === 'ACTIVE_INTERNATIONAL_STANDARD';
 
     rules.push({
       id: 'WHO-MOD-01',
@@ -178,7 +178,7 @@ export class WhoValidationService {
   /**
    * Generates a printable / downloadable internal academic methodological quality audit report
    */
-  public static generateCertificateText(report: WhoComplianceReport, article: Partial<ArticleAppraisal>): string {
+  public static generateCertificateText(report: MethodologyControlReport, article: Partial<ArticleAppraisal>): string {
     let cert = `================================================================================\n`;
     cert += `       METODISK KVALITETSREVISJONSRAPPORT & INTEGRITETSKONTROLL\n`;
     cert += `     Basert på prinsipper fra WHO Handbook (2. utg., 2014) & JBI Standards\n`;
