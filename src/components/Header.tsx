@@ -383,10 +383,8 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
-              <span>WHO Standard</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-teal-100 text-teal-900 font-bold">
-                2024
-              </span>
+              <span>Metodisk kontroll</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-teal-100 text-teal-900 font-bold">Kontroll</span>
             </button>
 
             <button
@@ -451,9 +449,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
               <span>Kilde- & Metoderevisjon</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-teal-100 text-teal-900 font-bold">
-                100%
-              </span>
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-teal-100 text-teal-900 font-bold">Audit</span>
             </button>
 
             <button
