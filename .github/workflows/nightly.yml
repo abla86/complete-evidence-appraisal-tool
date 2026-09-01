@@ -1,0 +1,41 @@
+name: Evidence Tool Nightly
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Package nightly artifact
+        run: |
+          rm -rf nightly
+          mkdir -p nightly
+          cp -r dist nightly/dist
+          cp package.json nightly/package.json
+      - name: Upload nightly artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-tool-nightly
+          path: nightly/
+          if-no-files-found: error
+          retention-days: 7
