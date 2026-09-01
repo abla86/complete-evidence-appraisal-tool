@@ -18,6 +18,7 @@ import {
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
 import { ArticleAppraisal, AuditTrailEntry } from './src/types';
 import { GoogleGenAI } from '@google/genai';
+import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
 
 // Lazy Gemini Client initialization
 let geminiClient: GoogleGenAI | null = null;
@@ -275,6 +276,76 @@ Returner KUN gyldig JSON med feltene:
       res.status(500).json({
         success: false,
         error: err.message || 'Feil ved metaundersøkelse av dokument'
+      });
+    }
+  });
+
+  // 6c. Evidence intelligence: bibliographic verification and structured literature search
+  app.post('/api/evidence/verify-doi', async (req: Request, res: Response) => {
+    try {
+      const { doi } = req.body;
+      if (!doi || typeof doi !== 'string') {
+        return res.status(400).json({
+          success: false,
+          error: 'DOI er påkrevd.'
+        });
+      }
+
+      const verification = await EvidenceIntelligenceService.verifyPublicationByDoi(doi);
+      if (!verification) {
+        return res.status(404).json({
+          success: false,
+          status: 'NOT_FOUND',
+          message: 'Ingen verifiserbar Crossref-post ble funnet. Dette er ikke i seg selv dokumentasjon på at publikasjonen er ugyldig.'
+        });
+      }
+
+      res.json({
+        success: true,
+        verification,
+        methodologicalNote: 'Crossref metadata kan ikke alene bekrefte fagfellevurdering.'
+      });
+    } catch (err: any) {
+      res.status(502).json({
+        success: false,
+        error: err.message || 'Feil ved ekstern kildeverifisering.'
+      });
+    }
+  });
+
+  app.get('/api/evidence/search/europe-pmc', async (req: Request, res: Response) => {
+    try {
+      const query = String(req.query.q || '').trim();
+      const pageSize = Number(req.query.pageSize || 25);
+      const page = Number(req.query.page || 1);
+
+      if (!query) {
+        return res.status(400).json({
+          success: false,
+          error: 'Søketekst mangler.'
+        });
+      }
+
+      const result = await EvidenceIntelligenceService.searchEuropePmc(query, pageSize, page);
+      const searchRecord = EvidenceIntelligenceService.createSearchRecord(
+        'Europe PMC',
+        result.query,
+        { pageSize, page },
+        result.total,
+        0,
+        result.results
+      );
+
+      res.json({
+        success: true,
+        ...result,
+        searchRecord,
+        prismaSNote: 'Søkehistorikken kan brukes som grunnlag for transparent rapportering av databasesøk; PRISMA-S-felter må fylles/valideres av forskeren.'
+      });
+    } catch (err: any) {
+      res.status(502).json({
+        success: false,
+        error: err.message || 'Europe PMC-søk feilet.'
       });
     }
   });
