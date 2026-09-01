@@ -395,14 +395,22 @@ Returner KUN gyldig JSON med feltene:
         });
       }
 
-      // Build comparison
+      // Compare the actual supplied item set. Do not hard-code ten questions:
+      // different instruments have different item counts and identifiers.
+      const r1Items = Array.isArray(r1.items) ? r1.items : [];
+      const r2Items = Array.isArray(r2.items) ? r2.items : [];
+      const itemIds = Array.from(new Set([
+        ...r1Items.map((i: any) => i.questionId),
+        ...r2Items.map((i: any) => i.questionId)
+      ])).sort((a: any, b: any) => Number(a) - Number(b));
+
       const itemComparisons = [];
       let agreements = 0;
       let disagreements = 0;
 
-      for (let qId = 1; qId <= 10; qId++) {
-        const item1 = r1.items?.find((i: any) => i.questionId === qId);
-        const item2 = r2.items?.find((i: any) => i.questionId === qId);
+      for (const qId of itemIds) {
+        const item1 = r1Items.find((i: any) => i.questionId === qId);
+        const item2 = r2Items.find((i: any) => i.questionId === qId);
 
         const s1 = item1?.status || 'Ubesvart';
         const s2 = item2?.status || 'Ubesvart';
@@ -413,7 +421,7 @@ Returner KUN gyldig JSON med feltene:
 
         itemComparisons.push({
           questionId: qId,
-          questionTitle: `Spørsmål ${qId}`,
+          questionTitle: item1?.questionTitle || item2?.questionTitle || `Spørsmål ${qId}`,
           r1Status: s1,
           r2Status: s2,
           isAgreement,
@@ -424,6 +432,11 @@ Returner KUN gyldig JSON med feltene:
         });
       }
 
+      const totalItems = itemComparisons.length;
+      const overallAgreementPercentage = totalItems === 0
+        ? 0
+        : Math.round((agreements / totalItems) * 100);
+
       res.json({
         success: true,
         comparison: {
@@ -432,7 +445,7 @@ Returner KUN gyldig JSON med feltene:
           reviewer1: r1,
           reviewer2: r2,
           itemComparisons,
-          overallAgreementPercentage: Math.round((agreements / 10) * 100),
+          overallAgreementPercentage,
           totalAgreements: agreements,
           totalDisagreements: disagreements,
           consensusVerdict: disagreements === 0 ? r1.verdict : 'Vurder videre'
