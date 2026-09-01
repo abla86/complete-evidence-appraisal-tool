@@ -216,7 +216,7 @@ export class OpenResearchApiService {
         isOpenAccess: item.isOpenAccess === 'Y',
         landingPageUrl: item.doi ? `https://doi.org/${item.doi}` : `https://europepmc.org/article/MED/${item.pmid}`,
         citationCount: item.citedByCount || 0,
-        studyTypeHint: item.pubType || 'Peer-reviewed research'
+        studyTypeHint: item.pubType || 'Research publication; peer-review status not verified by this field'
       }));
     } catch (err) {
       console.warn('Europe PMC search error:', err);
