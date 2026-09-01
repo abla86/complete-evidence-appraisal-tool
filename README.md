@@ -1,7 +1,7 @@
 # Evidence Appraisal Tool & Forsk på Forskning (Integritetsvakt)
 **Metavitenskapelig evalueringsplattform for forskningsmetode, retningslinjer og vitenskapelig integritet**
 
-![Methodology Integrity](https://img.shields.io/badge/Methodology%20Integrity-100%25%20Verified-teal)
+![Methodology Integrity](https://img.shields.io/badge/Methodology%20Integrity-Source%20Controlled-teal)
 ![Version Locking](https://img.shields.io/badge/Version%20Locking-Immutable-emerald)
 ![Test Pyramid](https://img.shields.io/badge/Test%20Pyramid-Level%201%20%7C%202%20%7C%203-blue)
 ![License](https://img.shields.io/badge/License-Academic%20%2F%20Open%20Access-slate)
@@ -15,10 +15,10 @@
 Plattformen håndterer:
 - **Automatisk dokumentklassifisering:** Identifiserer om en fil/artikkel er kvalitativ primærforskning, randomisert kontrollert studie (RCT), systematisk oversikt, klinisk retningslinje, observasjonsstudie eller implementeringsrammeverk.
 - **Integritetsvakt & Verktøyfinner:** Matcher automatisk studiens design mot autoritative, verifiserte metodiske instrumenter (JBI, AMSTAR 2, AGREE II, CASP, RoB 2, GRADE, PRISMA 2020 osv.).
-- **Garantert metodisk stringens:** Blokkerer uautoriserte prosentberegninger for verktøy som krever domenevurdering (f.eks. AMSTAR 2) eller kvalitativt skjønn (JBI / CASP).
+- **Metodisk integritet:** Blokkerer uautoriserte prosentberegninger for verktøy som krever domenevurdering (f.eks. AMSTAR 2) eller kvalitativt skjønn (JBI / CASP).
 - **Evidenssporbarhet:** Hvert enkelt spørsmål krever eksplisitt lokalisering (sidetall/avsnitt/figur), direkte sitat og forskerbegrunnelse.
 - **Dual Review & Inter-Rater Reliabilitet:** Støtter uavhengig vurdering av to granskere med automatisk beregning av prosentvis overensstemmelse og Cohens Kappa ($\kappa$).
-- **Gullstandard Referansevalidering:** Tester kontinuerlig systemets vurderingsmotorer mot fagfellevurderte referanseartikler med verifiserte DOI-er.
+- **Gullstandard- og referansevalidering:** Har en eksplisitt valideringsstrategi mot referanseartikler og testdata; bestått programvaretest er ikke det samme som metodisk sertifisering av en studie.
 
 ---
 
