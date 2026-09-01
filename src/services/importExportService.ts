@@ -1094,7 +1094,7 @@ export class ImportExportService {
       instrumentId: 'jbi-qualitative-2017',
       instrumentVersion: '2017',
       lifecycleStatus: 'DRAFT',
-      whoValidationStatus: 'PENDING_VERIFICATION',
+      methodologyAlignmentStatus: 'PENDING_VERIFICATION',
       parsingStatus: 'PARSED_COMPLETE',
       authors: params.authors,
       shortCitation,
