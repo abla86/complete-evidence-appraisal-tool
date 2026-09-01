@@ -225,7 +225,7 @@ export type MethodologyAlignmentStatus =
   | 'INTERNAL_SOURCE_CONTROLLED'
   | 'OFFICIAL_SOURCE_REFERENCED'
   | 'PEER_REVIEWED_SUPPORT'
-  | 'GOLD_STANDARD_REFERENCE'
+  | 'GOLD_STANDARD_REFERENCE_REFERENCE'
   | 'ACTIVE_INTERNATIONAL_STANDARD'
   | 'PENDING_VERIFICATION';
 
@@ -297,7 +297,7 @@ export interface AppraisalInstrument {
   criticalDomains?: string[];
   knownLimitations: string;
   methodologyAlignmentStatus: MethodologyAlignmentStatus;
-  whoHandbookRef: string;
+  sourceReference: string;
   validationChecksum: string;
   applicableStudyTypes: string[];
   qualityControlGuidelines: string;
@@ -523,7 +523,7 @@ export interface MetaResearchReport {
   engineUsed: 'GEMINI_AI' | 'DETERMINISTIC_FALLBACK' | 'GEMINI_AI_FLASH' | 'DETERMINISTIC_NLP_GATE';
 }
 
-export interface WhoRuleEvaluation {
+export interface MethodologyRuleEvaluation {
   id: string;
   name: string;
   standard: string;
@@ -603,7 +603,7 @@ export interface GradeCerqualSummaryItem {
   explanation: string;
 }
 
-export interface WhoComplianceReport {
+export interface MethodologyControlReport {
   overallPassed: boolean;
   complianceScore: number; // 0 to 100
   whoHandbookStandard: string;
@@ -612,7 +612,7 @@ export interface WhoComplianceReport {
   modelChecksum: string;
   timestamp: string;
   articleCitation: string;
-  rules: WhoRuleEvaluation[];
+  rules: MethodologyRuleEvaluation[];
   passedRuleCount: number;
   totalRuleCount: number;
   summaryVerdict: 'INTERN_METODISK_KONTROLLERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT';
@@ -680,7 +680,7 @@ export interface ValidationReport {
   scoreCalculation: ScoreCalculationResult;
   verdictRecommendation: VerdictRecommendation;
   summaryVerdictSuggestion: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon' | 'Ufullstendig';
-  whoCompliance?: WhoComplianceReport;
+  methodologyControl?: MethodologyControlReport;
 }
 
 export interface ArticleAppraisal {
@@ -691,7 +691,7 @@ export interface ArticleAppraisal {
   snapshot?: AssessmentSnapshot;
   documentHash?: string;
   parsingStatus?: 'PARSED_COMPLETE' | 'PARSED_INCOMPLETE' | 'PARSED_WITH_WARNINGS' | 'NOT_PARSED';
-  whoValidationStatus?: 'INTERNALLY_COMPLIANCE_CHECKED' | 'PENDING_VERIFICATION' | 'NEEDS_REVISION';
+  methodologyAlignmentStatus?: 'INTERNAL_SOURCE_CONTROLLED' | 'PENDING_VERIFICATION' | 'NEEDS_REVISION';
   authors: string;
   shortCitation: string;
   year: number;
