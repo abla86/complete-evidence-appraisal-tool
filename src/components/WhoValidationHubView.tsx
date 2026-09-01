@@ -155,7 +155,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
     report: WhoValidationService.auditArticle(art, art.instrumentId || 'jbi-qualitative-2017')
   }));
 
-  const fullyCompliantCount = libraryReports.filter(r => r.report.summaryVerdict === 'WHO-VALIDERT').length;
+  const fullyCompliantCount = libraryReports.filter(r => r.report.summaryVerdict === 'INTERN_METODISK_KONTROLLERT').length;
   const avgComplianceScore = libraryReports.length > 0
     ? Math.round(libraryReports.reduce((acc, r) => acc + r.report.complianceScore, 0) / libraryReports.length)
     : 100;
@@ -411,7 +411,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
 
                     <div className="flex items-center gap-2">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        auditReport.summaryVerdict === 'WHO-VALIDERT'
+                        auditReport.summaryVerdict === 'INTERN_METODISK_KONTROLLERT'
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                           : 'bg-amber-100 text-amber-800 border border-amber-300'
                       }`}>
@@ -545,7 +545,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                           <div className="text-[11px] text-slate-500 truncate">{article.title}</div>
                         </div>
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
-                          report.summaryVerdict === 'WHO-VALIDERT'
+                          report.summaryVerdict === 'INTERN_METODISK_KONTROLLERT'
                             ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-amber-100 text-amber-800'
                         }`}>
