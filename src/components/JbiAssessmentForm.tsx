@@ -164,7 +164,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
       id: initialArticle?.id || `jbi-custom-${Date.now()}`,
       instrumentId: 'jbi-qualitative-2017',
       instrumentVersion: '2017 (2024 WHO Update)',
-      methodologyAlignmentStatus: validationReport?.whoCompliance?.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? 'INTERNAL_SOURCE_CONTROLLED' : 'PENDING_VERIFICATION',
+      methodologyAlignmentStatus: validationReport?.methodologyControl?.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? 'INTERNAL_SOURCE_CONTROLLED' : 'PENDING_VERIFICATION',
       title,
       authors: authors || 'Uspesifiserte forfattere',
       shortCitation,
@@ -278,20 +278,20 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
                 </div>
               </div>
 
-              {/* WHO Compliance Status Badge */}
+              {/* Metodisk kontroll Status Badge */}
               <div className="flex items-center gap-2">
-                {validationReport.whoCompliance && (
+                {validationReport.methodologyControl && (
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                    validationReport.whoCompliance.summaryVerdict === 'INTERN_METODISK_KONTROLLERT'
+                    validationReport.methodologyControl.summaryVerdict === 'INTERN_METODISK_KONTROLLERT'
                       ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                       : 'bg-amber-100 text-amber-900 border border-amber-300'
                   }`}>
-                    {validationReport.whoCompliance.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? (
+                    {validationReport.methodologyControl.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
                     ) : (
                       <AlertCircle className="w-3.5 h-3.5 text-amber-700" />
                     )}
-                    <span>Metodisk kontroll: {validationReport.whoCompliance.summaryVerdict} ({validationReport.whoCompliance.complianceScore}%)</span>
+                    <span>Metodisk kontroll: {validationReport.methodologyControl.summaryVerdict} ({validationReport.methodologyControl.complianceScore}%)</span>
                   </span>
                 )}
               </div>
