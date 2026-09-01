@@ -412,7 +412,7 @@ export class MethodIntegrityGate {
   }
 
   /**
-   * Evaluates if an appraisal can be marked as 'Verified' or 'WHO_VALIDATED'.
+   * Evaluates if an appraisal can be marked as 'Verified' or 'INTERNALLY_COMPLIANCE_CHECKED'.
    */
   public static canMarkAsVerified(appraisal: ArticleAppraisal): {
     allowed: boolean;
@@ -506,7 +506,7 @@ export class MethodIntegrityGate {
         itemId: 0,
         itemTitle: 'MethodIntegrityGate Verifikasjon',
         previousAnswer: appraisal.whoValidationStatus || 'PENDING_VERIFICATION',
-        newAnswer: 'WHO_VALIDATED',
+        newAnswer: 'INTERNALLY_COMPLIANCE_CHECKED',
         previousRationale: 'Uverifisert',
         newRationale: `Godkjent gjennom MethodIntegrityGate (Hash: ${check.gateResult.integrityHash}). Kilde, versjon, antall kriterier og skåringsmodell er validert mot registeret.`,
         changedBy: verifiedBy,
@@ -518,7 +518,7 @@ export class MethodIntegrityGate {
 
     return {
       ...appraisal,
-      whoValidationStatus: 'WHO_VALIDATED',
+      whoValidationStatus: 'INTERNALLY_COMPLIANCE_CHECKED',
       snapshot: {
         ...snapshot,
         immutableLockHash: check.gateResult.integrityHash
