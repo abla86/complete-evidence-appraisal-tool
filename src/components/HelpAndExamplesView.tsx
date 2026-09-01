@@ -97,7 +97,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
       instrumentId: currentExample.instrumentId,
       instrumentVersion: '2017/2024',
       lifecycleStatus: 'FINALIZED',
-      whoValidationStatus: 'WHO_VALIDATED',
+      whoValidationStatus: 'INTERNALLY_COMPLIANCE_CHECKED',
       parsingStatus: 'PARSED_COMPLETE',
       authors: currentExample.article.authors,
       shortCitation: currentExample.article.shortCitation,
