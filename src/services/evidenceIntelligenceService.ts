@@ -1,16 +1,40 @@
-import type { ExternalPublicationRecord, SearchQueryRecord } from '../types';
+interface ExternalPublicationRecord {
+  doi?: string;
+  title: string;
+  authors: string[];
+  journal: string;
+  year?: number;
+  publisher?: string;
+  isPeerReviewed: 'VERIFIED' | 'LIKELY' | 'CANNOT_VERIFY' | 'NOT_PEER_REVIEWED';
+  isRetracted: boolean;
+  retractionDetails?: string;
+  hasCorrection: boolean;
+  verificationSource: 'CROSSREF' | 'EUROPE_PMC' | 'PUBMED' | 'MANUAL_OFFLINE';
+}
+
+export interface SearchQueryRecord {
+  id: string;
+  database: string;
+  dateSearched: string;
+  searchString: string;
+  filters: Record<string, unknown>;
+  totalResults: number;
+  selectedCount: number;
+  records: any[];
+}
 
 /**
  * External bibliographic verification and evidence-search boundary.
  *
- * Important methodological rule:
+ * Methodological safeguards:
  * - Bibliographic metadata is evidence about the publication record.
  * - A journal-article record is NOT treated as proof of peer review.
  * - A missing external record is NOT treated as proof that a publication is invalid.
+ * - Retraction/correction signals are warnings requiring researcher review.
  */
 export class EvidenceIntelligenceService {
   static async verifyPublicationByDoi(doi: string): Promise<ExternalPublicationRecord | null> {
-    const cleanDoi = doi.trim().replace(/^https?:\\/\\/doi\\.org\\//i, '');
+    const cleanDoi = doi.trim().replace(/^https?:\/\/doi\.org\//i, '');
     if (!cleanDoi) return null;
 
     const response = await fetch(
@@ -24,7 +48,9 @@ export class EvidenceIntelligenceService {
     if (!item) return null;
 
     const updates = Array.isArray(item['update-to']) ? item['update-to'] : [];
-    const retraction = updates.find((u: any) => String(u?.type || '').toLowerCase().includes('retraction'));
+    const retraction = updates.find((u: any) =>
+      String(u?.type || '').toLowerCase().includes('retraction')
+    );
     const correction = updates.find((u: any) => {
       const type = String(u?.type || '').toLowerCase();
       return type.includes('erratum') || type.includes('correction');
@@ -36,13 +62,17 @@ export class EvidenceIntelligenceService {
       authors: Array.isArray(item.author)
         ? item.author.map((a: any) => [a?.given, a?.family].filter(Boolean).join(' '))
         : [],
-      journal: Array.isArray(item['container-title']) ? item['container-title'][0] : String(item['container-title'] || ''),
+      journal: Array.isArray(item['container-title'])
+        ? item['container-title'][0]
+        : String(item['container-title'] || ''),
       year: item.issued?.['date-parts']?.[0]?.[0],
       publisher: item.publisher,
       // Crossref publication type cannot establish peer-review status.
       isPeerReviewed: 'CANNOT_VERIFY',
       isRetracted: Boolean(retraction),
-      retractionDetails: retraction ? String(retraction?.label || retraction?.type || 'Retraction record found') : undefined,
+      retractionDetails: retraction
+        ? String(retraction?.label || retraction?.type || 'Retraction record found')
+        : undefined,
       hasCorrection: Boolean(correction),
       verificationSource: 'CROSSREF'
     };
@@ -63,7 +93,9 @@ export class EvidenceIntelligenceService {
     url.searchParams.set('page', String(Math.max(page, 1)));
 
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`Europe PMC svarte med HTTP ${response.status}.`);
+    if (!response.ok) {
+      throw new Error(`Europe PMC svarte med HTTP ${response.status}.`);
+    }
 
     const data = await response.json() as any;
     const results = (data.resultList?.result || []).map((r: any) => ({
