@@ -164,7 +164,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
       id: initialArticle?.id || `jbi-custom-${Date.now()}`,
       instrumentId: 'jbi-qualitative-2017',
       instrumentVersion: '2017 (2024 WHO Update)',
-      whoValidationStatus: validationReport?.whoCompliance?.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? 'INTERNALLY_COMPLIANCE_CHECKED' : 'PENDING_VERIFICATION',
+      methodologyAlignmentStatus: validationReport?.whoCompliance?.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? 'INTERNAL_SOURCE_CONTROLLED' : 'PENDING_VERIFICATION',
       title,
       authors: authors || 'Uspesifiserte forfattere',
       shortCitation,
@@ -199,7 +199,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
     };
 
     onSaveArticle(articleRecord);
-    showToast('JBI 2017 Vurdering lagret og validert!');
+    showToast('JBI 2017-vurdering lagret.');
   };
 
   const activeItem = items.find(i => i.questionId === activeQuestionId) || items[0];
@@ -291,7 +291,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
                     ) : (
                       <AlertCircle className="w-3.5 h-3.5 text-amber-700" />
                     )}
-                    <span>WHO Standard: {validationReport.whoCompliance.summaryVerdict} ({validationReport.whoCompliance.complianceScore}%)</span>
+                    <span>Metodisk kontroll: {validationReport.whoCompliance.summaryVerdict} ({validationReport.whoCompliance.complianceScore}%)</span>
                   </span>
                 )}
               </div>
