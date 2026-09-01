@@ -82,21 +82,19 @@ export default function App() {
         setSelectedArticleId(sanitized[0].id);
       }
     } else {
-      setArticles(prev => {
-        const existingIds = new Set(prev.map(p => p.id));
-        const newItems: ArticleAppraisal[] = [];
-        importedArticles.forEach(item => {
-          let uniqueId = item.id;
-          if (!uniqueId || existingIds.has(uniqueId)) {
-            uniqueId = generateArticleId('art');
-          }
-          existingIds.add(uniqueId);
-          newItems.push({ ...item, id: uniqueId });
-        });
-        return [...newItems, ...prev];
+      const existingIds = new Set(articles.map(p => p.id));
+      const newItems: ArticleAppraisal[] = [];
+      importedArticles.forEach(item => {
+        let uniqueId = item.id;
+        if (!uniqueId || existingIds.has(uniqueId)) {
+          uniqueId = generateArticleId('art');
+        }
+        existingIds.add(uniqueId);
+        newItems.push({ ...item, id: uniqueId });
       });
-      if (importedArticles.length > 0) {
-        setSelectedArticleId(importedArticles[0].id);
+      setArticles(prev => [...newItems, ...prev]);
+      if (newItems.length > 0) {
+        setSelectedArticleId(newItems[0].id);
       }
     }
   };
@@ -348,7 +346,7 @@ export default function App() {
                       const newArt: ArticleAppraisal = {
                         id: articleId,
                         instrumentId: instrumentId,
-                        instrumentVersion: '2017/2024',
+                        instrumentVersion: 'PENDING_VERIFICATION',
                         lifecycleStatus: 'DRAFT',
                         title: prefillArticle.title || 'Ny Forskingsartikkel',
                         authors: prefillArticle.authors || 'Forfattere',
@@ -364,13 +362,13 @@ export default function App() {
                         dataCollection: 'Intervjuer / Observasjon',
                         participants: 'Deltakere / Informanter',
                         analyticMethod: 'Tematisk / Hermeneutisk analyse',
-                        summaryScore: { ja: 10, uklart: 0, nei: 0, total: 10 },
-                        overallVerdict: 'Inkluder',
+                        summaryScore: { ja: 0, uklart: 10, nei: 0, total: 10 },
+                        overallVerdict: 'Vurder videre',
                         verdictNote: 'Opprettet via Forsk på Forskning (Integritetsvakt)',
                         keyStrength: 'Tydelig formål og metodisk koherens',
                         mainLimitation: 'Kontekstavhengig overførbarhet',
                         apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`,
-                        items: createBlankJbiItems('Ja', `Vurdert i henhold til ${instrumentId.toUpperCase()}`),
+                        items: createBlankJbiItems('Uklart', `Importert for vurdering med ${instrumentId.toUpperCase()}; ingen metodisk vurdering er forhåndsutført.`),
                         auditTrail: [
                           {
                             id: generateAuditId('audit'),
