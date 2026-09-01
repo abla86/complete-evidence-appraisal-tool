@@ -163,7 +163,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
     const articleRecord: ArticleAppraisal = {
       id: initialArticle?.id || `jbi-custom-${Date.now()}`,
       instrumentId: 'jbi-qualitative-2017',
-      instrumentVersion: '2017 (2024 WHO Update)',
+      instrumentVersion: '2017',
       methodologyAlignmentStatus: validationReport?.methodologyControl?.summaryVerdict === 'INTERN_METODISK_KONTROLLERT' ? 'INTERNAL_SOURCE_CONTROLLED' : 'PENDING_VERIFICATION',
       title,
       authors: authors || 'Uspesifiserte forfattere',
@@ -251,7 +251,7 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
           </div>
         </div>
 
-        {/* Validation & WHO Completeness Strip */}
+        {/* Validation & methodological control strip */}
         {validationReport && (
           <div className="mt-4 pt-4 border-t border-slate-200 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
