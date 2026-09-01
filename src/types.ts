@@ -221,11 +221,13 @@ export type ScoringModelType =
   | 'critical-domain-weighting'
   | 'not-verified';
 
-export type WhoComplianceStatus = 
-  | 'WHO_APPROVED' 
-  | 'WHO_ALIGNED' 
-  | 'GOLD_STANDARD' 
-  | 'ACTIVE_INTERNATIONAL_STANDARD';
+export type MethodologyAlignmentStatus =
+  | 'INTERNAL_SOURCE_CONTROLLED'
+  | 'OFFICIAL_SOURCE_REFERENCED'
+  | 'PEER_REVIEWED_SUPPORT'
+  | 'GOLD_STANDARD_REFERENCE'
+  | 'ACTIVE_INTERNATIONAL_STANDARD'
+  | 'PENDING_VERIFICATION';
 
 export type MethodologicalFunctionType =
   | 'CRITICAL_APPRAISAL'
