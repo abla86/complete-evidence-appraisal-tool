@@ -76,14 +76,26 @@ export const DualReviewView: React.FC<DualReviewViewProps> = ({
   });
 
   // Reviewer 2 items (calibrated independent dual review protocol)
+  // Reviewer 2 must be an independent data source. Never copy Reviewer 1 answers.
+  const [reviewer2Draft, setReviewer2Draft] = useState<Record<number, AssessmentStatus>>({});
+
   const reviewer2Items = useMemo(() => {
-    if (!dualArticle || !dualArticle.items) return [];
+    if (!dualArticle?.items) return [];
     return dualArticle.items.map(it => ({
       ...it,
-      status: it.status,
-      justification: `Uavhengig evaluering (Reviewer 2): Verifisert mot studiens kildemateriale og metodiske rapportering.`
+      status: reviewer2Draft[it.questionId] || 'Uklart',
+      justification: reviewer2Draft[it.questionId]
+        ? 'Reviewer 2: uavhengig vurdering registrert.'
+        : 'Reviewer 2: ikke vurdert ennå.'
     }));
-  }, [dualArticle]);
+  }, [dualArticle, reviewer2Draft]);
+
+  const handleReviewer2StatusChange = (qId: number, status: AssessmentStatus) => {
+    setReviewer2Draft(prev => ({ ...prev, [qId]: JbiQualitativeValidationService.normalizeStatus(status) }));
+  };
+
+  const reviewer2Complete = !!dualArticle?.items?.length &&
+    dualArticle.items.every(item => Boolean(reviewer2Draft[item.questionId]));
 
   // Inter-Rater Reliability
   const agreement = useMemo(() => {
@@ -111,7 +123,7 @@ export const DualReviewView: React.FC<DualReviewViewProps> = ({
     }));
   };
 
-  const handleSaveConsensus = () => {
+  const handleSaveConsensus = () => {\n    if (!reviewer2Complete) { showToast('Reviewer 2 må vurdere alle kriterier før konsensus kan registreres.', 'warning'); return; }
     try {
       confetti({
         particleCount: 70,
@@ -154,6 +166,28 @@ export const DualReviewView: React.FC<DualReviewViewProps> = ({
         );
       });
   }, [articles, selectedArticleIds, searchTerm]);
+
+  const renderReviewer2Controls = () => {
+    if (!dualArticle?.items) return null;
+    return (
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+        <div>
+          <h3 className="font-bold text-slate-900">Reviewer 2 — uavhengig vurdering</h3>
+          <p className="text-xs text-slate-600">Reviewer 2 registreres separat. Dette hindrer kunstig høy inter-rater agreement.</p>
+        </div>
+        {dualArticle.items.map(item => (
+          <div key={item.questionId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-slate-50">
+            <span className="text-xs font-semibold">Q{item.questionId}. {item.questionTitle}</span>
+            <select value={reviewer2Draft[item.questionId] || ''} onChange={e => handleReviewer2StatusChange(item.questionId, e.target.value as AssessmentStatus)} className="text-xs border rounded-lg px-2 py-1.5 bg-white">
+              <option value="">Ikke vurdert</option>
+              <option value="Ja">Ja</option><option value="Ja, med forbehold">Ja, med forbehold</option>
+              <option value="Nei">Nei</option><option value="Uklart">Uklart</option><option value="Ikke relevant">Ikke relevant</option>
+            </select>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   // Export handlers for Multi-Study Synthesis Matrix
   const exportMatrixCsv = () => {
