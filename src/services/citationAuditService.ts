@@ -1,6 +1,7 @@
 import { buildCitation, type CitationStyle } from './academicCitationService';
 import type { ReferenceRecord } from './referenceHubService';
 import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
+import { resolveReferenceForSource } from './evidenceIdentityService';
 
 export interface CitationAuditResult {
   claimId: string;
@@ -29,12 +30,19 @@ export function runCitationAudit(
 ): CitationAuditReport {
   const results = claims.map(claim => {
     const linkedEvidence = evidence.filter(item => claim.supportingEvidenceIds.includes(item.id));
-    const sourceIds = new Set(linkedEvidence.map(item => item.sourceRecordId));
-    const linkedReferences = references.filter(reference => sourceIds.has(reference.id));
+    const linkedReferences = linkedEvidence
+      .map(item => resolveReferenceForSource({
+        recordId: item.sourceRecordId,
+        identifiers: item.identifiers,
+        metadata: item.sourceMetadata,
+        referenceDraft: item.referenceDraft,
+      }, references))
+      .filter((reference): reference is ReferenceRecord => Boolean(reference))
+      .filter((reference, index, all) => all.findIndex(r => r.id === reference.id) === index);
     const reasons: string[] = [];
 
     if (!linkedEvidence.length) reasons.push('Ingen evidens er lenket til påstanden.');
-    if (linkedReferences.length !== sourceIds.size) reasons.push('Minst én evidenskilde mangler referansepost i Reference Hub.');
+    if (linkedReferences.length === 0 && linkedEvidence.length) reasons.push('Minst én evidenskilde mangler referansepost i Reference Hub.');
     if (linkedReferences.some(reference => reference.verification !== 'VALIDATED')) reasons.push('Minst én referanse er ikke bibliografisk verifisert.');
     if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.researcherVerified)) reasons.push('Minst én evidensuttrekking er ikke kontrollert av forsker.');
     if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.location?.page && !item.location?.section && !item.location?.table && !item.location?.figure)) reasons.push('Minst én evidensenhet mangler lokasjon.');
