@@ -4,6 +4,7 @@
  */
 export {
   createResearchWorkflow,
+  createResearchWorkflowFromFile,
   createResearchWorkflowFromText,
   updateResearchClassification,
   verifyResearchClassification,
