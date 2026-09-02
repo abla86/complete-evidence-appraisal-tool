@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import type { SourceRecord } from '../domain/sourceRecord';
 import { AuditTrailService } from '../services/auditTrailService';
 import { importSourceRecordJson } from '../services/sourceRecordIntakeAdapter';
-import { intakeSourceRecord } from '../services/sourceIntakeService';
 
 const actor = { id: 'test-reviewer', role: 'reviewer' as const };
 
@@ -18,8 +17,9 @@ export const SourceRecordIntakeView: React.FC = () => {
     saveRecord: (next: SourceRecord) => setStored((prev) => [...prev, next]),
   }), [stored]);
 
-  const handleImport = () => {
-    const result = importSourceRecordJson(json, actor, store, audit);
+  const handleImport = async () => {
+    setMessage('');
+    const result = await importSourceRecordJson(json, actor, store, audit);
     if (!result.accepted) {
       setRecord(null);
       setMessage(`Import avvist: ${result.errors.join(' | ')}`);
