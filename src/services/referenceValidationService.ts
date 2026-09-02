@@ -1,13 +1,13 @@
-import { 
-  ReferenceValidationArticle, 
-  GoldStandardDiffResult, 
+import {
+  ReferenceValidationArticle,
+  GoldStandardDiffResult,
   GoldStandardDiffItem,
   DiffSeverity,
   GoldStandardMatchStatus,
   ArticleAppraisal
 } from '../types';
 import { REFERENCE_VALIDATION_ARTICLES } from '../data/referenceValidationData';
-import { 
+import {
   Amstar2RatingService,
   Agree2AssessmentEngine,
   Agree2ScoringService,
@@ -16,22 +16,16 @@ import {
 } from './assessmentEngines';
 
 export class ReferenceValidationService {
-  /**
-   * Henter alle registrerte referansevalideringsartikler
-   */
   public static getAllReferenceArticles(): ReferenceValidationArticle[] {
     return REFERENCE_VALIDATION_ARTICLES;
   }
 
-  /**
-   * Finner referanseartikkel basert på ID, DOI eller tittel
-   */
   public static findReferenceArticle(identifier: string): ReferenceValidationArticle | undefined {
     const idClean = identifier.toLowerCase().trim();
     return REFERENCE_VALIDATION_ARTICLES.find(
       ref => ref.id.toLowerCase() === idClean ||
-             ref.doi.toLowerCase().includes(idClean) ||
-             ref.title.toLowerCase().includes(idClean)
+        ref.doi.toLowerCase().includes(idClean) ||
+        ref.title.toLowerCase().includes(idClean)
     );
   }
 
@@ -39,9 +33,6 @@ export class ReferenceValidationService {
     return this.findReferenceArticle(id);
   }
 
-  /**
-   * Kjører item-for-item diff mot en gullstandard referanseartikkel
-   */
   public static compareAgainstGoldStandard(
     referenceArticle: ReferenceValidationArticle,
     appResponses: Record<number, string>
@@ -52,13 +43,11 @@ export class ReferenceValidationService {
     let highMismatches = 0;
     let mediumMismatches = 0;
     let lowMismatches = 0;
-
-    const criticalDomainItems = [2, 4, 7, 9, 11, 13, 15]; // For AMSTAR 2, etc.
+    const criticalDomainItems = [2, 4, 7, 9, 11, 13, 15];
 
     referenceArticle.itemData.forEach(refItem => {
       const appResp = appResponses[refItem.itemNumber] || 'Ikke vurdert';
       const refResp = refItem.referenceResponse;
-
       const isExactMatch = this.normalizeResponse(appResp) === this.normalizeResponse(refResp);
       const isPartialMatch = !isExactMatch && this.isPartialAgreement(appResp, refResp);
 
@@ -72,14 +61,13 @@ export class ReferenceValidationService {
         diffDesc = `Avvik: Applikasjon svarte "${appResp}", mens referanse er "${refResp}".`;
       }
 
-      // Vurder alvorlighetsgrad (Severity)
       let severity: DiffSeverity = 'LOW';
       if (!isExactMatch) {
         if (referenceArticle.instrumentId === 'amstar-2' && criticalDomainItems.includes(refItem.itemNumber)) {
           severity = 'CRITICAL';
           criticalMismatches++;
         } else if (refItem.itemNumber <= 2 && referenceArticle.instrumentId.includes('casp')) {
-          severity = 'CRITICAL'; // Screening questions in CASP
+          severity = 'CRITICAL';
           criticalMismatches++;
         } else if (isPartialMatch) {
           severity = 'MEDIUM';
@@ -107,19 +95,21 @@ export class ReferenceValidationService {
     const matchPercentage = totalItems > 0 ? Math.round((matchingItemsCount / totalItems) * 100) : 0;
 
     let matchStatus: GoldStandardMatchStatus = 'MISMATCH';
-    if (matchPercentage === 100) {
+    if (totalItems === 0) {
+      matchStatus = 'UNABLE_TO_COMPARE';
+    } else if (matchPercentage === 100) {
       matchStatus = 'MATCH';
     } else if (matchPercentage >= 70 && criticalMismatches === 0) {
       matchStatus = 'PARTIAL_MATCH';
-    } else if (totalItems === 0) {
-      matchStatus = 'UNABLE_TO_COMPARE';
     }
 
     const summaryMessage = matchStatus === 'MATCH'
       ? `100% fullstendig samsvar (${matchingItemsCount}/${totalItems} items) med publisert gullstandard fra ${referenceArticle.journal} (${referenceArticle.year}).`
       : matchStatus === 'PARTIAL_MATCH'
-      ? `Delvis metodisk overensstemmelse (${matchPercentage}% - ${matchingItemsCount}/${totalItems} items). Ingen kritiske domeneavvik.`
-      : `Metodisk avvik registrert (${matchingItemsCount}/${totalItems} items samsvarer, ${criticalMismatches} kritiske avvik).`;
+        ? `Delvis metodisk overensstemmelse (${matchPercentage}% - ${matchingItemsCount}/${totalItems} items). Ingen kritiske domeneavvik.`
+        : matchStatus === 'UNABLE_TO_COMPARE'
+          ? 'Sammenligning kunne ikke utføres fordi gullstandarden mangler vurderingspunkter.'
+          : `Metodisk avvik registrert (${matchingItemsCount}/${totalItems} items samsvarer, ${criticalMismatches} kritiske avvik).`;
 
     return {
       articleId: referenceArticle.id,
@@ -142,9 +132,6 @@ export class ReferenceValidationService {
     };
   }
 
-  /**
-   * Kjører Level 3 referansevalidering over hele datasettet
-   */
   public static runLevel3ReferenceTestSuite(): {
     totalArticles: number;
     passedArticles: number;
@@ -155,7 +142,7 @@ export class ReferenceValidationService {
       instrument: string;
       expectedVerdict: string;
       calculatedVerdict: string;
-      status: 'PASS' | 'FAIL';
+      status: 'PASS' | 'FAIL' | 'UNABLE_TO_COMPARE';
       executionTimeMs: number;
     }[];
   } {
@@ -165,7 +152,7 @@ export class ReferenceValidationService {
       instrument: string;
       expectedVerdict: string;
       calculatedVerdict: string;
-      status: 'PASS' | 'FAIL';
+      status: 'PASS' | 'FAIL' | 'UNABLE_TO_COMPARE';
       executionTimeMs: number;
     }[] = [];
 
@@ -176,6 +163,7 @@ export class ReferenceValidationService {
       const startTime = performance.now();
       let calculatedVerdict = '';
       let isPass = false;
+      let comparable = true;
 
       if (art.instrumentId === 'amstar-2') {
         const itemMap: Record<number, any> = {};
@@ -199,9 +187,8 @@ export class ReferenceValidationService {
         art.itemData.forEach(it => {
           ratings[it.itemNumber] = parseInt(it.referenceResponse, 10) || 7;
         });
-        // Populate all 23 items with high score if not specified
         for (let i = 1; i <= 23; i++) {
-          if (!ratings[i]) ratings[i] = 7;
+          if (ratings[i] === undefined) ratings[i] = 7;
         }
         const evalRes = Agree2AssessmentEngine.evaluateDomainScores(ratings, 1);
         calculatedVerdict = evalRes.overallRecommendation;
@@ -225,17 +212,14 @@ export class ReferenceValidationService {
         calculatedVerdict = evalRes.overallRiskOfBias;
         isPass = calculatedVerdict === art.expectedOverallScoreOrVerdict;
       } else {
-        calculatedVerdict = art.expectedOverallScoreOrVerdict || 'PASS';
-        isPass = true;
+        comparable = false;
+        calculatedVerdict = 'UNABLE_TO_COMPARE';
       }
 
       const elapsed = Math.round(performance.now() - startTime);
-
-      if (isPass) {
-        passed++;
-      } else {
-        failed++;
-      }
+      const status = !comparable ? 'UNABLE_TO_COMPARE' : isPass ? 'PASS' : 'FAIL';
+      if (status === 'PASS') passed++;
+      if (status === 'FAIL') failed++;
 
       results.push({
         articleId: art.id,
@@ -243,7 +227,7 @@ export class ReferenceValidationService {
         instrument: `${art.instrumentName} (${art.instrumentVersion})`,
         expectedVerdict: art.expectedOverallScoreOrVerdict || 'N/A',
         calculatedVerdict,
-        status: isPass ? 'PASS' : 'FAIL',
+        status,
         executionTimeMs: elapsed
       });
     });
@@ -268,8 +252,7 @@ export class ReferenceValidationService {
   private static isPartialAgreement(a: string, b: string): boolean {
     const na = this.normalizeResponse(a);
     const nb = this.normalizeResponse(b);
-    if (na === 'neutral' && (nb === 'positive' || nb === 'negative')) return true;
-    if (nb === 'neutral' && (na === 'positive' || na === 'negative')) return true;
-    return false;
+    return (na === 'neutral' && (nb === 'positive' || nb === 'negative')) ||
+      (nb === 'neutral' && (na === 'positive' || na === 'negative'));
   }
 }
