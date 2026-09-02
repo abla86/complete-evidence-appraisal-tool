@@ -13,6 +13,7 @@ import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
+import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -33,6 +34,7 @@ async function startServer() {
 
   registerResearchEngineIntegration(app);
   registerResearchWorkflowApi(app);
+  registerAppraisalWorkflowApi(app);
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({
@@ -41,6 +43,7 @@ async function startServer() {
       version: '2026.1',
       researchEngine: { status: 'integrated', contractVersion: '1.0.0' },
       workflow: { status: 'integrated', researchToAppraisal: true },
+      appraisal: { status: 'integrated', sessionApi: true },
     });
   });
 
@@ -90,16 +93,7 @@ async function startServer() {
         type: mimeType,
         content: contentBuffer,
       });
-      res.json({
-        success: true,
-        data: parseResult,
-        integration: {
-          contractVersion: '1.0.0',
-          evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0,
-          humanVerificationRequired: true,
-          appraisalGateRequired: true,
-        },
-      });
+      res.json({ success: true, data: parseResult, integration: { contractVersion: '1.0.0', evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0, humanVerificationRequired: true, appraisalGateRequired: true } });
     } catch (err: any) {
       res.status(400).json({ success: false, error: err.message || 'Feil under dokumentbehandling og tekstraksjon.' });
     }
@@ -196,11 +190,7 @@ async function startServer() {
 
   app.post('/api/jbi/qualitative/audit-trail', (req: Request, res: Response) => {
     try {
-      const entry: AuditTrailEntry = {
-        ...req.body,
-        id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        timestamp: req.body.timestamp || new Date().toISOString(),
-      };
+      const entry: AuditTrailEntry = { ...req.body, id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, timestamp: req.body.timestamp || new Date().toISOString() };
       auditTrailStore.push(entry);
       res.json({ success: true, entry });
     } catch (err: any) {
