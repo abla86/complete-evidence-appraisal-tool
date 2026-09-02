@@ -5,6 +5,10 @@ function field(fields: Record<string, string>, key: string): string | undefined 
   return value?.trim() || undefined;
 }
 
+function mapAuthors(value?: string): string[] {
+  return (value || '').split(/\s+and\s+/i).map(v => v.trim()).filter(Boolean);
+}
+
 function parseRis(input: string): Partial<ReferenceRecord>[] {
   const blocks = input.split(/\r?\n\s*\r?\n(?=TY\s*-)/i).filter(Boolean);
   return blocks.map(block => {
@@ -18,7 +22,6 @@ function parseRis(input: string): Partial<ReferenceRecord>[] {
       else fields[tag] = value.trim();
     }
     return {
-      type: fields.TY === 'BOOK' ? 'book' : fields.TY === 'CHAP' ? 'chapter' : fields.TY === 'RPRT' ? 'report' : 'article-journal',
       title: field(fields, 'TI') || field(fields, 'T1') || '',
       authors,
       journal: field(fields, 'JO') || field(fields, 'T2'),
@@ -30,31 +33,34 @@ function parseRis(input: string): Partial<ReferenceRecord>[] {
       issn: field(fields, 'SN'),
       url: field(fields, 'UR'),
       abstract: field(fields, 'AB'),
+      type: fields.TY,
     };
   });
 }
 
 function parseBibtex(input: string): Partial<ReferenceRecord>[] {
-  return [...input.matchAll(/@[^\{]+\{([^,]+),([\s\S]*?)\n\}/g)].map(match => {
-    const body = match[2];
+  return [...input.matchAll(/@([^{]+)\{([^,]+),([\s\S]*?)\n\}/g)].map(match => {
+    const entryType = match[1].trim().toLowerCase();
+    const body = match[3];
     const values: Record<string, string> = {};
     for (const item of body.matchAll(/([A-Za-z][\w-]*)\s*=\s*[\{\"]([\s\S]*?)[\}\"]\s*,?/g)) {
       values[item[1].toLowerCase()] = item[2].trim();
     }
-    const authors = (values.author || '').split(/\s+and\s+/i).map(a => a.trim()).filter(Boolean);
     return {
-      id: match[1].trim(),
-      type: values.entrytype || 'article-journal',
+      id: match[2].trim(),
+      type: entryType,
       title: values.title || '',
-      authors,
+      authors: mapAuthors(values.author),
       journal: values.journal,
       year: Number(values.year) || undefined,
       volume: values.volume,
       issue: values.number,
       pages: values.pages,
       doi: values.doi,
+      issn: values.issn,
       url: values.url,
       publisher: values.publisher,
+      abstract: values.abstract,
     };
   });
 }
@@ -77,9 +83,14 @@ function parseCslJson(input: string): Partial<ReferenceRecord>[] {
       issue: item.issue,
       pages: item.page,
       doi: item.DOI,
+      pmid: item.PMID || item.pmid,
+      pmcid: item.PMCID || item.pmcid,
+      isbn: item.ISBN || item.isbn,
+      issn: item.ISSN || item.issn,
       url: item.URL,
       publisher: item.publisher,
       abstract: item.abstract,
+      language: item.language,
     };
   });
 }
@@ -91,6 +102,85 @@ function parseJson(input: string): Partial<ReferenceRecord>[] {
     return (raw as { records: Partial<ReferenceRecord>[] }).records;
   }
   return [raw as Partial<ReferenceRecord>];
+}
+
+function parseEndnoteXml(input: string): Partial<ReferenceRecord>[] {
+  const recordBlocks = [...input.matchAll(/<record\b[^>]*>([\s\S]*?)<\/record>/gi)].map(match => match[1]);
+  const esc = (value: string) => value.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const text = (block: string, tag: string) => {
+    const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    return match ? esc(match[1].replace(/<[^>]+>/g, '').trim()) : undefined;
+  };
+  return recordBlocks.map(block => {
+    const authorMatches = [...block.matchAll(/<author>([\s\S]*?)<\/author>/gi)];
+    const authors = authorMatches.map(m => esc(m[1].replace(/<[^>]+>/g, '').trim())).filter(Boolean);
+    const pages = text(block, 'pages');
+    return {
+      id: text(block, 'rec-number'),
+      type: text(block, 'ref-type'),
+      title: text(block, 'title'),
+      authors,
+      journal: text(block, 'secondary-title'),
+      year: Number(text(block, 'year')) || undefined,
+      volume: text(block, 'volume'),
+      issue: text(block, 'number'),
+      pages,
+      doi: text(block, 'electronic-resource-num'),
+      issn: text(block, 'isbn'),
+      url: text(block, 'url'),
+      abstract: text(block, 'abstract'),
+    };
+  });
+}
+
+function parseCsv(input: string): Partial<ReferenceRecord>[] {
+  const rows = input.split(/\r?\n/).filter(Boolean);
+  if (rows.length < 2) return [];
+  const header = rows[0].split(',').map(v => v.trim().toLowerCase());
+  return rows.slice(1).map(line => {
+    const cells = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const get = (names: string[]) => {
+      const index = header.findIndex(h => names.includes(h));
+      return index >= 0 ? cells[index] || undefined : undefined;
+    };
+    return {
+      title: get(['title', 'ti']),
+      authors: get(['authors', 'author', 'au'])?.split(';').map(v => v.trim()).filter(Boolean) ?? [],
+      journal: get(['journal', 'jo']),
+      year: Number(get(['year', 'py'])) || undefined,
+      volume: get(['volume', 'vl']),
+      issue: get(['issue', 'is']),
+      pages: get(['pages']),
+      doi: get(['doi', 'do']),
+      pmid: get(['pmid']),
+      pmcid: get(['pmcid']),
+      isbn: get(['isbn']),
+      issn: get(['issn']),
+      url: get(['url', 'ur']),
+      abstract: get(['abstract', 'ab']),
+    };
+  });
+}
+
+function normalizeKind(type?: string): ReferenceRecord['kind'] {
+  switch ((type || '').toLowerCase()) {
+    case 'book':
+    case '6': return 'BOOK';
+    case 'report':
+    case 'report-type': return 'REPORT';
+    case 'webpage':
+    case '12': return 'WEBPAGE';
+    case 'thesis':
+    case '32': return 'THESIS';
+    case 'article-journal':
+    case 'journal article':
+    case '17':
+    case 'journal': return 'JOURNAL_ARTICLE';
+    case 'law': return 'LAW';
+    case 'regulation': return 'REGULATION';
+    case 'guideline': return 'GUIDELINE';
+    default: return 'OTHER';
+  }
 }
 
 export function importReferences(input: string, format: ReferenceImportFormat): {
@@ -109,9 +199,15 @@ export function importReferences(input: string, format: ReferenceImportFormat): 
         ? parseBibtex(input)
         : format === 'CSL_JSON'
           ? parseCslJson(input)
-          : format === 'JSON'
-            ? parseJson(input)
-            : (() => { throw new Error(`Formatet ${format} støttes ikke av denne importereren ennå.`); })();
+          : format === 'ENDNOTE_XML'
+            ? parseEndnoteXml(input)
+            : format === 'CSV'
+              ? parseCsv(input)
+              : format === 'JSON'
+                ? parseJson(input)
+                : (() => { throw new Error(`Formatet ${format} krever metadataoppslag eller manuell registrering.`); })();
+
+    if (parsed.length === 0) warnings.push('Ingen bibliografiske poster ble funnet i importen.');
 
     const references = parsed.map((entry, index) => createReferenceRecord({
       ...entry,
@@ -126,25 +222,9 @@ export function importReferences(input: string, format: ReferenceImportFormat): 
       if (reference.verification !== 'VALIDATED') warnings.push(`Referanse ${index + 1} er ikke bibliografisk verifisert.`);
     });
 
-    return {
-      references,
-      duplicateCandidates: detectDuplicateCandidates(references),
-      warnings,
-      errors,
-    };
+    return { references, duplicateCandidates: detectDuplicateCandidates(references), warnings, errors };
   } catch (error) {
     errors.push(error instanceof Error ? error.message : 'Importen kunne ikke tolkes.');
     return { references: [], duplicateCandidates: [], warnings, errors };
-  }
-}
-
-function normalizeKind(type?: string): ReferenceRecord['kind'] {
-  switch ((type || '').toLowerCase()) {
-    case 'book': return 'BOOK';
-    case 'report': return 'REPORT';
-    case 'webpage': return 'WEBPAGE';
-    case 'thesis': return 'THESIS';
-    case 'article-journal': return 'JOURNAL_ARTICLE';
-    default: return 'OTHER';
   }
 }
