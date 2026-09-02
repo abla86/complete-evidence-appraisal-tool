@@ -8,6 +8,7 @@ import {
   type AppraisalSessionValidation,
 } from './universalAppraisalService';
 import type { ResearchAppraisalPayload } from './researchWorkflowService';
+import { evidenceEventBus } from './evidenceEventBus';
 
 export interface AppraisalWorkflowRecord {
   session: AppraisalSession;
@@ -42,10 +43,14 @@ export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
 
 export const appraisalWorkflowStore = new InMemoryAppraisalWorkflowStore();
 
-export function createAppraisalFromResearch(
+export async function createAppraisalFromResearch(
   payload: ResearchAppraisalPayload,
   reviewerId: string,
-): AppraisalWorkflowRecord {
+): Promise<AppraisalWorkflowRecord> {
+  if (!reviewerId.trim()) throw new Error('reviewerId is required.');
+  if (!payload.studyId.trim()) throw new Error('studyId is required.');
+  if (!payload.instrumentId.trim()) throw new Error('instrumentId is required.');
+
   const session = createBlankAppraisalSession(
     payload.studyId,
     payload.instrumentId,
@@ -60,13 +65,22 @@ export function createAppraisalFromResearch(
     evidenceIds: payload.evidence.map(item => item.id),
   };
 
-  return appraisalWorkflowStore.save(record);
+  const saved = appraisalWorkflowStore.save(record);
+
+  await evidenceEventBus.emit('appraisal.session.created', {
+    studyId: payload.studyId,
+    sessionId: session.id,
+    instrumentId: payload.instrumentId,
+    reviewerId,
+  });
+
+  return saved;
 }
 
-export function recordAppraisalResponse(
+export async function recordAppraisalResponse(
   sessionId: string,
   response: AppraisalItemResponse,
-): AppraisalWorkflowRecord {
+): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
 
@@ -82,12 +96,21 @@ export function validateAppraisal(
   return validateAppraisalSession(record.session);
 }
 
-export function finalizeAppraisal(
+export async function finalizeAppraisal(
   sessionId: string,
-): AppraisalWorkflowRecord {
+): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
 
   const session = lockAppraisalSession(record.session);
-  return appraisalWorkflowStore.save({ ...record, session });
+  const saved = appraisalWorkflowStore.save({ ...record, session });
+
+  await evidenceEventBus.emit('appraisal.session.finalized', {
+    studyId: record.researchStudyId,
+    sessionId: session.id,
+    instrumentId: session.instrumentId,
+    reviewerId: session.reviewerId,
+  });
+
+  return saved;
 }
