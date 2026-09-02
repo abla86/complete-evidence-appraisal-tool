@@ -13,9 +13,10 @@ describe('reference import boundary', () => {
     assert.notEqual(result.references[0].verification, 'VALIDATED');
   });
 
-  it('rejects unsupported format instead of silently treating it as JSON', () => {
-    const result = importReferences('anything', 'ENDNOTE_XML');
+  it('rejects an actually unsupported import format', () => {
+    const result = importReferences('anything', 'UNSUPPORTED' as never);
     assert.equal(result.references.length, 0);
     assert.equal(result.errors.length, 1);
+    assert.match(result.errors[0], /krever metadataoppslag|manuell registrering/i);
   });
 });
