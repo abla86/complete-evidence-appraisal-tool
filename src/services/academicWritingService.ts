@@ -58,62 +58,77 @@ export interface WritingAuditResult {
   unsupportedClaims: ClaimLedgerEntry[];
   unverifiedSourceClaims: ClaimLedgerEntry[];
   missingEvidenceLocations: ClaimLedgerEntry[];
+  researcherApprovalMissing: ClaimLedgerEntry[];
   citedButUnlinkedReferenceIds: string[];
+  invalidSourceReferenceIds: string[];
+  aiSuggestionClaims: ClaimLedgerEntry[];
   readyForExport: boolean;
 }
 
-export function createAcademicWritingProject(input: Pick<AcademicWritingProject, 'id' | 'title' | 'academicLevel' | 'writingMode'> & Partial<AcademicWritingProject>): AcademicWritingProject {
-  return {
-    id: input.id,
-    title: input.title,
-    academicLevel: input.academicLevel,
-    writingMode: input.writingMode,
-    researchQuestion: input.researchQuestion,
-    sections: input.sections ?? [],
-    claims: input.claims ?? [],
-    referenceIds: input.referenceIds ?? [],
-    aiAssistanceLog: input.aiAssistanceLog ?? [],
-    updatedAt: new Date().toISOString(),
-  };
+function usableReferenceIds(references: ReferenceRecord[]): Set<string> {
+  return new Set(
+    references
+      .filter(reference => Boolean(reference.id))
+      .map(reference => reference.id),
+  );
 }
 
 export function canDraftAsFact(claim: ClaimLedgerEntry): boolean {
+  if (!claim.researcherApproved) return false;
   return claim.supportState === 'SOURCE_VERIFIED'
     || claim.supportState === 'EVIDENCE_LINKED'
     || claim.supportState === 'RESEARCHER_INPUT';
 }
 
 export function buildGroundedParagraph(claims: ClaimLedgerEntry[], references: ReferenceRecord[]): string {
-  const known = new Set(references.map(reference => reference.id));
+  const known = usableReferenceIds(references);
   return claims.map(claim => {
     if (!canDraftAsFact(claim)) {
-      return `[IKKE UNDERBYGGET – ${claim.id}] ${claim.text}`;
+      return `[IKKE GODKJENT FOR FAKTAPÅSTAND – ${claim.id}] ${claim.text}`;
     }
     const linked = claim.sourceRecordIds.filter(id => known.has(id));
-    return linked.length > 0 ? `${claim.text} [KILDE:${linked.join(',')}]` : `[MANGLER KILDE – ${claim.id}] ${claim.text}`;
+    if (linked.length === 0) return `[MANGLER VERIFISERT KILDE – ${claim.id}] ${claim.text}`;
+    if (claim.evidenceLocations.length === 0 && claim.supportState !== 'RESEARCHER_INPUT') {
+      return `[MANGLER EVIDENSSPORING – ${claim.id}] ${claim.text}`;
+    }
+    return `${claim.text} [KILDE:${linked.join(',')}]`;
   }).join('\n\n');
 }
 
 export function auditAcademicProject(project: AcademicWritingProject, references: ReferenceRecord[]): WritingAuditResult {
   const referenced = new Set(project.referenceIds);
+  const knownReferences = usableReferenceIds(references);
   const unsupportedClaims = project.claims.filter(claim => claim.supportState === 'UNSUPPORTED');
   const unverifiedSourceClaims = project.claims.filter(claim => claim.supportState === 'SOURCE_DETECTED');
   const missingEvidenceLocations = project.claims.filter(claim =>
     (claim.supportState === 'SOURCE_VERIFIED' || claim.supportState === 'EVIDENCE_LINKED')
     && claim.evidenceLocations.length === 0
   );
-  const citedButUnlinkedReferenceIds = [...referenced].filter(id => !references.some(reference => reference.id === id));
+  const researcherApprovalMissing = project.claims.filter(claim =>
+    claim.type !== 'RESEARCHER_INPUT' && !claim.researcherApproved
+  );
+  const citedButUnlinkedReferenceIds = [...referenced].filter(id => !knownReferences.has(id));
+  const invalidSourceReferenceIds = project.claims
+    .flatMap(claim => claim.sourceRecordIds)
+    .filter(id => !knownReferences.has(id));
+  const aiSuggestionClaims = project.claims.filter(claim => claim.type === 'AI_SUGGESTION');
 
   return {
     unsupportedClaims,
     unverifiedSourceClaims,
     missingEvidenceLocations,
+    researcherApprovalMissing,
     citedButUnlinkedReferenceIds,
+    invalidSourceReferenceIds: [...new Set(invalidSourceReferenceIds)],
+    aiSuggestionClaims,
     readyForExport:
       unsupportedClaims.length === 0
       && unverifiedSourceClaims.length === 0
       && missingEvidenceLocations.length === 0
-      && citedButUnlinkedReferenceIds.length === 0,
+      && researcherApprovalMissing.length === 0
+      && citedButUnlinkedReferenceIds.length === 0
+      && invalidSourceReferenceIds.length === 0
+      && aiSuggestionClaims.length === 0,
   };
 }
 
