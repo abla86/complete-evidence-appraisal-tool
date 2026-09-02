@@ -84,22 +84,12 @@ export class ResearchEvidenceBridge {
 
   public static toAppraisalLocation(
     location: CandidateEvidence['suggestedLocation'],
-    document: ResearchEngineDocument,
   ): EvidenceLocation {
     return {
-      documentId: document.id,
-      fileName: document.fileName,
       page: location.page === undefined ? undefined : String(location.page),
       section: location.section,
       table: location.table,
       figure: location.figure,
-      location: [
-        location.page !== undefined ? `page:${location.page}` : '',
-        location.section ? `section:${location.section}` : '',
-        location.table ? `table:${location.table}` : '',
-        location.figure ? `figure:${location.figure}` : '',
-      ].filter(Boolean).join('|') || 'document',
-      quote: '',
     };
   }
 
@@ -109,12 +99,11 @@ export class ResearchEvidenceBridge {
     candidate: CandidateEvidence,
     index: number,
   ): ResearchEvidenceRecord {
-    const location = this.toAppraisalLocation(candidate.suggestedLocation, document);
     return {
       id: `research-evidence-${document.id}-${index + 1}`,
       studyId,
       documentId: document.id,
-      location: { ...location, quote: candidate.extractedSnippet },
+      location: this.toAppraisalLocation(candidate.suggestedLocation),
       quote: candidate.extractedSnippet,
       source: candidate.verifiedByResearcher ? 'HUMAN_VERIFIED' : 'AI_CANDIDATE',
       verifiedByResearcher: candidate.verifiedByResearcher,
