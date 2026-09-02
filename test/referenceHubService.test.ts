@@ -19,7 +19,6 @@ describe('Unified Reference Hub', () => {
       journal: 'Research Journal',
       doi: '10.1234/example.2026',
     });
-
     assert.equal(record.verification, 'VALIDATION_REQUIRED');
     assert.deepEqual(record.importedFrom, ['MANUAL']);
     assert.deepEqual(record.attachments, []);
@@ -27,43 +26,17 @@ describe('Unified Reference Hub', () => {
   });
 
   it('detects DOI duplicates without deleting records', () => {
-    const a = createReferenceRecord({
-      id: 'ref-a',
-      kind: 'JOURNAL_ARTICLE',
-      authors: 'A',
-      year: 2026,
-      title: 'Same paper',
-      journal: 'Journal',
-      doi: '10.1234/ABC.1',
-    });
-    const b = createReferenceRecord({
-      id: 'ref-b',
-      kind: 'JOURNAL_ARTICLE',
-      authors: 'A',
-      year: 2026,
-      title: 'Same paper duplicate',
-      journal: 'Journal',
-      doi: 'https://doi.org/10.1234/ABC.1',
-    });
-
+    const a = createReferenceRecord({ id: 'ref-a', kind: 'JOURNAL_ARTICLE', authors: 'A', year: 2026, title: 'Same paper', journal: 'Journal', doi: '10.1234/ABC.1' });
+    const b = createReferenceRecord({ id: 'ref-b', kind: 'JOURNAL_ARTICLE', authors: 'A', year: 2026, title: 'Same paper duplicate', journal: 'Journal', doi: 'https://doi.org/10.1234/ABC.1' });
     const snapshot = createHubSnapshot([a, b]);
     assert.equal(snapshot.records.length, 2);
     assert.deepEqual(snapshot.duplicateCandidates, [
-      { recordId: 'ref-a', candidateId: 'ref-b', reason: 'DOI', confidence: 1 },
+      { recordId: 'ref-a', candidateId: 'ref-b', reason: 'DOI', confidence: 1, action: 'REVIEW' },
     ]);
   });
 
   it('explicit verification is the only path to VALIDATED', () => {
-    const record = createReferenceRecord({
-      id: 'ref-v',
-      kind: 'JOURNAL_ARTICLE',
-      authors: 'Hansen, Kari',
-      year: 2026,
-      title: 'Verified paper',
-      journal: 'Research Journal',
-      doi: '10.1234/example.2026',
-    });
-
+    const record = createReferenceRecord({ id: 'ref-v', kind: 'JOURNAL_ARTICLE', authors: 'Hansen, Kari', year: 2026, title: 'Verified paper', journal: 'Research Journal', doi: '10.1234/example.2026' });
     assert.equal(record.verification, 'VALIDATION_REQUIRED');
     const updated = markReferenceVerified(record, 'reviewer-1', '2026-09-02T18:00:00.000Z');
     assert.equal(updated.verification, 'VALIDATED');
@@ -71,16 +44,7 @@ describe('Unified Reference Hub', () => {
   });
 
   it('editing a reference re-runs structural validation', () => {
-    const record = createReferenceRecord({
-      id: 'ref-edit',
-      kind: 'JOURNAL_ARTICLE',
-      authors: 'Hansen, Kari',
-      year: 2026,
-      title: 'Editable paper',
-      journal: 'Research Journal',
-      doi: '10.1234/example.2026',
-    });
-
+    const record = createReferenceRecord({ id: 'ref-edit', kind: 'JOURNAL_ARTICLE', authors: 'Hansen, Kari', year: 2026, title: 'Editable paper', journal: 'Research Journal', doi: '10.1234/example.2026' });
     const invalid = updateReferenceRecord(record, { doi: 'not-a-doi' });
     assert.equal(invalid.verification, 'INVALID');
   });
