@@ -43,8 +43,8 @@ export function inspectPrivacy({
   trackingMarkers = DEFAULT_TRACKING_MARKERS,
   analyzedAt = new Date().toISOString(),
 }: PrivacyResourceInput): PrivacyInspectionResult {
-  const uniqueExternalUrls = [...new Set(externalUrls.filter(Boolean))];
-  const externalHosts = [...new Set(uniqueExternalUrls.map(hostname).filter(Boolean))];
+  const normalizedExternalUrls = externalUrls.filter(Boolean);
+  const externalHosts = [...new Set(normalizedExternalUrls.map(hostname).filter(Boolean))];
   const trackingHosts = externalHosts.filter((host) => isTrackingHost(host, trackingMarkers));
   const signals: PrivacyInspectionResult['signals'] = [];
 
@@ -67,7 +67,7 @@ export function inspectPrivacy({
   return {
     sourceUrl,
     analyzedAt,
-    externalResourceCount: uniqueExternalUrls.length,
+    externalResourceCount: normalizedExternalUrls.length,
     externalHosts,
     trackingIndicatorCount: trackingHosts.length,
     trackingHosts,
