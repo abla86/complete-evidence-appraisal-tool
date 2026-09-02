@@ -1,0 +1,4 @@
+import type {CitationMetadata} from '../types/index.js';
+const clean=(x:string)=>x.replace(/\s+/g,' ').trim();
+export function apa7(m:CitationMetadata){const a=m.authors?.length?m.authors.join(', '):'Unknown author';const y=m.year?`(${m.year})`:'(n.d.)';const t=(m.title||'').replace(/\.+$/,'');const j=m.journal?` ${m.journal}`:'';const v=m.volume?`, ${m.volume}`:'';const i=m.issue?`(${m.issue})`:'';const p=m.pages?`, ${m.pages}`:'';const u=m.doi?` https://doi.org/${m.doi.replace(/^https?:\/\/doi\.org\//i,'')}`:(m.url?` ${m.url}`:'');return clean(`${a} ${y}. ${t}.${j}${v}${i}${p}.${u}`)}
+export function vancouver(m:CitationMetadata){const a=(m.authors||[]).slice(0,6).join(', ')+(m.authors?.length>6?', et al.':'');return clean(`${a}. ${m.title||''}. ${m.journal||''}. ${m.year||''};${m.volume||''}${m.issue?`(${m.issue})`:''}:${m.pages||''}.`)}
