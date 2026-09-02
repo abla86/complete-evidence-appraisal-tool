@@ -29,6 +29,20 @@ export interface EvidencePipelineState {
   checkpoints: PipelineCheckpoint[];
 }
 
+const STAGES: EvidencePipelineStage[] = [
+  'identification',
+  'screening',
+  'fulltext',
+  'appraisal',
+  'dual_review',
+  'consensus',
+  'extraction',
+  'synthesis',
+  'certainty',
+  'reporting',
+  'export',
+];
+
 const REQUIRED_PERMISSIONS: Partial<Record<EvidencePipelineStage, keyof Parameters<typeof RbacService.checkPermission>[1]>> = {
   screening: 'canClassifyStudy',
   fulltext: 'canImportDocuments',
@@ -65,25 +79,37 @@ export class EvidencePipelineService {
     actor: { id: string; role: UserRole },
     note?: string,
   ): Promise<EvidencePipelineState> {
+    const currentIndex = STAGES.indexOf(state.currentStage);
+    const nextIndex = STAGES.indexOf(stage);
+
+    if (currentIndex < 0 || nextIndex < 0) {
+      throw new Error('Ugyldig pipeline-steg.');
+    }
+    if (nextIndex !== currentIndex + 1) {
+      throw new Error(`Pipeline kan bare gå til neste steg. Gjeldende: ${state.currentStage}, valgt: ${stage}.`);
+    }
+
+    const currentCheckpoint = [...state.checkpoints]
+      .reverse()
+      .find(checkpoint => checkpoint.stage === state.currentStage);
+
+    if (!currentCheckpoint || currentCheckpoint.status !== 'completed') {
+      throw new Error(`Steget ${state.currentStage} må fullføres før pipeline kan gå videre.`);
+    }
+
     const permission = REQUIRED_PERMISSIONS[stage];
     if (permission && !RbacService.checkPermission(actor.role, permission)) {
       throw new Error(`Rollen ${actor.role} har ikke tilgang til pipeline-steget ${stage}.`);
     }
 
     const now = new Date().toISOString();
-    const checkpoints = state.checkpoints.map(checkpoint =>
-      checkpoint.stage === state.currentStage && checkpoint.status === 'in_progress'
-        ? { ...checkpoint, status: 'completed' as const, updatedAt: now, actorId: actor.id }
-        : checkpoint,
-    );
-
-    checkpoints.push({
+    const checkpoints = [...state.checkpoints, {
       stage,
-      status: 'in_progress',
+      status: 'in_progress' as const,
       updatedAt: now,
       actorId: actor.id,
       note,
-    });
+    }];
 
     await this.auditTrail.append({
       actor: { id: actor.id, name: actor.id, role: actor.role },
@@ -109,12 +135,18 @@ export class EvidencePipelineService {
     actor: { id: string; role: UserRole },
     note?: string,
   ): Promise<EvidencePipelineState> {
+    const current = [...state.checkpoints].reverse().find(checkpoint => checkpoint.stage === state.currentStage);
+    if (!current || current.status !== 'in_progress') {
+      throw new Error(`Pipeline-steget ${state.currentStage} er ikke aktivt og kan derfor ikke fullføres.`);
+    }
+
     const now = new Date().toISOString();
-    const checkpoints = state.checkpoints.map(checkpoint =>
-      checkpoint.stage === state.currentStage
+    const checkpoints = state.checkpoints.map((checkpoint, index, all) => {
+      const isCurrent = index === all.map(item => item.stage).lastIndexOf(state.currentStage);
+      return isCurrent
         ? { ...checkpoint, status: 'completed' as const, updatedAt: now, actorId: actor.id, note }
-        : checkpoint,
-    );
+        : checkpoint;
+    });
 
     await this.auditTrail.append({
       actor: { id: actor.id, name: actor.id, role: actor.role },
