@@ -3,6 +3,7 @@ import type { GradeSummaryOfFindingsItem, GradeCerqualSummaryItem } from '../typ
 
 export interface StoredQualityAssessment {
   id: string;
+  appraisalSessionId?: string;
   evidenceId: string;
   kind: 'GRADE' | 'CERQual';
   outcomeOrFinding: string;
@@ -16,6 +17,7 @@ export interface StoredQualityAssessment {
 
 export function assessGRADE(input: {
   evidenceId: string;
+  appraisalSessionId?: string;
   outcomeName: string;
   studyDesign: 'RCT' | 'Observational';
   riskOfBias: 0 | -1 | -2;
@@ -29,6 +31,7 @@ export function assessGRADE(input: {
   const now = new Date().toISOString();
   return {
     id: `grade_${crypto.randomUUID()}`,
+    appraisalSessionId: input.appraisalSessionId,
     evidenceId: input.evidenceId,
     kind: 'GRADE',
     outcomeOrFinding: input.outcomeName,
@@ -43,6 +46,7 @@ export function assessGRADE(input: {
 
 export function assessCERQual(input: {
   evidenceId: string;
+  appraisalSessionId?: string;
   finding: string;
   methodologicalLimitations: GradeCerqualSummaryItem['methodologicalLimitations'];
   coherence: GradeCerqualSummaryItem['coherence'];
@@ -60,6 +64,7 @@ export function assessCERQual(input: {
   const now = new Date().toISOString();
   return {
     id: `cerqual_${crypto.randomUUID()}`,
+    appraisalSessionId: input.appraisalSessionId,
     evidenceId: input.evidenceId,
     kind: 'CERQual',
     outcomeOrFinding: input.finding,
