@@ -1,4 +1,5 @@
 import type { AcademicClaim, EvidenceExtraction, EvidenceKind } from '../domain/academicEvidence';
+import { createId } from '../utils/id';
 import { AuditTrailService } from './auditTrailService';
 
 export interface PdfHighlightLink {
@@ -28,7 +29,7 @@ export function createEvidenceExtraction(input: {
 }): EvidenceExtraction {
   const now = new Date().toISOString();
   return {
-    id: input.id ?? `evidence_${crypto.randomUUID()}`,
+    id: input.id ?? createId('evidence'),
     sourceRecordId: input.sourceRecordId,
     sourceIdentifiers: input.sourceIdentifiers,
     excerpt: input.excerpt,
@@ -54,7 +55,7 @@ export function linkHighlightToEvidence(
 
   const created: PdfHighlightLink = {
     ...link,
-    id: `hl_link_${crypto.randomUUID()}`,
+    id: createId('hl_link'),
     createdAt: new Date().toISOString(),
   };
 
