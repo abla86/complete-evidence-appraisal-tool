@@ -14,7 +14,7 @@ test('validates Norwegian law using APA 7 Norwegian practice', () => {
   });
 
   assert.equal(result.status, 'VALIDATION_REQUIRED');
-  assert.equal(result.canUseAsVerifiedReference, true);
+  assert.equal(result.canUseAsVerifiedReference, false);
   assert.equal(
     result.reference,
     'Helsepersonelloven. (1999). Lov om helsepersonell m.v. (LOV-1999-07-02-64). Lovdata. https://lovdata.no/lov/1999-07-02-64'
@@ -66,5 +66,21 @@ test('does not claim that valid syntax proves source truth', () => {
   });
 
   assert.equal(result.status, 'VALIDATION_REQUIRED');
+  assert.equal(result.canUseAsVerifiedReference, false);
+});
+
+test('explicit verification requires verifier identity and timestamp', () => {
+  const result = validateReference({
+    kind: 'JOURNAL_ARTICLE',
+    authors: 'Doe, J.',
+    year: 2025,
+    title: 'A study',
+    journal: 'Example Journal',
+    doi: '10.1234/example.1',
+    verifiedBy: 'reviewer-1',
+    verifiedAt: '2026-09-02T18:00:00.000Z'
+  });
+
+  assert.equal(result.status, 'VALIDATED');
   assert.equal(result.canUseAsVerifiedReference, true);
 });
