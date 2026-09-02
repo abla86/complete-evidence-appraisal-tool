@@ -25,10 +25,12 @@ import { ImportExportModal } from './components/ImportExportModal';
 import { AutosaveModal } from './components/AutosaveModal';
 import { GdprPrivacyCenterModal } from './components/GdprPrivacyCenterModal';
 import { ReferenceHubView } from './components/ReferenceHubView';
+import { WritingStudioView } from './components/WritingStudioView';
 import { ToastProvider } from './components/Toast';
 import { UserRole } from './services/rbacService';
 import { GraduationCap, PlusCircle } from 'lucide-react';
 import { createReferenceRecord, type ReferenceRecord } from './services/referenceHubService';
+import { loadReferenceLibrary, saveReferenceLibrary } from './services/referenceLibraryStore';
 
 function createBlankJbiItems(defaultStatus: AssessmentStatus = 'Uklart', defaultJustification = ''): JBIEvaluationItem[] {
   return JBI_QUESTIONS.map(q => ({ questionId: q.id, status: defaultStatus, justification: defaultJustification, evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } }));
@@ -65,8 +67,11 @@ export default function App() {
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [isAutosaveModalOpen, setIsAutosaveModalOpen] = useState(false);
   const [importExportInitialTab, setImportExportInitialTab] = useState<'import' | 'export'>('export');
+  const [referenceRecords, setReferenceRecords] = useState<ReferenceRecord[]>(() => loadReferenceLibrary([]));
 
   useEffect(() => { AutosaveService.saveArticles(articles); }, [articles]);
+  useEffect(() => { saveReferenceLibrary(referenceRecords); }, [referenceRecords]);
+
   const handleOpenImportExport = (tab: 'import' | 'export' = 'export') => { setImportExportInitialTab(tab); setIsImportExportOpen(true); };
   const handleImportArticles = (importedArticles: ArticleAppraisal[], mode: 'append' | 'replace') => {
     if (mode === 'replace') {
@@ -85,15 +90,26 @@ export default function App() {
   const handleSaveArticle = (savedArticle: ArticleAppraisal) => { setArticles(prev => { const idx = prev.findIndex(a => a.id === savedArticle.id); if (idx >= 0) { const next = [...prev]; next[idx] = savedArticle; return next; } return [savedArticle, ...prev]; }); setSelectedArticleId(savedArticle.id); setEditingArticle(null); setActiveTab('details'); };
   const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
 
-  const referenceRecords = useMemo(() => articles.map(articleToReference), [articles]);
+  useEffect(() => {
+    setReferenceRecords(prev => {
+      const byId = new Map(prev.map(record => [record.id, record]));
+      for (const article of articles) {
+        if (!byId.has(article.id)) byId.set(article.id, articleToReference(article));
+      }
+      return Array.from(byId.values());
+    });
+  }, [articles]);
+
   const handleReferenceChange = (records: ReferenceRecord[]) => {
-    const updatedArticles = articles.map(article => {
+    setReferenceRecords(records);
+    setArticles(current => current.map(article => {
       const reference = records.find(r => r.id === article.id);
       if (!reference) return article;
       return { ...article, doi: reference.doi || article.doi, doiUrl: reference.doi ? `https://doi.org/${reference.doi}` : article.doiUrl, journal: reference.journal || article.journal, pages: reference.pages || article.pages, apaReference: article.apaReference };
-    });
-    setArticles(updatedArticles);
+    }));
   };
+
+  const addReference = (record: ReferenceRecord) => setReferenceRecords(prev => [...prev, record]);
 
   return (
     <ToastProvider>
@@ -111,8 +127,9 @@ export default function App() {
             {activeTab === 'audittrail' && <AuditTrailView articles={articles} />}
             {activeTab === 'who_validation' && <WhoValidationHubView articles={articles} onSelectArticleForEdit={(id) => { const art = articles.find(a => a.id === id); if (art) handleEditArticle(art); }} onSelectArticleForView={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
             {activeTab === 'methodology_audit' && <MethodologyAuditView />}
-            {activeTab === 'meta_research' && <MetaResearchLabView onSelectInstrumentForAssessment={(instrumentId, prefillArticle) => { setSelectedInstrumentId(instrumentId); if (prefillArticle) { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId, instrumentVersion: 'PENDING_VERIFICATION', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny Forskingsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på Forskning (Integritetsvakt)', journal: 'Vitenskapelig Tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Kvalitativ studie', dataCollection: 'Intervjuer / Observasjon', participants: 'Deltakere / Informanter', analyticMethod: 'Tematisk / Hermeneutisk analyse', summaryScore: { ja: 0, uklart: 10, nei: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Opprettet via Forsk på Forskning (Integritetsvakt)', keyStrength: 'Tydelig formål og metodisk koherens', mainLimitation: 'Kontekstavhengig overførbarhet', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: createBlankJbiItems('Uklart', `Importert for vurdering med ${instrumentId.toUpperCase()}; ingen metodisk vurdering er forhåndsutført.`), auditTrail: [] }; setArticles(prev => [newArt, ...prev]); setSelectedArticleId(newArt.id); setEditingArticle(newArt); } setActiveTab(instrumentId === 'jbi-qualitative-2017' ? 'evaluate' : 'instrumentinfo'); }} onSaveToLibrary={(prefillArticle) => { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId: 'jbi-qualitative-2017', instrumentVersion: '2017/2024', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny Forskingsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på Forskning (Integritetsvakt)', journal: 'Vitenskapelig Tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Forskningsartikkel', dataCollection: 'Intervjuer / Observasjon', participants: 'Deltakere / Informanter', analyticMethod: 'Tematisk / Hermeneutisk analyse', summaryScore: { ja: 0, uklart: 10, nei: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Importert via Forsk på Forskning (Integritetsvakt)', keyStrength: 'Tydelig problemstilling', mainLimitation: 'Mangler full verifikasjon', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: createBlankJbiItems('Uklart', 'Ikke metodisk vurdert.'), auditTrail: [] }; setArticles(prev => [newArt, ...prev]); setSelectedArticleId(newArt.id); }} />}
+            {activeTab === 'meta_research' && <MetaResearchLabView onSelectInstrumentForAssessment={(instrumentId, prefillArticle) => { setSelectedInstrumentId(instrumentId); if (prefillArticle) { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId, instrumentVersion: 'PENDING_VERIFICATION', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny Forskingsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på Forskning (Integritetsvakt)', journal: 'Vitenskapelig Tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Kvalitativ studie', dataCollection: 'Intervjuer / Observasjon', participants: 'Deltakere / Informanter', analyticMethod: 'Tematisk / Hermeneutisk analyse', summaryScore: { ja: 0, uklart: 10, nei: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Opprettet via Forsk på Forskning (Integritetsvakt)', keyStrength: 'Tydelig formål og metodisk koherens', mainLimitation: 'Kontekstavhengig overførbarhet', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: createBlankJbiItems('Uklart', `Importert for vurdering med ${instrumentId.toUpperCase()}; ingen metodisk vurdering er forhåndsutført.`), auditTrail: [] }; setArticles(prev => [newArt, ...prev]); setSelectedArticleId(newArt.id); setEditingArticle(newArt); } setActiveTab(instrumentId === 'jbi-qualitative-2017' ? 'evaluate' : 'instrumentinfo'); }} onSaveToLibrary={(prefillArticle) => { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId: 'jbi-qualitative-2017', instrumentVersion: '2017/2024', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny Forskingsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på Forskning (Integritetsvakt)', journal: 'Forskningsartikkel', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Forskningsartikkel', dataCollection: 'Intervjuer / Observasjon', participants: 'Deltakere / Informanter', analyticMethod: 'Tematisk / Hermeneutisk analyse', summaryScore: { ja: 0, uklart: 10, nei: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Importert via Forsk på Forskning (Integritetsvakt)', keyStrength: 'Tydelig problemstilling', mainLimitation: 'Mangler full verifikasjon', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: createBlankJbiItems('Uklart', 'Ikke metodisk vurdert.'), auditTrail: [] }; setArticles(prev => [newArt, ...prev]); setSelectedArticleId(newArt.id); }} />}
             {activeTab === 'reference_hub' && <ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} />}
+            {activeTab === 'writing_studio' && <WritingStudioView references={referenceRecords} />}
             {activeTab === 'reference_library' && <ReferenceLibraryView articles={articles} />}
             {activeTab === 'validation_dashboard' && <ValidationDashboardView articles={articles} />}
             {activeTab === 'help_examples' && <HelpAndExamplesView />}
