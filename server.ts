@@ -12,7 +12,7 @@ import { ArticleAppraisal, AuditTrailEntry } from './src/types';
 import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
-import { ResearchEngineGateway } from './src/services/researchEngineGateway';
+import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -30,26 +30,22 @@ async function startServer() {
   const PORT = Number(process.env.PORT || 10000);
 
   app.use(express.json({ limit: '30mb' }));
+
   registerResearchEngineIntegration(app);
+  registerResearchWorkflowApi(app);
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
       tool: 'Evidence Appraisal Tool',
       version: '2026.1',
-      researchEngine: {
-        status: 'integrated',
-        contractVersion: '1.0.0',
-      },
+      researchEngine: { status: 'integrated', contractVersion: '1.0.0' },
+      workflow: { status: 'integrated', researchToAppraisal: true },
     });
   });
 
   app.get('/api/instruments', (_req: Request, res: Response) => {
-    res.json({
-      success: true,
-      count: MASTER_INSTRUMENTS_REGISTRY.length,
-      instruments: MASTER_INSTRUMENTS_REGISTRY,
-    });
+    res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY });
   });
 
   app.post('/api/jbi/qualitative/validate', (req: Request, res: Response) => {
@@ -83,26 +79,23 @@ async function startServer() {
     try {
       const { fileName, fileSizeBytes, mimeType, base64Content, textContent } = req.body;
       if (!fileName) return res.status(400).json({ success: false, error: 'Filnavn mangler.' });
-
       let contentBuffer: ArrayBuffer | string = textContent || '';
       if (base64Content) {
         const binString = Buffer.from(base64Content, 'base64');
         contentBuffer = binString.buffer.slice(binString.byteOffset, binString.byteOffset + binString.byteLength);
       }
-
-      const researchDocument = await ResearchEngineGateway.parseDocument({
+      const parseResult = await DocumentParserService.parseFile({
         name: fileName,
         size: fileSizeBytes || (typeof contentBuffer === 'string' ? Buffer.byteLength(contentBuffer) : contentBuffer.byteLength),
         type: mimeType,
         content: contentBuffer,
       });
-
       res.json({
         success: true,
-        data: researchDocument,
+        data: parseResult,
         integration: {
           contractVersion: '1.0.0',
-          evidenceCandidateCount: researchDocument.candidateEvidence.length,
+          evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0,
           humanVerificationRequired: true,
           appraisalGateRequired: true,
         },
