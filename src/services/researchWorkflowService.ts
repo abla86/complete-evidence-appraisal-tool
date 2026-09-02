@@ -43,15 +43,10 @@ export interface ResearchAppraisalPayload {
   classification?: DocumentClassificationResult;
 }
 
-export function createResearchWorkflow(
-  document: ResearchEngineDocument,
-  studyId = document.id,
-): WorkflowState {
+export function createResearchWorkflow(document: ResearchEngineDocument, studyId = document.id): WorkflowState {
   const foundation = new EvidenceFoundation();
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, studyId);
-
   foundation.state.set(`research:${studyId}`, evidenceBundle, 'system', 'Research document attached', 'research');
-
   void evidenceEventBus.emit('research.document.attached', { studyId, documentId: document.id });
 
   return {
@@ -80,13 +75,8 @@ export async function createResearchWorkflowFromFile(
   return createResearchWorkflow(document, studyId ?? document.id);
 }
 
-export function createResearchWorkflowFromText(
-  text: string,
-  fileName = 'document.txt',
-  studyId?: string,
-): WorkflowState {
+export function createResearchWorkflowFromText(text: string, fileName = 'document.txt', studyId?: string): WorkflowState {
   if (!text?.trim()) throw new Error('Dokumenttekst kan ikke være tom.');
-
   const analysis = ResearchEngineGateway.analyzeText(text, fileName);
   const words = text.trim().split(/\s+/).filter(Boolean);
   const document: ResearchEngineDocument = {
@@ -112,16 +102,11 @@ export function createResearchWorkflowFromText(
     ocrNeeded: false,
     candidateEvidence: analysis.candidateEvidence,
   };
-
   return createResearchWorkflow(document, studyId ?? document.id);
 }
 
-export function updateResearchClassification(
-  state: WorkflowState,
-  classification: DocumentClassificationResult,
-): WorkflowState {
+export function updateResearchClassification(state: WorkflowState, classification: DocumentClassificationResult): WorkflowState {
   if (!state.research) throw new Error('Research document must be attached before classification is updated.');
-
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(state.research.document, classification, state.studyId);
   const verified = classification.confidenceStatus === 'HUMAN_VERIFIED'
     || classification.confidenceStatus === 'DEFINITIVE'
@@ -142,11 +127,7 @@ export function updateResearchClassification(
   };
 }
 
-export function verifyResearchClassification(
-  state: WorkflowState,
-  reviewerId: string,
-  approved: boolean,
-): WorkflowState {
+export function verifyResearchClassification(state: WorkflowState, reviewerId: string, approved: boolean): WorkflowState {
   if (!state.research) throw new Error('Research document must be attached before classification can be verified.');
   if (!state.research.evidenceBundle.classification) throw new Error('No classification is available for verification.');
   if (!reviewerId.trim()) throw new Error('Reviewer ID is required.');
@@ -171,14 +152,8 @@ export function verifyResearchClassification(
   return next;
 }
 
-export function verifyResearchEvidence(
-  state: WorkflowState,
-  evidenceId: string,
-  verified: boolean,
-  reviewerId = 'researcher',
-): WorkflowState {
+export function verifyResearchEvidence(state: WorkflowState, evidenceId: string, verified: boolean, reviewerId = 'researcher'): WorkflowState {
   if (!state.research) throw new Error('Research document is not attached.');
-
   const evidenceBundle = ResearchEvidenceBridge.verifyEvidence(state.research.evidenceBundle, evidenceId, verified);
   const updated: WorkflowState = {
     ...state,
@@ -190,14 +165,7 @@ export function verifyResearchEvidence(
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
     },
   };
-
-  void evidenceEventBus.emit('research.evidence.verified', {
-    studyId: state.studyId,
-    evidenceId,
-    reviewerId,
-    approved: verified,
-  });
-
+  void evidenceEventBus.emit('research.evidence.verified', { studyId: state.studyId, evidenceId, reviewerId, approved: verified });
   return updated;
 }
 
@@ -221,7 +189,10 @@ export function selectResearchInstrument(state: WorkflowState, instrumentId: str
     research: {
       ...state.research,
       selectedInstrumentId: normalized,
-      evidenceBundle: { ...state.research.evidenceBundle, gating: { ...state.research.evidenceBundle.gating, instrumentRecommendation: normalized } },
+      evidenceBundle: {
+        ...state.research.evidenceBundle,
+        gating: { ...state.research.evidenceBundle.gating, instrumentRecommendation: normalized },
+      },
     },
   };
 }
@@ -230,52 +201,40 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
   if (!state.research) throw new Error('Ingen research-workflow er knyttet til studien.');
   if (!state.research.classificationVerified) throw new Error('Human verification av dokumentklassifisering er påkrevd.');
   if (!state.research.selectedInstrumentId) throw new Error('Appraisal-instrument er ikke valgt.');
-
   const decision = decideAppraisalLaunch(state.studyDesign, state.research.selectedInstrumentId);
   if (!decision.allowed || !decision.instrument) throw new Error(decision.reason);
 }
 
-export function includeStudyAndCreateAppraisal(
-  state: WorkflowState,
-  input: { reviewerId: string; instrumentId: string },
-  foundation = new EvidenceFoundation(),
-): WorkflowState {
+export function includeStudyAndCreateAppraisal(state: WorkflowState, input: { reviewerId: string; instrumentId: string }, foundation = new EvidenceFoundation()): WorkflowState {
   if (!input.reviewerId.trim()) throw new Error('Reviewer ID is required.');
   if (!input.instrumentId.trim()) throw new Error('Instrument ID is required.');
-
   assertReadyForAppraisal(state);
   if (state.research?.selectedInstrumentId !== input.instrumentId) {
     throw new Error(`Selected instrument ${input.instrumentId} does not match research workflow instrument ${state.research?.selectedInstrumentId}.`);
   }
 
   const now = new Date().toISOString();
-  const decision = decideAppraisalLaunch(state.studyDesign, input.instrumentId);
-  if (!decision.allowed || !decision.instrument) throw new Error(decision.reason);
-
   const existingScreen = state.screening.find(item => item.reviewerId === input.reviewerId);
   const screening: ScreeningRecord[] = existingScreen
     ? state.screening.map(item => item === existingScreen ? { ...item, decision: 'INCLUDED' as const, updatedAt: now } : item)
     : [...state.screening, { studyId: state.studyId, reviewerId: input.reviewerId, decision: 'INCLUDED', updatedAt: now }];
-
   const session = createBlankAppraisalSession(state.studyId, input.instrumentId, input.reviewerId);
 
   foundation.state.set(`screening:${state.studyId}`, screening, input.reviewerId, 'Studie inkludert etter screening og klargjort for appraisal', 'screening');
   foundation.state.set(`appraisal:${session.id}`, session, input.reviewerId, 'Opprettet appraisal-sesjon fra research workflow', 'appraisal');
+  void evidenceEventBus.emit('appraisal.session.created', { studyId: state.studyId, sessionId: session.id, instrumentId: input.instrumentId, reviewerId: input.reviewerId });
 
-  void evidenceEventBus.emit('appraisal.session.created', {
-    studyId: state.studyId,
-    sessionId: session.id,
-    instrumentId: input.instrumentId,
-    reviewerId: input.reviewerId,
-  });
-
-  return { ...state, screening, appraisalSessions: [...state.appraisalSessions, session], events: [...state.events, ...foundation.state.events()] };
+  return {
+    ...state,
+    screening,
+    appraisalSessions: [...state.appraisalSessions, session],
+    events: [...state.events, ...foundation.state.events()],
+  };
 }
 
 export function buildResearchAppraisalPayload(state: WorkflowState): ResearchAppraisalPayload {
   assertReadyForAppraisal(state);
   if (!state.research) throw new Error('Research workflow is missing.');
-
   return {
     studyId: state.studyId,
     instrumentId: state.research.selectedInstrumentId!,
@@ -300,24 +259,8 @@ export function getResearchEvidenceSummary(state: WorkflowState) {
   };
 }
 
-export async function handoffWorkflow(
-  foundation: EvidenceFoundation,
-  fromModule: EvidenceModule,
-  toModule: EvidenceModule,
-  fromRole: string,
-  toRole: string,
-  studyId: string,
-  reason: string,
-): Promise<void> {
-  await foundation.handoff({
-    fromModule,
-    toModule,
-    fromRole,
-    toRole,
-    context: { studyId },
-    reason,
-    correlationId: foundation.state.snapshot().correlationId,
-  });
+export async function handoffWorkflow(foundation: EvidenceFoundation, fromModule: EvidenceModule, toModule: EvidenceModule, fromRole: string, toRole: string, studyId: string, reason: string): Promise<void> {
+  await foundation.handoff({ fromModule, toModule, fromRole, toRole, context: { studyId }, reason, correlationId: foundation.state.snapshot().correlationId });
 }
 
 function createDocumentId(value: string): string {
