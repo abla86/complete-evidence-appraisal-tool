@@ -9,6 +9,8 @@ import {
   verifyResearchEvidence,
   buildResearchAppraisalPayload,
 } from '../src/services/researchWorkflowService';
+import { evidenceAppraisalOrchestrator } from '../src/services/evidenceAppraisalOrchestrator';
+import { getAppraisalWorkflowRecord } from '../src/services/appraisalWorkflowBridge';
 import { validateAppraisalSession } from '../src/services/universalAppraisalService';
 
 function classification(instrumentId: string, studyDesign: string) {
@@ -33,6 +35,19 @@ function classification(instrumentId: string, studyDesign: string) {
     instrumentSourceAndAuthority: 'Test',
     instrumentRoleType: 'CRITICAL_APPRAISAL' as const,
   };
+}
+
+function readyWorkflow(studyId: string) {
+  const workflow = createResearchWorkflowFromText(
+    'Methods: qualitative study. Participants described their experiences of person-centred dementia care.',
+    'study.txt',
+    studyId,
+  );
+  const classified = updateResearchClassification(
+    workflow,
+    classification('jbi-qualitative-2017', 'Kvalitativ'),
+  );
+  return verifyResearchClassification(classified, 'reviewer-1', true);
 }
 
 test('research evidence must be human verified before appraisal payload', () => {
@@ -62,19 +77,25 @@ test('research evidence must be human verified before appraisal payload', () => 
 });
 
 test('rejected evidence is never included in appraisal payload', () => {
-  const workflow = createResearchWorkflowFromText(
-    'Methods: qualitative study. Participants described their experiences of person-centred dementia care.',
-    'study.txt',
-    'integration-study-reject',
-  );
-  const classified = updateResearchClassification(workflow, classification('jbi-qualitative-2017', 'Kvalitativ'));
-  const verifiedClassification = verifyResearchClassification(classified, 'reviewer-1', true);
+  const verifiedClassification = readyWorkflow('integration-study-reject');
   const firstEvidence = verifiedClassification.research?.evidenceBundle.evidence[0];
   assert.ok(firstEvidence);
 
   const rejected = verifyResearchEvidence(verifiedClassification, firstEvidence.id, false, 'reviewer-1');
   assert.equal(rejected.research?.evidenceBundle.evidence[0].source, 'REJECTED');
   assert.deepEqual(buildResearchAppraisalPayload(rejected).evidence, []);
+});
+
+test('orchestrator creates exactly one shared appraisal session', async () => {
+  const verifiedClassification = readyWorkflow('integration-orchestrator');
+  const firstEvidence = verifiedClassification.research?.evidenceBundle.evidence[0];
+  assert.ok(firstEvidence);
+  const verifiedWorkflow = verifyResearchEvidence(verifiedClassification, firstEvidence.id, true, 'reviewer-1');
+
+  const context = await evidenceAppraisalOrchestrator.start(verifiedWorkflow, 'reviewer-1');
+  assert.equal(context.workflow.appraisalSessions.length, 1);
+  assert.equal(context.workflow.appraisalSessions[0].id, context.appraisal.session.id);
+  assert.deepEqual(getAppraisalWorkflowRecord(context.appraisal.session.id), context.appraisal);
 });
 
 test('all registered instrument sessions validate against their registry questions', () => {
