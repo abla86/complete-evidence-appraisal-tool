@@ -1,5 +1,6 @@
 import { AuditTrailService, type AuditEntry } from './auditTrailService';
 import { RbacService, type UserRole } from './rbacService';
+import { createId as sharedCreateId } from '../utils/id';
 
 export type EvidenceModule =
   | 'project' | 'search' | 'reference-hub' | 'fulltext' | 'screening'
@@ -65,10 +66,7 @@ export interface EvidenceStateStore {
 }
 
 function uid(prefix: string): string {
-  const random = typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return `${prefix}_${random}`;
+  return sharedCreateId(prefix);
 }
 
 function toAuditRole(actor: string): UserRole {
