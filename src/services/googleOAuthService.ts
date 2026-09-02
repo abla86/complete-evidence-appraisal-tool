@@ -1,0 +1,115 @@
+import crypto from 'node:crypto';
+import { OAuth2Client } from 'google-auth-library';
+
+export interface GoogleUser {
+  sub: string;
+  email?: string;
+  name?: string;
+  picture?: string;
+}
+
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const APP_URL = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+export const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
+export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${APP_URL}${GOOGLE_CALLBACK_PATH}`;
+const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || '';
+const COOKIE_NAME = 'evidence_google_session';
+
+export function googleOAuthConfigured(): boolean {
+  return Boolean(CLIENT_ID && CLIENT_SECRET && SESSION_SECRET);
+}
+
+export function getGoogleOAuthClient(): OAuth2Client {
+  if (!CLIENT_ID || !CLIENT_SECRET) throw new Error('Google OAuth is not configured: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET missing.');
+  const client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+  return client;
+}
+
+function scopes(): string[] {
+  return (process.env.GOOGLE_OAUTH_SCOPES || 'openid email profile')
+    .split(/\s+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function sign(value: string): string {
+  return crypto.createHmac('sha256', SESSION_SECRET).update(value).digest('base64url');
+}
+
+function encode(payload: Record<string, unknown>): string {
+  const body = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  return `${body}.${sign(body)}`;
+}
+
+function decode<T>(value: string): T | null {
+  const [body, signature] = value.split('.');
+  if (!body || !signature || !SESSION_SECRET) return null;
+  const expected = sign(body);
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+    if (parsed.exp && Number(parsed.exp) < Date.now()) return null;
+    return parsed as T;
+  } catch {
+    return null;
+  }
+}
+
+export function createAuthorizationUrl(): string {
+  const client = getGoogleOAuthClient();
+  const state = encode({ nonce: crypto.randomBytes(24).toString('hex'), exp: Date.now() + 10 * 60 * 1000 });
+  return client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes(),
+    include_granted_scopes: true,
+    state,
+    prompt: 'select_account',
+  });
+}
+
+export async function exchangeCode(code: string, state: string): Promise<GoogleUser> {
+  if (!decode(state)) throw new Error('Invalid or expired OAuth state.');
+  const client = getGoogleOAuthClient();
+  const { tokens } = await client.getToken(code);
+  if (!tokens.id_token) throw new Error('Google did not return an ID token.');
+  const ticket = await client.verifyIdToken({ idToken: tokens.id_token, audience: CLIENT_ID });
+  const payload = ticket.getPayload();
+  if (!payload?.sub || !payload.email) throw new Error('Google ID token did not contain the required identity claims.');
+  return {
+    sub: payload.sub,
+    email: payload.email,
+    name: payload.name,
+    picture: payload.picture,
+  };
+}
+
+export function createSessionCookie(user: GoogleUser): string {
+  return encode({ ...user, iat: Date.now(), exp: Date.now() + 7 * 24 * 60 * 60 * 1000 });
+}
+
+export function readSessionCookie(cookieHeader?: string): GoogleUser | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.split(';').map(v => v.trim()).find(v => v.startsWith(`${COOKIE_NAME}=`));
+  if (!match) return null;
+  return decode<GoogleUser>(match.slice(COOKIE_NAME.length + 1));
+}
+
+export function sessionCookieHeader(value: string, secure: boolean): string {
+  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure ? '; Secure' : ''}`;
+}
+
+export function clearSessionCookie(secure: boolean): string {
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`;
+}
+
+export function publicAuthConfig() {
+  return {
+    configured: googleOAuthConfigured(),
+    clientId: CLIENT_ID || null,
+    redirectUri: GOOGLE_REDIRECT_URI,
+    scopes: scopes(),
+  };
+}
