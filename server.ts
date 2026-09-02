@@ -225,7 +225,7 @@ Returner KUN gyldig JSON med feltene:
 }`;
 
           const response = await ai.models.generateContent({
-            model: 'gemini-3.7-flash',
+            model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
             contents: prompt,
             config: {
               responseMimeType: 'application/json'
