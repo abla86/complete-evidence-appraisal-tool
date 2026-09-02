@@ -61,6 +61,48 @@ Writing
 Export
 ```
 
+## Delingsmåter
+
+### GitHub-repo
+
+Autoritativ kildekode og dokumentasjon:
+
+```text
+https://github.com/abla86/complete-evidence-appraisal-tool
+```
+
+### GitHub Codespaces
+
+Repoet har en `.devcontainer/devcontainer.json` som installerer Node 20-miljøet og videresender port 3000. Åpne repoet i Codespaces og kjør:
+
+```bash
+npm run dev
+```
+
+Codespaces er den praktiske måten å kjøre den eksisterende Express/Vite-applikasjonen uten lokal Node-installasjon.
+
+### GitHub Pages
+
+Repoet har en separat Pages-workflow for klientdelen. Pages kan bare servere statiske filer; den eksisterende `npm run build` bygger også `dist/server.cjs` for Express. Pages-versjonen skal derfor ikke omtales som den komplette serverbaserte applikasjonen før backend er deployet separat.
+
+Pages er en klientbasert delingsflate, ikke en erstatning for full lokal/Codespaces-kjøring.
+
+### Release
+
+En release bør bygges fra en konkret verifisert commit og inneholde:
+
+- kildekodeversjon
+- `dist/` fra vellykket build
+- `docs/IMPLEMENTATION_STATUS.md`
+- `docs/RELEASE-CHECKLIST.md`
+- changelog/release notes
+
+Ikke opprett en release som «Verified» før CI og relevante release-kontroller faktisk er grønne.
+
+## PWA-status
+
+PWA skal ikke beskrives som offline-komplett bare ved å legge inn et minimalt manifest og en tom fetch-handler. En reell PWA krever blant annet korrekt base path på GitHub Pages, web app manifest, ikoner og en service-worker/caching-strategi som faktisk cacher klientressurser. Repoet skal derfor ikke markedsføre offline-funksjonalitet før dette er implementert og verifisert.
+
 ## Sentrale integrasjoner
 
 ### Reference Hub
@@ -98,16 +140,6 @@ Prosjekteksport skal gå gjennom integritetskontroller før eksport. Ufullførte
 ## AI-bruk
 
 Automatiske forslag er assistanse, ikke verifisering. `Not found` skal ikke behandles som `No`, og AI-funn skal kreve menneskelig kontroll før de inngår som verifiserte forskningsfunn.
-
-## Deling
-
-For utviklere er GitHub-repoet den autoritative delingsflaten:
-
-```text
-https://github.com/abla86/complete-evidence-appraisal-tool
-```
-
-For en kjørbar nettversjon må prosjektets faktiske deployment konfigureres separat. Ikke presenter en GitHub Pages-URL som fungerende før deployment og build er kontrollert.
 
 ## Verifikasjonsstatus
 
