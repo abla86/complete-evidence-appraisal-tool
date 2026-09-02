@@ -11,7 +11,7 @@ export interface GoogleUser {
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
-const APP_URL = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+const APP_URL = (process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:3000').replace(/\/$/, '');
 export const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
 export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${APP_URL}${GOOGLE_CALLBACK_PATH}`;
 const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || '';
