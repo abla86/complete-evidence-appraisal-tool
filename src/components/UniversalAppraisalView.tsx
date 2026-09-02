@@ -8,6 +8,15 @@ import {
   validateAppraisalSession,
   type AppraisalSession,
 } from '../services/universalAppraisalService';
+import {
+  Amstar2AssessmentEngine,
+  Agree2AssessmentEngine,
+  JbiQualitativeAssessmentEngine,
+  Rob2AssessmentEngine,
+  RobinsIAssessmentEngine,
+  GradeCertaintyEngine,
+  GradeCerqualAssessmentEngine,
+} from '../services/assessmentEngines';
 
 interface Props {
   studyId: string;
@@ -17,6 +26,13 @@ interface Props {
   onSaved?: (session: AppraisalSession) => void;
 }
 
+const answerOptions = (instrumentId: string, itemId: number | string, allowed: string[]) => {
+  if (instrumentId === 'agree-ii' || instrumentId === 'agree-rex') return ['1', '2', '3', '4', '5', '6', '7'];
+  if (instrumentId === 'rob-2') return ['Low risk', 'Some concerns', 'High risk'];
+  if (instrumentId === 'robins-i') return ['Low', 'Moderate', 'Serious', 'Critical', 'No information'];
+  return allowed?.length ? allowed : ['Yes', 'Partial Yes', 'No', 'Unclear', 'Not applicable'];
+};
+
 export const UniversalAppraisalView: React.FC<Props> = ({
   studyId,
   studyDesign,
@@ -24,9 +40,8 @@ export const UniversalAppraisalView: React.FC<Props> = ({
   reviewerId = 'current-user',
   onSaved,
 }) => {
-  const initialDecision = useMemo(() => decideAppraisalLaunch(studyDesign, initialInstrumentId), [studyDesign, initialInstrumentId]);
-  const [instrumentId, setInstrumentId] = useState(initialDecision.instrument?.id ?? MASTER_INSTRUMENTS_REGISTRY[0]?.id ?? '');
-  const [session, setSession] = useState<AppraisalSession>(() => createBlankAppraisalSession(studyId, instrumentId, reviewerId));
+  const [instrumentId, setInstrumentId] = useState(initialInstrumentId);
+  const [session, setSession] = useState<AppraisalSession>(() => createBlankAppraisalSession(studyId, initialInstrumentId, reviewerId));
   const [notice, setNotice] = useState('');
 
   const instrument = MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === instrumentId);
@@ -34,39 +49,57 @@ export const UniversalAppraisalView: React.FC<Props> = ({
 
   const changeInstrument = (id: string) => {
     const decision = decideAppraisalLaunch(studyDesign, id);
-    setNotice(decision.warnings.join(' ') || decision.reason);
     setInstrumentId(id);
     setSession(createBlankAppraisalSession(studyId, id, reviewerId));
+    setNotice(decision.warnings.join(' ') || decision.reason);
   };
 
-  const answer = (itemId: number, value: string) => {
-    setSession(prev => upsertAppraisalResponse(prev, {
-      itemId,
-      answer: value,
-      rationale: prev.responses.find(r => String(r.itemId) === String(itemId))?.rationale || '',
-    }));
-  };
-
-  const rationale = (itemId: number, value: string) => {
-    setSession(prev => upsertAppraisalResponse(prev, {
-      itemId,
-      answer: prev.responses.find(r => String(r.itemId) === String(itemId))?.answer ?? null,
-      rationale: value,
-      evidence: prev.responses.find(r => String(r.itemId) === String(itemId))?.evidence,
-    }));
-  };
-
-  const evidence = (itemId: number, field: 'quote' | 'page' | 'section', value: string) => {
+  const patch = (itemId: number | string, patchValue: Partial<{ answer: string | null; rationale: string; evidence: { quote?: string; page?: string; section?: string } }>) => {
     setSession(prev => {
-      const existing = prev.responses.find(r => String(r.itemId) === String(itemId));
+      const old = prev.responses.find(r => String(r.itemId) === String(itemId));
       return upsertAppraisalResponse(prev, {
         itemId,
-        answer: existing?.answer ?? null,
-        rationale: existing?.rationale ?? '',
-        evidence: { ...(existing?.evidence ?? {}), [field]: value },
+        answer: patchValue.answer ?? old?.answer ?? null,
+        rationale: patchValue.rationale ?? old?.rationale ?? '',
+        evidence: patchValue.evidence ?? old?.evidence,
       });
     });
   };
+
+  const result = useMemo(() => {
+    if (!instrument) return null;
+    const map = new Map(session.responses.map(r => [String(r.itemId), r]));
+    if (instrument.id === 'amstar-2') {
+      const responses: Record<number, string> = {};
+      map.forEach((r, k) => { responses[Number(k)] = String(r.answer ?? ''); });
+      return Amstar2AssessmentEngine.evaluate(responses);
+    }
+    if (instrument.id === 'agree-ii') {
+      const ratings: Record<number, number> = {};
+      map.forEach((r, k) => { ratings[Number(k)] = Number(r.answer ?? 0); });
+      return Agree2AssessmentEngine.evaluateDomainScores(ratings, 1);
+    }
+    if (instrument.id === 'jbi-qualitative-2017') {
+      return JbiQualitativeAssessmentEngine.evaluate(session.responses.map(r => ({ questionId: Number(r.itemId), status: String(r.answer ?? ''), justification: r.rationale })));
+    }
+    if (instrument.id === 'rob-2') {
+      const values = {
+        d1Randomisation: (map.get('1')?.answer || 'Some concerns') as any,
+        d2Deviations: (map.get('2')?.answer || 'Some concerns') as any,
+        d3Missing: (map.get('3')?.answer || 'Some concerns') as any,
+        d4Measurement: (map.get('4')?.answer || 'Some concerns') as any,
+        d5Selection: (map.get('5')?.answer || 'Some concerns') as any,
+      };
+      return Rob2AssessmentEngine.evaluate(values);
+    }
+    if (instrument.id === 'robins-i') {
+      const values = ['1','2','3','4','5','6','7'].map((id) => String(map.get(id)?.answer || 'No information')) as any;
+      return RobinsIAssessmentEngine.evaluate(values);
+    }
+    return null;
+  }, [instrument, session.responses]);
+
+  const interpretation = result && 'overallConfidence' in result ? result.overallConfidence : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias : result && 'overallRecommendation' in result ? result.overallRecommendation : result && 'verdict' in result ? result.verdict : `${session.responses.filter(r => r.answer !== null && r.answer !== '').length}/${instrument?.itemCount ?? 0} besvart`;
 
   const finalize = () => {
     if (!validation.valid) {
@@ -76,57 +109,83 @@ export const UniversalAppraisalView: React.FC<Props> = ({
     const locked = lockAppraisalSession(session);
     setSession(locked);
     onSaved?.(locked);
-    setNotice('Vurderingen er ferdig kontrollert og låst. Historikken skal beholdes; senere endringer opprettes som ny versjon.');
+    setNotice('Vurderingen er lagret og låst som denne versjonen.');
   };
 
+  if (!instrument) return <div className="bg-white border border-rose-200 rounded-2xl p-6 text-rose-900">Valgt instrument finnes ikke.</div>;
+
+  const questions = instrument.questions ?? [];
   return (
     <section className="space-y-5 pb-16">
       <header className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">Evidence Appraisal</div>
-            <h2 className="text-2xl font-bold font-serif">Metodisk vurdering</h2>
-            <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'}</p>
+            <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">EVIDENCE APPRAISAL · AKTIV VURDERING</div>
+            <h2 className="text-2xl font-bold font-serif">{instrument.name}</h2>
+            <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} · Studie-ID: {studyId}</p>
           </div>
           <select value={instrumentId} onChange={e => changeInstrument(e.target.value)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full">
-            {MASTER_INSTRUMENTS_REGISTRY.map(item => <option key={item.id} value={item.id}>{item.shortName} · {item.version}</option>)}
+            {MASTER_INSTRUMENTS_REGISTRY.map(i => <option key={i.id} value={i.id}>{i.shortName} · {i.version}</option>)}
           </select>
         </div>
         {notice && <div role="status" className="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">{notice}</div>}
       </header>
 
-      {!instrument ? <div className="bg-white border border-rose-200 rounded-2xl p-6 text-rose-900">Valgt instrument finnes ikke.</div> : <>
-        <div className="bg-white border border-slate-200 rounded-2xl p-4">
-          <div className="text-sm font-bold">{instrument.name}</div>
-          <div className="text-xs text-slate-500 mt-1">{instrument.purpose}</div>
-          <div className="text-xs mt-2">Versjon {instrument.version} · {instrument.itemCount} punkter · {instrument.verificationStatus}</div>
-        </div>
+      <div className="grid sm:grid-cols-3 gap-3">
+        <Info label="Svar" value={`${session.responses.filter(r => r.answer !== null && r.answer !== '').length}/${questions.length}`} />
+        <Info label="Instrument" value={`${instrument.shortName} ${instrument.version}`} />
+        <Info label="Tolkningsresultat" value={String(interpretation)} />
+      </div>
 
+      {questions.length === 0 ? (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm">Dette instrumentet mangler de faktiske vurderingspunktene i registryet. Det blir derfor ikke feilaktig presentert som fullt implementert.</div>
+      ) : (
         <div className="space-y-3">
-          {(instrument.questions ?? []).map((q) => {
+          {questions.map((q, index) => {
             const response = session.responses.find(r => String(r.itemId) === String(q.id));
-            return <article key={q.id} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <div className="flex items-start justify-between gap-3"><div><div className="text-xs font-bold">{q.shortTitle}</div><div className="text-sm font-medium mt-1">{q.officialQuestion || q.questionText}</div></div><span className="text-[10px] px-2 py-1 rounded-full bg-slate-100">{q.domainTitle || q.categoryTitle || q.domain || 'Vurderingspunkt'}</span></div>
-              <div className="flex flex-wrap gap-2">
-                {(instrument.allowedAnswers ?? ['Ja', 'Nei', 'Uklart', 'Ikke relevant']).map(option => <button key={String(option)} type="button" onClick={() => answer(q.id, String(option))} className={`px-3 py-2 rounded-xl border text-xs font-semibold ${response?.answer === option ? 'bg-teal-800 text-white border-teal-800' : 'bg-white border-slate-300 text-slate-700'}`}>{String(option)}</button>)}
-              </div>
-              <textarea value={response?.rationale ?? ''} onChange={e => rationale(q.id, e.target.value)} rows={2} placeholder="Begrunn vurderingen…" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-              <div className="grid md:grid-cols-3 gap-2">
-                <input value={response?.evidence?.quote ?? ''} onChange={e => evidence(q.id, 'quote', e.target.value)} placeholder="Evidens/sitat" className="rounded-xl border border-slate-300 px-3 py-2 text-xs" />
-                <input value={response?.evidence?.page ?? ''} onChange={e => evidence(q.id, 'page', e.target.value)} placeholder="Side" className="rounded-xl border border-slate-300 px-3 py-2 text-xs" />
-                <input value={response?.evidence?.section ?? ''} onChange={e => evidence(q.id, 'section', e.target.value)} placeholder="Seksjon/tabell/figur" className="rounded-xl border border-slate-300 px-3 py-2 text-xs" />
-              </div>
-            </article>;
+            const options = answerOptions(instrument.id, q.id, q.allowedAnswers ?? instrument.allowedAnswers);
+            return (
+              <article key={String(q.id)} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-slate-400">Punkt {q.itemNumber ?? index + 1}</div>
+                    <h3 className="font-bold text-slate-900 mt-1">{q.shortTitle}</h3>
+                    <p className="text-sm text-slate-800 mt-2 leading-6">{q.officialQuestion || q.questionText}</p>
+                    {(q.officialQuestionEn || q.questionTextEn) && <p className="text-xs text-slate-500 italic mt-1">{q.officialQuestionEn || q.questionTextEn}</p>}
+                  </div>
+                  {q.isCritical && <span className="text-[10px] px-2 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-bold">KRITISK</span>}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {options.map(option => <button key={String(option)} type="button" onClick={() => patch(q.id, { answer: String(option) })} className={`px-3 py-2 rounded-xl border text-xs font-semibold ${String(response?.answer ?? '') === String(option) ? 'bg-teal-800 text-white border-teal-800' : 'bg-white border-slate-300 text-slate-700'}`}>{String(option)}</button>)}
+                </div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <textarea value={response?.rationale ?? ''} onChange={e => patch(q.id, { rationale: e.target.value })} rows={3} placeholder="Forskerens begrunnelse" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                  <div className="space-y-2">
+                    <textarea value={response?.evidence?.quote ?? ''} onChange={e => patch(q.id, { evidence: { ...(response?.evidence ?? {}), quote: e.target.value } })} rows={2} placeholder="Eksakt evidens / sitat" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input value={response?.evidence?.page ?? ''} onChange={e => patch(q.id, { evidence: { ...(response?.evidence ?? {}), page: e.target.value } })} placeholder="Side" className="rounded-xl border border-slate-300 px-3 py-2 text-xs" />
+                      <input value={response?.evidence?.section ?? ''} onChange={e => patch(q.id, { evidence: { ...(response?.evidence ?? {}), section: e.target.value } })} placeholder="Seksjon/tabell/figur" className="rounded-xl border border-slate-300 px-3 py-2 text-xs" />
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
           })}
         </div>
+      )}
 
-        <footer className={`sticky bottom-4 rounded-2xl border p-4 shadow-lg ${validation.valid ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="text-sm"><strong>{session.responses.length}/{instrument.questions?.length ?? 0}</strong> punkter besvart · {validation.valid ? 'klar for låsing' : validation.issues.join(' ')}</div>
-            <button type="button" disabled={!validation.valid || session.locked} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Låst vurdering' : 'Fullfør og lås vurdering'}</button>
-          </div>
-        </footer>
-      </>}
+      <aside className="bg-white border border-slate-200 rounded-2xl p-5">
+        <div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div>
+        <h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>
+        {result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}
+        {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2 mt-3">{result.domainScores.map((d: any) => <div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
+        <button type="button" disabled={!validation.valid || session.locked || questions.length === 0} onClick={finalize} className="mt-4 px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Fullfør og lås vurdering'}</button>
+        {!validation.valid && <div className="text-xs text-amber-800 mt-2">{validation.issues.join(' ')}</div>}
+      </aside>
     </section>
   );
 };
+
+function Info({ label, value }: { label: string; value: string }) {
+  return <div className="bg-white border border-slate-200 rounded-xl p-3"><div className="text-[10px] uppercase tracking-wide text-slate-400">{label}</div><div className="text-sm font-bold mt-1">{value}</div></div>;
+}
