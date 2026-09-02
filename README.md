@@ -143,7 +143,7 @@ For local development this is:
 
 `http://localhost:3000/auth/google/callback`
 
-Configure the Web application OAuth client in Google Auth Platform with the exact production and local redirect URIs that the deployment uses. Google requires an exact match for the scheme, host, path and trailing slash; a mismatch produces `redirect_uri_mismatch`. citeturn0search2
+Configure the Web application OAuth client in Google Auth Platform with the exact production and local redirect URIs that the deployment uses. Google requires an exact match for the scheme, host, path and trailing slash; a mismatch produces `redirect_uri_mismatch`.
 
 Required deployment secrets:
 
