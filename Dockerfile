@@ -1,9 +1,8 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-COPY package.json ./
-COPY package-lock.json* ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 RUN npm run build
@@ -14,8 +13,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=10000
 
-COPY package.json ./
-RUN npm install --omit=dev
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 
