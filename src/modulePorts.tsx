@@ -1,6 +1,7 @@
 import React from 'react';
 import { IntegratedResearchInspectorsView } from './components/IntegratedResearchInspectorsView';
 import { SourceRecordIntakeView } from './components/SourceRecordIntakeView';
+import { SourceRecordWorkflowView } from './components/SourceRecordWorkflowView';
 import { ModuleWorkspaceView } from './components/ModuleWorkspaceView';
 
 export type ModulePort = {
@@ -11,6 +12,12 @@ export type ModulePort = {
 };
 
 export const moduleRegistry: readonly ModulePort[] = [
+  {
+    id: 'source-record-workflow',
+    label: 'SourceRecord Workflow',
+    component: SourceRecordWorkflowView,
+    enabled: true,
+  },
   {
     id: 'source-intake',
     label: 'SourceRecord Intake',
