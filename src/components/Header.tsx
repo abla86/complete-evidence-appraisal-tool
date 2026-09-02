@@ -65,6 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
+            <GoogleAuthButton />
             {onOpenAutosave && <button type="button" onClick={onOpenAutosave} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl border bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300" title="Autolagring og gjenoppretting">
               <span className={`w-2 h-2 rounded-full ${saveStatus.state === 'saving' ? 'bg-amber-500 animate-spin' : saveStatus.state === 'error' ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`} />
               <HardDrive className="w-3.5 h-3.5 text-slate-500 hidden sm:inline" />
