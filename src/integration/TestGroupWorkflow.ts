@@ -1,50 +1,55 @@
 import { validateSourceRecord } from '../services/validateSourceRecord';
-import { createSourceRecordIntakeAdapter } from '../services/sourceRecordIntakeAdapter';
-import { createScreeningStateMachine } from '../services/sourceIntakeService';
-import { createAuditTrail } from '../services/auditTrailService';
+import {
+  intakeSourceRecord,
+  linkRecordToScreeningBatch,
+  transitionScreeningState,
+  attachReviewedRecordToPico,
+  type Actor,
+  type IntakeStore,
+  type AuditWriter,
+} from '../services/sourceIntakeService';
+import type { SourceRecord } from '../domain/sourceRecord';
 
-export type TestGroupActor = { id: string; role: 'reviewer' | 'admin' | 'system' };
+export type TestGroupActor = Actor;
 
 export interface TestGroupWorkflowResult {
   ok: boolean;
   stage: 'validation' | 'intake' | 'screening' | 'pico';
-  record?: unknown;
+  record?: SourceRecord;
   errors?: string[];
 }
 
-/**
- * Reference implementation for the complete SourceRecord workflow.
- * UI should call the individual stages; this helper exists for integration tests
- * and deterministic manual testing, not as a hidden "magic add source" action.
- */
 export function validateImportedSourceRecord(input: unknown): TestGroupWorkflowResult {
   const result = validateSourceRecord(input);
   return result.ok
-    ? { ok: true, stage: 'intake', record: input }
+    ? { ok: true, stage: 'intake', record: input as SourceRecord }
     : { ok: false, stage: 'validation', errors: result.errors };
 }
 
-export function createTestGroupWorkflow(actor: TestGroupActor) {
-  const audit = createAuditTrail();
-  const intake = createSourceRecordIntakeAdapter({ audit, actor });
-  const screening = createScreeningStateMachine({ audit, actor });
-
+/**
+ * Explicit stage-by-stage harness used by integration tests and manual QA.
+ * It deliberately does not provide a hidden "add source" shortcut.
+ */
+export function createTestGroupWorkflow(
+  actor: TestGroupActor,
+  store: IntakeStore,
+  audit: AuditWriter,
+) {
   return {
-    audit,
-    intake,
-    screening,
-    async attachToPico(record: any, picoEntityId: string) {
-      if (record?.intake?.screeningState !== 'reviewed') {
-        return { ok: false, reason: 'not-reviewed' } as const;
-      }
-      const result = await audit.append(
-        'RECORD_ATTACHED_TO_PICO',
-        actor,
-        { entityType: 'source_record', id: record.recordId },
-        { picoEntityId, referenceVerified: false },
-      );
-      record.intake.screeningState = 'attached';
-      return { ok: true, auditEntryId: result.entryId } as const;
+    import(record: SourceRecord) {
+      return intakeSourceRecord(record, actor, store, audit);
+    },
+    link(record: SourceRecord, batchId: string) {
+      return linkRecordToScreeningBatch(record, batchId, actor, audit);
+    },
+    review(record: SourceRecord, reason?: string) {
+      return transitionScreeningState(record, 'reviewed', actor, audit, reason);
+    },
+    exclude(record: SourceRecord, reason: string) {
+      return transitionScreeningState(record, 'excluded', actor, audit, reason);
+    },
+    attach(record: SourceRecord, picoEntityId: string) {
+      return attachReviewedRecordToPico(record, picoEntityId, actor, audit);
     },
   };
 }
