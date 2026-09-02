@@ -1,10 +1,9 @@
 /**
- * Shared reference engine adapter.
+ * Single shared reference validation boundary.
  *
- * Keeps citation generation and integrity semantics in one reusable boundary.
- * Formatting is not the same as source verification: VALIDATION_REQUIRED means
- * the reference is structurally usable but its bibliographic truth has not been
- * independently verified.
+ * Identifier fields are intentionally optional here so callers can provide
+ * PMID/PMCID/ISBN/ISSN without creating another reference engine. The richer
+ * Reference Hub record owns lifecycle state, provenance and attachments.
  */
 
 import { validateReference } from './referenceIntegrityService.ts';
@@ -34,7 +33,13 @@ export interface SharedReferenceInput {
   pages?: string;
   articleNumber?: string;
   doi?: string;
+  pmid?: string;
+  pmcid?: string;
+  isbn?: string;
+  issn?: string;
   url?: string;
+  abstract?: string;
+  language?: string;
   publisher?: string;
   shortTitle?: string;
   officialTitle?: string;
