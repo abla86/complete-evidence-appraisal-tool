@@ -1,0 +1,11 @@
+{
+  "name": "Evidence Appraisal Tool",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Evidence Appraisal Tool"
+    }
+  }
+}
