@@ -2,7 +2,7 @@ import type { SourceRecord } from '../domain/sourceRecord';
 import { createRecordId } from '../domain/sourceRecord';
 import { validateSourceRecord } from './validateSourceRecord';
 
-export type ScreeningState = SourceRecord['intake']['screeningState'];
+export type ScreeningState = NonNullable<SourceRecord['intake']>['screeningState'];
 
 export interface Actor {
   id: string;
@@ -20,10 +20,10 @@ export interface AuditWriter {
     action: string;
     subject: { entityType: string; id: string };
     detail?: Record<string, unknown>;
-  }): void;
+  }): void | Promise<unknown>;
 }
 
-export function intakeSourceRecord(
+export async function intakeSourceRecord(
   record: SourceRecord,
   actor: Actor,
   store: IntakeStore,
@@ -46,7 +46,7 @@ export function intakeSourceRecord(
   };
 
   store.saveRecord(post);
-  audit.append({
+  await audit.append({
     actor,
     action: 'SOURCE_RECORD_INTAKE',
     subject: { entityType: 'source_record', id: post.recordId },
@@ -55,6 +55,7 @@ export function intakeSourceRecord(
       generatorVersion: record.provenance.toolVersion,
       metadataStatus: record.metadata.status,
       doiFormatValid: record.identifiers.doi?.formatValid ?? null,
+      referenceVerified: false,
     },
   });
 
@@ -69,7 +70,7 @@ const allowedTransitions: Record<ScreeningState, ScreeningState[]> = {
   excluded: ['awaiting-review'],
 };
 
-export function linkRecordToScreeningBatch(
+export async function linkRecordToScreeningBatch(
   record: SourceRecord,
   batchId: string,
   actor: Actor,
@@ -92,7 +93,7 @@ export function linkRecordToScreeningBatch(
     },
   };
 
-  audit.append({
+  await audit.append({
     actor,
     action: 'RECORD_LINKED_TO_BATCH',
     subject: { entityType: 'source_record', id: record.recordId },
@@ -102,7 +103,7 @@ export function linkRecordToScreeningBatch(
   return { linked: true as const, record: next };
 }
 
-export function transitionScreeningState(
+export async function transitionScreeningState(
   record: SourceRecord,
   nextState: ScreeningState,
   actor: Actor,
@@ -125,7 +126,7 @@ export function transitionScreeningState(
     },
   };
 
-  audit.append({
+  await audit.append({
     actor,
     action: 'SCREENING_STATE_CHANGED',
     subject: { entityType: 'source_record', id: record.recordId },
@@ -135,7 +136,7 @@ export function transitionScreeningState(
   return { transitioned: true as const, record: updated };
 }
 
-export function attachReviewedRecordToPico(
+export async function attachReviewedRecordToPico(
   record: SourceRecord,
   picoEntityId: string,
   actor: Actor,
@@ -146,7 +147,7 @@ export function attachReviewedRecordToPico(
     return { attached: false as const, reason: 'not-reviewed' as const };
   }
 
-  audit.append({
+  await audit.append({
     actor,
     action: 'RECORD_ATTACHED_TO_PICO',
     subject: { entityType: 'source_record', id: record.recordId },
