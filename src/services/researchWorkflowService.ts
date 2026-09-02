@@ -44,10 +44,10 @@ export interface ResearchAppraisalPayload {
 }
 
 export function createResearchWorkflow(document: ResearchEngineDocument, studyId = document.id): WorkflowState {
+  if (!studyId.trim()) throw new Error('studyId is required.');
   const foundation = new EvidenceFoundation();
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, studyId);
   foundation.state.set(`research:${studyId}`, evidenceBundle, 'system', 'Research document attached', 'research');
-  void evidenceEventBus.emit('research.document.attached', { studyId, documentId: document.id });
 
   return {
     studyId,
@@ -111,7 +111,6 @@ export function updateResearchClassification(state: WorkflowState, classificatio
   const verified = classification.confidenceStatus === 'HUMAN_VERIFIED'
     || classification.confidenceStatus === 'DEFINITIVE'
     || classification.humanDecision?.status === 'APPROVED';
-
   return {
     ...state,
     studyDesign: classification.studyDesign,
@@ -119,7 +118,7 @@ export function updateResearchClassification(state: WorkflowState, classificatio
       ...state.research,
       evidenceBundle,
       classificationVerified: verified,
-      selectedInstrumentId: classification.recommendedInstrumentId,
+      selectedInstrumentId: classification.recommendedInstrumentId || state.research.selectedInstrumentId,
       evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
       evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher).length,
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
@@ -146,16 +145,13 @@ export function verifyResearchClassification(state: WorkflowState, reviewerId: s
       rationale: approved ? 'Classification approved by researcher.' : 'Classification rejected by researcher.',
     },
   };
-
-  const next = updateResearchClassification(state, updatedClassification);
-  void evidenceEventBus.emit('research.classification.verified', { studyId: state.studyId, reviewerId, approved });
-  return next;
+  return updateResearchClassification(state, updatedClassification);
 }
 
 export function verifyResearchEvidence(state: WorkflowState, evidenceId: string, verified: boolean, reviewerId = 'researcher'): WorkflowState {
   if (!state.research) throw new Error('Research document is not attached.');
   const evidenceBundle = ResearchEvidenceBridge.verifyEvidence(state.research.evidenceBundle, evidenceId, verified);
-  const updated: WorkflowState = {
+  return {
     ...state,
     research: {
       ...state.research,
@@ -165,11 +161,10 @@ export function verifyResearchEvidence(state: WorkflowState, evidenceId: string,
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
     },
   };
-  void evidenceEventBus.emit('research.evidence.verified', { studyId: state.studyId, evidenceId, reviewerId, approved: verified });
-  return updated;
 }
 
 export function verifyAllCandidateEvidence(state: WorkflowState, reviewerId: string): WorkflowState {
+  if (!reviewerId.trim()) throw new Error('Reviewer ID is required.');
   if (!state.research) throw new Error('Research document is not attached.');
   let next = state;
   for (const item of state.research.evidenceBundle.evidence) {
@@ -222,7 +217,6 @@ export function includeStudyAndCreateAppraisal(state: WorkflowState, input: { re
 
   foundation.state.set(`screening:${state.studyId}`, screening, input.reviewerId, 'Studie inkludert etter screening og klargjort for appraisal', 'screening');
   foundation.state.set(`appraisal:${session.id}`, session, input.reviewerId, 'Opprettet appraisal-sesjon fra research workflow', 'appraisal');
-  void evidenceEventBus.emit('appraisal.session.created', { studyId: state.studyId, sessionId: session.id, instrumentId: input.instrumentId, reviewerId: input.reviewerId });
 
   return {
     ...state,
@@ -253,7 +247,7 @@ export function getResearchEvidenceSummary(state: WorkflowState) {
   const evidence = state.research?.evidenceBundle.evidence ?? [];
   return {
     total: evidence.length,
-    verified: evidence.filter(item => item.verifiedByResearcher).length,
+    verified: evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
     candidates: evidence.filter(item => item.source === 'AI_CANDIDATE').length,
     rejected: evidence.filter(item => item.source === 'REJECTED').length,
   };
