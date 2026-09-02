@@ -43,20 +43,12 @@ export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
 
 export const appraisalWorkflowStore = new InMemoryAppraisalWorkflowStore();
 
-export async function createAppraisalFromResearch(
-  payload: ResearchAppraisalPayload,
-  reviewerId: string,
-): Promise<AppraisalWorkflowRecord> {
+export async function createAppraisalFromResearch(payload: ResearchAppraisalPayload, reviewerId: string): Promise<AppraisalWorkflowRecord> {
   if (!reviewerId.trim()) throw new Error('reviewerId is required.');
   if (!payload.studyId.trim()) throw new Error('studyId is required.');
   if (!payload.instrumentId.trim()) throw new Error('instrumentId is required.');
 
-  const session = createBlankAppraisalSession(
-    payload.studyId,
-    payload.instrumentId,
-    reviewerId,
-  );
-
+  const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
   const record: AppraisalWorkflowRecord = {
     session,
     researchStudyId: payload.studyId,
@@ -64,53 +56,45 @@ export async function createAppraisalFromResearch(
     instrumentId: payload.instrumentId,
     evidenceIds: payload.evidence.map(item => item.id),
   };
-
   const saved = appraisalWorkflowStore.save(record);
-
   await evidenceEventBus.emit('appraisal.session.created', {
     studyId: payload.studyId,
     sessionId: session.id,
     instrumentId: payload.instrumentId,
     reviewerId,
   });
-
   return saved;
 }
 
-export async function recordAppraisalResponse(
-  sessionId: string,
-  response: AppraisalItemResponse,
-): Promise<AppraisalWorkflowRecord> {
+export async function recordAppraisalResponse(sessionId: string, response: AppraisalItemResponse): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
-
-  const session = upsertAppraisalResponse(record.session, response);
+  if (response.rationale === undefined) throw new Error('rationale is required.');
+  const session = upsertAppraisalResponse(record.session, {
+    ...response,
+    rationale: String(response.rationale).trim(),
+  });
   return appraisalWorkflowStore.save({ ...record, session });
 }
 
-export function validateAppraisal(
-  sessionId: string,
-): AppraisalSessionValidation {
+export function validateAppraisal(sessionId: string): AppraisalSessionValidation {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
   return validateAppraisalSession(record.session);
 }
 
-export async function finalizeAppraisal(
-  sessionId: string,
-): Promise<AppraisalWorkflowRecord> {
+export async function finalizeAppraisal(sessionId: string): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
-
+  const validation = validateAppraisalSession(record.session);
+  if (!validation.valid) throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
   const session = lockAppraisalSession(record.session);
   const saved = appraisalWorkflowStore.save({ ...record, session });
-
   await evidenceEventBus.emit('appraisal.session.finalized', {
     studyId: record.researchStudyId,
     sessionId: session.id,
     instrumentId: session.instrumentId,
     reviewerId: session.reviewerId,
   });
-
   return saved;
 }
