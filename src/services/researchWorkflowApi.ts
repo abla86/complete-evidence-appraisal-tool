@@ -1,24 +1,26 @@
 import type { Request, Response } from 'express';
+import type { DocumentClassificationResult } from '../types';
 import {
-  attachResearchDocument,
   createResearchWorkflowFromText,
   getResearchEvidenceSummary,
   includeStudyAndCreateAppraisal,
   selectResearchInstrument,
-  setResearchClassification,
+  updateResearchClassification,
   verifyResearchClassification,
   verifyResearchEvidence,
   buildResearchAppraisalPayload,
   type WorkflowState,
 } from './researchWorkflowService';
-import type { DocumentClassificationResult } from '../types';
+import { researchWorkflowStore } from './researchWorkflowStore';
 
-const workflows = new Map<string, WorkflowState>();
-
-function getWorkflow(studyId: string): WorkflowState {
-  const workflow = workflows.get(studyId);
+function requireWorkflow(studyId: string): WorkflowState {
+  const workflow = researchWorkflowStore.get(studyId);
   if (!workflow) throw new Error(`Research workflow not found: ${studyId}`);
   return workflow;
+}
+
+function save(workflow: WorkflowState): WorkflowState {
+  return researchWorkflowStore.save(workflow);
 }
 
 export function registerResearchWorkflowApi(app: { get: Function; post: Function }): void {
@@ -28,32 +30,20 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
       if (typeof text !== 'string' || !text.trim()) {
         return res.status(400).json({ success: false, error: 'text is required' });
       }
-      const workflow = createResearchWorkflowFromText(text, fileName || 'document.txt', studyId);
-      workflows.set(workflow.studyId, workflow);
-      return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
+      const workflow = save(createResearchWorkflowFromText(text, fileName || 'document.txt', studyId));
+      return res.status(201).json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Workflow creation failed' });
     }
   });
 
-  app.post('/api/research-workflow/:studyId/document', (req: Request, res: Response) => {
-    try {
-      const current = getWorkflow(req.params.studyId);
-      const { text, fileName } = req.body ?? {};
-      if (typeof text !== 'string' || !text.trim()) {
-        return res.status(400).json({ success: false, error: 'text is required' });
-      }
-      const workflow = attachResearchDocument(current, { text, fileName, studyId: current.studyId });
-      workflows.set(current.studyId, workflow);
-      return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
-    } catch (error) {
-      return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Document attach failed' });
-    }
+  app.get('/api/research-workflow', (_req: Request, res: Response) => {
+    return res.json({ success: true, workflows: researchWorkflowStore.list() });
   });
 
   app.get('/api/research-workflow/:studyId', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(req.params.studyId);
       return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
       return res.status(404).json({ success: false, error: error instanceof Error ? error.message : 'Workflow not found' });
@@ -62,14 +52,12 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/classification', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
-      const classification = req.body?.classification as DocumentClassificationResult;
+      const classification = req.body?.classification as DocumentClassificationResult | undefined;
       if (!classification?.documentType || !classification.recommendedInstrumentId) {
         return res.status(400).json({ success: false, error: 'classification with documentType and recommendedInstrumentId is required' });
       }
-      const updated = setResearchClassification(workflow, classification);
-      workflows.set(workflow.studyId, updated);
-      return res.json({ success: true, workflow: updated });
+      const workflow = save(updateResearchClassification(requireWorkflow(req.params.studyId), classification));
+      return res.json({ success: true, workflow });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Classification update failed' });
     }
@@ -77,13 +65,10 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/classification/verify', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
       const reviewerId = String(req.body?.reviewerId || '').trim();
-      const approved = req.body?.approved === true;
       if (!reviewerId) return res.status(400).json({ success: false, error: 'reviewerId is required' });
-      const updated = verifyResearchClassification(workflow, reviewerId, approved);
-      workflows.set(workflow.studyId, updated);
-      return res.json({ success: true, workflow: updated });
+      const workflow = save(verifyResearchClassification(requireWorkflow(req.params.studyId), reviewerId, req.body?.approved === true));
+      return res.json({ success: true, workflow });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Classification verification failed' });
     }
@@ -91,11 +76,8 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/evidence/:evidenceId/verify', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
-      const verified = req.body?.verified === true;
-      const updated = verifyResearchEvidence(workflow, req.params.evidenceId, verified);
-      workflows.set(workflow.studyId, updated);
-      return res.json({ success: true, workflow: updated, evidenceSummary: getResearchEvidenceSummary(updated) });
+      const workflow = save(verifyResearchEvidence(requireWorkflow(req.params.studyId), req.params.evidenceId, req.body?.verified === true));
+      return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Evidence verification failed' });
     }
@@ -103,11 +85,10 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/instrument', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
       const instrumentId = String(req.body?.instrumentId || '').trim();
-      const updated = selectResearchInstrument(workflow, instrumentId);
-      workflows.set(workflow.studyId, updated);
-      return res.json({ success: true, workflow: updated });
+      if (!instrumentId) return res.status(400).json({ success: false, error: 'instrumentId is required' });
+      const workflow = save(selectResearchInstrument(requireWorkflow(req.params.studyId), instrumentId));
+      return res.json({ success: true, workflow });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Instrument selection failed' });
     }
@@ -115,26 +96,21 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/appraisal/start', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
       const reviewerId = String(req.body?.reviewerId || '').trim();
       const instrumentId = String(req.body?.instrumentId || '').trim();
-      if (!reviewerId || !instrumentId) {
-        return res.status(400).json({ success: false, error: 'reviewerId and instrumentId are required' });
-      }
-      const updated = includeStudyAndCreateAppraisal(workflow, { reviewerId, instrumentId });
-      workflows.set(workflow.studyId, updated);
-      return res.json({ success: true, workflow: updated, appraisal: updated.appraisalSessions.at(-1) });
+      if (!reviewerId || !instrumentId) return res.status(400).json({ success: false, error: 'reviewerId and instrumentId are required' });
+      const workflow = save(includeStudyAndCreateAppraisal(requireWorkflow(req.params.studyId), { reviewerId, instrumentId }));
+      return res.json({ success: true, workflow, appraisal: workflow.appraisalSessions.at(-1) });
     } catch (error) {
-      return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Appraisal start failed' });
+      return res.status(409).json({ success: false, error: error instanceof Error ? error.message : 'Appraisal start failed' });
     }
   });
 
   app.get('/api/research-workflow/:studyId/appraisal/payload', (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflow(req.params.studyId);
-      return res.json({ success: true, payload: buildResearchAppraisalPayload(workflow) });
+      return res.json({ success: true, payload: buildResearchAppraisalPayload(requireWorkflow(req.params.studyId)) });
     } catch (error) {
-      return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Appraisal payload unavailable' });
+      return res.status(409).json({ success: false, error: error instanceof Error ? error.message : 'Appraisal payload unavailable' });
     }
   });
 }
