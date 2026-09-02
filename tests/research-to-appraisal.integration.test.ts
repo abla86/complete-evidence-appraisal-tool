@@ -74,25 +74,27 @@ test('rejected evidence is never included in appraisal payload', () => {
 
   const rejected = verifyResearchEvidence(verifiedClassification, firstEvidence.id, false, 'reviewer-1');
   assert.equal(rejected.research?.evidenceBundle.evidence[0].source, 'REJECTED');
-  assert.equal(buildResearchAppraisalPayload, buildResearchAppraisalPayload);
-  assert.throws(() => buildResearchAppraisalPayload(rejected));
+  assert.deepEqual(buildResearchAppraisalPayload(rejected).evidence, []);
 });
 
-test('all registered instrument sessions can validate their own empty schema consistently', () => {
-  const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.questions?.length);
-  assert.ok(instrument);
-  const session = {
-    id: 'test-session',
-    studyId: 'study',
-    instrumentId: instrument.id,
-    instrumentVersion: instrument.version,
-    reviewerId: 'reviewer',
-    responses: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    locked: false,
-  };
-  const result = validateAppraisalSession(session);
-  assert.equal(result.valid, instrument.questions?.length === 0);
-  assert.equal(result.missingItemIds.length, instrument.questions?.length ?? 0);
+test('all registered instrument sessions validate against their registry questions', () => {
+  const instruments = MASTER_INSTRUMENTS_REGISTRY.filter(i => i.questions?.length);
+  assert.ok(instruments.length > 0);
+
+  for (const instrument of instruments) {
+    const session = {
+      id: `test-session-${instrument.id}`,
+      studyId: 'study',
+      instrumentId: instrument.id,
+      instrumentVersion: instrument.version,
+      reviewerId: 'reviewer',
+      responses: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      locked: false,
+    };
+    const result = validateAppraisalSession(session);
+    assert.equal(result.missingItemIds.length, instrument.questions?.length ?? 0, instrument.id);
+    assert.equal(result.valid, false, instrument.id);
+  }
 });
