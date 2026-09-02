@@ -1,40 +1,31 @@
-import type { ResearchWorkflow } from './researchWorkflowCore';
+import type { WorkflowState } from './researchWorkflowService';
 
 export interface ResearchWorkflowStore {
-  get(studyId: string): ResearchWorkflow | undefined;
-  save(workflow: ResearchWorkflow): ResearchWorkflow;
+  get(studyId: string): WorkflowState | undefined;
+  save(workflow: WorkflowState): WorkflowState;
   delete(studyId: string): boolean;
-  list(): ResearchWorkflow[];
+  list(): WorkflowState[];
   clear(): void;
 }
 
 export class InMemoryResearchWorkflowStore implements ResearchWorkflowStore {
-  private readonly workflows = new Map<string, ResearchWorkflow>();
+  private readonly workflows = new Map<string, WorkflowState>();
 
-  public get(studyId: string): ResearchWorkflow | undefined {
+  public get(studyId: string): WorkflowState | undefined {
     return this.workflows.get(studyId);
   }
 
-  public save(workflow: ResearchWorkflow): ResearchWorkflow {
-    const existing = this.workflows.get(workflow.studyId);
-    const now = new Date().toISOString();
-    const next: ResearchWorkflow = {
-      ...workflow,
-      updatedAt: now,
-      createdAt: existing?.createdAt ?? workflow.createdAt,
-    };
-    this.workflows.set(next.studyId, next);
-    return next;
+  public save(workflow: WorkflowState): WorkflowState {
+    this.workflows.set(workflow.studyId, workflow);
+    return workflow;
   }
 
   public delete(studyId: string): boolean {
     return this.workflows.delete(studyId);
   }
 
-  public list(): ResearchWorkflow[] {
-    return [...this.workflows.values()].sort((a, b) =>
-      b.updatedAt.localeCompare(a.updatedAt),
-    );
+  public list(): WorkflowState[] {
+    return [...this.workflows.values()];
   }
 
   public clear(): void {
@@ -42,5 +33,4 @@ export class InMemoryResearchWorkflowStore implements ResearchWorkflowStore {
   }
 }
 
-export const researchWorkflowStore =
-  new InMemoryResearchWorkflowStore();
+export const researchWorkflowStore = new InMemoryResearchWorkflowStore();
