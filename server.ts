@@ -2,19 +2,17 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
-import { INSTRUMENTS_REGISTRY, INITIAL_ARTICLES, DUAL_REVIEW_SAMPLE } from './src/data/jbiData';
+import { INITIAL_ARTICLES } from './src/data/jbiData';
 import { JbiQualitativeValidationService } from './src/services/jbiValidationService';
 import { DocumentAnalysisService } from './src/services/documentAnalysisService';
 import { DocumentParserService } from './src/services/documentParserService';
 import { MetaResearchService } from './src/services/metaResearchService';
-import { ReferenceValidationService } from './src/services/referenceValidationService';
-import { MethodologyContractTests } from './src/services/methodologyContractTests';
-import { Amstar2RatingService, Agree2ScoringService, CaspValidationService, JbiValidationService, Rob2ValidationService } from './src/services/assessmentEngines';
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
 import { ArticleAppraisal, AuditTrailEntry } from './src/types';
 import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
+import { ResearchEngineGateway } from './src/services/researchEngineGateway';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -31,15 +29,27 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 10000);
 
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: '30mb' }));
   registerResearchEngineIntegration(app);
 
   app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: '2026.1', researchEngine: 'integrated' });
+    res.json({
+      status: 'ok',
+      tool: 'Evidence Appraisal Tool',
+      version: '2026.1',
+      researchEngine: {
+        status: 'integrated',
+        contractVersion: '1.0.0',
+      },
+    });
   });
 
   app.get('/api/instruments', (_req: Request, res: Response) => {
-    res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY });
+    res.json({
+      success: true,
+      count: MASTER_INSTRUMENTS_REGISTRY.length,
+      instruments: MASTER_INSTRUMENTS_REGISTRY,
+    });
   });
 
   app.post('/api/jbi/qualitative/validate', (req: Request, res: Response) => {
@@ -73,17 +83,30 @@ async function startServer() {
     try {
       const { fileName, fileSizeBytes, mimeType, base64Content, textContent } = req.body;
       if (!fileName) return res.status(400).json({ success: false, error: 'Filnavn mangler.' });
+
       let contentBuffer: ArrayBuffer | string = textContent || '';
       if (base64Content) {
         const binString = Buffer.from(base64Content, 'base64');
         contentBuffer = binString.buffer.slice(binString.byteOffset, binString.byteOffset + binString.byteLength);
       }
-      const parseResult = await DocumentParserService.parseFile({
+
+      const researchDocument = await ResearchEngineGateway.parseDocument({
         name: fileName,
-        size: fileSizeBytes || (typeof contentBuffer === 'string' ? contentBuffer.length : contentBuffer.byteLength),
-        content: contentBuffer
+        size: fileSizeBytes || (typeof contentBuffer === 'string' ? Buffer.byteLength(contentBuffer) : contentBuffer.byteLength),
+        type: mimeType,
+        content: contentBuffer,
       });
-      res.json({ success: true, data: parseResult });
+
+      res.json({
+        success: true,
+        data: researchDocument,
+        integration: {
+          contractVersion: '1.0.0',
+          evidenceCandidateCount: researchDocument.candidateEvidence.length,
+          humanVerificationRequired: true,
+          appraisalGateRequired: true,
+        },
+      });
     } catch (err: any) {
       res.status(400).json({ success: false, error: err.message || 'Feil under dokumentbehandling og tekstraksjon.' });
     }
@@ -115,7 +138,19 @@ async function startServer() {
             baseReport.extractedAuthors = aiData.extractedAuthors || baseReport.extractedAuthors;
             baseReport.extractedYear = aiData.extractedYear || baseReport.extractedYear;
             baseReport.extractedDoi = aiData.extractedDoi || baseReport.extractedDoi;
-            baseReport.classification = { ...baseReport.classification, documentType: aiData.documentType || baseReport.classification.documentType, documentTypeName: aiData.documentTypeName || baseReport.classification.documentTypeName, methodologyType: aiData.methodologyType || baseReport.classification.methodologyType, epistemology: aiData.epistemology || baseReport.classification.epistemology, confidenceScore: aiData.confidenceScore ?? baseReport.classification.confidenceScore, rationale: aiData.rationale || baseReport.classification.rationale, unitOfAnalysis: aiData.unitOfAnalysis || baseReport.classification.unitOfAnalysis, recommendedInstrumentId: aiData.recommendedInstrumentId || baseReport.classification.recommendedInstrumentId, alternativeInstrumentIds: Array.isArray(aiData.alternativeInstrumentIds) ? aiData.alternativeInstrumentIds : baseReport.classification.alternativeInstrumentIds, incompatibleInstrumentIds: Array.isArray(aiData.incompatibleInstrumentIds) ? aiData.incompatibleInstrumentIds : baseReport.classification.incompatibleInstrumentIds };
+            baseReport.classification = {
+              ...baseReport.classification,
+              documentType: aiData.documentType || baseReport.classification.documentType,
+              documentTypeName: aiData.documentTypeName || baseReport.classification.documentTypeName,
+              methodologyType: aiData.methodologyType || baseReport.classification.methodologyType,
+              epistemology: aiData.epistemology || baseReport.classification.epistemology,
+              confidenceScore: aiData.confidenceScore ?? baseReport.classification.confidenceScore,
+              rationale: aiData.rationale || baseReport.classification.rationale,
+              unitOfAnalysis: aiData.unitOfAnalysis || baseReport.classification.unitOfAnalysis,
+              recommendedInstrumentId: aiData.recommendedInstrumentId || baseReport.classification.recommendedInstrumentId,
+              alternativeInstrumentIds: Array.isArray(aiData.alternativeInstrumentIds) ? aiData.alternativeInstrumentIds : baseReport.classification.alternativeInstrumentIds,
+              incompatibleInstrumentIds: Array.isArray(aiData.incompatibleInstrumentIds) ? aiData.incompatibleInstrumentIds : baseReport.classification.incompatibleInstrumentIds,
+            };
             baseReport.overallIntegrityLevel = aiData.overallIntegrityLevel || baseReport.overallIntegrityLevel;
             baseReport.integritySummary = aiData.integritySummary || baseReport.integritySummary;
             if (Array.isArray(aiData.keyStrengths)) baseReport.keyStrengths = aiData.keyStrengths;
@@ -149,8 +184,8 @@ async function startServer() {
   app.get('/api/evidence/search/europe-pmc', async (req: Request, res: Response) => {
     try {
       const query = String(req.query.q || '').trim();
-      const pageSize = Number(req.query.pageSize || 25);
-      const page = Number(req.query.page || 1);
+      const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 25)));
+      const page = Math.max(1, Number(req.query.page || 1));
       if (!query) return res.status(400).json({ success: false, error: 'Søketekst mangler.' });
       const result = await EvidenceIntelligenceService.searchEuropePmc(query, pageSize, page);
       const searchRecord = EvidenceIntelligenceService.createSearchRecord('Europe PMC', result.query, { pageSize, page }, result.total, 0, result.results);
@@ -168,7 +203,11 @@ async function startServer() {
 
   app.post('/api/jbi/qualitative/audit-trail', (req: Request, res: Response) => {
     try {
-      const entry: AuditTrailEntry = { ...req.body, id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, timestamp: req.body.timestamp || new Date() };
+      const entry: AuditTrailEntry = {
+        ...req.body,
+        id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: req.body.timestamp || new Date().toISOString(),
+      };
       auditTrailStore.push(entry);
       res.json({ success: true, entry });
     } catch (err: any) {
