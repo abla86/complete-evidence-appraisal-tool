@@ -73,6 +73,7 @@ export function inspectPrivacy({
     trackingHosts,
     signals,
     localOnlyAnalysis: true,
+    localOnly: true,
   };
 }
 
