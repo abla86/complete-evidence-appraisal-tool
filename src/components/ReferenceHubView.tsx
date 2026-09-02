@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   createHubSnapshot,
-  createReferenceRecord,
   markReferenceVerified,
   REFERENCE_COMPATIBILITY_CAPABILITIES,
   SUPPORTED_REFERENCE_KINDS,
@@ -54,40 +53,13 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
     onChange?.(records.map(record => record.id === updated.id ? updated : record));
   };
 
-  const demoRecord = () => {
-    const id = crypto.randomUUID();
-    const created = createReferenceRecord({
-      id,
-      kind: 'JOURNAL_ARTICLE',
-      title: 'Eksempelartikkel',
-      authors: 'Eksempel, A.',
-      year: 2026,
-      journal: 'Evidence Appraisal Journal',
-      volume: '1',
-      issue: '1',
-      pages: '1–10',
-      doi: '10.1234/example.2026',
-      importedFrom: ['MANUAL'],
-      tags: ['demo'],
-      collections: ['Demo'],
-    });
-    const next = [...records, created];
-    onChange?.(next);
-    setSelectedId(created.id);
-  };
-
   return (
     <section className="space-y-5">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 font-serif">Reference Hub</h2>
-          <p className="text-sm text-slate-500 max-w-3xl">
-            Én felles referansemotor for hele superprogrammet. EndNote, Zotero, Mendeley og Paperpile håndteres som kompatibilitets- og import/eksportformater.
-          </p>
-        </div>
-        <button type="button" onClick={demoRecord} className="px-3 py-2 rounded-xl bg-teal-800 text-white text-xs font-bold">
-          Legg til eksempelreferanse
-        </button>
+      <div>
+        <h2 className="text-xl font-bold text-slate-900 font-serif">Reference Hub</h2>
+        <p className="text-sm text-slate-500 max-w-3xl">
+          Én felles referansemotor for hele Evidence-systemet. EndNote, Zotero, Mendeley og Paperpile håndteres som kompatibilitets- og import/eksportformater.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -99,12 +71,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Søk etter tittel, forfatter, tidsskrift, DOI eller tag…"
-            className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-600"
-          />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Søk etter tittel, forfatter, tidsskrift, DOI eller tag…" className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-600" />
           <select value={filter} onChange={e => setFilter(e.target.value as typeof filter)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
             <option value="all">Alle</option>
             <option value="validation">Krever verifikasjon</option>
@@ -119,12 +86,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
               {filtered.length === 0 ? (
                 <div className="p-8 text-center text-sm text-slate-500">Ingen referanser matcher filteret.</div>
               ) : filtered.map(record => (
-                <button
-                  type="button"
-                  key={record.id}
-                  onClick={() => setSelectedId(record.id)}
-                  className={`w-full text-left p-3 border-b border-slate-100 last:border-0 ${selected?.id === record.id ? 'bg-teal-50' : 'hover:bg-slate-50'}`}
-                >
+                <button type="button" key={record.id} onClick={() => setSelectedId(record.id)} className={`w-full text-left p-3 border-b border-slate-100 last:border-0 ${selected?.id === record.id ? 'bg-teal-50' : 'hover:bg-slate-50'}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="font-semibold text-sm text-slate-900 truncate">{record.title || 'Uten tittel'}</div>
@@ -160,9 +122,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
                   {duplicateIds.has(selected.id) && <span className="text-[10px] px-2 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">Duplikatkandidat</span>}
                 </div>
                 {selected.verification !== 'VALIDATED' && (
-                  <button type="button" onClick={verifySelected} className="w-full px-3 py-2 rounded-xl bg-teal-800 text-white text-xs font-bold">
-                    Marker som eksplisitt verifisert
-                  </button>
+                  <button type="button" onClick={verifySelected} className="w-full px-3 py-2 rounded-xl bg-teal-800 text-white text-xs font-bold">Marker som eksplisitt verifisert</button>
                 )}
               </>
             ) : (
