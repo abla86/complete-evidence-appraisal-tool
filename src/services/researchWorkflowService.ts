@@ -3,6 +3,7 @@ import { createBlankAppraisalSession, decideAppraisalLaunch } from './universalA
 import { EvidenceFoundation, type EvidenceModule } from './evidenceSystemFoundation';
 import { ResearchEngineGateway, type ResearchEngineDocument } from './researchEngineGateway';
 import { ResearchEvidenceBridge, type ResearchToAppraisalBundle } from './researchEvidenceBridge';
+import type { DocumentClassificationResult } from '../types';
 
 export type ScreeningDecision = 'PENDING' | 'INCLUDED' | 'EXCLUDED';
 
@@ -21,6 +22,7 @@ export interface ResearchWorkflowContext {
   selectedInstrumentId?: string;
   evidenceVerifiedCount: number;
   evidenceCandidateCount: number;
+  evidenceRejectedCount: number;
 }
 
 export interface WorkflowState {
@@ -32,20 +34,66 @@ export interface WorkflowState {
   research?: ResearchWorkflowContext;
 }
 
-export function attachResearchDocument(
-  state: WorkflowState,
-  input: { text: string; fileName?: string; studyId?: string },
+export interface ResearchAppraisalPayload {
+  studyId: string;
+  instrumentId: string;
+  evidence: ReturnType<typeof getVerifiedResearchEvidence>;
+  document: ResearchEngineDocument;
+  classification?: DocumentClassificationResult;
+}
+
+export function createResearchWorkflow(
+  document: ResearchEngineDocument,
+  studyId = document.id,
 ): WorkflowState {
-  const fileName = input.fileName ?? 'document.txt';
-  const analysis = ResearchEngineGateway.analyzeText(input.text, fileName);
+  const foundation = new EvidenceFoundation();
+  const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, studyId);
+
+  foundation.state.set(
+    `research:${studyId}`,
+    evidenceBundle,
+    'system',
+    'Research document attached',
+    'research',
+  );
+
+  return {
+    studyId,
+    studyDesign: document.metadata.studyDesignDetected || '',
+    screening: [],
+    appraisalSessions: [],
+    events: foundation.state.events(),
+    research: {
+      document,
+      evidenceBundle,
+      classificationVerified: false,
+      selectedInstrumentId: document.metadata.recommendedInstrumentId || undefined,
+      evidenceVerifiedCount: 0,
+      evidenceCandidateCount: evidenceBundle.evidence.length,
+      evidenceRejectedCount: 0,
+    },
+  };
+}
+
+export function createResearchWorkflowFromText(
+  text: string,
+  fileName = 'document.txt',
+  studyId?: string,
+): WorkflowState {
+  if (!text?.trim()) {
+    throw new Error('Dokumenttekst kan ikke være tom.');
+  }
+
+  const analysis = ResearchEngineGateway.analyzeText(text, fileName);
+  const words = text.trim().split(/\s+/).filter(Boolean);
   const document: ResearchEngineDocument = {
-    id: `doc-${Date.now()}`,
+    id: createDocumentId(`${fileName}:${text.length}`),
     fileName,
     fileType: 'txt',
     mimeType: 'text/plain',
-    extractedText: input.text,
-    wordCount: input.text.trim() ? input.text.trim().split(/\s+/).length : 0,
-    estimatedPages: Math.max(1, Math.ceil(input.text.trim().split(/\s+/).filter(Boolean).length / 500)),
+    extractedText: text,
+    wordCount: words.length,
+    estimatedPages: Math.max(1, Math.ceil(words.length / 500)),
     metadata: {
       title: fileName.replace(/\.[^/.]+$/, ''),
       authors: '',
@@ -53,7 +101,7 @@ export function attachResearchDocument(
       journal: '',
       doi: '',
       abstract: '',
-      studyDesignDetected: state.studyDesign,
+      studyDesignDetected: '',
       recommendedInstrumentId: '',
     },
     sections: [],
@@ -62,22 +110,12 @@ export function attachResearchDocument(
     candidateEvidence: analysis.candidateEvidence,
   };
 
-  const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, input.studyId ?? state.studyId);
-  return {
-    ...state,
-    research: {
-      document,
-      evidenceBundle,
-      classificationVerified: false,
-      evidenceVerifiedCount: 0,
-      evidenceCandidateCount: evidenceBundle.evidence.length,
-    },
-  };
+  return createResearchWorkflow(document, studyId ?? document.id);
 }
 
 export function updateResearchClassification(
   state: WorkflowState,
-  classification: NonNullable<ResearchWorkflowContext['evidenceBundle']['classification']>,
+  classification: DocumentClassificationResult,
 ): WorkflowState {
   if (!state.research) {
     throw new Error('Research document must be attached before classification is updated.');
@@ -88,6 +126,7 @@ export function updateResearchClassification(
     classification,
     state.studyId,
   );
+
   const verified = classification.confidenceStatus === 'HUMAN_VERIFIED'
     || classification.confidenceStatus === 'DEFINITIVE'
     || classification.humanDecision?.status === 'APPROVED';
@@ -101,8 +140,44 @@ export function updateResearchClassification(
       classificationVerified: verified,
       selectedInstrumentId: classification.recommendedInstrumentId,
       evidenceCandidateCount: evidenceBundle.evidence.length,
+      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher).length,
+      evidenceRejectedCount: evidenceBundle.evidence.filter(
+        item => item.source === 'MANUAL' && !item.verifiedByResearcher,
+      ).length,
     },
   };
+}
+
+export function verifyResearchClassification(
+  state: WorkflowState,
+  reviewerId: string,
+  approved: boolean,
+): WorkflowState {
+  if (!state.research) {
+    throw new Error('Research document must be attached before classification can be verified.');
+  }
+
+  if (!state.research.evidenceBundle.classification) {
+    throw new Error('No classification is available for verification.');
+  }
+
+  const current = state.research.evidenceBundle.classification;
+  const updatedClassification: DocumentClassificationResult = {
+    ...current,
+    confidenceStatus: approved ? 'HUMAN_VERIFIED' : 'MANUAL_VERIFICATION_REQUIRED',
+    statusBadgeText: approved ? 'Human verified' : 'Manual verification required',
+    humanDecision: {
+      ...current.humanDecision,
+      status: approved ? 'APPROVED' : 'REJECTED',
+      verifiedAt: new Date().toISOString(),
+      verifiedBy: reviewerId,
+      rationale: approved
+        ? 'Classification approved by researcher.'
+        : 'Classification rejected by researcher.',
+    },
+  };
+
+  return updateResearchClassification(state, updatedClassification);
 }
 
 export function verifyResearchEvidence(
@@ -111,19 +186,98 @@ export function verifyResearchEvidence(
   verified: boolean,
 ): WorkflowState {
   if (!state.research) throw new Error('Research document is not attached.');
+
+  const evidenceExists = state.research.evidenceBundle.evidence.some(
+    item => item.id === evidenceId,
+  );
+  if (!evidenceExists) {
+    throw new Error(`Evidence finnes ikke: ${evidenceId}`);
+  }
+
   const evidenceBundle = ResearchEvidenceBridge.verifyEvidence(
     state.research.evidenceBundle,
     evidenceId,
     verified,
   );
+
   return {
     ...state,
     research: {
       ...state.research,
       evidenceBundle,
       evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher).length,
+      evidenceRejectedCount: evidenceBundle.evidence.filter(
+        item => item.source === 'MANUAL' && !item.verifiedByResearcher,
+      ).length,
     },
   };
+}
+
+export function verifyAllCandidateEvidence(
+  state: WorkflowState,
+  reviewerId: string,
+): WorkflowState {
+  if (!state.research) throw new Error('Research document is not attached.');
+
+  let next = state;
+  for (const item of state.research.evidenceBundle.evidence) {
+    next = verifyResearchEvidence(next, item.id, true);
+  }
+
+  const foundation = new EvidenceFoundation();
+  foundation.state.set(
+    `research:${state.studyId}:evidence-verification`,
+    next.research?.evidenceBundle,
+    reviewerId,
+    'All candidate evidence verified by researcher',
+    'research',
+  );
+
+  return {
+    ...next,
+    events: foundation.state.events(),
+  };
+}
+
+export function selectResearchInstrument(
+  state: WorkflowState,
+  instrumentId: string,
+): WorkflowState {
+  if (!state.research) {
+    throw new Error('Research document must be attached.');
+  }
+  if (!instrumentId.trim()) {
+    throw new Error('Instrument ID mangler.');
+  }
+
+  return {
+    ...state,
+    research: {
+      ...state.research,
+      selectedInstrumentId: instrumentId,
+    },
+  };
+}
+
+export function assertReadyForAppraisal(state: WorkflowState): void {
+  if (!state.research) {
+    throw new Error('Ingen research-workflow er knyttet til studien.');
+  }
+  if (!state.research.classificationVerified) {
+    throw new Error('Human verification av dokumentklassifisering er påkrevd.');
+  }
+  if (!state.research.selectedInstrumentId) {
+    throw new Error('Appraisal-instrument er ikke valgt.');
+  }
+
+  const decision = decideAppraisalLaunch(
+    state.studyDesign,
+    state.research.selectedInstrumentId,
+  );
+
+  if (!decision.allowed || !decision.instrument) {
+    throw new Error(decision.reason);
+  }
 }
 
 export function includeStudyAndCreateAppraisal(
@@ -131,30 +285,41 @@ export function includeStudyAndCreateAppraisal(
   input: { reviewerId: string; instrumentId: string },
   foundation = new EvidenceFoundation(),
 ): WorkflowState {
+  assertReadyForAppraisal(state);
+
+  if (state.research?.selectedInstrumentId !== input.instrumentId) {
+    throw new Error(
+      `Selected instrument ${input.instrumentId} does not match research workflow instrument ${state.research?.selectedInstrumentId}.`,
+    );
+  }
+
   const now = new Date().toISOString();
   const decision = decideAppraisalLaunch(state.studyDesign, input.instrumentId);
   if (!decision.allowed || !decision.instrument) {
     throw new Error(decision.reason);
   }
 
-  if (state.research) {
-    if (!state.research.classificationVerified) {
-      throw new Error('Human verification of the research classification is required before appraisal.');
-    }
-    if (!state.research.selectedInstrumentId) {
-      throw new Error('No appraisal instrument has been selected from the research workflow.');
-    }
-    if (state.research.selectedInstrumentId !== input.instrumentId) {
-      throw new Error(`Selected instrument ${input.instrumentId} does not match the research workflow instrument ${state.research.selectedInstrumentId}.`);
-    }
-  }
-
   const existingScreen = state.screening.find(item => item.reviewerId === input.reviewerId);
   const screening: ScreeningRecord[] = existingScreen
-    ? state.screening.map(item => item === existingScreen ? { ...item, decision: 'INCLUDED', updatedAt: now } : item)
-    : [...state.screening, { studyId: state.studyId, reviewerId: input.reviewerId, decision: 'INCLUDED', updatedAt: now }];
+    ? state.screening.map(item => item === existingScreen
+      ? { ...item, decision: 'INCLUDED' as const, updatedAt: now }
+      : item)
+    : [
+        ...state.screening,
+        {
+          studyId: state.studyId,
+          reviewerId: input.reviewerId,
+          decision: 'INCLUDED',
+          updatedAt: now,
+        },
+      ];
 
-  const session = createBlankAppraisalSession(state.studyId, input.instrumentId, input.reviewerId);
+  const session = createBlankAppraisalSession(
+    state.studyId,
+    input.instrumentId,
+    input.reviewerId,
+  );
+
   foundation.state.set(
     `screening:${state.studyId}`,
     screening,
@@ -162,11 +327,12 @@ export function includeStudyAndCreateAppraisal(
     'Studie inkludert etter screening og klargjort for appraisal',
     'screening',
   );
+
   foundation.state.set(
     `appraisal:${session.id}`,
     session,
     input.reviewerId,
-    'Opprettet appraisal-sesjon fra inkludert studie',
+    'Opprettet appraisal-sesjon fra research workflow',
     'appraisal',
   );
 
@@ -175,6 +341,46 @@ export function includeStudyAndCreateAppraisal(
     screening,
     appraisalSessions: [...state.appraisalSessions, session],
     events: foundation.state.events(),
+  };
+}
+
+export function buildResearchAppraisalPayload(
+  state: WorkflowState,
+): ResearchAppraisalPayload {
+  assertReadyForAppraisal(state);
+
+  if (!state.research) {
+    throw new Error('Research workflow is missing.');
+  }
+
+  return {
+    studyId: state.studyId,
+    instrumentId: state.research.selectedInstrumentId!,
+    evidence: getVerifiedResearchEvidence(state),
+    document: state.research.document,
+    classification: state.research.evidenceBundle.classification,
+  };
+}
+
+export function getVerifiedResearchEvidence(
+  state: WorkflowState,
+) {
+  if (!state.research) return [] as ResearchToAppraisalBundle['evidence'];
+
+  return state.research.evidenceBundle.evidence.filter(
+    item => item.verifiedByResearcher,
+  );
+}
+
+export function getResearchEvidenceSummary(state: WorkflowState) {
+  const evidence = state.research?.evidenceBundle.evidence ?? [];
+  return {
+    total: evidence.length,
+    verified: evidence.filter(item => item.verifiedByResearcher).length,
+    candidates: evidence.filter(item => item.source === 'AI_CANDIDATE').length,
+    rejected: evidence.filter(
+      item => item.source === 'MANUAL' && !item.verifiedByResearcher,
+    ).length,
   };
 }
 
@@ -196,4 +402,13 @@ export async function handoffWorkflow(
     reason,
     correlationId: foundation.state.snapshot().correlationId,
   });
+}
+
+function createDocumentId(value: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `doc-${(hash >>> 0).toString(16)}`;
 }
