@@ -14,7 +14,7 @@ export interface ResearchEngineEvidence {
     figure?: string;
   };
   quote: string;
-  status: 'AI_CANDIDATE' | 'HUMAN_VERIFIED' | 'MANUAL';
+  status: 'AI_CANDIDATE' | 'HUMAN_VERIFIED' | 'REJECTED';
   verifiedByResearcher: boolean;
   source: 'DOCUMENT_PARSER' | 'DOCUMENT_ANALYSIS' | 'RESEARCH_ENGINE';
   questionId?: number;
@@ -56,7 +56,7 @@ export class ResearchEngineGateway {
   ): Promise<ResearchEngineDocument> {
     const parsed = await DocumentParserService.parseFile(file);
     return {
-      id: this.createDocumentId(`${file.name}:${file.size}`),
+      id: this.createDocumentId(`${file.name}:${file.size}:${parsed.extractedText.slice(0, 1000)}`),
       fileName: parsed.fileName,
       fileType: parsed.fileType,
       mimeType: parsed.mimeType,
@@ -71,13 +71,8 @@ export class ResearchEngineGateway {
     };
   }
 
-  public static analyzeText(
-    text: string,
-    fileName = 'document.txt',
-  ): DocumentAnalysisResult {
-    if (!text.trim()) {
-      throw new Error('Dokumenttekst kan ikke være tom.');
-    }
+  public static analyzeText(text: string, fileName = 'document.txt'): DocumentAnalysisResult {
+    if (!text?.trim()) throw new Error('Dokumenttekst kan ikke være tom.');
     return DocumentAnalysisService.analyzeText(text, fileName);
   }
 
@@ -89,7 +84,7 @@ export class ResearchEngineGateway {
       contractVersion: RESEARCH_ENGINE_CONTRACT_VERSION,
       source: 'complete-evidence-appraisal-tool',
       document,
-      evidence,
+      evidence: evidence.map(item => ({ ...item, location: { ...item.location } })),
       methodology: {
         documentType: document.metadata.studyDesignDetected,
         studyDesign: document.metadata.studyDesignDetected,
