@@ -24,7 +24,7 @@ class MemoryStore implements IntakeStore {
 class TrailWriter implements AuditWriter {
   constructor(private readonly trail: ReturnType<typeof createAuditTrail>) {}
   append(input: Parameters<ReturnType<typeof createAuditTrail>['append']>[0]) {
-    void this.trail.append(input.action, input.actor, input.subject, input.detail);
+    return this.trail.append(input.action, input.actor, input.subject, input.detail);
   }
 }
 
@@ -39,7 +39,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const store = useMemo(() => new MemoryStore(), []);
   const auditWriter = useMemo(() => new TrailWriter(audit), [audit]);
 
-  const importRecord = () => {
+  const importRecord = async () => {
     setMessage('');
     try {
       const parsed = JSON.parse(json);
@@ -48,7 +48,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
         setMessage(`Import avvist: ${validation.errors.join(' ')}`);
         return;
       }
-      const result = intakeSourceRecord(parsed, ACTOR, store, auditWriter);
+      const result = await intakeSourceRecord(parsed, ACTOR, store, auditWriter);
       if (!result.accepted) {
         setMessage(`Import avvist: ${result.reason}`);
         return;
@@ -60,23 +60,23 @@ export const SourceRecordWorkflowView: React.FC = () => {
     }
   };
 
-  const link = () => {
+  const link = async () => {
     if (!record) return;
-    const result = linkRecordToScreeningBatch(record, batchId, ACTOR, auditWriter);
+    const result = await linkRecordToScreeningBatch(record, batchId, ACTOR, auditWriter);
     setRecord(result.linked ? result.record : record);
     setMessage(result.linked ? 'Koblet til screening-batch.' : `Kobling avvist: ${result.reason}`);
   };
 
-  const review = () => {
+  const review = async () => {
     if (!record) return;
-    const result = transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Testgruppe-screening fullført');
+    const result = await transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Testgruppe-screening fullført');
     setRecord(result.transitioned ? result.record : record);
     setMessage(result.transitioned ? 'Screeningstatus: reviewed.' : `Screening avvist: ${result.reason}`);
   };
 
-  const attach = () => {
+  const attach = async () => {
     if (!record) return;
-    const result = attachReviewedRecordToPico(record, picoId, ACTOR, auditWriter);
+    const result = await attachReviewedRecordToPico(record, picoId, ACTOR, auditWriter);
     setMessage(result.attached ? `Knyttet til PICO ${result.picoEntityId}. Referanse er fortsatt ikke verifisert.` : `PICO-attach avvist: ${result.reason}`);
     if (result.attached) setRecord({ ...record, intake: { ...record.intake, screeningState: 'included' } });
   };
@@ -111,7 +111,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
           <label className="text-xs font-bold text-slate-700">SourceRecord JSON</label>
           <textarea value={json} onChange={e => setJson(e.target.value)} className="w-full min-h-72 rounded-xl border border-slate-300 p-3 font-mono text-xs" placeholder="Lim inn SourceRecord JSON fra extensionen..." />
           <div className="flex flex-wrap gap-2">
-            <button onClick={importRecord} className="px-4 py-2 rounded-xl bg-teal-800 text-white text-sm font-bold">Importer</button>
+            <button onClick={() => void importRecord()} className="px-4 py-2 rounded-xl bg-teal-800 text-white text-sm font-bold">Importer</button>
             <button onClick={verifyReferenceLocally} disabled={!record} className="px-4 py-2 rounded-xl border border-slate-300 text-sm font-semibold disabled:opacity-40">Valider referanse lokalt</button>
           </div>
         </article>
@@ -124,10 +124,10 @@ export const SourceRecordWorkflowView: React.FC = () => {
             <div>Record ID: <strong>{record?.recordId ?? '—'}</strong></div>
           </div>
           <input value={batchId} onChange={e => setBatchId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="Screening-batch" />
-          <button onClick={link} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
-          <button onClick={review} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">2. Marker reviewed</button>
+          <button onClick={() => void link()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
+          <button onClick={() => void review()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">2. Marker reviewed</button>
           <input value={picoId} onChange={e => setPicoId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="PICO/PECO-id" />
-          <button onClick={attach} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
+          <button onClick={() => void attach()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
         </article>
       </div>
 
