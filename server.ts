@@ -20,7 +20,6 @@ import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
 import { ArticleAppraisal, AuditTrailEntry } from './src/types';
 import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
-import { createAuthorizationRequest, exchangeCode, createSessionCookie, readSessionCookie, sessionCookieHeader, clearSessionCookie, publicAuthConfig, authorizationStateCookieHeader, readAuthorizationStateCookie, clearAuthorizationStateCookie } from './src/services/googleOAuthService';
 
 // Lazy Gemini Client initialization
 let geminiClient: GoogleGenAI | null = null;
@@ -44,55 +43,6 @@ async function startServer() {
   // ==========================================
   // API ROUTES
   // ==========================================
-
-  // ==========================================
-  // GOOGLE AUTHENTICATION
-  // ==========================================
-
-  app.get('/api/auth/google/config', (req: Request, res: Response) => {
-    res.json({ success: true, ...publicAuthConfig() });
-  });
-
-  app.get('/auth/google', (req: Request, res: Response) => {
-    try {
-      if (!publicAuthConfig().configured) return res.status(503).send('Google OAuth is not configured.');
-      const secure = process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https';
-      const authorization = createAuthorizationRequest();
-      res.setHeader('Set-Cookie', authorizationStateCookieHeader(authorization.state, Boolean(secure)));
-      res.redirect(authorization.url);
-    } catch (err: any) {
-      res.status(500).send(err.message || 'Unable to start Google OAuth.');
-    }
-  });
-
-  app.get('/auth/google/callback', async (req: Request, res: Response) => {
-    try {
-      const code = typeof req.query.code === 'string' ? req.query.code : '';
-      const state = typeof req.query.state === 'string' ? req.query.state : '';
-      const error = typeof req.query.error === 'string' ? req.query.error : '';
-      if (error) return res.status(400).send('Google OAuth denied: ' + error);
-      const stateCookie = readAuthorizationStateCookie(req.headers.cookie);
-      if (!code || !state || !stateCookie || state !== stateCookie) return res.status(400).send('Invalid OAuth state. Please restart Google sign-in.');
-      const user = await exchangeCode(code, state);
-      const secure = process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https';
-      res.setHeader('Set-Cookie', [sessionCookieHeader(createSessionCookie(user), Boolean(secure)), clearAuthorizationStateCookie(Boolean(secure))]);
-      res.redirect('/');
-    } catch (err: any) {
-      res.status(400).send(err.message || 'Google OAuth callback failed.');
-    }
-  });
-
-  app.get('/api/auth/session', (req: Request, res: Response) => {
-    const user = readSessionCookie(req.headers.cookie);
-    res.json({ authenticated: Boolean(user), user: user || null });
-  });
-
-  app.post('/api/auth/logout', (req: Request, res: Response) => {
-    const secure = process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https';
-    res.setHeader('Set-Cookie', clearSessionCookie(Boolean(secure)));
-    res.json({ success: true });
-  });
-
 
   // 1. Healthcheck
   app.get('/api/health', (req: Request, res: Response) => {
