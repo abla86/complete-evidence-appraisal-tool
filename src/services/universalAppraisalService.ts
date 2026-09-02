@@ -85,6 +85,9 @@ export function upsertAppraisalResponse(
   response: AppraisalItemResponse,
 ): AppraisalSession {
   if (session.locked) throw new Error('Vurderingen er låst og kan ikke endres.');
+  if (!String(response.rationale ?? '').trim() && response.answer !== null && response.answer !== '') {
+    throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizeId(response.itemId)}.`);
+  }
   const existing = session.responses.findIndex(item => normalizeId(item.itemId) === normalizeId(response.itemId));
   const responses = [...session.responses];
   if (existing >= 0) responses[existing] = response;
