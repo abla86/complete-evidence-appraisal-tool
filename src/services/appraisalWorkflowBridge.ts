@@ -66,6 +66,10 @@ export async function createAppraisalFromResearch(payload: ResearchAppraisalPayl
   return saved;
 }
 
+export function getAppraisalWorkflowRecord(sessionId: string): AppraisalWorkflowRecord | undefined {
+  return appraisalWorkflowStore.get(sessionId);
+}
+
 export async function recordAppraisalResponse(sessionId: string, response: AppraisalItemResponse): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
