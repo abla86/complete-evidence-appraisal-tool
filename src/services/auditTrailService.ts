@@ -51,7 +51,7 @@ export class AuditTrailService {
 
     const entry: AuditEntry = { ...base, entryHash: await hashEntry(base) };
     this.entries.push(entry);
-    return Object.freeze(entry);
+    return entry;
   }
 
   list(): readonly AuditEntry[] {
