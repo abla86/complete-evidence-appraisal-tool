@@ -1,6 +1,6 @@
 import type { AppraisalSession } from './universalAppraisalService';
 import { createBlankAppraisalSession, decideAppraisalLaunch } from './universalAppraisalService';
-import { appendProjectAuditEvent, type ProjectAuditEvent } from './projectAuditService';
+import { EvidenceFoundation, type EvidenceModule } from './evidenceSystemFoundation';
 
 export type ScreeningDecision = 'PENDING' | 'INCLUDED' | 'EXCLUDED';
 
@@ -17,12 +17,13 @@ export interface WorkflowState {
   studyDesign: string;
   screening: ScreeningRecord[];
   appraisalSessions: AppraisalSession[];
-  events: ProjectAuditEvent[];
+  events: ReturnType<EvidenceFoundation['state']['events']>;
 }
 
 export function includeStudyAndCreateAppraisal(
   state: WorkflowState,
   input: { reviewerId: string; instrumentId: string },
+  foundation = new EvidenceFoundation(),
 ): WorkflowState {
   const now = new Date().toISOString();
   const decision = decideAppraisalLaunch(state.studyDesign, input.instrumentId);
@@ -36,13 +37,45 @@ export function includeStudyAndCreateAppraisal(
     : [...state.screening, { studyId: state.studyId, reviewerId: input.reviewerId, decision: 'INCLUDED', updatedAt: now }];
 
   const session = createBlankAppraisalSession(state.studyId, input.instrumentId, input.reviewerId);
-  const event = appendProjectAuditEvent({
-    actorId: input.reviewerId,
-    action: 'SCREENING_INCLUDED_AND_APPRAISAL_CREATED',
-    subjectType: 'study',
-    subjectId: state.studyId,
-    detail: { instrumentId: input.instrumentId, instrumentVersion: decision.instrument.version },
-  });
+  foundation.state.set(
+    `screening:${state.studyId}`,
+    screening,
+    input.reviewerId,
+    'Studie inkludert etter screening og klargjort for appraisal',
+    'screening',
+  );
+  foundation.state.set(
+    `appraisal:${session.id}`,
+    session,
+    input.reviewerId,
+    'Opprettet appraisal-sesjon fra inkludert studie',
+    'appraisal',
+  );
 
-  return { ...state, screening, appraisalSessions: [...state.appraisalSessions, session], events: [...state.events, event] };
+  return {
+    ...state,
+    screening,
+    appraisalSessions: [...state.appraisalSessions, session],
+    events: foundation.state.events(),
+  };
+}
+
+export async function handoffWorkflow(
+  foundation: EvidenceFoundation,
+  fromModule: EvidenceModule,
+  toModule: EvidenceModule,
+  fromRole: string,
+  toRole: string,
+  studyId: string,
+  reason: string,
+): Promise<void> {
+  await foundation.handoff({
+    fromModule,
+    toModule,
+    fromRole,
+    toRole,
+    context: { studyId },
+    reason,
+    correlationId: foundation.state.snapshot().correlationId,
+  });
 }
