@@ -6,13 +6,3 @@ services:
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
-      - key: GOOGLE_CLIENT_ID
-        value: 549929368598-0l0blfcaho4d5eim8k8e66nll8836ceb.apps.googleusercontent.com
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: AUTH_SESSION_SECRET
-        generateValue: true
-      - key: GOOGLE_OAUTH_SCOPES
-        value: openid email profile
-      - key: NODE_ENV
-        value: production
