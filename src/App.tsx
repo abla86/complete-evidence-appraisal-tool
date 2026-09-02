@@ -19,6 +19,7 @@ import { ReferenceLibraryView } from './components/ReferenceLibraryView';
 import { ValidationDashboardView } from './components/ValidationDashboardView';
 import { ResearchSearchView } from './components/ResearchSearchView';
 import { HelpAndExamplesView } from './components/HelpAndExamplesView';
+import { SourceRecordWorkflowView } from './components/SourceRecordWorkflowView';
 import { DocumentAnalysisModal } from './components/DocumentAnalysisModal';
 import { ImportExportModal } from './components/ImportExportModal';
 import { AutosaveModal } from './components/AutosaveModal';
@@ -262,7 +263,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setActiveTab('help_examples')}
-                        className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all inline-flex items-center gap-1.5"
+                        className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5"
                       >
                         <GraduationCap className="w-4 h-4 text-indigo-600" /> Utforsk eksempelbibliotek
                       </button>
@@ -482,6 +483,8 @@ export default function App() {
                   }}
                 />
               )}
+
+              {activeTab === 'source_workflow' && <SourceRecordWorkflowView />}
             </>
           )}
         </main>
