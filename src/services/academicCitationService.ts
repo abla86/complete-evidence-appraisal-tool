@@ -59,7 +59,7 @@ function chicago(input: CitationInput): { inline: string; bibliography: string }
   const year = input.year || 'n.d.';
   return {
     inline: `(${author} ${year})`,
-    bibliography: `${input.authors || author}. ${year}. “${input.title || '[Uten tittel]}'.” ${input.journal || ''}.`.trim(),
+    bibliography: `${input.authors || author}. ${year}. "${input.title || '[Uten tittel]}'". ${input.journal || ''}.`.trim(),
   };
 }
 
@@ -78,7 +78,7 @@ export function buildCitation(input: CitationInput, style: CitationStyle): Citat
       formatted = chicago(input);
       break;
     case 'MLA9':
-      formatted = { inline: `(${firstAuthor(input.authors)})`, bibliography: `${input.authors || firstAuthor(input.authors)}. “${input.title || '[Uten tittel]}'.” ${input.journal || ''}, ${input.year || 'n.d.'}.` };
+      formatted = { inline: `(${firstAuthor(input.authors)})`, bibliography: `${input.authors || firstAuthor(input.authors)}. "${input.title || '[Uten tittel]}'". ${input.journal || ''}, ${input.year || 'n.d.'}.` };
       break;
     case 'APA7':
     default:
