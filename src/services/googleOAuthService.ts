@@ -58,16 +58,35 @@ function decode<T>(value: string): T | null {
   }
 }
 
-export function createAuthorizationUrl(): string {
+export function createAuthorizationRequest(): { url: string; state: string } {
   const client = getGoogleOAuthClient();
   const state = encode({ nonce: crypto.randomBytes(24).toString('hex'), exp: Date.now() + 10 * 60 * 1000 });
-  return client.generateAuthUrl({
+  const url = client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes(),
     include_granted_scopes: true,
     state,
     prompt: 'select_account',
   });
+  return { url, state };
+}
+
+export function createAuthorizationUrl(): string {
+  return createAuthorizationRequest().url;
+}
+
+export function authorizationStateCookieHeader(state: string, secure: boolean): string {
+  return 'evidence_google_oauth_state=' + encodeURIComponent(state) + '; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=600' + (secure ? '; Secure' : '');
+}
+
+export function readAuthorizationStateCookie(cookieHeader?: string): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.split(';').map(v => v.trim()).find(v => v.startsWith('evidence_google_oauth_state='));
+  return match ? decodeURIComponent(match.slice('evidence_google_oauth_state='.length)) : null;
+}
+
+export function clearAuthorizationStateCookie(secure: boolean): string {
+  return 'evidence_google_oauth_state=; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=0' + (secure ? '; Secure' : '');
 }
 
 export async function exchangeCode(code: string, state: string): Promise<GoogleUser> {
