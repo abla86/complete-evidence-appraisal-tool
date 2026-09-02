@@ -3,19 +3,28 @@ import { JBI_QUESTIONS } from '../data/jbiData';
 
 export class DocumentAnalysisService {
   /**
-   * Analyzes an uploaded or pasted qualitative research text and extracts candidate evidence passages
-   * for the 10 JBI qualitative criteria (2017).
-   * 
-   * Strict Safety Principle:
-   * AI/automated text extraction generates CANDIDATE EVIDENCE ONLY.
-   * Researcher must verify, evaluate and decide the methodological response.
-   * "Ikke funnet ≠ No" (Missing keyword does not mean criteria is failed).
+   * Analyzes research text and extracts candidate evidence passages.
+   * Automated extraction is never treated as a methodological judgement.
+   * "Ikke funnet ≠ No" remains a hard rule.
    */
   public static analyzeText(text: string, fileName: string = 'research-article.pdf'): DocumentAnalysisResult {
-    const candidates: CandidateEvidence[] = [];
-    const lower = text.toLowerCase();
+    if (!text?.trim()) {
+      return {
+        fileName,
+        analyzedAt: new Date().toISOString(),
+        totalPassagesFound: 0,
+        disclaimer: 'Ingen kandidat-evidens ble generert fordi dokumentteksten er tom.',
+        goldenRule: 'Metodisk prinsipp: Ikke funnet i tekstsøk betyr IKKE automatisk «Nei». All vurdering krever menneskelig faglig skjønn.',
+        candidateEvidence: [],
+      };
+    }
 
-    // Mapping patterns for 10 JBI criteria
+    const candidates: CandidateEvidence[] = [];
+    const paragraphs = text
+      .split(/\n\s*\n|\r\n\s*\r\n/)
+      .map((value, index) => ({ value: value.trim(), index }))
+      .filter(item => item.value.length > 30);
+
     const searchMap: Record<number, { keywords: string[]; sectionKeywords: string[]; hint: string }> = {
       1: {
         keywords: ['philosoph', 'ontolog', 'epistemolog', 'paradigm', 'hermeneutic', 'phenomenolog', 'constructiv', 'realis', 'critical realist', 'post-positiv', 'grounded theory perspective'],
@@ -53,7 +62,7 @@ export class DocumentAnalysisService {
         hint: 'Sjekk om forskerens påvirkning på studien og deltakerne er drøftet.'
       },
       8: {
-        keywords: ['quote', 'participant', 'informant', 'gp', 'mother', 'voices', 'extract', 'verbatim', 'representative quotation', 'narrative'],
+        keywords: ['quote', 'participant', 'informant', 'voices', 'extract', 'verbatim', 'representative quotation', 'narrative'],
         sectionKeywords: ['results', 'findings'],
         hint: 'Sjekk om deltakernes egne stemmer og sitater er tilstrekkelig representert.'
       },
@@ -69,38 +78,23 @@ export class DocumentAnalysisService {
       }
     };
 
-    // Split text into paragraphs
-    const paragraphs = text.split(/\n\s*\n|\r\n\s*\r\n/).filter(p => p.trim().length > 30);
-
     for (const q of JBI_QUESTIONS) {
       const config = searchMap[q.id];
       if (!config) continue;
 
-      let bestSnippet = '';
-      let bestSection = 'Methods / Text';
+      let bestParagraphIndex = -1;
       let bestScore = 0;
+      let bestSection = 'Methods / Text';
 
-      for (let i = 0; i < paragraphs.length; i++) {
-        const p = paragraphs[i].trim();
-        const pLower = p.toLowerCase();
-
+      for (const paragraph of paragraphs) {
+        const pLower = paragraph.value.toLowerCase();
         let score = 0;
-        for (const kw of config.keywords) {
-          if (pLower.includes(kw)) {
-            score += 2;
-          }
-        }
-        for (const sec of config.sectionKeywords) {
-          if (pLower.includes(sec)) {
-            score += 1;
-          }
-        }
+        for (const kw of config.keywords) if (pLower.includes(kw)) score += 2;
+        for (const sec of config.sectionKeywords) if (pLower.includes(sec)) score += 1;
 
         if (score > bestScore) {
           bestScore = score;
-          bestSnippet = p.length > 400 ? p.substring(0, 400) + '...' : p;
-          
-          // Estimate section name from paragraph or keywords
+          bestParagraphIndex = paragraph.index;
           for (const sec of config.sectionKeywords) {
             if (pLower.includes(sec)) {
               bestSection = sec.charAt(0).toUpperCase() + sec.slice(1);
@@ -110,20 +104,19 @@ export class DocumentAnalysisService {
         }
       }
 
-      if (bestScore >= 2 && bestSnippet) {
-        // Estimated page based on paragraph index
-        const estimatedPage = Math.max(1, Math.min(15, Math.ceil((paragraphs.indexOf(bestSnippet) + 1) / 3))).toString();
+      if (bestScore >= 2 && bestParagraphIndex >= 0) {
+        const paragraph = paragraphs.find(item => item.index === bestParagraphIndex);
+        if (!paragraph) continue;
+        const bestSnippet = paragraph.value.length > 400 ? `${paragraph.value.substring(0, 400)}...` : paragraph.value;
+        const estimatedPage = Math.max(1, Math.min(15, Math.ceil((bestParagraphIndex + 1) / 3))).toString();
 
         candidates.push({
           questionId: q.id,
           relevanceScore: Math.min(100, bestScore * 15),
-          suggestedLocation: {
-            page: estimatedPage,
-            section: bestSection
-          },
+          suggestedLocation: { page: estimatedPage, section: bestSection },
           extractedSnippet: bestSnippet,
-          confidenceReason: `Funnet relevante nøkkelbegreper i ${bestSection}: ${config.hint}`,
-          verifiedByResearcher: false
+          confidenceReason: `Automatisk kandidat fra ${bestSection}: ${config.hint}`,
+          verifiedByResearcher: false,
         });
       }
     }
@@ -134,7 +127,7 @@ export class DocumentAnalysisService {
       totalPassagesFound: candidates.length,
       disclaimer: 'Candidate evidence – requires researcher verification. Dette er automatisk identifiserte tekstutdrag som må evalueres og verifiseres av forsker/vurderer.',
       goldenRule: 'Metodisk prinsipp: Ikke funnet i tekstsøk betyr IKKE automatisk «Nei». All vurdering krever menneskelig faglig skjønn.',
-      candidateEvidence: candidates
+      candidateEvidence: candidates,
     };
   }
 }
