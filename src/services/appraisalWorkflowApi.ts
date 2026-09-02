@@ -4,11 +4,11 @@ import {
   getResearchEvidenceSummary,
 } from './researchWorkflowService';
 import {
+  appraisalWorkflowStore,
   createAppraisalFromResearch,
   finalizeAppraisal,
   recordAppraisalResponse,
   validateAppraisal,
-  appraisalWorkflowStore,
 } from './appraisalWorkflowBridge';
 import { researchWorkflowStore } from './researchWorkflowStore';
 import type { AppraisalItemResponse } from './universalAppraisalService';
