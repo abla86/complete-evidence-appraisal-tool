@@ -1,5 +1,7 @@
 import { GradeAssessmentEngine, GradeCerqualAssessmentEngine } from './assessmentEngines';
 import type { GradeSummaryOfFindingsItem, GradeCerqualSummaryItem } from '../types';
+import { loadAppraisalSessions, upsertAppraisalSession } from './appraisalSessionStore';
+import type { AppraisalSession } from './universalAppraisalService';
 
 export interface StoredQualityAssessment {
   id: string;
@@ -13,6 +15,40 @@ export interface StoredQualityAssessment {
   locked: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+const QUALITY_KEY = 'qualityAssessments';
+
+function readQuality(session: AppraisalSession): StoredQualityAssessment[] {
+  const raw = (session as AppraisalSession & { qualityAssessments?: StoredQualityAssessment[] })[QUALITY_KEY];
+  return Array.isArray(raw) ? raw : [];
+}
+
+function writeQuality(session: AppraisalSession, qualityAssessments: StoredQualityAssessment[]): AppraisalSession {
+  return {
+    ...session,
+    [QUALITY_KEY]: qualityAssessments,
+    updatedAt: new Date().toISOString(),
+  } as AppraisalSession;
+}
+
+export function getQualityAssessmentsForSession(sessionId: string): StoredQualityAssessment[] {
+  const session = loadAppraisalSessions().find(item => item.id === sessionId);
+  return session ? readQuality(session) : [];
+}
+
+export function addQualityAssessment(sessionId: string, assessment: StoredQualityAssessment): AppraisalSession {
+  const session = loadAppraisalSessions().find(item => item.id === sessionId);
+  if (!session) throw new Error(`Appraisal-sesjon finnes ikke: ${sessionId}`);
+  if (session.locked) throw new Error('Appraisal-sesjonen er låst og kan ikke få ny kvalitetsvurdering.');
+  if (assessment.appraisalSessionId && assessment.appraisalSessionId !== sessionId) {
+    throw new Error('Kvalitetsvurderingen peker til feil appraisal-sesjon.');
+  }
+
+  const nextAssessment = { ...assessment, appraisalSessionId: sessionId };
+  const next = writeQuality(session, [...readQuality(session), nextAssessment]);
+  upsertAppraisalSession(next);
+  return next;
 }
 
 export function assessGRADE(input: {
