@@ -4,6 +4,7 @@ export type EvidenceKind = 'QUOTE' | 'TABLE' | 'FIGURE' | 'STATISTIC' | 'CONCEPT
 export interface EvidenceExtraction {
   id: string;
   sourceRecordId: string;
+  sourceIdentifiers?: { doi?: string; pmid?: string; pmcid?: string; isbn?: string; issn?: string };
   excerpt: string;
   location?: { page?: string; section?: string; table?: string; figure?: string };
   evidenceType: EvidenceKind;
@@ -11,6 +12,7 @@ export interface EvidenceExtraction {
   extractedAt: string;
   linkedClaims: string[];
   researcherVerified: boolean;
+  verificationNote?: string;
 }
 
 export interface AcademicClaim {
@@ -35,12 +37,7 @@ export interface AcademicDocument {
 }
 
 export interface AcademicIntegrityIssue {
-  code:
-    | 'UNSUPPORTED_CLAIM'
-    | 'UNVERIFIED_SOURCE'
-    | 'MISSING_EVIDENCE_LOCATION'
-    | 'CONTRADICTED_CLAIM'
-    | 'AI_REVIEW_REQUIRED';
+  code: 'UNSUPPORTED_CLAIM' | 'UNVERIFIED_SOURCE' | 'MISSING_EVIDENCE_LOCATION' | 'UNVERIFIED_EVIDENCE' | 'CONTRADICTED_CLAIM' | 'AI_REVIEW_REQUIRED';
   severity: 'ERROR' | 'WARNING';
   message: string;
   claimId?: string;
@@ -62,55 +59,30 @@ export function evaluateAcademicIntegrity(
 
   for (const claim of claims) {
     if (claim.status === 'CONTRADICTED') {
-      issues.push({
-        code: 'CONTRADICTED_CLAIM',
-        severity: 'ERROR',
-        message: 'Påstanden har motstridende evidens og kan ikke eksporteres som etablert faktum.',
-        claimId: claim.id,
-      });
+      issues.push({ code: 'CONTRADICTED_CLAIM', severity: 'ERROR', message: 'Påstanden har motstridende evidens og kan ikke eksporteres som etablert faktum.', claimId: claim.id });
       continue;
     }
 
     const linked = evidence.filter(e => claim.supportingEvidenceIds.includes(e.id));
     if (linked.length === 0) {
-      issues.push({
-        code: 'UNSUPPORTED_CLAIM',
-        severity: 'ERROR',
-        message: 'Påstanden mangler lenket evidens.',
-        claimId: claim.id,
-      });
+      issues.push({ code: 'UNSUPPORTED_CLAIM', severity: 'ERROR', message: 'Påstanden mangler lenket evidens.', claimId: claim.id });
       continue;
     }
 
-    const unverifiedSource = linked.some(e => !verifiedSourceIds.has(e.sourceRecordId));
-    if (unverifiedSource) {
-      issues.push({
-        code: 'UNVERIFIED_SOURCE',
-        severity: 'ERROR',
-        message: 'Minst én evidenskilde er ikke bibliografisk verifisert.',
-        claimId: claim.id,
-      });
+    if (linked.some(e => !verifiedSourceIds.has(e.sourceRecordId))) {
+      issues.push({ code: 'UNVERIFIED_SOURCE', severity: 'ERROR', message: 'Minst én evidenskilde er ikke bibliografisk verifisert.', claimId: claim.id });
     }
 
-    const missingLocation = linked.some(e => e.evidenceType !== 'RESEARCHER_DATA' && !e.location?.page && !e.location?.section && !e.location?.table && !e.location?.figure);
-    if (missingLocation) {
-      issues.push({
-        code: 'MISSING_EVIDENCE_LOCATION',
-        severity: 'WARNING',
-        message: 'Evidensen mangler lokasjon (side, seksjon, tabell eller figur).',
-        claimId: claim.id,
-      });
+    if (linked.some(e => e.evidenceType !== 'RESEARCHER_DATA' && !e.researcherVerified)) {
+      issues.push({ code: 'UNVERIFIED_EVIDENCE', severity: 'ERROR', message: 'Minst én evidensenhet er ikke kontrollert og godkjent av forsker.', claimId: claim.id });
+    }
+
+    if (linked.some(e => e.evidenceType !== 'RESEARCHER_DATA' && !e.location?.page && !e.location?.section && !e.location?.table && !e.location?.figure)) {
+      issues.push({ code: 'MISSING_EVIDENCE_LOCATION', severity: 'WARNING', message: 'Evidensen mangler lokasjon (side, seksjon, tabell eller figur).', claimId: claim.id });
     }
   }
 
-  const supportedClaims = claims.filter(c => c.supportingEvidenceIds.length > 0 && c.status === 'SUPPORTED').length;
-  const unsupportedClaims = claims.filter(c => !c.supportingEvidenceIds.length || c.status === 'UNVERIFIED').length;
-  const blocking = issues.some(issue => issue.severity === 'ERROR');
-
-  return {
-    canExport: !blocking,
-    issues,
-    supportedClaims,
-    unsupportedClaims,
-  };
+  const supportedClaims = claims.filter(c => c.status === 'SUPPORTED' && c.supportingEvidenceIds.length > 0).length;
+  const unsupportedClaims = claims.filter(c => c.status !== 'SUPPORTED').length;
+  return { canExport: !issues.some(issue => issue.severity === 'ERROR'), issues, supportedClaims, unsupportedClaims };
 }
