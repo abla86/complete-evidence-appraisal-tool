@@ -8,7 +8,7 @@ export interface ResearchEngineEvidence {
   id: string;
   documentId: string;
   location: {
-    page?: number;
+    page?: string;
     section?: string;
     table?: string;
     figure?: string;
@@ -17,6 +17,10 @@ export interface ResearchEngineEvidence {
   status: 'AI_CANDIDATE' | 'HUMAN_VERIFIED' | 'MANUAL';
   verifiedByResearcher: boolean;
   source: 'DOCUMENT_PARSER' | 'DOCUMENT_ANALYSIS' | 'RESEARCH_ENGINE';
+  questionId?: number;
+  suggestedStatus?: string;
+  relevanceScore?: number;
+  confidenceReason?: string;
 }
 
 export interface ResearchEngineDocument {
@@ -47,11 +51,12 @@ export interface ResearchEngineHandoff {
 }
 
 export class ResearchEngineGateway {
-  public static parseDocument(
-    file: File | { name: string; size: number; type?: string; content: ArrayBuffer | string }
+  public static async parseDocument(
+    file: File | { name: string; size: number; type?: string; content: ArrayBuffer | string },
   ): Promise<ResearchEngineDocument> {
-    return DocumentParserService.parseFile(file).then((parsed) => ({
-      id: this.createDocumentId(file.name),
+    const parsed = await DocumentParserService.parseFile(file);
+    return {
+      id: this.createDocumentId(`${file.name}:${file.size}`),
       fileName: parsed.fileName,
       fileType: parsed.fileType,
       mimeType: parsed.mimeType,
@@ -63,10 +68,13 @@ export class ResearchEngineGateway {
       scanned: parsed.isScannedOrImageOnly,
       ocrNeeded: parsed.ocrAppliedOrNeeded,
       candidateEvidence: parsed.candidateEvidence ?? [],
-    }));
+    };
   }
 
-  public static analyzeText(text: string, fileName = 'document.txt'): DocumentAnalysisResult {
+  public static analyzeText(
+    text: string,
+    fileName = 'document.txt',
+  ): DocumentAnalysisResult {
     if (!text.trim()) {
       throw new Error('Dokumenttekst kan ikke være tom.');
     }
@@ -75,7 +83,7 @@ export class ResearchEngineGateway {
 
   public static createHandoff(
     document: ResearchEngineDocument,
-    evidence: ResearchEngineEvidence[] = []
+    evidence: ResearchEngineEvidence[] = [],
   ): ResearchEngineHandoff {
     return {
       contractVersion: RESEARCH_ENGINE_CONTRACT_VERSION,
@@ -92,28 +100,32 @@ export class ResearchEngineGateway {
 
   public static candidateEvidenceToHandoff(
     document: ResearchEngineDocument,
-    candidates: CandidateEvidence[] = document.candidateEvidence
+    candidates: CandidateEvidence[] = document.candidateEvidence,
   ): ResearchEngineHandoff {
     const evidence = candidates.map((candidate, index) => ({
       id: `evidence-${document.id}-${index + 1}`,
       documentId: document.id,
       location: {
-        page: candidate.page,
-        section: candidate.section,
-        table: candidate.table,
-        figure: candidate.figure,
+        page: candidate.suggestedLocation.page,
+        section: candidate.suggestedLocation.section,
+        table: candidate.suggestedLocation.table,
+        figure: candidate.suggestedLocation.figure,
       },
-      quote: candidate.quote,
-      status: 'AI_CANDIDATE' as const,
-      verifiedByResearcher: false,
+      quote: candidate.extractedSnippet,
+      status: candidate.verifiedByResearcher ? 'HUMAN_VERIFIED' as const : 'AI_CANDIDATE' as const,
+      verifiedByResearcher: candidate.verifiedByResearcher,
       source: 'DOCUMENT_ANALYSIS' as const,
+      questionId: candidate.questionId,
+      suggestedStatus: candidate.suggestedStatus,
+      relevanceScore: candidate.relevanceScore,
+      confidenceReason: candidate.confidenceReason,
     }));
 
     return this.createHandoff(document, evidence);
   }
 
-  private static createDocumentId(fileName: string): string {
-    const normalized = fileName.trim().toLowerCase();
+  private static createDocumentId(value: string): string {
+    const normalized = value.trim().toLowerCase();
     let hash = 2166136261;
     for (let index = 0; index < normalized.length; index += 1) {
       hash ^= normalized.charCodeAt(index);
