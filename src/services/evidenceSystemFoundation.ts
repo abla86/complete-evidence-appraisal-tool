@@ -33,7 +33,6 @@ export interface EvidenceHandoff {
 export interface AuthorityScope {
   role: UserRole | string;
   allowedActions: readonly string[];
-
   can(action: string): boolean;
 }
 
@@ -103,7 +102,7 @@ export class EvidenceStateService implements EvidenceStateStore {
       type: 'state.updated',
       module,
       actor,
-      payload: { key, value, reason },
+      payload: { key, value, reason } as Record<string, unknown> as T,
       timestamp: this.updatedAt,
       stateVersion: this.version,
       correlationId: this.correlationId,
@@ -159,10 +158,9 @@ export class EvidenceFoundation {
     };
 
     await this.auditTrail.append({
-      actor: enriched.actor,
+      actor: { id: enriched.actor, name: enriched.actor, role: enriched.actor as UserRole },
       action: enriched.type,
-      subjectType: enriched.module,
-      subjectId: enriched.correlationId,
+      subject: { entityType: enriched.module, id: enriched.correlationId },
       detail: {
         payload: enriched.payload,
         stateVersion: enriched.stateVersion,
@@ -203,12 +201,19 @@ export class EvidenceFoundation {
     return item;
   }
 
-  async verifyAuditIntegrity(): Promise<{ valid: boolean; entries: readonly AuditEntry[] }> {
+  async verifyAuditIntegrity(): Promise<{ valid: boolean; firstInvalidIndex: number | null; entries: readonly AuditEntry[] }> {
     const result = await this.auditTrail.verify();
-    return { valid: result.valid, entries: result.entries };
+    return {
+      valid: result.valid,
+      firstInvalidIndex: result.firstInvalidIndex,
+      entries: this.auditTrail.list(),
+    };
   }
 }
 
 export function canRolePerformAction(role: UserRole | string, action: string): boolean {
-  return RbacService.can(role as UserRole, action);
+  const knownRole = ['admin', 'lead_reviewer', 'reviewer', 'adjudicator'].includes(role)
+    ? role as UserRole
+    : undefined;
+  return knownRole ? RbacService.checkPermission(knownRole, action as never) : false;
 }
