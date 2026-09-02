@@ -96,12 +96,15 @@ export function validateAppraisalSession(session: AppraisalSession): AppraisalSe
   const expected = new Set((instrument.questions ?? []).map(q => normalizeId(q.id)));
   const actual = new Set(session.responses.map(r => normalizeId(r.itemId)));
   const missingItemIds = [...expected].filter(id => !actual.has(id));
+  const unexpectedItemIds = [...actual].filter(id => !expected.has(id));
   const missingRationales = session.responses
     .filter(r => r.answer !== null && r.answer !== '' && !String(r.rationale ?? '').trim())
     .map(r => normalizeId(r.itemId));
   const issues: string[] = [];
 
+  if (session.instrumentVersion !== instrument.version) issues.push(`Instrumentversjonen i sesjonen (${session.instrumentVersion}) avviker fra registry (${instrument.version}). Sesjonen må migreres eller vurderes på nytt.`);
   if (missingItemIds.length) issues.push(`${missingItemIds.length} vurderingspunkt mangler svar.`);
+  if (unexpectedItemIds.length) issues.push(`${unexpectedItemIds.length} svar peker til vurderingspunkt som ikke finnes i valgt instrumentversjon.`);
   if (missingRationales.length) issues.push(`${missingRationales.length} besvarte vurderingspunkt mangler begrunnelse.`);
 
   return { valid: issues.length === 0, missingItemIds, missingRationales, issues };
@@ -116,25 +119,48 @@ export function lockAppraisalSession(session: AppraisalSession): AppraisalSessio
 export function decideAppraisalLaunch(
   studyDesign: string,
   instrumentId: string,
-  allowAlternative: boolean = true,
+  allowAlternative: boolean = false,
 ): AppraisalLaunchDecision {
   const instrument = getInstrumentOrNull(instrumentId);
   if (!instrument) return { instrument: null, allowed: false, warnings: ['Ukjent instrument.'], reason: 'Instrumentet finnes ikke.' };
 
   const design = studyDesign.trim().toLowerCase();
+  if (!design) {
+    return {
+      instrument,
+      allowed: false,
+      warnings: ['Studiedesign mangler.'],
+      reason: 'Registrer studiedesign før appraisal-instrument velges.',
+    };
+  }
+
   const compatible = instrument.targetStudyDesign.some(target => {
     const normalized = target.toLowerCase();
     return normalized.includes(design) || design.includes(normalized);
   });
 
-  if (compatible || allowAlternative) {
+  if (compatible) {
     return {
       instrument,
       allowed: true,
-      warnings: compatible ? [] : [`Instrumentet er ikke et direkte design-treff for «${studyDesign}». Vurder metodisk begrunnelse før bruk.`],
-      reason: compatible ? 'Instrumentet er kompatibelt med registrert studiedesign.' : 'Instrumentet kan brukes som eksplisitt valgt alternativ.'
+      warnings: [],
+      reason: 'Instrumentet er kompatibelt med registrert studiedesign.',
     };
   }
 
-  return { instrument, allowed: false, warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'], reason: 'Bytt instrument eller dokumenter eksplisitt hvorfor avviket er faglig forsvarlig.' };
+  if (allowAlternative) {
+    return {
+      instrument,
+      allowed: true,
+      warnings: [`Instrumentet er ikke et direkte design-treff for «${studyDesign}». Bruk krever eksplisitt metodisk begrunnelse.`],
+      reason: 'Instrumentet er valgt som eksplisitt alternativ.',
+    };
+  }
+
+  return {
+    instrument,
+    allowed: false,
+    warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'],
+    reason: 'Bytt instrument eller åpne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.',
+  };
 }
