@@ -2,7 +2,7 @@ import type { SourceRecord } from '../domain/sourceRecord';
 import { validateSourceRecord } from './validateSourceRecord';
 import { intakeSourceRecord, type Actor, type AuditWriter, type IntakeStore } from './sourceIntakeService';
 
-export function importSourceRecordJson(
+export async function importSourceRecordJson(
   json: string,
   actor: Actor,
   store: IntakeStore,
