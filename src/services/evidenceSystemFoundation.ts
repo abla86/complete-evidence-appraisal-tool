@@ -71,6 +71,11 @@ function uid(prefix: string): string {
   return `${prefix}_${random}`;
 }
 
+function toAuditRole(actor: string): UserRole {
+  if (actor === 'admin' || actor === 'lead_reviewer' || actor === 'reviewer' || actor === 'adjudicator') return actor;
+  return 'reviewer';
+}
+
 export class EvidenceStateService implements EvidenceStateStore {
   private readonly stateId: string;
   private version = 1;
@@ -158,7 +163,7 @@ export class EvidenceFoundation {
     };
 
     await this.auditTrail.append({
-      actor: { id: enriched.actor, name: enriched.actor, role: enriched.actor as UserRole },
+      actor: { id: enriched.actor, name: enriched.actor, role: toAuditRole(enriched.actor) },
       action: enriched.type,
       subject: { entityType: enriched.module, id: enriched.correlationId },
       detail: {
