@@ -10,88 +10,54 @@ import {
   validateAppraisal,
   type AppraisalWorkflowRecord,
 } from './appraisalWorkflowBridge';
-import type {
-  AppraisalItemResponse,
-  AppraisalSessionValidation,
-} from './universalAppraisalService';
+import type { AppraisalItemResponse, AppraisalSessionValidation } from './universalAppraisalService';
 
 export interface EvidenceAppraisalContext {
   workflow: WorkflowState;
-  appraisal?: AppraisalWorkflowRecord;
+  appraisal: AppraisalWorkflowRecord;
 }
 
 export class EvidenceAppraisalOrchestrator {
-  public async start(
-    workflow: WorkflowState,
-    reviewerId: string,
-  ): Promise<EvidenceAppraisalContext> {
+  public async start(workflow: WorkflowState, reviewerId: string): Promise<EvidenceAppraisalContext> {
     const payload = buildResearchAppraisalPayload(workflow);
-    const updatedWorkflow = includeStudyAndCreateAppraisal(
-      workflow,
-      { reviewerId, instrumentId: payload.instrumentId },
-    );
+    const updatedWorkflow = includeStudyAndCreateAppraisal(workflow, {
+      reviewerId,
+      instrumentId: payload.instrumentId,
+    });
     const appraisal = await createAppraisalFromResearch(payload, reviewerId);
     return { workflow: updatedWorkflow, appraisal };
   }
 
-  public async saveResponse(
-    context: EvidenceAppraisalContext,
-    response: AppraisalItemResponse,
-  ): Promise<EvidenceAppraisalContext> {
-    if (!context.appraisal) throw new Error('No appraisal session exists for this workflow.');
-
-    const appraisal = await recordAppraisalResponse(
-      context.appraisal.session.id,
-      response,
-    );
-
-    return {
-      ...context,
-      workflow: {
-        ...context.workflow,
-        appraisalSessions: context.workflow.appraisalSessions.map(session =>
-          session.id === appraisal.session.id ? appraisal.session : session,
-        ),
-      },
-      appraisal,
+  public async saveResponse(context: EvidenceAppraisalContext, response: AppraisalItemResponse): Promise<EvidenceAppraisalContext> {
+    const appraisal = await recordAppraisalResponse(context.appraisal.session.id, response);
+    const workflow: WorkflowState = {
+      ...context.workflow,
+      appraisalSessions: context.workflow.appraisalSessions.map(session =>
+        session.id === appraisal.session.id ? appraisal.session : session,
+      ),
     };
+    return { workflow, appraisal };
   }
 
   public validate(context: EvidenceAppraisalContext): AppraisalSessionValidation {
-    if (!context.appraisal) throw new Error('No appraisal session exists for this workflow.');
     return validateAppraisal(context.appraisal.session.id);
   }
 
-  public async finalize(
-    context: EvidenceAppraisalContext,
-  ): Promise<EvidenceAppraisalContext> {
-    if (!context.appraisal) throw new Error('No appraisal session exists for this workflow.');
-
+  public async finalize(context: EvidenceAppraisalContext): Promise<EvidenceAppraisalContext> {
     const validation = this.validate(context);
-    if (!validation.valid) {
-      throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
-    }
-
+    if (!validation.valid) throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
     const appraisal = await finalizeAppraisal(context.appraisal.session.id);
-
-    return {
-      ...context,
-      workflow: {
-        ...context.workflow,
-        appraisalSessions: context.workflow.appraisalSessions.map(session =>
-          session.id === appraisal.session.id ? appraisal.session : session,
-        ),
-      },
-      appraisal,
+    const workflow: WorkflowState = {
+      ...context.workflow,
+      appraisalSessions: context.workflow.appraisalSessions.map(session =>
+        session.id === appraisal.session.id ? appraisal.session : session,
+      ),
     };
+    return { workflow, appraisal };
   }
 
   public toJson(context: EvidenceAppraisalContext) {
-    return {
-      studyId: context.workflow.studyId,
-      workflow: context.workflow,
-      appraisal: context.appraisal,
-    };
+    return { studyId: context.workflow.studyId, workflow: context.workflow, appraisal: context.appraisal };
   }
 }
 
