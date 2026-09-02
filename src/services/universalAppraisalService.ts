@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { AppraisalInstrument } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 
@@ -63,9 +64,11 @@ export function createBlankAppraisalSession(
 ): AppraisalSession {
   const instrument = getInstrumentOrNull(instrumentId);
   if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
+  if (!studyId.trim()) throw new Error('studyId is required.');
+  if (!reviewerId.trim()) throw new Error('reviewerId is required.');
   const now = new Date().toISOString();
   return {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     studyId,
     instrumentId,
     instrumentVersion: instrument.version,
