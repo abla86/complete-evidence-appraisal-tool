@@ -32,7 +32,7 @@ import { UserRole } from './services/rbacService';
 import { GraduationCap, PlusCircle } from 'lucide-react';
 import { createReferenceRecord, type ReferenceRecord } from './services/referenceHubService';
 import { loadReferenceLibrary, saveReferenceLibrary } from './services/referenceLibraryStore';
-import { loadAppraisalSessions, upsertAppraisalSession } from './state/appraisalSessionStore';
+import { loadAppraisalSessions, upsertAppraisalSession } from './services/appraisalSessionStore';
 import type { AppraisalSession } from './services/universalAppraisalService';
 
 function createBlankJbiItems(defaultStatus: AssessmentStatus = 'Uklart', defaultJustification = ''): JBIEvaluationItem[] {
