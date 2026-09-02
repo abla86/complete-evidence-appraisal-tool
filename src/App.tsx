@@ -56,7 +56,6 @@ export default function App() {
   const [isAutosaveModalOpen, setIsAutosaveModalOpen] = useState<boolean>(false);
   const [importExportInitialTab, setImportExportInitialTab] = useState<'import' | 'export'>('export');
 
-  // Continual autosave on every mutation
   useEffect(() => {
     AutosaveService.saveArticles(articles);
   }, [articles]);
@@ -135,7 +134,6 @@ export default function App() {
   return (
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
-        {/* Navigation & Header */}
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -155,9 +153,7 @@ export default function App() {
           onNewArticle={handleNewArticle}
         />
 
-        {/* Main Content Area */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
-          {/* If another instrument than JBI Qualitative is selected and active tab is instrumentinfo */}
           {selectedInstrumentId !== 'jbi-qualitative-2017' && activeTab === 'instrumentinfo' ? (
             <InstrumentInfoView
               instrumentId={selectedInstrumentId}
@@ -266,7 +262,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setActiveTab('help_examples')}
-                        className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5"
+                        className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all inline-flex items-center gap-1.5"
                       >
                         <GraduationCap className="w-4 h-4 text-indigo-600" /> Utforsk eksempelbibliotek
                       </button>
@@ -490,7 +486,6 @@ export default function App() {
           )}
         </main>
 
-        {/* Global Document Analysis Modal */}
         <DocumentAnalysisModal
           isOpen={isDocAnalysisOpen}
           onClose={() => setIsDocAnalysisOpen(false)}
@@ -562,7 +557,6 @@ export default function App() {
           }}
         />
 
-        {/* Universal Import & Export Hub Modal */}
         <ImportExportModal
           isOpen={isImportExportOpen}
           onClose={() => setIsImportExportOpen(false)}
@@ -572,7 +566,6 @@ export default function App() {
           initialTab={importExportInitialTab}
         />
 
-        {/* Autosave & Snapshot Management Modal */}
         <AutosaveModal
           isOpen={isAutosaveModalOpen}
           onClose={() => setIsAutosaveModalOpen(false)}
@@ -585,7 +578,6 @@ export default function App() {
           }}
         />
 
-        {/* GDPR Privacy & Security Center Modal */}
         <GdprPrivacyCenterModal
           isOpen={isPrivacyCenterOpen}
           onClose={() => setIsPrivacyCenterOpen(false)}
@@ -596,38 +588,16 @@ export default function App() {
           }}
         />
 
-        {/* Academic Footer */}
         <footer className="bg-white border-t border-slate-200 py-6 sm:py-8 mt-12 print:hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0" />
-              <span>
-                Evidence Appraisal Tool • WHO Handbook for Guideline Development & Joanna Briggs Institute-kildemateriale.
-              </span>
+              <span>Evidence Appraisal Tool • WHO Handbook for Guideline Development & Joanna Briggs Institute-kildemateriale.</span>
             </div>
-
             <div className="flex items-center gap-4 flex-wrap">
-              <button
-                onClick={() => setActiveTab('methodology_audit')}
-                className="text-slate-600 hover:text-teal-700 underline font-semibold flex items-center gap-1"
-              >
-                <span>Kilde- & Metoderevisjon</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('who_validation')}
-                className="text-slate-600 hover:text-teal-700 underline font-semibold flex items-center gap-1"
-              >
-                <span>Metodisk kontroll & modeller</span>
-              </button>
-              <a
-                href="https://jbi.global/critical-appraisal-tools"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-slate-600 hover:text-teal-700 underline flex items-center gap-1"
-              >
-                <span>JBI Adelaide Checklist</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <button onClick={() => setActiveTab('methodology_audit')} className="text-slate-600 hover:text-teal-700 underline font-semibold flex items-center gap-1"><span>Kilde- & Metoderevisjon</span></button>
+              <button onClick={() => setActiveTab('who_validation')} className="text-slate-600 hover:text-teal-700 underline font-semibold flex items-center gap-1"><span>Metodisk kontroll & modeller</span></button>
+              <a href="https://jbi.global/critical-appraisal-tools" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-teal-700 underline flex items-center gap-1"><span>JBI Adelaide Checklist</span><ExternalLink className="w-3 h-3" /></a>
             </div>
           </div>
         </footer>
