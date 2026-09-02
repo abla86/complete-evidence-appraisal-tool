@@ -4,10 +4,10 @@ import {
   type WorkflowState,
 } from './researchWorkflowService';
 import {
-  createAppraisalFromResearch,
-  finalizeAppraisal,
   recordAppraisalResponse,
+  finalizeAppraisal,
   validateAppraisal,
+  getAppraisalWorkflowRecord,
   type AppraisalWorkflowRecord,
 } from './appraisalWorkflowBridge';
 import type { AppraisalItemResponse, AppraisalSessionValidation } from './universalAppraisalService';
@@ -24,7 +24,10 @@ export class EvidenceAppraisalOrchestrator {
       reviewerId,
       instrumentId: payload.instrumentId,
     });
-    const appraisal = await createAppraisalFromResearch(payload, reviewerId);
+    const createdSession = updatedWorkflow.appraisalSessions.at(-1);
+    if (!createdSession) throw new Error('Appraisal-sesjon ble ikke opprettet.');
+    const appraisal = getAppraisalWorkflowRecord(createdSession.id);
+    if (!appraisal) throw new Error(`Appraisal-workflow record mangler for session ${createdSession.id}.`);
     return { workflow: updatedWorkflow, appraisal };
   }
 
