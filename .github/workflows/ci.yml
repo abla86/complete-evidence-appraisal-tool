@@ -33,3 +33,17 @@ jobs:
         run: npm test
       - name: Build production container
         run: docker build -t evidence-app:test .
+      - name: Verify production container health
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --rm --name evidence-app-ci -p 18080:10000 evidence-app:test
+          trap 'docker rm -f evidence-app-ci >/dev/null 2>&1 || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18080/api/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs evidence-app-ci
+          exit 1
