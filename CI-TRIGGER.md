@@ -1,0 +1,1 @@
+CI trigger marker. This file exists only to make the CI push verification observable and is safe to remove after the first verified green run.
