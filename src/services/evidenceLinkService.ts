@@ -27,12 +27,15 @@ export function createEvidenceExtraction(input: {
   extractedBy: string;
   sourceIdentifiers?: EvidenceExtraction['sourceIdentifiers'];
 }): EvidenceExtraction {
+  if (!input.sourceRecordId.trim()) throw new Error('sourceRecordId is required.');
+  if (!input.excerpt.trim()) throw new Error('Evidence excerpt is required.');
+  if (!input.extractedBy.trim()) throw new Error('extractedBy is required.');
   const now = new Date().toISOString();
   return {
     id: input.id ?? createId('evidence'),
     sourceRecordId: input.sourceRecordId,
     sourceIdentifiers: input.sourceIdentifiers,
-    excerpt: input.excerpt,
+    excerpt: input.excerpt.trim(),
     location: input.location,
     evidenceType: input.evidenceType ?? 'QUOTE',
     extractedBy: input.extractedBy,
@@ -51,6 +54,7 @@ export function linkHighlightToEvidence(
     throw new Error('Highlight confidence må være mellom 0 og 1.');
   }
   if (!link.highlightId.trim() || !link.evidenceId.trim()) throw new Error('Highlight og evidence må identifiseres.');
+  if (!link.createdBy.trim()) throw new Error('createdBy is required.');
   if (!evidence.some(item => item.id === link.evidenceId)) throw new Error('Evidensen finnes ikke.');
 
   const created: PdfHighlightLink = {
