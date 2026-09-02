@@ -5,8 +5,8 @@ import {
   transitionScreeningState,
   attachReviewedRecordToPico,
   type Actor,
-  type IntakeStore,
   type AuditWriter,
+  type IntakeStore,
 } from '../services/sourceIntakeService';
 import type { SourceRecord } from '../domain/sourceRecord';
 
@@ -26,10 +26,6 @@ export function validateImportedSourceRecord(input: unknown): TestGroupWorkflowR
     : { ok: false, stage: 'validation', errors: result.errors };
 }
 
-/**
- * Explicit stage-by-stage harness used by integration tests and manual QA.
- * It deliberately does not provide a hidden "add source" shortcut.
- */
 export function createTestGroupWorkflow(
   actor: TestGroupActor,
   store: IntakeStore,
