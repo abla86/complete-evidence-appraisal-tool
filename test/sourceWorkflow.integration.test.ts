@@ -65,15 +65,15 @@ function fixture(): SourceRecord {
 }
 
 describe('SourceRecord → intake → PRISMA/PICO linkage', () => {
-  test('rejects malformed source records before intake', () => {
+  test('rejects malformed source records before intake', async () => {
     const audit = new AuditTrailService();
-    const result = intakeSourceRecord({} as SourceRecord, actor, { getRecord: () => undefined, saveRecord() {} }, audit);
+    const result = await intakeSourceRecord({} as SourceRecord, actor, { getRecord: () => undefined, saveRecord() {} }, audit);
     assert.equal(result.accepted, false);
     assert.equal(result.reason, 'schema-violation');
     assert.equal(audit.list().length, 0);
   });
 
-  test('records each workflow transition as a separate audit event', () => {
+  test('records each workflow transition as a separate audit event', async () => {
     const audit = new AuditTrailService();
     let stored: SourceRecord | undefined;
     const store = {
@@ -81,23 +81,23 @@ describe('SourceRecord → intake → PRISMA/PICO linkage', () => {
       saveRecord: (record: SourceRecord) => { stored = record; },
     };
 
-    const intake = intakeSourceRecord(fixture(), actor, store, audit);
+    const intake = await intakeSourceRecord(fixture(), actor, store, audit);
     assert.equal(intake.accepted, true);
     stored = intake.record;
 
-    const linked = linkRecordToScreeningBatch(stored, 'batch-001', actor, audit);
+    const linked = await linkRecordToScreeningBatch(stored, 'batch-001', actor, audit);
     assert.equal(linked.linked, true);
     stored = linked.record;
 
-    const reviewed = transitionScreeningState(stored, 'reviewed', actor, audit, 'dual-review complete');
+    const reviewed = await transitionScreeningState(stored, 'reviewed', actor, audit, 'dual-review complete');
     assert.equal(reviewed.transitioned, true);
     stored = reviewed.record;
 
-    const attached = attachReviewedRecordToPico(stored, 'pico-001', actor, audit);
+    const attached = await attachReviewedRecordToPico(stored, 'pico-001', actor, audit);
     assert.equal(attached.attached, true);
 
     assert.equal(audit.list().length, 4);
-    assert.equal(audit.verify().valid, true);
+    assert.equal((await audit.verify()).valid, true);
     assert.deepEqual(audit.list().map((entry) => entry.action), [
       'SOURCE_RECORD_INTAKE',
       'RECORD_LINKED_TO_BATCH',
@@ -107,12 +107,11 @@ describe('SourceRecord → intake → PRISMA/PICO linkage', () => {
   });
 });
 
-
 describe('Reference verification semantics', () => {
-  test('intake does not turn a draft reference into a verified reference', () => {
+  test('intake does not turn a draft reference into a verified reference', async () => {
     const audit = new AuditTrailService();
     let stored: SourceRecord | undefined;
-    const result = intakeSourceRecord(fixture(), actor, {
+    const result = await intakeSourceRecord(fixture(), actor, {
       getRecord: () => stored,
       saveRecord: (record) => { stored = record; },
     }, audit);
@@ -121,6 +120,7 @@ describe('Reference verification semantics', () => {
     assert.equal(audit.list()[0].detail.doiFormatValid, true);
     assert.equal(audit.list()[0].action, 'SOURCE_RECORD_INTAKE');
     assert.notEqual(audit.list()[0].detail, undefined);
+    assert.equal(audit.list()[0].detail.referenceVerified, false);
     assert.equal(validateSourceRecord(result.record).ok, true);
   });
 });
