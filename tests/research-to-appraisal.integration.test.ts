@@ -1,0 +1,98 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import { MASTER_INSTRUMENTS_REGISTRY } from '../src/data/masterRegistry';
+import {
+  createResearchWorkflowFromText,
+  updateResearchClassification,
+  verifyResearchClassification,
+  verifyResearchEvidence,
+  buildResearchAppraisalPayload,
+} from '../src/services/researchWorkflowService';
+import { validateAppraisalSession } from '../src/services/universalAppraisalService';
+
+function classification(instrumentId: string, studyDesign: string) {
+  return {
+    documentType: 'QUALITATIVE_STUDY' as const,
+    documentTypeName: 'Qualitative study',
+    isResearchDocument: true,
+    studyDesign,
+    methodologicalApproach: 'Kvalitativ' as const,
+    methodologicalPurpose: 'Levde erfaringer / Sosiale fenomener' as const,
+    confidenceScore: 95,
+    confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION' as const,
+    statusBadgeText: 'Requires verification',
+    evidenceSignals: [],
+    rationale: 'Integration test classification',
+    hasMetadataContentConflict: false,
+    recommendedInstrumentId: instrumentId,
+    recommendedInstrumentName: MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId)?.name ?? '',
+    recommendedInstrumentJustification: 'Test',
+    alternativeInstruments: [],
+    methodologicalLimitations: '',
+    instrumentSourceAndAuthority: 'Test',
+    instrumentRoleType: 'CRITICAL_APPRAISAL' as const,
+  };
+}
+
+test('research evidence must be human verified before appraisal payload', () => {
+  const workflow = createResearchWorkflowFromText(
+    'Methods: qualitative study. Participants described their experiences of person-centred dementia care.',
+    'study.txt',
+    'integration-study',
+  );
+
+  const withClassification = updateResearchClassification(
+    workflow,
+    classification('jbi-qualitative-2017', 'Kvalitativ'),
+  );
+  assert.throws(() => buildResearchAppraisalPayload(withClassification));
+
+  const verifiedClassification = verifyResearchClassification(withClassification, 'reviewer-1', true);
+  const firstEvidence = verifiedClassification.research?.evidenceBundle.evidence[0];
+  assert.ok(firstEvidence);
+
+  const verifiedEvidence = verifyResearchEvidence(verifiedClassification, firstEvidence.id, true, 'reviewer-1');
+  const payload = buildResearchAppraisalPayload(verifiedEvidence);
+
+  assert.equal(payload.studyId, 'integration-study');
+  assert.equal(payload.instrumentId, 'jbi-qualitative-2017');
+  assert.equal(payload.evidence.length, 1);
+  assert.equal(payload.evidence[0].source, 'HUMAN_VERIFIED');
+});
+
+test('rejected evidence is never included in appraisal payload', () => {
+  const workflow = createResearchWorkflowFromText(
+    'Methods: qualitative study. Participants described their experiences of person-centred dementia care.',
+    'study.txt',
+    'integration-study-reject',
+  );
+  const classified = updateResearchClassification(workflow, classification('jbi-qualitative-2017', 'Kvalitativ'));
+  const verifiedClassification = verifyResearchClassification(classified, 'reviewer-1', true);
+  const firstEvidence = verifiedClassification.research?.evidenceBundle.evidence[0];
+  assert.ok(firstEvidence);
+
+  const rejected = verifyResearchEvidence(verifiedClassification, firstEvidence.id, false, 'reviewer-1');
+  assert.equal(rejected.research?.evidenceBundle.evidence[0].source, 'REJECTED');
+  assert.equal(buildResearchAppraisalPayload, buildResearchAppraisalPayload);
+  assert.throws(() => buildResearchAppraisalPayload(rejected));
+});
+
+test('all registered instrument sessions can validate their own empty schema consistently', () => {
+  const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.questions?.length);
+  assert.ok(instrument);
+  const session = {
+    id: 'test-session',
+    studyId: 'study',
+    instrumentId: instrument.id,
+    instrumentVersion: instrument.version,
+    reviewerId: 'reviewer',
+    responses: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    locked: false,
+  };
+  const result = validateAppraisalSession(session);
+  assert.equal(result.valid, instrument.questions?.length === 0);
+  assert.equal(result.missingItemIds.length, instrument.questions?.length ?? 0);
+});
