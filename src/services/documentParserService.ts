@@ -1,6 +1,7 @@
 import { CandidateEvidence, DocumentAnalysisResult } from '../types';
 import { DocumentAnalysisService } from './documentAnalysisService';
 import { MetaResearchService } from './metaResearchService';
+import mammoth from 'mammoth';
 
 export interface FileParseResult {
   fileName: string;
@@ -133,7 +134,7 @@ export class DocumentParserService {
       mimeType: (file as any).type || (fileType === 'pdf' ? 'application/pdf' : 'text/plain'),
       isScannedOrImageOnly,
       ocrAppliedOrNeeded,
-      ocrConfidence: isScannedOrImageOnly ? 65 : 98,
+      // No synthetic OCR confidence: OCR is not performed by this parser.\n      // A scanned PDF is explicitly flagged for an OCR-capable workflow.\n      ocrConfidence: undefined,
       extractedText,
       wordCount,
       estimatedPages,
@@ -176,70 +177,47 @@ export class DocumentParserService {
       return { text: '', isScanned: true, ocrNeeded: true };
     }
 
-    const uint8 = new Uint8Array(buffer);
-    const latin1Decoder = new TextDecoder('latin1');
-    const rawContent = latin1Decoder.decode(uint8);
+    try {
+      // PDF.js parses compressed streams, font encodings and page structure.
+      // The previous implementation inspected raw PDF bytes and therefore could
+      // not reliably extract text from normal compressed PDFs.
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const loadingTask = pdfjs.getDocument({
+        data: new Uint8Array(buffer),
+        disableWorker: true
+      });
+      const pdf = await loadingTask.promise;
+      const pages: string[] = [];
 
-    // Extract text from uncompressed PDF streams or stream patterns
-    const textPieces: string[] = [];
-    const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g;
-    let match: RegExpExecArray | null;
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .map((item: any) => typeof item.str === 'string' ? item.str : '')
+          .join(' ')
+          .replace(/\\s{2,}/g, ' ')
+          .trim();
 
-    while ((match = streamRegex.exec(rawContent)) !== null) {
-      const streamData = match[1];
-      
-      // Look for standard PDF text operators (Tj, TJ)
-      const tjMatches = streamData.match(/\((.*?)\)\s*Tj/g);
-      if (tjMatches) {
-        for (const tj of tjMatches) {
-          const content = tj.replace(/^\(/, '').replace(/\)\s*Tj$/, '');
-          if (content.trim().length > 1) {
-            textPieces.push(this.cleanPdfEscapes(content));
-          }
+        if (pageText) {
+          pages.push(pageText);
         }
       }
 
-      const tjArrayMatches = streamData.match(/\[(.*?)\]\s*TJ/g);
-      if (tjArrayMatches) {
-        for (const arr of tjArrayMatches) {
-          const innerStrings = arr.match(/\((.*?)\)/g);
-          if (innerStrings) {
-            const combined = innerStrings.map(s => s.slice(1, -1)).join('');
-            if (combined.trim().length > 1) {
-              textPieces.push(this.cleanPdfEscapes(combined));
-            }
-          }
-        }
-      }
+      const text = pages.join('\\n\\n').trim();
+      const isScanned = text.length < 80;
+      return {
+        text,
+        isScanned,
+        ocrNeeded: isScanned
+      };
+    } catch (error) {
+      console.warn('PDF.js extraction failed:', error);
+      return {
+        text: '',
+        isScanned: true,
+        ocrNeeded: true
+      };
     }
-
-    // Check if raw content has metadata / plain text strings
-    if (textPieces.length === 0) {
-      // Check for ascii text chunks in PDF
-      const readableStrings = rawContent.match(/[A-Z0-9a-zæøåÆØÅ,.:;()\-'"\s]{20,}/g) || [];
-      const filtered = readableStrings.filter(s => 
-        !s.startsWith('/Filter') && 
-        !s.startsWith('/Length') && 
-        !s.includes('obj') && 
-        !s.includes('endobj')
-      );
-      if (filtered.length > 5) {
-        textPieces.push(...filtered.slice(0, 50));
-      }
-    }
-
-    let combinedText = textPieces.join(' ').replace(/\s{2,}/g, ' ').trim();
-    
-    // Check if scanned/image only
-    const hasImageObjects = rawContent.includes('/Image') || rawContent.includes('/XObject');
-    const isScanned = combinedText.length < 150 && hasImageObjects;
-    const ocrNeeded = isScanned || combinedText.length < 80;
-
-    return {
-      text: combinedText,
-      isScanned,
-      ocrNeeded
-    };
   }
 
   /**
@@ -258,20 +236,10 @@ export class DocumentParserService {
       return '';
     }
 
-    const uint8 = new Uint8Array(buffer);
-    const latin1Decoder = new TextDecoder('latin1');
-    const rawContent = latin1Decoder.decode(uint8);
-
-    // Look for <w:t> tags inside docx XML streams
-    const wtMatches = rawContent.match(/<w:t[^>]*>([\s\S]*?)<\/w:t>/g);
-    if (wtMatches && wtMatches.length > 0) {
-      const text = wtMatches.map(m => m.replace(/<[^>]*>/g, '')).join(' ');
-      return text.replace(/\s{2,}/g, ' ').trim();
-    }
-
-    // Fallback: extract readable strings
-    const readableStrings = rawContent.match(/[A-Za-z0-9æøåÆØÅ,.:;()\-'"\s]{25,}/g) || [];
-    return readableStrings.join('\n').trim();
+    // DOCX is a ZIP package. Reading the binary as Latin-1 and regexing XML
+    // does not work for normal DOCX files because document.xml is compressed.
+    const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+    return result.value.replace(/\\s{2,}/g, ' ').trim();
   }
 
   private static cleanPdfEscapes(str: string): string {
