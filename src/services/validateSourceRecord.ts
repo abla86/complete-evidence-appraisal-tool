@@ -1,4 +1,3 @@
-import type { SourceRecord } from '../domain/sourceRecord';
 import { SOURCE_RECORD_SCHEMA_VERSION } from '../domain/sourceRecord';
 
 export interface SourceRecordValidationResult {
@@ -50,6 +49,7 @@ export function validateSourceRecord(record: unknown): SourceRecordValidationRes
     else {
       if (typeof identifiers.doi.normalized !== 'string' || !DOI_RE.test(identifiers.doi.normalized)) errors.push('identifiers.doi.normalized must be a valid DOI');
       if (typeof identifiers.doi.formatValid !== 'boolean') errors.push('identifiers.doi.formatValid must be boolean');
+      if (identifiers.doi.formatValid !== DOI_RE.test(identifiers.doi.normalized)) errors.push('identifiers.doi.formatValid does not match normalized DOI syntax');
     }
   }
 
@@ -67,7 +67,9 @@ export function validateSourceRecord(record: unknown): SourceRecordValidationRes
     errors.push('privacy section is required');
   } else {
     if (privacy.localOnly !== true) errors.push('privacy.localOnly must be true at intake');
-    if (!Array.isArray(privacy.domains)) errors.push('privacy.domains must be an array');
+    if (!Array.isArray(privacy.externalHosts)) errors.push('privacy.externalHosts must be an array');
+    if (!Array.isArray(privacy.trackingHosts)) errors.push('privacy.trackingHosts must be an array');
+    if (!Array.isArray(privacy.signals)) errors.push('privacy.signals must be an array');
   }
 
   const provenance = record.provenance;
