@@ -48,7 +48,6 @@ export function createResearchWorkflow(document: ResearchEngineDocument, studyId
   const foundation = new EvidenceFoundation();
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, studyId);
   foundation.state.set(`research:${studyId}`, evidenceBundle, 'system', 'Research document attached', 'research');
-
   return {
     studyId,
     studyDesign: document.metadata.studyDesignDetected || '',
@@ -60,7 +59,7 @@ export function createResearchWorkflow(document: ResearchEngineDocument, studyId
       evidenceBundle,
       classificationVerified: false,
       selectedInstrumentId: document.metadata.recommendedInstrumentId || undefined,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher).length,
+      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
       evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
     },
@@ -120,7 +119,7 @@ export function updateResearchClassification(state: WorkflowState, classificatio
       classificationVerified: verified,
       selectedInstrumentId: classification.recommendedInstrumentId || state.research.selectedInstrumentId,
       evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher).length,
+      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
     },
   };
@@ -156,7 +155,7 @@ export function verifyResearchEvidence(state: WorkflowState, evidenceId: string,
     research: {
       ...state.research,
       evidenceBundle,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher).length,
+      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
       evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
     },
@@ -196,6 +195,8 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
   if (!state.research) throw new Error('Ingen research-workflow er knyttet til studien.');
   if (!state.research.classificationVerified) throw new Error('Human verification av dokumentklassifisering er påkrevd.');
   if (!state.research.selectedInstrumentId) throw new Error('Appraisal-instrument er ikke valgt.');
+  const verifiedEvidenceCount = getVerifiedResearchEvidence(state).length;
+  if (verifiedEvidenceCount === 0) throw new Error('Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.');
   const decision = decideAppraisalLaunch(state.studyDesign, state.research.selectedInstrumentId);
   if (!decision.allowed || !decision.instrument) throw new Error(decision.reason);
 }
@@ -207,17 +208,14 @@ export function includeStudyAndCreateAppraisal(state: WorkflowState, input: { re
   if (state.research?.selectedInstrumentId !== input.instrumentId) {
     throw new Error(`Selected instrument ${input.instrumentId} does not match research workflow instrument ${state.research?.selectedInstrumentId}.`);
   }
-
   const now = new Date().toISOString();
   const existingScreen = state.screening.find(item => item.reviewerId === input.reviewerId);
   const screening: ScreeningRecord[] = existingScreen
     ? state.screening.map(item => item === existingScreen ? { ...item, decision: 'INCLUDED' as const, updatedAt: now } : item)
     : [...state.screening, { studyId: state.studyId, reviewerId: input.reviewerId, decision: 'INCLUDED', updatedAt: now }];
   const session = createBlankAppraisalSession(state.studyId, input.instrumentId, input.reviewerId);
-
   foundation.state.set(`screening:${state.studyId}`, screening, input.reviewerId, 'Studie inkludert etter screening og klargjort for appraisal', 'screening');
   foundation.state.set(`appraisal:${session.id}`, session, input.reviewerId, 'Opprettet appraisal-sesjon fra research workflow', 'appraisal');
-
   return {
     ...state,
     screening,
