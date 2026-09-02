@@ -129,3 +129,35 @@ Systemet verifiseres i henhold til en 3-nivås testpyramide:
 ## 7. LISENS OG RETTIGHETER
 
 Systemet respekterer alle opphavsrettslige rammer og Creative Commons-lisenser (f.eks. CC BY 4.0 for AMSTAR 2 og RoB 2, CC BY-NC-SA 4.0 for CASP UK, og åpen forskningsbruk for JBI og AGREE Research Trust).
+
+
+## Google OAuth 2.0
+
+Google sign-in is implemented by the Evidence app itself. It does **not** use Home Assistant's OAuth callback.
+
+The application callback is:
+
+`<APP_URL>/auth/google/callback`
+
+For local development this is:
+
+`http://localhost:3000/auth/google/callback`
+
+Configure the Web application OAuth client in Google Auth Platform with the exact production and local redirect URIs that the deployment uses. Google requires an exact match for the scheme, host, path and trailing slash; a mismatch produces `redirect_uri_mismatch`. citeturn0search2
+
+Required deployment secrets:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `AUTH_SESSION_SECRET`
+
+The repository must contain no client secret. The client ID is not secret. The default scopes are `openid email profile`; additional Google API scopes should be added only when the corresponding Evidence feature actually needs them.
+
+Authentication endpoints:
+
+- `GET /auth/google` — start sign-in
+- `GET /auth/google/callback` — OAuth callback
+- `GET /api/auth/session` — current session
+- `POST /api/auth/logout` — sign out
+- `GET /api/auth/google/config` — non-secret runtime configuration
+
