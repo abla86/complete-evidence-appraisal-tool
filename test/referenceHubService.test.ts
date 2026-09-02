@@ -1,14 +1,15 @@
-import { describe, expect, test } from 'vitest';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import {
   createHubSnapshot,
   createReferenceRecord,
   detectDuplicateCandidates,
   markReferenceVerified,
   updateReferenceRecord,
-} from '../src/services/referenceHubService';
+} from '../src/services/referenceHubService.ts';
 
 describe('Unified Reference Hub', () => {
-  test('creates one canonical reference record and keeps it unverified by default', () => {
+  it('creates one canonical reference record and keeps it unverified by default', () => {
     const record = createReferenceRecord({
       id: 'ref-1',
       kind: 'JOURNAL_ARTICLE',
@@ -19,13 +20,13 @@ describe('Unified Reference Hub', () => {
       doi: '10.1234/example.2026',
     });
 
-    expect(record.verification).toBe('VALIDATION_REQUIRED');
-    expect(record.importedFrom).toEqual(['MANUAL']);
-    expect(record.attachments).toEqual([]);
-    expect(record.annotations).toEqual([]);
+    assert.equal(record.verification, 'VALIDATION_REQUIRED');
+    assert.deepEqual(record.importedFrom, ['MANUAL']);
+    assert.deepEqual(record.attachments, []);
+    assert.deepEqual(record.annotations, []);
   });
 
-  test('detects DOI duplicates without deleting records', () => {
+  it('detects DOI duplicates without deleting records', () => {
     const a = createReferenceRecord({
       id: 'ref-a',
       kind: 'JOURNAL_ARTICLE',
@@ -46,13 +47,13 @@ describe('Unified Reference Hub', () => {
     });
 
     const snapshot = createHubSnapshot([a, b]);
-    expect(snapshot.records).toHaveLength(2);
-    expect(snapshot.duplicateCandidates).toEqual([
+    assert.equal(snapshot.records.length, 2);
+    assert.deepEqual(snapshot.duplicateCandidates, [
       { recordId: 'ref-a', candidateId: 'ref-b', reason: 'DOI', confidence: 1 },
     ]);
   });
 
-  test('explicit verification is the only path to VALIDATED', () => {
+  it('explicit verification is the only path to VALIDATED', () => {
     const record = createReferenceRecord({
       id: 'ref-v',
       kind: 'JOURNAL_ARTICLE',
@@ -63,13 +64,13 @@ describe('Unified Reference Hub', () => {
       doi: '10.1234/example.2026',
     });
 
-    expect(record.verification).toBe('VALIDATION_REQUIRED');
+    assert.equal(record.verification, 'VALIDATION_REQUIRED');
     const updated = markReferenceVerified(record, 'reviewer-1', '2026-09-02T18:00:00.000Z');
-    expect(updated.verification).toBe('VALIDATED');
-    expect(updated.verifiedBy).toBe('reviewer-1');
+    assert.equal(updated.verification, 'VALIDATED');
+    assert.equal(updated.verifiedBy, 'reviewer-1');
   });
 
-  test('editing a reference re-runs structural validation', () => {
+  it('editing a reference re-runs structural validation', () => {
     const record = createReferenceRecord({
       id: 'ref-edit',
       kind: 'JOURNAL_ARTICLE',
@@ -81,14 +82,14 @@ describe('Unified Reference Hub', () => {
     });
 
     const invalid = updateReferenceRecord(record, { doi: 'not-a-doi' });
-    expect(invalid.verification).toBe('INVALID');
+    assert.equal(invalid.verification, 'INVALID');
   });
 
-  test('duplicate detector is a pure comparison function', () => {
+  it('duplicate detector is a pure comparison function', () => {
     const records = [
       createReferenceRecord({ id: 'one', kind: 'BOOK', authors: 'A', year: 2026, title: 'Book A', publisher: 'P' }),
       createReferenceRecord({ id: 'two', kind: 'BOOK', authors: 'A', year: 2026, title: 'Book A', publisher: 'P' }),
     ];
-    expect(detectDuplicateCandidates(records)).toHaveLength(1);
+    assert.equal(detectDuplicateCandidates(records).length, 1);
   });
 });
