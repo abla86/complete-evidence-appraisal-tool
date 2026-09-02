@@ -20,7 +20,7 @@ import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
 import { ArticleAppraisal, AuditTrailEntry } from './src/types';
 import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
-import { createAuthorizationUrl, exchangeCode, createSessionCookie, readSessionCookie, sessionCookieHeader, clearSessionCookie, publicAuthConfig } from './src/services/googleOAuthService';
+import { createAuthorizationRequest, exchangeCode, createSessionCookie, readSessionCookie, sessionCookieHeader, clearSessionCookie, publicAuthConfig, authorizationStateCookieHeader, readAuthorizationStateCookie, clearAuthorizationStateCookie } from './src/services/googleOAuthService';
 
 // Lazy Gemini Client initialization
 let geminiClient: GoogleGenAI | null = null;
@@ -56,7 +56,10 @@ async function startServer() {
   app.get('/auth/google', (req: Request, res: Response) => {
     try {
       if (!publicAuthConfig().configured) return res.status(503).send('Google OAuth is not configured.');
-      res.redirect(createAuthorizationUrl());
+      const secure = process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https';
+      const authorization = createAuthorizationRequest();
+      res.setHeader('Set-Cookie', authorizationStateCookieHeader(authorization.state, Boolean(secure)));
+      res.redirect(authorization.url);
     } catch (err: any) {
       res.status(500).send(err.message || 'Unable to start Google OAuth.');
     }
@@ -68,10 +71,11 @@ async function startServer() {
       const state = typeof req.query.state === 'string' ? req.query.state : '';
       const error = typeof req.query.error === 'string' ? req.query.error : '';
       if (error) return res.status(400).send('Google OAuth denied: ' + error);
-      if (!code || !state) return res.status(400).send('Missing OAuth code or state.');
+      const stateCookie = readAuthorizationStateCookie(req.headers.cookie);
+      if (!code || !state || !stateCookie || state !== stateCookie) return res.status(400).send('Invalid OAuth state. Please restart Google sign-in.');
       const user = await exchangeCode(code, state);
       const secure = process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https';
-      res.setHeader('Set-Cookie', sessionCookieHeader(createSessionCookie(user), Boolean(secure)));
+      res.setHeader('Set-Cookie', [sessionCookieHeader(createSessionCookie(user), Boolean(secure)), clearAuthorizationStateCookie(Boolean(secure))]);
       res.redirect('/');
     } catch (err: any) {
       res.status(400).send(err.message || 'Google OAuth callback failed.');
