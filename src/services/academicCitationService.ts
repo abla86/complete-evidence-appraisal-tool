@@ -2,8 +2,16 @@ import { createReference, type SharedReferenceInput } from './sharedReferenceEng
 
 export type CitationStyle = 'APA7' | 'VANCOUVER' | 'HARVARD' | 'CHICAGO_AUTHOR_DATE' | 'MLA9' | 'IEEE';
 
-export interface CitationInput extends SharedReferenceInput { id: string; }
-export interface CitationResult { id: string; inline: string; bibliography: string; sourceStatus: 'VALIDATED' | 'VALIDATION_REQUIRED' | 'INVALID'; }
+export interface CitationInput extends SharedReferenceInput {
+  id: string;
+}
+
+export interface CitationResult {
+  id: string;
+  inline: string;
+  bibliography: string;
+  sourceStatus: 'VALIDATED' | 'VALIDATION_REQUIRED' | 'INVALID';
+}
 
 function firstAuthor(authors?: string): string {
   return (authors ?? '').split(/;|\band\b|,\s*(?=[A-Z][^,]+$)/i)[0]?.trim() || 'Ukjent';
@@ -58,7 +66,7 @@ function chicago(input: CitationInput) {
 
 export function buildCitation(input: CitationInput, style: CitationStyle): CitationResult {
   const validation = createReference(input);
-  let formatted;
+  let formatted: { inline: string; bibliography: string };
   switch (style) {
     case 'VANCOUVER':
     case 'IEEE':
@@ -73,7 +81,7 @@ export function buildCitation(input: CitationInput, style: CitationStyle): Citat
     case 'MLA9':
       formatted = {
         inline: `(${firstAuthor(input.authors)})`,
-        bibliography: `${input.authors || firstAuthor(input.authors)}. "${input.title || '[Uten tittel]}'". ${input.journal || ''}, ${input.year || 'n.d.'}.`,
+        bibliography: `${input.authors || firstAuthor(input.authors)}. ${input.title || '[Uten tittel]'}. ${input.journal || ''}, ${input.year || 'n.d.'}.`,
       };
       break;
     case 'APA7':
