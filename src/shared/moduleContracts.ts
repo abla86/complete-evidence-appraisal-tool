@@ -36,6 +36,7 @@ export interface PrivacyInspectionResult {
     evidence: string;
   }>;
   localOnlyAnalysis: true;
+  localOnly: true;
 }
 
 export interface AccessibilityInspectionResult {
