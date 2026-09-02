@@ -37,13 +37,8 @@ export function attachResearchDocument(
   input: { text: string; fileName?: string; studyId?: string },
 ): WorkflowState {
   const fileName = input.fileName ?? 'document.txt';
-  const document = ResearchEngineGateway.createFromText
-    ? undefined
-    : undefined;
-  void document;
-
   const analysis = ResearchEngineGateway.analyzeText(input.text, fileName);
-  const syntheticDocument: ResearchEngineDocument = {
+  const document: ResearchEngineDocument = {
     id: `doc-${Date.now()}`,
     fileName,
     fileType: 'txt',
@@ -67,11 +62,11 @@ export function attachResearchDocument(
     candidateEvidence: analysis.candidateEvidence,
   };
 
-  const evidenceBundle = ResearchEvidenceBridge.buildBundle(syntheticDocument, undefined, input.studyId ?? state.studyId);
+  const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, input.studyId ?? state.studyId);
   return {
     ...state,
     research: {
-      document: syntheticDocument,
+      document,
       evidenceBundle,
       classificationVerified: false,
       evidenceVerifiedCount: 0,
