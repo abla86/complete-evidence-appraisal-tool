@@ -184,9 +184,12 @@ export function validateReference(input: ReferenceInput): ReferenceValidationRes
   const status: ReferenceValidationStatus =
     !structurallyValid ? 'INVALID' : explicitlyVerified ? 'VALIDATED' : 'VALIDATION_REQUIRED';
 
-  const author = firstAuthorSurname(input.authors || input.shortTitle);
-  const inTextParenthetical = author && year ? `(${author}, ${year}${clean(input.section) ? `, ${clean(input.section)}` : ''})` : '';
-  const inTextNarrative = author && year ? `${author} (${year}${clean(input.section) ? `, ${clean(input.section)}` : ''})` : '';
+  const author = input.kind === 'LAW' || input.kind === 'REGULATION'
+    ? clean(input.shortTitle)
+    : firstAuthorSurname(input.authors);
+  const section = clean(input.section).replace(/^§\s*/i, '');
+  const inTextParenthetical = author && year ? `(${author}, ${year}${section ? `, § ${section}` : ''})` : '';
+  const inTextNarrative = author && year ? `${author} (${year}${section ? `, § ${section}` : ''})` : '';
 
   return {
     status,
