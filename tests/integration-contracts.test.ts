@@ -33,7 +33,7 @@ function classification(instrumentId: string, studyDesign: string) {
     alternativeInstruments: [],
     methodologicalLimitations: '',
     instrumentSourceAndAuthority: 'Test',
-    instrumentRoleType: 'CRITICAL_APPRAISAL' as const,
+    instrumentRoleType: 'CRITICAL_APPRAISAL_ROB' as const,
   };
 }
 
