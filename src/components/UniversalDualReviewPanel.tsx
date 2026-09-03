@@ -6,19 +6,28 @@ import type { UserRole } from '../services/rbacService';
 interface Props {
   studyId: string;
   instrumentId: string;
-  actorId?: string;
+  actorId: string;
   actorRole?: UserRole;
 }
 
 export const UniversalDualReviewPanel: React.FC<Props> = ({
   studyId,
   instrumentId,
-  actorId = 'current-user',
+  actorId,
   actorRole = 'lead_reviewer',
 }) => {
   const view = useMemo(() => getDualReviewSessionView(studyId, instrumentId), [studyId, instrumentId]);
   const [resolution, setResolution] = useState<'consensus' | 'thirdReviewer' | 'autoResolve'>('consensus');
   const [message, setMessage] = useState('');
+
+  if (!actorId.trim()) {
+    return (
+      <section className="bg-white border border-rose-200 rounded-2xl p-5">
+        <h3 className="font-bold text-rose-900">Dual Review</h3>
+        <p className="text-sm text-rose-800 mt-1">Reviewer-ID må være eksplisitt angitt.</p>
+      </section>
+    );
+  }
 
   if (!view) {
     return (
@@ -48,7 +57,7 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
         .map(item => ({ itemId: String(item.itemId), comment: item.rationale })),
     }));
 
-    const result = resolveConflict(view.reviewerA.id, reviews, actorId, resolution);
+    const result = resolveConflict(view.reviewerA.id, reviews, actorId.trim(), resolution);
     setMessage(`Oppløsning registrert: ${result.disagreements.length} uenighet(er), metode ${resolution}.`);
   };
 
