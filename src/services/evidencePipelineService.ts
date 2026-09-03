@@ -1,5 +1,5 @@
 import { AuditTrailService } from './auditTrailService';
-import { RbacService, type UserRole } from './rbacService';
+import { RbacService, type UserRole, type PermissionDefinition } from './rbacService';
 
 export type EvidencePipelineStage =
   | 'identification'
@@ -43,7 +43,7 @@ const STAGES: EvidencePipelineStage[] = [
   'export',
 ];
 
-const REQUIRED_PERMISSIONS: Partial<Record<EvidencePipelineStage, keyof Parameters<typeof RbacService.checkPermission>[1]>> = {
+const REQUIRED_PERMISSIONS: Partial<Record<EvidencePipelineStage, keyof PermissionDefinition>> = {
   screening: 'canClassifyStudy',
   fulltext: 'canImportDocuments',
   appraisal: 'canConductAppraisal',
@@ -51,6 +51,12 @@ const REQUIRED_PERMISSIONS: Partial<Record<EvidencePipelineStage, keyof Paramete
   consensus: 'canSignOffConsensus',
   export: 'canExportData',
 };
+
+function auditRole(role: UserRole): 'reviewer' | 'admin' | 'system' {
+  if (role === 'admin') return 'admin';
+  if (role === 'reviewer' || role === 'lead_reviewer' || role === 'adjudicator') return 'reviewer';
+  return 'system';
+}
 
 export class EvidencePipelineService {
   constructor(
@@ -112,7 +118,7 @@ export class EvidencePipelineService {
     }];
 
     await this.auditTrail.append({
-      actor: { id: actor.id, name: actor.id, role: actor.role },
+      actor: { id: actor.id, role: auditRole(actor.role) },
       action: 'PIPELINE_STAGE_TRANSITION',
       subject: { entityType: 'project', id: state.projectId },
       detail: {
@@ -149,7 +155,7 @@ export class EvidencePipelineService {
     });
 
     await this.auditTrail.append({
-      actor: { id: actor.id, name: actor.id, role: actor.role },
+      actor: { id: actor.id, role: auditRole(actor.role) },
       action: 'PIPELINE_STAGE_COMPLETED',
       subject: { entityType: 'project', id: state.projectId },
       detail: { stage: state.currentStage, note: note ?? null },
