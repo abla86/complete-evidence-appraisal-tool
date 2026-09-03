@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { assessGRADE, assessCERQual, lockQualityAssessment, type StoredQualityAssessment } from '../services/qualityAssessmentService';
-import { upsertAppraisalSession } from '../services/appraisalSessionStore';
+import { assessGRADE, assessCERQual, lockQualityAssessment, addQualityAssessment, type StoredQualityAssessment } from '../services/qualityAssessmentService';
+import { getQualityAssessmentsForSession } from '../services/appraisalSessionStore';
 import type { AppraisalSession } from '../services/universalAppraisalService';
 
 interface Props {
@@ -31,12 +31,17 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
 
   const save = () => {
     try {
-      const assessment = mode === 'GRADE'
-        ? assessGRADE({ evidenceId, appraisalSessionId: session.id, outcomeName: outcome.trim(), studyDesign, ...downgrades, reviewerId })
-        : assessCERQual({ evidenceId, appraisalSessionId: session.id, finding: finding.trim(), ...cerqual, reviewerId });
-      if (!assessment.outcomeOrFinding.trim()) throw new Error(mode === 'GRADE' ? 'Outcome må fylles ut.' : 'Finding må fylles ut.');
-      const locked = lockQualityAssessment(assessment);
-      upsertAppraisalSession({ ...session, updatedAt: new Date().toISOString() });
+      if (session.locked) throw new Error('Appraisal-sesjonen er låst. Kvalitetsvurdering må opprettes før appraisal låses.');
+      const existing = getQualityAssessmentsForSession(session.id);
+      if (existing.some(item => item.evidenceId === evidenceId && item.kind === mode && item.locked)) {
+        throw new Error(`${mode}-vurdering for dette evidensfunnet er allerede låst.`);
+      }
+
+      const draft = mode === 'GRADE'
+        ? assessGRADE({ evidenceId, appraisalSessionId: session.id, outcomeName: outcome, studyDesign, ...downgrades, reviewerId })
+        : assessCERQual({ evidenceId, appraisalSessionId: session.id, finding, ...cerqual, reviewerId });
+      const locked = lockQualityAssessment(draft);
+      addQualityAssessment(session.id, locked);
       onSaved?.(locked);
       setMessage(`${mode} lagret og låst som versjon ${locked.version}.`);
     } catch (error) {
@@ -49,22 +54,22 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div><div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">CERTAINTY / CONFIDENCE</div><h3 className="text-lg font-bold">GRADE / CERQual</h3></div>
         <div className="flex rounded-xl border border-slate-300 overflow-hidden">
-          <button type="button" onClick={() => setMode('GRADE')} className={`px-3 py-2 text-xs font-bold ${mode === 'GRADE' ? 'bg-teal-800 text-white' : 'bg-white text-slate-700'}`}>GRADE</button>
-          <button type="button" onClick={() => setMode('CERQual')} className={`px-3 py-2 text-xs font-bold ${mode === 'CERQual' ? 'bg-teal-800 text-white' : 'bg-white text-slate-700'}`}>CERQual</button>
+          <button type="button" onClick={() => setMode('GRADE')} disabled={session.locked} className={`px-3 py-2 text-xs font-bold disabled:opacity-50 ${mode === 'GRADE' ? 'bg-teal-800 text-white' : 'bg-white text-slate-700'}`}>GRADE</button>
+          <button type="button" onClick={() => setMode('CERQual')} disabled={session.locked} className={`px-3 py-2 text-xs font-bold disabled:opacity-50 ${mode === 'CERQual' ? 'bg-teal-800 text-white' : 'bg-white text-slate-700'}`}>CERQual</button>
         </div>
       </div>
 
       {mode === 'GRADE' ? (
         <div className="space-y-3">
-          <input value={outcome} onChange={e => setOutcome(e.target.value)} placeholder="Outcome" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-          <select value={studyDesign} onChange={e => setStudyDesign(e.target.value as typeof studyDesign)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+          <input disabled={session.locked} value={outcome} onChange={e => setOutcome(e.target.value)} placeholder="Outcome" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
+          <select disabled={session.locked} value={studyDesign} onChange={e => setStudyDesign(e.target.value as typeof studyDesign)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50">
             <option value="RCT">RCT</option><option value="Observational">Observational</option>
           </select>
           <div className="grid md:grid-cols-2 gap-3">
             {(Object.keys(gradeLabels) as GradeDomain[]).map(domain => (
               <label key={domain} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <span className="block text-xs font-bold mb-2">{gradeLabels[domain]}</span>
-                <select value={downgrades[domain]} onChange={e => setDowngrades(prev => ({ ...prev, [domain]: Number(e.target.value) as 0 | -1 | -2 }))} className="w-full rounded-lg border border-slate-300 px-2 py-2 text-xs bg-white">
+                <select disabled={session.locked} value={downgrades[domain]} onChange={e => setDowngrades(prev => ({ ...prev, [domain]: Number(e.target.value) as 0 | -1 | -2 }))} className="w-full rounded-lg border border-slate-300 px-2 py-2 text-xs bg-white disabled:bg-slate-100">
                   <option value={0}>Ingen nedgradering</option><option value={-1}>Serious (-1)</option><option value={-2}>Very serious (-2)</option>
                 </select>
               </label>
@@ -73,12 +78,12 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
         </div>
       ) : (
         <div className="space-y-3">
-          <textarea value={finding} onChange={e => setFinding(e.target.value)} rows={3} placeholder="Review finding" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+          <textarea disabled={session.locked} value={finding} onChange={e => setFinding(e.target.value)} rows={3} placeholder="Review finding" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50" />
           <div className="grid md:grid-cols-2 gap-3">
             {(Object.keys(cerqual) as Array<keyof typeof cerqual>).map(component => (
               <label key={component} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <span className="block text-xs font-bold mb-2">{component}</span>
-                <select value={cerqual[component]} onChange={e => setCerqual(prev => ({ ...prev, [component]: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-2 py-2 text-xs bg-white">
+                <select disabled={session.locked} value={cerqual[component]} onChange={e => setCerqual(prev => ({ ...prev, [component]: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-2 py-2 text-xs bg-white disabled:bg-slate-100">
                   <option>No or very minor concerns</option><option>Minor concerns</option><option>Moderate concerns</option><option>Serious concerns</option>
                 </select>
               </label>
@@ -87,7 +92,7 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
         </div>
       )}
 
-      <button type="button" onClick={save} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Lagre og lås {mode}</button>
+      <button type="button" disabled={session.locked} onClick={save} className="rounded-xl bg-teal-800 disabled:opacity-40 text-white px-4 py-2 text-sm font-bold">Lagre og lås {mode}</button>
       {message && <div role="status" className="rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-sm">{message}</div>}
     </section>
   );
