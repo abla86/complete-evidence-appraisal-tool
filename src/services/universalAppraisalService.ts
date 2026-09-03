@@ -85,10 +85,18 @@ export function upsertAppraisalResponse(
   response: AppraisalItemResponse,
 ): AppraisalSession {
   if (session.locked) throw new Error('Vurderingen er låst og kan ikke endres.');
-  if (!String(response.rationale ?? '').trim() && response.answer !== null && response.answer !== '') {
-    throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizeId(response.itemId)}.`);
+  const instrument = getInstrumentOrNull(session.instrumentId);
+  if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${session.instrumentId}`);
+  const normalizedItemId = normalizeId(response.itemId);
+  if (!normalizedItemId) throw new Error('Vurderingspunkt-ID er påkrevd.');
+  const expected = new Set((instrument.questions ?? []).map(q => normalizeId(q.id)));
+  if (!expected.has(normalizedItemId)) {
+    throw new Error(`Vurderingspunkt ${normalizedItemId} finnes ikke i ${instrument.id} versjon ${instrument.version}.`);
   }
-  const existing = session.responses.findIndex(item => normalizeId(item.itemId) === normalizeId(response.itemId));
+  if (!String(response.rationale ?? '').trim() && response.answer !== null && response.answer !== '') {
+    throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizedItemId}.`);
+  }
+  const existing = session.responses.findIndex(item => normalizeId(item.itemId) === normalizedItemId);
   const responses = [...session.responses];
   if (existing >= 0) responses[existing] = response;
   else responses.push(response);
