@@ -1,6 +1,7 @@
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { JbiQualitativeAssessmentEngine } from './assessmentEngines';
 import { createBlankAppraisalSession, upsertAppraisalResponse, type AppraisalSession } from './universalAppraisalService';
+import { appraisalWorkflowStore } from './appraisalWorkflowBridge';
 
 export type JbiAnswer = 'Ja' | 'Nei' | 'Uklart' | 'Ikke relevant';
 
@@ -10,6 +11,8 @@ export interface JbiQualitativeSessionResult {
 }
 
 export function createJbiQualitativeSession(studyId: string, reviewerId: string): AppraisalSession {
+  const existing = appraisalWorkflowStore.listByStudy(studyId).find(item => item.instrumentId === 'jbi-qualitative-2017' && item.session.reviewerId === reviewerId);
+  if (existing) return existing.session;
   return createBlankAppraisalSession(studyId, 'jbi-qualitative-2017', reviewerId);
 }
 
