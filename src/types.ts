@@ -33,7 +33,7 @@ export interface DocumentAnalysisResult { fileName: string; analyzedAt: string; 
 export interface ScoreCalculationResult { ja: number; uklart: number; nei: number; ikkeRelevant: number; total: number; answered: number; unanswered: number; completenessPercent: number; jaScorePercent: number; applicableTotal: number; applicableJaPercent: number; }
 export interface VerdictRecommendation { verdict: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon' | 'Ufullstendig'; riskOfBias: 'Lav' | 'Moderat' | 'HÃ¸y' | 'Uavklart'; rationale: string; criticalFlaws: string[]; suggestedAction: string; }
 export interface InterRaterAgreementResult { totalItems: number; agreedCount: number; disagreedCount: number; percentAgreement: number; agreementPercentage?: number; cohensKappa: number; kappaInterpretation: 'SvÃ¦rt god (Almost perfect)' | 'Betydelig (Substantial)' | 'Moderat (Moderate)' | 'Middels (Fair)' | 'DÃ¥rlig (Poor)'; interpretation?: string; discrepancies: { questionId: number; questionTitle: string; r1Status: AssessmentStatus; r2Status: AssessmentStatus; r1Rationale?: string; r2Rationale?: string; }[]; }
-export interface ValidationReport { isValid: boolean; instrumentId: string; instrumentName?: string; instrumentVersion?: string; timestamp: string; totalItems: number; answeredItems: number; completenessPercent: number; errors: string[]; warnings: string[]; counts: { yes: number; no: number; unclear: number; notApplicable: number; unanswered: number }; scoreCalculation: ScoreCalculationResult; verdictRecommendation: VerdictRecommendation; summaryVerdictSuggestion: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon' | 'Ufullstendig'; methodologyControl?: unknown; whoCompliance?: unknown; }
+export interface ValidationReport { isValid: boolean; instrumentId: string; instrumentName?: string; instrumentVersion?: string; timestamp: string; totalItems: number; answeredItems: number; completenessPercent: number; errors: string[]; warnings: string[]; counts: { yes: number; no: number; unclear: number; notApplicable: number; unanswered: number }; scoreCalculation: ScoreCalculationResult; verdictRecommendation: VerdictRecommendation; summaryVerdictSuggestion: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon' | 'Ufullstendig'; methodologyControl?: MethodologyControlReport; whoCompliance?: unknown; }
 export interface MethodologyRuleEvaluation { id: string; name: string; standard: string; category: string; passed: boolean; severity: 'critical' | 'warning' | 'info'; details: string; recommendation: string; }
 export interface MethodologyControlReport { overallPassed: boolean; complianceScore: number; whoHandbookStandard: string; appraisalModel: string; modelVersion: string; modelChecksum: string; timestamp: string; articleCitation: string; rules: MethodologyRuleEvaluation[]; passedRuleCount: number; totalRuleCount: number; summaryVerdict: 'INTERN_METODISK_KONTROLLERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT'; recommendations: string[]; }
 export interface WhoEtdCriteriaInput { guidelineQuestion: string; targetPopulation: string; intervention: string; comparison: string; balanceOfEffects: string; certaintyOfEvidence: string; valuesUncertainty: string; resourcesRequired: string; costEffectiveness: string; equity: string; acceptability: string; feasibility: string; problemPriority?: string; desirableEffects?: string; undesirableEffects?: string; }
@@ -48,7 +48,7 @@ export interface PeerReviewComment { id: string; questionId?: number; submission
 export interface StudyConsensusRecord { id: string; studyId: string; reviewerIds: string[]; consensusStatus: AssessmentStatus | null; rationale: string; resolvedAt?: string; resolvedBy?: string; meetingDate?: string; assignedReviewerIds?: string[]; arbiterId?: string; signedOffBy?: string[]; status?: string; itemConsensus?: Record<number, { status: AssessmentStatus; rationale: string; agreedBy: string[]; adoptedFromReviewerId?: string }>; overallVerdict?: string; verdictRationale?: string; consensusNotes?: string; lockedAt?: string; }
 export interface MetaResearchReport { id: string; title: string; generatedAt: string; integrityScore: number; classifications: MetaResearchClassification[]; dimensions: MetaResearchIntegrityDimension[]; methodologyNotes: string[]; fileName?: string; extractedTitle?: string; extractedAuthors?: string; extractedDoi?: string; extractedYear?: number | string; extractedAbstract?: string; classification?: MetaResearchClassification; integrityDimensions?: MetaResearchIntegrityDimension[]; overallIntegrityLevel?: string; integritySummary?: string; keyStrengths?: string[]; potentialMethodologicalRisks?: string[]; candidateEvidence?: CandidateEvidence[]; engineUsed?: string; }
 export interface MetaResearchClassification { documentType: string; documentTypeName?: string; documentTypeNameEn?: string; methodologyType?: string; epistemology?: string; confidenceScore?: number; detectedKeywords?: string[]; rationale?: string; unitOfAnalysis?: string; recommendedInstrumentId: string; alternativeInstrumentIds?: string[]; incompatibleInstrumentIds?: string[]; label?: string; confidence?: number; evidence?: string[]; }
-export interface MetaResearchIntegrityDimension { foundSnippet?: string; }
+export interface MetaResearchIntegrityDimension { id: string; name: string; category: string; score: 'HIGH' | 'MODERATE' | 'UNCLEAR' | 'LOW'; assessment: string; recommendation: string; foundSnippet?: string; }
 export type DocumentTypeCategory = StandardDocumentType | string;
 export type MethodologyFamily = 'qualitative' | 'quantitative' | 'mixed-methods' | 'synthesis' | 'guideline' | 'implementation' | 'diagnostic' | 'methodology' | 'policy' | 'unknown';
 export interface ReferenceValidationArticle { id: string; title: string; journal: string; year: number; doi: string; instrumentId: string; instrumentName: string; instrumentVersion: string; referenceAssessmentType: string; expectedOverallScoreOrVerdict: string; authors?: string; pmid?: string; verificationStatus?: string; verificationDate?: string; publisher?: string; articleUrl?: string; database?: string; whySelected?: string; validationSource?: string; supplementaryMaterials?: any[]; itemData: Array<{ itemNumber: number; itemTitle: string; referenceResponse: string; referenceSource: string; evidenceSnippet?: string; referenceRationale: string; reviewerOrStudy?: string; agreementStatus?: string; }>; selectionCriteria?: Record<string, unknown>; verifiedBy?: string; expectedCriticalFlawsCount?: number; expectedNonCriticalFlawsCount?: number; methodologicalNotes?: string; fullTextUrl?: string; }
@@ -56,7 +56,7 @@ export interface GoldStandardDiffItem { itemNumber: number; itemTitle: string; r
 export type DiffSeverity = GoldStandardDiffItem['severity'];
 export type GoldStandardMatchStatus = 'MATCH' | 'PARTIAL_MATCH' | 'MISMATCH' | 'UNABLE_TO_COMPARE';
 export interface GoldStandardDiffResult { articleId: string; articleTitle: string; instrumentId: string; instrumentVersion: string; referenceAssessmentType: string; totalItemsCompared: number; matchingItemsCount: number; mismatchingItemsCount: number; matchPercentage: number; matchStatus: GoldStandardMatchStatus; criticalMismatchesCount: number; highMismatchesCount: number; mediumMismatchesCount: number; lowMismatchesCount: number; itemDiffs: GoldStandardDiffItem[]; summaryMessage: string; scientificValidityNotice: string; }
-export interface GradeCerqualSummaryItem { id: string; finding: string; confidence: 'High confidence' | 'Moderate confidence' | 'Low confidence' | 'Very low confidence'; rationale: string; reviewFinding?: string; methodologicalLimitations?: CerqualConcernLevel; coherence?: CerqualConcernLevel; adequacyOfData?: CerqualConcernLevel; relevance?: CerqualConcernLevel; contributingStudies?: number; overallConfidence?: 'High confidence' | 'Moderate confidence' | 'Low confidence' | 'Very low confidence'; }
+export interface GradeCerqualSummaryItem { id: string; finding: string; confidence: 'High confidence' | 'Moderate confidence' | 'Low confidence' | 'Very low confidence'; rationale: string; reviewFinding?: string; methodologicalLimitations?: CerqualConcernLevel; coherence?: CerqualConcernLevel; adequacyOfData?: CerqualConcernLevel; relevance?: CerqualConcernLevel; contributingStudies?: number | string; overallConfidence?: 'High confidence' | 'Moderate confidence' | 'Low confidence' | 'Very low confidence'; }
 export interface ReferenceValidationArticleSummary { id: string; title: string; instrumentId: string; status: 'PASS' | 'FAIL' | 'UNABLE_TO_COMPARE'; }
 export interface Actor { id: string; role: string; name?: string; }
 export interface ValidationDashboardInstrumentCard { id?: string; name?: string; instrumentName?: string; status?: string; version?: string; instrumentId?: string; [key: string]: any; }
@@ -68,7 +68,7 @@ export interface GradeSummaryOfFindingsItem {
   coherence: string;
   adequacyOfData: string;
   relevance: string;
-  contributingStudies: number;
+  contributingStudies: number | string;
   overallConfidence: GradeCerqualSummaryItem['confidence'];
   outcomeName?: string;
   importance?: string;
@@ -77,11 +77,11 @@ export interface GradeSummaryOfFindingsItem {
   studiesCount?: number;
   relativeEffect?: string;
   correspondingRisk?: string;
-  riskOfBias?: string;
-  inconsistency?: string;
-  indirectness?: string;
-  imprecision?: string;
-  publicationBias?: string;
+  riskOfBias?: string | 0 | -1 | -2;
+  inconsistency?: string | 0 | -1 | -2;
+  indirectness?: string | 0 | -1 | -2;
+  imprecision?: string | 0 | -1 | -2;
+  publicationBias?: string | 0 | -1 | -2;
   certainty?: string;
   [key: string]: unknown;
 }
