@@ -33,7 +33,7 @@ export function runCitationAudit(
     const linkedReferences = linkedEvidence
       .map(item => resolveReferenceForSource({
         recordId: item.sourceRecordId,
-        identifiers: item.identifiers,
+        identifiers: item.sourceIdentifiers,
         metadata: item.sourceMetadata,
         referenceDraft: item.referenceDraft,
       }, references))
