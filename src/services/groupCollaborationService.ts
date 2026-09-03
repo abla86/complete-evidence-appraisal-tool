@@ -83,6 +83,10 @@ export class GroupCollaborationService {
       defaultSubmissions[art.id] = [
         {
           id: `sub-${art.id}-rev-1`,
+          workspaceId: 'grp-proj-2026-01',
+          articleId: art.id,
+          content: 'Strukturert uavhengig JBI-vurdering.',
+          submittedAt: '2026-03-01T10:30:00Z',
           studyId: art.id,
           reviewerId: 'rev-1',
           reviewerName: 'Anne-Beth K. (Hovedgransker)',
@@ -98,6 +102,10 @@ export class GroupCollaborationService {
         },
         {
           id: `sub-${art.id}-rev-2`,
+          workspaceId: 'grp-proj-2026-01',
+          articleId: art.id,
+          content: 'Strukturert uavhengig JBI-vurdering.',
+          submittedAt: '2026-03-01T12:15:00Z',
           studyId: art.id,
           reviewerId: 'rev-2',
           reviewerName: 'Lars Erik V. (Medgransker)',
@@ -125,6 +133,7 @@ export class GroupCollaborationService {
       });
 
       defaultConsensus[art.id] = {
+        id: `consensus-${art.id}`,
         studyId: art.id,
         meetingDate: '2026-03-02',
         status: index === 0 ? 'CONSENSUS_REACHED' : 'IN_DISCUSSIONS',
