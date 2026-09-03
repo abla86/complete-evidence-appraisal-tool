@@ -1,0 +1,2 @@
+# App.tsx uses a tab-based navigation model, not React Router.
+# A router patch would be invalid for this repository. AuditTimeline and AuditAnalyticsDashboard remain available as standalone components until integrated into the existing tab UI.
