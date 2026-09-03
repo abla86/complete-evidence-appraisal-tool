@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
-import { createBlankAppraisalSession, decideAppraisalLaunch, lockAppraisalSession, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
+import { createBlankAppraisalSession, decideAppraisalLaunch, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
 import { Amstar2AssessmentEngine, Agree2AssessmentEngine, JbiQualitativeAssessmentEngine, Rob2AssessmentEngine, RobinsIAssessmentEngine } from '../services/assessmentEngines';
 import { QualityAssessmentPanel } from './QualityAssessmentPanel';
-import { loadAppraisalSessions } from '../services/appraisalSessionStore';
+import { getLatestAppraisalSession } from '../services/appraisalSessionStore';
 
 interface Props { studyId: string; studyDesign: string; initialInstrumentId?: string; reviewerId?: string; onSaved?: (session: AppraisalSession) => void; }
 
@@ -16,7 +16,10 @@ const answerOptions = (instrumentId: string, allowed: string[]) => {
 
 export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId = 'current-user', onSaved }) => {
   const [instrumentId, setInstrumentId] = useState(initialInstrumentId);
-  const [session, setSession] = useState<AppraisalSession>(() => createBlankAppraisalSession(studyId, initialInstrumentId, reviewerId));
+  const [session, setSession] = useState<AppraisalSession>(() => {
+    const existing = getLatestAppraisalSession(studyId, initialInstrumentId, reviewerId);
+    return existing ?? createBlankAppraisalSession(studyId, initialInstrumentId, reviewerId);
+  });
   const [notice, setNotice] = useState('');
   const instrument = MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === instrumentId);
   const validation = validateAppraisalSession(session);
@@ -26,10 +29,15 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     setNotice(decision.warnings.join(' ') || decision.reason);
     if (!decision.allowed) return;
     setInstrumentId(id);
-    setSession(createBlankAppraisalSession(studyId, id, reviewerId));
+    const existing = getLatestAppraisalSession(studyId, id, reviewerId);
+    setSession(existing ?? createBlankAppraisalSession(studyId, id, reviewerId));
   };
 
   const patch = (itemId: number | string, value: Partial<{ answer: string | null; rationale: string; evidence: { quote?: string; page?: string; section?: string } }>) => {
+    if (session.locked) {
+      setNotice('Denne vurderingen er låst og kan ikke endres.');
+      return;
+    }
     setSession(prev => {
       const old = prev.responses.find(r => String(r.itemId) === String(itemId));
       return upsertAppraisalResponse(prev, { itemId, answer: value.answer ?? old?.answer ?? null, rationale: value.rationale ?? old?.rationale ?? '', evidence: value.evidence ?? old?.evidence });
@@ -70,14 +78,13 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   }, [instrument, session.responses]);
 
   const interpretation = result && 'overallConfidence' in result ? result.overallConfidence : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias : result && 'verdict' in result ? result.verdict : `${session.responses.filter(r => r.answer !== null && r.answer !== '').length}/${instrument?.itemCount ?? 0} besvart`;
-  const existingLockedQuality = useMemo(() => loadAppraisalSessions().some(item => item.id === session.id && item.locked), [session.id, session.locked]);
 
   const finalize = () => {
+    if (session.locked) return;
     if (!validation.valid) { setNotice(validation.issues.join(' ')); return; }
-    const locked = lockAppraisalSession(session);
-    setSession(locked);
-    onSaved?.(locked);
-    setNotice('Vurderingen er lagret og låst som denne versjonen.');
+    setNotice('Vurderingen valideres og låses.');
+    onSaved?.(session);
+    setNotice('Vurderingen er lagret. Låsing håndteres av canonical appraisal workflow.');
   };
 
   if (!instrument) return <div className="bg-white border border-rose-200 rounded-2xl p-6 text-rose-900">Valgt instrument finnes ikke.</div>;
@@ -92,7 +99,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
             <h2 className="text-2xl font-bold font-serif">{instrument.name}</h2>
             <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} · Studie-ID: {studyId}</p>
           </div>
-          <select value={instrumentId} onChange={e => changeInstrument(e.target.value)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full">
+          <select value={instrumentId} onChange={e => changeInstrument(e.target.value)} disabled={session.locked} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full disabled:opacity-50">
             {MASTER_INSTRUMENTS_REGISTRY.map(i => <option key={i.id} value={i.id}>{i.shortName} · {i.version}</option>)}
           </select>
         </div>
@@ -112,8 +119,8 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
             const options = answerOptions(instrument.id, q.allowedAnswers ?? instrument.allowedAnswers);
             return <article key={String(q.id)} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
               <div className="flex items-start justify-between gap-3"><div><div className="text-[10px] uppercase tracking-wide text-slate-400">Punkt {q.itemNumber ?? index + 1}</div><h3 className="font-bold text-slate-900 mt-1">{q.shortTitle}</h3><p className="text-sm text-slate-800 mt-2 leading-6">{q.officialQuestion || q.questionText}</p>{(q.officialQuestionEn || q.questionTextEn) && <p className="text-xs text-slate-500 italic mt-1">{q.officialQuestionEn || q.questionTextEn}</p>}</div>{q.isCritical && <span className="text-[10px] px-2 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-bold">KRITISK</span>}</div>
-              <div className="flex flex-wrap gap-2">{options.map(option => <button key={String(option)} type="button" onClick={() => patch(q.id,{answer:String(option)})} className={`px-3 py-2 rounded-xl border text-xs font-semibold ${String(response?.answer ?? '')===String(option)?'bg-teal-800 text-white border-teal-800':'bg-white border-slate-300 text-slate-700'}`}>{String(option)}</button>)}</div>
-              <div className="grid md:grid-cols-2 gap-3"><textarea value={response?.rationale ?? ''} onChange={e=>patch(q.id,{rationale:e.target.value})} rows={3} placeholder="Forskerens begrunnelse" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"/><div className="space-y-2"><textarea value={response?.evidence?.quote ?? ''} onChange={e=>patch(q.id,{evidence:{...(response?.evidence ?? {}),quote:e.target.value}})} rows={2} placeholder="Eksakt evidens / sitat" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"/><div className="grid grid-cols-2 gap-2"><input value={response?.evidence?.page ?? ''} onChange={e=>patch(q.id,{evidence:{...(response?.evidence ?? {}),page:e.target.value}})} placeholder="Side" className="rounded-xl border border-slate-300 px-3 py-2 text-xs"/><input value={response?.evidence?.section ?? ''} onChange={e=>patch(q.id,{evidence:{...(response?.evidence ?? {}),section:e.target.value}})} placeholder="Seksjon/tabell/figur" className="rounded-xl border border-slate-300 px-3 py-2 text-xs"/></div></div></div>
+              <div className="flex flex-wrap gap-2">{options.map(option => <button key={String(option)} type="button" disabled={session.locked} onClick={() => patch(q.id,{answer:String(option)})} className={`px-3 py-2 rounded-xl border text-xs font-semibold disabled:opacity-50 ${String(response?.answer ?? '')===String(option)?'bg-teal-800 text-white border-teal-800':'bg-white border-slate-300 text-slate-700'}`}>{String(option)}</button>)}</div>
+              <div className="grid md:grid-cols-2 gap-3"><textarea disabled={session.locked} value={response?.rationale ?? ''} onChange={e=>patch(q.id,{rationale:e.target.value})} rows={3} placeholder="Forskerens begrunnelse" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50"/><div className="space-y-2"><textarea disabled={session.locked} value={response?.evidence?.quote ?? ''} onChange={e=>patch(q.id,{evidence:{...(response?.evidence ?? {}),quote:e.target.value}})} rows={2} placeholder="Eksakt evidens / sitat" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50"/><div className="grid grid-cols-2 gap-2"><input disabled={session.locked} value={response?.evidence?.page ?? ''} onChange={e=>patch(q.id,{evidence:{...(response?.evidence ?? {}),page:e.target.value}})} placeholder="Side" className="rounded-xl border border-slate-300 px-3 py-2 text-xs disabled:bg-slate-50"/><input disabled={session.locked} value={response?.evidence?.section ?? ''} onChange={e=>patch(q.id,{evidence:{...(response?.evidence ?? {}),section:e.target.value}})} placeholder="Seksjon/tabell/figur" className="rounded-xl border border-slate-300 px-3 py-2 text-xs disabled:bg-slate-50"/></div></div></div>
             </article>;
           })}
         </div>
@@ -122,7 +129,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       <aside className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div><div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div><h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>{result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}</div>
         {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map((d:any)=><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
-        <button type="button" disabled={!validation.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked || existingLockedQuality ? 'Vurdering låst' : 'Fullfør og lås vurdering'}</button>
+        <button type="button" disabled={!validation.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre vurdering'}</button>
         {!validation.valid && <div className="text-xs text-amber-800">{validation.issues.join(' ')}</div>}
       </aside>
 
