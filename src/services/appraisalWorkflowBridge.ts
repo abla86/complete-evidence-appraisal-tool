@@ -91,7 +91,6 @@ export async function createAppraisalFromResearch(payload: ResearchAppraisalPayl
   if (existing) return existing;
   const session = createBlankAppraisalSession(payload.studyId.trim(), payload.instrumentId.trim(), reviewerId.trim());
   const record = buildRecord(payload, session);
-  if (!researchWorkflowStore.get(session.studyId)) throw new Error(`Research workflow not found: ${session.studyId}`);
   syncToResearchWorkflow(session);
   appraisalWorkflowStore.save(record);
   await appendAuditEntry({ actor: { id: reviewerId.trim(), role: 'reviewer' }, action: 'appraisal.session.created', subject: { entityType: 'appraisal-session', id: session.id }, detail: { studyId: payload.studyId.trim(), instrumentId: session.instrumentId, evidenceIds: record.evidenceIds } });
