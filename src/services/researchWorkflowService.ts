@@ -18,6 +18,7 @@ export interface ScreeningRecord {
 export interface ResearchWorkflowContext {
   document: ResearchEngineDocument;
   evidenceBundle: ResearchToAppraisalBundle;
+  analysis?: ReturnType<typeof ResearchEngineGateway.analyzeText>;
   classificationVerified: boolean;
   selectedInstrumentId?: string;
   evidenceVerifiedCount: number;
@@ -42,10 +43,19 @@ export interface ResearchAppraisalPayload {
   classification?: DocumentClassificationResult;
 }
 
-export function createResearchWorkflow(document: ResearchEngineDocument, studyId = document.id): WorkflowState {
+function evidenceCounts(evidence: ResearchToAppraisalBundle['evidence']) {
+  return {
+    evidenceCandidateCount: evidence.filter(item => item.source === 'AI_CANDIDATE').length,
+    evidenceVerifiedCount: evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
+    evidenceRejectedCount: evidence.filter(item => item.source === 'REJECTED').length,
+  };
+}
+
+export function createResearchWorkflow(document: ResearchEngineDocument, studyId = document.id, analysis?: ReturnType<typeof ResearchEngineGateway.analyzeText>): WorkflowState {
   if (!studyId.trim()) throw new Error('studyId is required.');
   const foundation = new EvidenceFoundation();
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(document, undefined, studyId);
+  const counts = evidenceCounts(evidenceBundle.evidence);
   foundation.state.set(`research:${studyId}`, evidenceBundle, 'system', 'Research document attached', 'research');
   return {
     studyId,
@@ -56,11 +66,10 @@ export function createResearchWorkflow(document: ResearchEngineDocument, studyId
     research: {
       document,
       evidenceBundle,
+      analysis,
       classificationVerified: false,
       selectedInstrumentId: document.metadata.recommendedInstrumentId || undefined,
-      evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
-      evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
+      ...counts,
     },
   };
 }
@@ -100,12 +109,13 @@ export function createResearchWorkflowFromText(text: string, fileName = 'documen
     ocrNeeded: false,
     candidateEvidence: analysis.candidateEvidence,
   };
-  return createResearchWorkflow(document, studyId ?? document.id);
+  return createResearchWorkflow(document, studyId ?? document.id, analysis);
 }
 
 export function updateResearchClassification(state: WorkflowState, classification: DocumentClassificationResult): WorkflowState {
   if (!state.research) throw new Error('Research document must be attached before classification is updated.');
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(state.research.document, classification, state.studyId);
+  const counts = evidenceCounts(evidenceBundle.evidence);
   const verified = classification.confidenceStatus === 'HUMAN_VERIFIED'
     || classification.confidenceStatus === 'DEFINITIVE'
     || classification.humanDecision?.status === 'APPROVED';
@@ -117,9 +127,7 @@ export function updateResearchClassification(state: WorkflowState, classificatio
       evidenceBundle,
       classificationVerified: verified,
       selectedInstrumentId: classification.recommendedInstrumentId || state.research.selectedInstrumentId,
-      evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
-      evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
+      ...counts,
     },
   };
 }
@@ -155,9 +163,7 @@ export function verifyResearchEvidence(state: WorkflowState, evidenceId: string,
     research: {
       ...state.research,
       evidenceBundle,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
-      evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
-      evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
+      ...evidenceCounts(evidenceBundle.evidence),
     },
   };
 }
