@@ -9,8 +9,64 @@ import { validateSourceRecord } from '../src/services/validateSourceRecord';
 // keeps reference provenance separate from source verification. Imported or
 // structurally complete metadata is not equivalent to external verification.
 
-declare const fixture: () => SourceRecord;
-declare const actor: { id: string; role: 'reviewer' | 'admin' | 'system' };
+function fixture(): SourceRecord {
+  const now = '2026-09-02T18:00:00.000Z';
+  return {
+    schemaVersion: '1.0.0',
+    recordId: '00000000-0000-4000-8000-000000000001',
+    source: {
+      url: 'https://example.org/article',
+      capturedAt: now,
+    },
+    metadata: {
+      sourceUrl: 'https://example.org/article',
+      title: 'Test article',
+      authors: ['Doe, J.'],
+      publicationDate: '2026',
+      journal: 'Example Journal',
+      volume: '1',
+      issue: '1',
+      detectedAt: now,
+      detectedFrom: ['manual'],
+      status: 'COMPLETE',
+      missingFields: [],
+    },
+    identifiers: {
+      doi: {
+        normalized: '10.1000/test',
+        formatValid: true,
+        raw: '10.1000/test',
+        resolverUrl: 'https://doi.org/10.1000/test',
+      },
+    },
+    referenceDraft: {
+      apa7: 'Doe, J. (2026). Test article. Example Journal.',
+      status: 'complete',
+      note: 'Draft – detected metadata, not verified against source',
+    },
+    legalReference: null,
+    privacy: {
+      sourceUrl: 'https://example.org/article',
+      analyzedAt: now,
+      externalResourceCount: 0,
+      externalHosts: [],
+      trackingIndicatorCount: 0,
+      trackingHosts: [],
+      signals: [],
+      localOnlyAnalysis: true,
+      localOnly: true,
+    },
+    provenance: {
+      tool: 'source-workflow-test',
+      toolVersion: '1.0.0',
+      collectedLocally: true,
+      externalRequestsMade: false,
+      collectedAt: now,
+    },
+  };
+}
+
+const actor = { id: 'reviewer-1', role: 'reviewer' as const };
 
 describe('Reference verification semantics', () => {
   test('intake does not turn a draft reference into a verified reference', async () => {
