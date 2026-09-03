@@ -1,3 +1,4 @@
+import { createId } from '../utils/id';
 import { GradeAssessmentEngine, GradeCerqualAssessmentEngine } from './assessmentEngines';
 import type { GradeSummaryOfFindingsItem, GradeCerqualSummaryItem } from '../types';
 import { loadAppraisalSessions, upsertAppraisalSession } from './appraisalSessionStore';
@@ -44,8 +45,10 @@ export function addQualityAssessment(sessionId: string, assessment: StoredQualit
   if (assessment.appraisalSessionId && assessment.appraisalSessionId !== sessionId) {
     throw new Error('Kvalitetsvurderingen peker til feil appraisal-sesjon.');
   }
+  if (!assessment.evidenceId.trim()) throw new Error('Kvalitetsvurderingen mangler evidenceId.');
+  if (!assessment.reviewerId.trim()) throw new Error('Kvalitetsvurderingen mangler reviewerId.');
 
-  const nextAssessment = { ...assessment, appraisalSessionId: sessionId };
+  const nextAssessment: StoredQualityAssessment = { ...assessment, appraisalSessionId: sessionId };
   const next = writeQuality(session, [...readQuality(session), nextAssessment]);
   upsertAppraisalSession(next);
   return next;
@@ -66,7 +69,7 @@ export function assessGRADE(input: {
   const result = GradeAssessmentEngine.evaluateOutcome(input);
   const now = new Date().toISOString();
   return {
-    id: `grade_${crypto.randomUUID()}`,
+    id: createId('grade'),
     appraisalSessionId: input.appraisalSessionId,
     evidenceId: input.evidenceId,
     kind: 'GRADE',
@@ -99,7 +102,7 @@ export function assessCERQual(input: {
   });
   const now = new Date().toISOString();
   return {
-    id: `cerqual_${crypto.randomUUID()}`,
+    id: createId('cerqual'),
     appraisalSessionId: input.appraisalSessionId,
     evidenceId: input.evidenceId,
     kind: 'CERQual',
