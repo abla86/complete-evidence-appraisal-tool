@@ -7,7 +7,7 @@ function esc(value: unknown): string {
 }
 
 function authors(record: ReferenceRecord): string[] {
-  const raw = record.authors || '';
+  const raw = record.authors ?? '';
   return raw.split(/\s*;\s*|\s+\band\s+|\s+og\s+/i).map(a => a.trim()).filter(Boolean);
 }
 
@@ -18,8 +18,8 @@ export function toRis(record: ReferenceRecord): string {
     record.title ? `TI  - ${record.title}` : '',
     record.journal ? `JO  - ${record.journal}` : '',
     record.year ? `PY  - ${record.year}` : '',
-    record.volume ? `VL  - ${record.volume}` : '',
-    record.issue ? `IS  - ${record.issue}` : '',
+    record.volume ? `VL  - ${String(record.volume)}` : '',
+    record.issue ? `IS  - ${String(record.issue)}` : '',
     record.pages ? `SP  - ${String(record.pages).split('-')[0]}` : '',
     String(record.pages ?? '').includes('-') ? `EP  - ${String(record.pages).split('-').slice(-1)[0]}` : '',
     record.doi ? `DO  - ${record.doi}` : '',
@@ -40,8 +40,8 @@ export function toBibtex(record: ReferenceRecord): string {
     `  title = {${esc(record.title)}},`,
     record.journal ? `  journal = {${esc(record.journal)}},` : '',
     record.year ? `  year = {${record.year}},` : '',
-    record.volume ? `  volume = {${esc(record.volume)}},` : '',
-    record.issue ? `  number = {${esc(record.issue)}},` : '',
+    record.volume ? `  volume = {${esc(String(record.volume))}},` : '',
+    record.issue ? `  number = {${esc(String(record.issue))}},` : '',
     record.pages ? `  pages = {${esc(record.pages)}},` : '',
     record.doi ? `  doi = {${esc(record.doi)}},` : '',
     record.url ? `  url = {${esc(record.url)}},` : '',
@@ -81,7 +81,7 @@ export function toEndNoteXml(records: ReferenceRecord[]): string {
 export function toCsv(records: ReferenceRecord[]): string {
   const headers = ['id','kind','title','authors','year','journal','volume','issue','pages','doi','pmid','isbn','issn','url','verification'];
   const quote = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  return [headers.join(','), ...records.map(r => headers.map(h => quote(h === 'authors' ? r.authors : (r as unknown as Record<string, unknown>)[h])).join(','))].join('\n');
+  return [headers.join(','), ...records.map(r => headers.map(h => quote(h === 'authors' ? authors(r).join('; ') : (r as unknown as Record<string, unknown>)[h])).join(','))].join('\n');
 }
 
 function escapeXml(value: unknown): string {
