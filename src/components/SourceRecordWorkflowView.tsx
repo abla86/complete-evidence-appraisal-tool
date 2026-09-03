@@ -24,7 +24,7 @@ class MemoryStore implements IntakeStore {
 class TrailWriter implements AuditWriter {
   constructor(private readonly trail: ReturnType<typeof createAuditTrail>) {}
   append(input: Parameters<ReturnType<typeof createAuditTrail>['append']>[0]) {
-    return this.trail.append(input.action, input.actor, input.subject, input.detail);
+    return this.trail.append(input);
   }
 }
 
