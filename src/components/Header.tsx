@@ -59,8 +59,6 @@ interface HeaderProps {
   onOpenThesisDraft?: () => void;
   onOpenMetaResearch?: () => void;
   onOpenDesignAdvisory?: () => void;
-  onOpenGoogleDocs?: () => void;
-  onOpenGoogleWorkspace?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -90,9 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenResearchSearch,
   onOpenThesisDraft,
   onOpenMetaResearch,
-  onOpenDesignAdvisory,
-  onOpenGoogleDocs,
-  onOpenGoogleWorkspace
+  onOpenDesignAdvisory
 }) => {
   const activeStudy = studies.find(s => s.id === activeStudyId);
   const isGatePassed = project.governanceGate?.isGatePassed;
@@ -329,22 +325,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <Lock className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
                 <span className="font-semibold">Privat Deling</span>
                 <span className="hidden xl:inline font-mono text-[10px] text-emerald-400">&amp; GitHub</span>
-              </button>
-            )}
-
-            {/* GOOGLE DOCS & SHEETS WORKSPACE SYNC & EXPORT */}
-            {(onOpenGoogleWorkspace || onOpenGoogleDocs) && (
-              <button
-                id="header-google-workspace-btn"
-                onClick={onOpenGoogleWorkspace || onOpenGoogleDocs}
-                title="Google Docs & Google Sheets Workspace Studio: Synkroniser og eksporter utkast, evidensmatriser og referanser direkte"
-                className="bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-bold border border-slate-700 shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-              >
-                <div className="flex items-center -space-x-1">
-                  <span className="w-2.5 h-2.5 rounded-xs bg-blue-500 inline-block ring-1 ring-slate-900" title="Google Docs" />
-                  <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block ring-1 ring-slate-900" title="Google Sheets" />
-                </div>
-                <span className="font-semibold text-white">Google Docs &amp; Sheets</span>
               </button>
             )}
 

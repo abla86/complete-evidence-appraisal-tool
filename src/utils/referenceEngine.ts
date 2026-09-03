@@ -717,7 +717,7 @@ export function generateWordCwywDocument(references: ReferenceItem[], style: Cit
   const bibliography = references.map((r, i) => formatReferenceInStyle(r, style, i + 1)).join('\n\n');
 
   return `=== WORD CITE WHILE YOU WRITE (CWYW) INTEGRASJONSDOKUMENT ===
-Bruk tokens nedenfor direkte i Word eller Google Docs for automatisk referansestyring.
+Bruk tokens nedenfor direkte i Word, LibreOffice eller andre skriveprogrammer for automatisk referansestyring.
 
 EKSEMPELTEKST MED WORD TOKENS:
 ${sampleParagraph}
@@ -733,9 +733,9 @@ ${references.map(r => `${r.cwywToken} -> ${r.title}`).join('\n')}
 }
 
 /**
- * Generate formatted HTML for Google Docs (pasteable rich text)
+ * Generate formatted HTML for rich text editors / clipboard pasting
  */
-export function generateGoogleDocsHtml(references: ReferenceItem[], style: CitationStyle = 'APA7'): string {
+export function generateRichTextHtml(references: ReferenceItem[], style: CitationStyle = 'APA7'): string {
   const itemsHtml = references.map((r, i) => {
     const formatted = formatReferenceInStyle(r, style, i + 1);
     return `<p style="margin-bottom: 12px; text-indent: -36px; padding-left: 36px; line-height: 1.5; font-family: 'Times New Roman', serif;">${formatted}</p>`;
@@ -746,6 +746,8 @@ export function generateGoogleDocsHtml(references: ReferenceItem[], style: Citat
   ${itemsHtml}
 </div>`;
 }
+
+export const generateGoogleDocsHtml = generateRichTextHtml;
 
 // ---------------------------------------------------------------------------
 // IMPORTERS: Parse RIS, BibTeX, Quick Identifiers

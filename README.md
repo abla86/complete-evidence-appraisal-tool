@@ -6,7 +6,22 @@
 [![Test Suite](https://img.shields.io/badge/Tester-44%2F44%20Gr%C3%B8nne-brightgreen)](tests/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Typesikker%20(0%20feil)-blue)](tsconfig.json)
 [![Arkitektur](https://img.shields.io/badge/Arkitektur-Local--First%20%7C%20Zero--Knowledge-purple)](#sikkerhet-og-gdpr)
+[![OAuth-Fri](https://img.shields.io/badge/OAuth-Ingen%20eksterne%20avhengigheter-success)](#arkitekturprinsipper-og-styringsregler)
 [![Standarder](https://img.shields.io/badge/Standarder-PRISMA%202020%20%7C%20JBI%20%7C%20GRADE-orange)](#st%C3%B8ttede-forskningsinstrumenter)
+
+---
+
+## 🏛️ Arkitekturprinsipper og Styringsregler
+
+### Hovedregel for konsolidering og integrasjon
+> **«Et repository flyttes eller integreres ikke på grunn av plassering, navn eller historisk tilknytning. Det vurderes ut fra formål, domeneansvar, avhengigheter, sikkerhetskonsekvenser og behovet for selvstendig livssyklus.»**
+>
+> Dette sikrer at **Complete Evidence** forblir en samlet, stabil og robust produktplattform, samtidig som spesialiserte utvidelser (f.eks. Chrome/Edge Extension Collector) og sikkerhetsmoduler kan utvikles uavhengig uten at arkitekturgrensene brytes.
+
+### 100 % Autonom & Frikoblet (Ingen OAuth / Ingen Google-avhengigheter)
+* **Ingen OAuth-kompleksitet:** Applikasjonen krever null OAuth 2.0-oppsett, ingen klient-nøkler (Client IDs/Secrets) og ingen påloggingsservere.
+* **Full kildesuverenitet:** Data synkroniseres aldri til eksterne skytjenester med mindre forskeren selv velger å laste ned en fil (.docx, .ris, .json).
+* **Ingen eksterne sporingsskript:** Google Identity Services (GSI) og eksterne OAuth-scripts er fjernet, noe som gir garantert institusjonell personvernsamsvar (GDPR).
 
 ---
 

@@ -369,7 +369,7 @@ Styrker:
         <div className="px-6 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
           <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Klar til å limes rett inn i Word, Overleaf LaTeX eller Google Docs</span>
+            <span>Klar til å limes rett inn i Word, LibreOffice eller LaTeX</span>
           </div>
           <button
             onClick={onClose}

@@ -4,6 +4,13 @@ Dokumenterer ansvarsfordeling, konsolidering og arkitekturroller på tvers av re
 
 ---
 
+## 🏛️ Kanonisk Styringsregel for Repositorier og Integrasjon
+> **«Et repository flyttes eller integreres ikke på grunn av plassering, navn eller historisk tilknytning. Det vurderes ut fra formål, domeneansvar, avhengigheter, sikkerhetskonsekvenser og behovet for selvstendig livssyklus.»**
+>
+> Dette gir en struktur der **Complete Evidence** kan bli en samlet og fungerende produktplattform, samtidig som extensions (f.eks. Chrome/Edge Extension Collector) og Security kan utvikles uavhengig uten at grensene brytes.
+
+---
+
 ## 1. Oversikt over Økosystemet
 
 ```
