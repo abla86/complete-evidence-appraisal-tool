@@ -15,6 +15,8 @@ export interface ResearchEvidenceRecord {
   quote: string;
   source: ResearchEvidenceVerification;
   verifiedByResearcher: boolean;
+  verifiedAt?: string;
+  verifiedBy?: string;
   questionId?: number;
   suggestedStatus?: string;
   relevanceScore: number;
@@ -66,8 +68,13 @@ export class ResearchEvidenceBridge {
     bundle: ResearchToAppraisalBundle,
     evidenceId: string,
     verified: boolean,
+    reviewerId = 'researcher',
   ): ResearchToAppraisalBundle {
+    const normalizedReviewerId = reviewerId.trim();
+    if (!normalizedReviewerId) throw new Error('Reviewer ID is required.');
+
     let found = false;
+    const now = new Date().toISOString();
     const evidence = bundle.evidence.map(item => {
       if (item.id !== evidenceId) return item;
       found = true;
@@ -75,6 +82,8 @@ export class ResearchEvidenceBridge {
         ...item,
         source: verified ? 'HUMAN_VERIFIED' as const : 'REJECTED' as const,
         verifiedByResearcher: verified,
+        verifiedAt: now,
+        verifiedBy: normalizedReviewerId,
       };
     });
 
@@ -107,6 +116,8 @@ export class ResearchEvidenceBridge {
       quote: candidate.extractedSnippet,
       source: candidate.verifiedByResearcher ? 'HUMAN_VERIFIED' : 'AI_CANDIDATE',
       verifiedByResearcher: candidate.verifiedByResearcher,
+      verifiedAt: candidate.verifiedByResearcher ? new Date().toISOString() : undefined,
+      verifiedBy: undefined,
       questionId: candidate.questionId,
       suggestedStatus: candidate.suggestedStatus,
       relevanceScore: candidate.relevanceScore,
