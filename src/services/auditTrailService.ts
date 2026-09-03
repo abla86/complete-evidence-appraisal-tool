@@ -71,3 +71,7 @@ export class AuditTrailService {
     return { valid: true, firstInvalidIndex: null };
   }
 }
+
+export function createAuditTrail(): AuditTrailService {
+  return new AuditTrailService();
+}
