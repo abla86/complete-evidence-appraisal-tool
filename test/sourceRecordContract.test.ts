@@ -53,8 +53,10 @@ test('accepts a valid SourceRecord', () => {
 });
 
 test('rejects unknown schema version', () => {
-  const record = validRecord();
-  record.schemaVersion = '9.9.9';
+  const record = {
+    ...validRecord(),
+    schemaVersion: '9.9.9',
+  } as unknown;
   const result = validateSourceRecord(record);
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((error) => error.includes('schemaVersion')));
