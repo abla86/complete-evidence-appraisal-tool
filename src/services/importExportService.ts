@@ -136,7 +136,7 @@ export class ImportExportService {
         journal: parseRes.metadata.journal,
         doi: parseRes.metadata.doi,
         design: parseRes.metadata.studyDesignDetected,
-        studyContext: parseRes.metadata.abstract || 'Ekstrahert fra dokument',
+        studyContext: parseRes.metadata.abstract || undefined,
         sourceName: fileName
       });
 
@@ -203,11 +203,11 @@ export class ImportExportService {
         id: item.id || generateArticleId('art'),
         title: item.title || 'Uten tittel',
         authors: item.authors || 'Ukjent forfatter',
-        year: item.year || new Date().getFullYear(),
+        year: item.year || undefined,
         journal: item.journal || 'Tidsskrift / Kilde',
         doi: item.doi || '',
-        design: item.design || 'Kvalitativ studie',
-        studyContext: item.abstract || 'Importert referanse',
+        design: item.design || undefined,
+        studyContext: item.abstract || undefined,
         sourceName: `${fileName} (${detectedFormat.toUpperCase()})`,
         verdict: item.verdict,
         items: item.items
@@ -250,7 +250,7 @@ export class ImportExportService {
 
       let title = '';
       const authors: string[] = [];
-      let year = new Date().getFullYear();
+      let year: number | undefined;
       let journal = '';
       let doi = '';
       let abstract = '';
@@ -355,7 +355,7 @@ export class ImportExportService {
       const title = getField('title') || getField('booktitle');
       const author = getField('author') || getField('editor');
       const yearStr = getField('year');
-      const year = yearStr ? parseInt(yearStr, 10) : new Date().getFullYear();
+      const year = yearStr ? parseInt(yearStr, 10) : undefined;
       const journal = getField('journal') || getField('publisher') || getField('school');
       const doi = getField('doi').replace(/^https?:\/\/doi\.org\//i, '').trim();
       const abstract = getField('abstract') || getField('note');
@@ -365,7 +365,7 @@ export class ImportExportService {
           id: generateUniqueId('bib'),
           title: title || `BibTeX oppføring #${idx}`,
           authors: author ? author.replace(/\s+and\s+/g, '; ') : 'Ukjent forfatter',
-          year: isNaN(year) ? new Date().getFullYear() : year,
+          year: Number.isNaN(year) ? undefined : year,
           journal: journal || 'Vitenskapelig publikasjon',
           doi,
           design: 'Kvalitativ studie',
@@ -394,10 +394,10 @@ export class ImportExportService {
         id: a.id || generateUniqueId('json'),
         title: a.title || 'Uten tittel',
         authors: a.authors || 'Forfattere',
-        year: a.year || new Date().getFullYear(),
+        year: a.year || undefined,
         journal: a.journal || 'Tidsskrift',
         doi: a.doi || '',
-        design: a.design || 'Kvalitativ studie',
+        design: a.design || undefined,
         abstract: a.studyContext || a.abstract || '',
         items: Array.isArray(a.items) ? a.items : undefined,
         verdict: a.overallVerdict
@@ -463,7 +463,7 @@ export class ImportExportService {
       const authors = authorIdx >= 0 ? cols[authorIdx] : (cols[1] || 'Forfattere');
       const yearStr = yearIdx >= 0 ? cols[yearIdx] : '';
       const yearMatch = yearStr.match(/\b(19\d{2}|20[0-2]\d)\b/);
-      const year = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
+      const year = yearMatch ? parseInt(yearMatch[1], 10) : undefined;
       const journal = journalIdx >= 0 ? cols[journalIdx] : 'Tidsskrift';
       const doi = doiIdx >= 0 ? cols[doiIdx].replace(/^https?:\/\/doi\.org\//i, '').trim() : '';
       const design = designIdx >= 0 ? cols[designIdx] : 'Kvalitativ studie';
@@ -474,11 +474,11 @@ export class ImportExportService {
         items.push({
           id: generateUniqueId('csv'),
           title: title || `Oppføring #${i}`,
-          authors: authors || 'Ukjent forfatter',
+          authors: authors || '',
           year,
           journal,
           doi,
-          design: design || 'Kvalitativ studie',
+          design: design || undefined,
           abstract,
           verdict: verdict && ['Inkluder', 'Ekskluder', 'Vurder videre', 'Søk mer informasjon'].includes(verdict) ? verdict : undefined
         });
