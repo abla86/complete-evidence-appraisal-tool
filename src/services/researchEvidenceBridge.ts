@@ -5,7 +5,11 @@ import type {
 } from '../types';
 import type { ResearchEngineDocument } from './researchEngineGateway';
 
-export type ResearchEvidenceVerification = 'AI_CANDIDATE' | 'HUMAN_VERIFIED' | 'REJECTED' | 'MANUAL';
+export type ResearchEvidenceVerification =
+  | 'AI_CANDIDATE'
+  | 'HUMAN_VERIFIED'
+  | 'REJECTED'
+  | 'MANUAL';
 
 export interface ResearchEvidenceRecord {
   id: string;
@@ -42,9 +46,20 @@ export class ResearchEvidenceBridge {
     classification?: DocumentClassificationResult,
     studyId = document.id,
   ): ResearchToAppraisalBundle {
+    const normalizedStudyId = studyId.trim();
+    if (!normalizedStudyId) {
+      throw new Error('studyId is required.');
+    }
+
     const candidates = document.candidateEvidence ?? [];
-    const evidence = candidates.map((candidate, index) => this.mapCandidate(document, studyId, candidate, index));
-    const recommendedInstrument = classification?.recommendedInstrumentId ?? document.metadata.recommendedInstrumentId;
+    const evidence = candidates.map((candidate, index) =>
+      this.mapCandidate(document, normalizedStudyId, candidate, index),
+    );
+
+    const recommendedInstrument =
+      classification?.recommendedInstrumentId?.trim() ??
+      document.metadata.recommendedInstrumentId?.trim() ??
+      '';
 
     return {
       contractVersion: '1.0.0',
@@ -53,8 +68,8 @@ export class ResearchEvidenceBridge {
       evidence,
       readyForAppraisal: Boolean(
         classification &&
-        recommendedInstrument &&
-        classification.humanDecision?.status === 'APPROVED',
+          recommendedInstrument &&
+          classification.humanDecision?.status === 'APPROVED',
       ),
       gating: {
         classificationRequired: true,
@@ -68,34 +83,60 @@ export class ResearchEvidenceBridge {
     bundle: ResearchToAppraisalBundle,
     evidenceId: string,
     verified: boolean,
-    reviewerId = 'researcher',
+    reviewerId: string,
   ): ResearchToAppraisalBundle {
+    const normalizedEvidenceId = evidenceId.trim();
     const normalizedReviewerId = reviewerId.trim();
-    if (!normalizedReviewerId) throw new Error('Reviewer ID is required.');
+
+    if (!normalizedEvidenceId) {
+      throw new Error('Evidence ID is required.');
+    }
+
+    if (!normalizedReviewerId) {
+      throw new Error('Reviewer ID is required.');
+    }
 
     let found = false;
     const now = new Date().toISOString();
+
     const evidence = bundle.evidence.map(item => {
-      if (item.id !== evidenceId) return item;
+      if (item.id !== normalizedEvidenceId) {
+        return item;
+      }
+
       found = true;
+
       return {
         ...item,
-        source: verified ? 'HUMAN_VERIFIED' as const : 'REJECTED' as const,
+        source: verified
+          ? ('HUMAN_VERIFIED' as const)
+          : ('REJECTED' as const),
         verifiedByResearcher: verified,
         verifiedAt: now,
         verifiedBy: normalizedReviewerId,
       };
     });
 
-    if (!found) throw new Error(`Evidence finnes ikke: ${evidenceId}`);
-    return { ...bundle, evidence };
+    if (!found) {
+      throw new Error(
+        `Evidence finnes ikke: ${normalizedEvidenceId}`,
+      );
+    }
+
+    return {
+      ...bundle,
+      evidence,
+    };
   }
 
   public static toAppraisalLocation(
     location: CandidateEvidence['suggestedLocation'],
   ): EvidenceLocation {
     return {
-      page: location.page === undefined ? undefined : String(location.page),
+      page:
+        location.page === undefined
+          ? undefined
+          : String(location.page),
       section: location.section,
       table: location.table,
       figure: location.figure,
@@ -112,10 +153,19 @@ export class ResearchEvidenceBridge {
       id: `research-evidence-${document.id}-${index + 1}`,
       studyId,
       documentId: document.id,
-      location: this.toAppraisalLocation(candidate.suggestedLocation),
+      location: this.toAppraisalLocation(
+        candidate.suggestedLocation,
+      ),
       quote: candidate.extractedSnippet,
-      source: candidate.verifiedByResearcher ? 'HUMAN_VERIFIED' : 'AI_CANDIDATE',
-      verifiedByResearcher: candidate.verifiedByResearcher,
+      source: candidate.verifiedByResearcher
+        ? 'HUMAN_VERIFIED'
+        : 'AI_CANDIDATE',
+      verifiedByResearcher:
+        candidate.verifiedByResearcher,
+      verifiedAt: candidate.verifiedByResearcher
+        ? undefined
+        : undefined,
+      verifiedBy: undefined,
       questionId: candidate.questionId,
       suggestedStatus: candidate.suggestedStatus,
       relevanceScore: candidate.relevanceScore,
