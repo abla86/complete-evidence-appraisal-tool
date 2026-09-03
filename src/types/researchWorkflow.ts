@@ -16,7 +16,7 @@ export interface ScreeningDecision {
   timestamp: string;
 }
 
-export type DualReviewStatus = 'assigned' | 'inProgress' | 'completed' | 'disputed' | 'resolved';
+export type DualReviewStatus = 'assigned' | 'inProgress' | 'completed' | 'disputed' | 'resolved' | 'pendingAdjudication';
 
 export interface DualReviewConfig {
   instrumentId: string;
@@ -52,12 +52,13 @@ export interface ReviewComparison {
 
 export interface ResolvedAppraisal {
   appraisalId: string;
-  status: 'resolved';
+  status: 'pendingAdjudication' | 'resolved';
   resolutionMethod: DualReviewConfig['arbitrationMethod'];
   resolvedBy: string;
   resolvedAt: string;
   disagreements: ReviewDisagreement[];
   consensusResponses: Record<string, string | number | boolean | null>;
+  proposedResponses?: Record<string, string | number | boolean | null>;
 }
 
 export interface GRADEAssessment {
