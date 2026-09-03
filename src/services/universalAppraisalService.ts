@@ -62,50 +62,26 @@ export interface AppraisalLaunchDecision {
   reason: string;
 }
 
-function normalizeId(value: number | string): string {
-  return String(value).trim();
-}
+function normalizeId(value: number | string): string { return String(value).trim(); }
 
 export function getInstrumentOrNull(instrumentId: string): AppraisalInstrument | null {
   const normalized = instrumentId.trim().toLowerCase();
   if (!normalized) return null;
-  return MASTER_INSTRUMENTS_REGISTRY.find(
-    item => item.id.trim().toLowerCase() === normalized,
-  ) ?? null;
+  return MASTER_INSTRUMENTS_REGISTRY.find(item => item.id.trim().toLowerCase() === normalized) ?? null;
 }
 
-export function createBlankAppraisalSession(
-  studyId: string,
-  instrumentId: string,
-  reviewerId: string,
-): AppraisalSession {
+export function createBlankAppraisalSession(studyId: string, instrumentId: string, reviewerId: string): AppraisalSession {
   const normalizedStudyId = studyId.trim();
   const normalizedReviewerId = reviewerId.trim();
   const instrument = getInstrumentOrNull(instrumentId);
-
   if (!normalizedStudyId) throw new Error('studyId is required.');
   if (!normalizedReviewerId) throw new Error('reviewerId is required.');
   if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
-
   const now = new Date().toISOString();
-
-  return {
-    id: randomUUID(),
-    studyId: normalizedStudyId,
-    instrumentId: instrument.id,
-    instrumentVersion: instrument.version,
-    reviewerId: normalizedReviewerId,
-    responses: [],
-    createdAt: now,
-    updatedAt: now,
-    locked: false,
-  };
+  return { id: randomUUID(), studyId: normalizedStudyId, instrumentId: instrument.id, instrumentVersion: instrument.version, reviewerId: normalizedReviewerId, responses: [], createdAt: now, updatedAt: now, locked: false };
 }
 
-export function upsertAppraisalResponse(
-  session: AppraisalSession,
-  response: AppraisalItemResponse,
-): AppraisalSession {
+export function upsertAppraisalResponse(session: AppraisalSession, response: AppraisalItemResponse): AppraisalSession {
   if (session.locked) throw new Error('Vurderingen er låst og kan ikke endres.');
   const instrument = getInstrumentOrNull(session.instrumentId);
   if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${session.instrumentId}`);
@@ -116,30 +92,19 @@ export function upsertAppraisalResponse(
   const answerPresent = response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '';
   if (answerPresent && !String(response.rationale ?? '').trim()) throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizedItemId}.`);
   const allowedAnswers = question.allowedAnswers ?? instrument.allowedAnswers ?? [];
-  if (allowedAnswers.length > 0 && answerPresent && !allowedAnswers.map(String).includes(String(response.answer))) {
-    throw new Error(`Svarverdien for vurderingspunkt ${normalizedItemId} er ikke tillatt av instrumentet.`);
-  }
+  if (allowedAnswers.length > 0 && answerPresent && !allowedAnswers.map(String).includes(String(response.answer))) throw new Error(`Svarverdien for vurderingspunkt ${normalizedItemId} er ikke tillatt av instrumentet.`);
   const normalizedResponse: AppraisalItemResponse = {
     ...response,
     itemId: question.id,
     rationale: String(response.rationale ?? '').trim(),
-    evidence: response.evidence
-      ? {
-          ...response.evidence,
-          quote: response.evidence.quote?.trim(),
-          page: response.evidence.page?.trim(),
-          section: response.evidence.section?.trim(),
-          table: response.evidence.table?.trim(),
-          figure: response.evidence.figure?.trim(),
-          url: response.evidence.url?.trim(),
-          sourceId: response.evidence.sourceId?.trim(),
-        }
-      : undefined,
+    evidence: response.evidence ? {
+      ...response.evidence,
+      quote: response.evidence.quote?.trim(), page: response.evidence.page?.trim(), section: response.evidence.section?.trim(), table: response.evidence.table?.trim(), figure: response.evidence.figure?.trim(), url: response.evidence.url?.trim(), sourceId: response.evidence.sourceId?.trim(),
+    } : undefined,
   };
   const existing = session.responses.findIndex(item => normalizeId(item.itemId) === normalizedItemId);
   const responses = [...session.responses];
-  if (existing >= 0) responses[existing] = normalizedResponse;
-  else responses.push(normalizedResponse);
+  if (existing >= 0) responses[existing] = normalizedResponse; else responses.push(normalizedResponse);
   return { ...session, responses, updatedAt: new Date().toISOString() };
 }
 
