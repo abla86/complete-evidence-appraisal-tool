@@ -46,9 +46,24 @@ export interface ResearchAppraisalPayload {
 function evidenceCounts(evidence: ResearchToAppraisalBundle['evidence']) {
   return {
     evidenceCandidateCount: evidence.filter(item => item.source === 'AI_CANDIDATE').length,
-    evidenceVerifiedCount: evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
+    evidenceVerifiedCount: evidence.filter(
+      item =>
+        item.verifiedByResearcher &&
+        item.source === 'HUMAN_VERIFIED' &&
+        Boolean(item.verifiedBy) &&
+        Boolean(item.verifiedAt),
+    ).length,
     evidenceRejectedCount: evidence.filter(item => item.source === 'REJECTED').length,
   };
+}
+
+function createDocumentId(value: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `doc-${(hash >>> 0).toString(16)}`;
 }
 
 export function createResearchWorkflow(
@@ -82,8 +97,7 @@ export function createResearchWorkflow(
       evidenceBundle,
       analysis,
       classificationVerified: false,
-      selectedInstrumentId:
-        document.metadata.recommendedInstrumentId?.trim() || undefined,
+      selectedInstrumentId: document.metadata.recommendedInstrumentId?.trim() || undefined,
       ...counts,
     },
   };
@@ -139,11 +153,7 @@ export function createResearchWorkflowFromText(
     candidateEvidence: analysis.candidateEvidence ?? [],
   };
 
-  return createResearchWorkflow(
-    document,
-    studyId ?? document.id,
-    analysis,
-  );
+  return createResearchWorkflow(document, studyId ?? document.id, analysis);
 }
 
 export function updateResearchClassification(
@@ -159,7 +169,6 @@ export function updateResearchClassification(
     classification,
     state.studyId,
   );
-
   const counts = evidenceCounts(evidenceBundle.evidence);
   const verified =
     classification.confidenceStatus === 'HUMAN_VERIFIED' ||
@@ -174,8 +183,7 @@ export function updateResearchClassification(
       evidenceBundle,
       classificationVerified: verified,
       selectedInstrumentId:
-        classification.recommendedInstrumentId?.trim() ||
-        state.research.selectedInstrumentId,
+        classification.recommendedInstrumentId?.trim() || state.research.selectedInstrumentId,
       ...counts,
     },
   };
@@ -187,22 +195,12 @@ export function verifyResearchClassification(
   approved: boolean,
 ): WorkflowState {
   const normalizedReviewerId = reviewerId.trim();
-
-  if (!state.research) {
-    throw new Error('Research document must be attached before classification can be verified.');
-  }
-
-  if (!state.research.evidenceBundle.classification) {
-    throw new Error('No classification is available for verification.');
-  }
-
-  if (!normalizedReviewerId) {
-    throw new Error('Reviewer ID is required.');
-  }
+  if (!state.research) throw new Error('Research document must be attached before classification can be verified.');
+  if (!state.research.evidenceBundle.classification) throw new Error('No classification is available for verification.');
+  if (!normalizedReviewerId) throw new Error('Reviewer ID is required.');
 
   const current = state.research.evidenceBundle.classification;
   const now = new Date().toISOString();
-
   const updatedClassification: DocumentClassificationResult = {
     ...current,
     confidenceStatus: approved ? 'HUMAN_VERIFIED' : 'MANUAL_VERIFICATION_REQUIRED',
@@ -212,9 +210,7 @@ export function verifyResearchClassification(
       status: approved ? 'APPROVED' : 'REJECTED',
       verifiedAt: now,
       verifiedBy: normalizedReviewerId,
-      rationale: approved
-        ? 'Classification approved by researcher.'
-        : 'Classification rejected by researcher.',
+      rationale: approved ? 'Classification approved by researcher.' : 'Classification rejected by researcher.',
     },
   };
 
@@ -228,13 +224,13 @@ export function verifyResearchEvidence(
   reviewerId: string,
 ): WorkflowState {
   const normalizedReviewerId = reviewerId.trim();
+  if (!state.research) throw new Error('Research document is not attached.');
+  if (!normalizedReviewerId) throw new Error('Reviewer ID is required.');
 
-  if (!state.research) {
-    throw new Error('Research document is not attached.');
-  }
-
-  if (!normalizedReviewerId) {
-    throw new Error('Reviewer ID is required.');
+  const current = state.research.evidenceBundle.evidence.find(item => item.id === evidenceId);
+  if (!current) throw new Error(`Evidence finnes ikke: ${evidenceId}`);
+  if (current.source === 'REJECTED' && verified) {
+    throw new Error('Avvist evidence må vurderes på nytt gjennom eksplisitt re-inntak før det kan verifiseres.');
   }
 
   const evidenceBundle = ResearchEvidenceBridge.verifyEvidence(
@@ -258,27 +254,15 @@ export function verifyAllCandidateEvidence(
   state: WorkflowState,
   reviewerId: string,
 ): WorkflowState {
-  if (!reviewerId.trim()) {
-    throw new Error('Reviewer ID is required.');
-  }
-
-  if (!state.research) {
-    throw new Error('Research document is not attached.');
-  }
+  if (!reviewerId.trim()) throw new Error('Reviewer ID is required.');
+  if (!state.research) throw new Error('Research document is not attached.');
 
   let next = state;
-
   for (const item of state.research.evidenceBundle.evidence) {
     if (item.source === 'AI_CANDIDATE') {
-      next = verifyResearchEvidence(
-        next,
-        item.id,
-        true,
-        reviewerId,
-      );
+      next = verifyResearchEvidence(next, item.id, true, reviewerId);
     }
   }
-
   return next;
 }
 
@@ -286,27 +270,12 @@ export function selectResearchInstrument(
   state: WorkflowState,
   instrumentId: string,
 ): WorkflowState {
-  if (!state.research) {
-    throw new Error('Research document must be attached.');
-  }
-
+  if (!state.research) throw new Error('Research document must be attached.');
   const normalized = instrumentId.trim();
-  if (!normalized) {
-    throw new Error('Instrument ID mangler.');
-  }
+  if (!normalized) throw new Error('Instrument ID mangler.');
 
-  const decision = decideAppraisalLaunch(
-    state.studyDesign,
-    normalized,
-  );
-
-  if (!decision.instrument) {
-    throw new Error(decision.reason);
-  }
-
-  if (!decision.allowed) {
-    throw new Error(decision.reason);
-  }
+  const decision = decideAppraisalLaunch(state.studyDesign, normalized);
+  if (!decision.instrument || !decision.allowed) throw new Error(decision.reason);
 
   return {
     ...state,
@@ -324,99 +293,44 @@ export function selectResearchInstrument(
   };
 }
 
-export function assertReadyForAppraisal(
-  state: WorkflowState,
-): void {
-  if (!state.research) {
-    throw new Error(
-      'Ingen research-workflow er knyttet til studien.',
-    );
-  }
-
-  if (!state.research.classificationVerified) {
-    throw new Error(
-      'Human verification av dokumentklassifisering er påkrevd.',
-    );
-  }
-
-  if (!state.research.selectedInstrumentId) {
-    throw new Error(
-      'Appraisal-instrument er ikke valgt.',
-    );
-  }
-
-  if (getVerifiedResearchEvidence(state).length === 0) {
-    throw new Error(
-      'Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.',
-    );
-  }
-
-  const decision = decideAppraisalLaunch(
-    state.studyDesign,
-    state.research.selectedInstrumentId,
-  );
-
-  if (!decision.allowed || !decision.instrument) {
-    throw new Error(decision.reason);
-  }
-}
-
-export function buildResearchAppraisalPayload(
-  state: WorkflowState,
-): ResearchAppraisalPayload {
-  assertReadyForAppraisal(state);
-
-  if (!state.research) {
-    throw new Error('Research workflow is missing.');
-  }
-
-  return {
-    studyId: state.studyId,
-    instrumentId: state.research.selectedInstrumentId!,
-    evidence: getVerifiedResearchEvidence(state),
-    document: state.research.document,
-    classification:
-      state.research.evidenceBundle.classification,
-  };
-}
-
-export function getVerifiedResearchEvidence(
-  state: WorkflowState,
-) {
-  if (!state.research) {
-    return [] as ResearchToAppraisalBundle['evidence'];
-  }
-
+export function getVerifiedResearchEvidence(state: WorkflowState) {
+  if (!state.research) return [] as ResearchToAppraisalBundle['evidence'];
   return state.research.evidenceBundle.evidence.filter(
     item =>
-      item.verifiedByResearcher &&
       item.source === 'HUMAN_VERIFIED' &&
+      item.verifiedByResearcher &&
       Boolean(item.verifiedBy) &&
       Boolean(item.verifiedAt),
   );
 }
 
-export function getResearchEvidenceSummary(
-  state: WorkflowState,
-) {
-  const evidence =
-    state.research?.evidenceBundle.evidence ?? [];
+export function assertReadyForAppraisal(state: WorkflowState): void {
+  if (!state.research) throw new Error('Ingen research-workflow er knyttet til studien.');
+  if (!state.research.classificationVerified) throw new Error('Human verification av dokumentklassifisering er påkrevd.');
+  if (!state.research.selectedInstrumentId) throw new Error('Appraisal-instrument er ikke valgt.');
 
+  const verifiedEvidence = getVerifiedResearchEvidence(state);
+  if (verifiedEvidence.length === 0) {
+    throw new Error('Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.');
+  }
+
+  const recommendation = state.research.evidenceBundle.gating.instrumentRecommendation?.trim();
+  if (!recommendation || recommendation !== state.research.selectedInstrumentId) {
+    throw new Error('Valgt appraisal-instrument mangler konsistent workflow-gating.');
+  }
+
+  const decision = decideAppraisalLaunch(state.studyDesign, state.research.selectedInstrumentId);
+  if (!decision.allowed || !decision.instrument) throw new Error(decision.reason);
+}
+
+export function buildResearchAppraisalPayload(state: WorkflowState): ResearchAppraisalPayload {
+  assertReadyForAppraisal(state);
   return {
-    total: evidence.length,
-    verified: evidence.filter(
-      item =>
-        item.verifiedByResearcher &&
-        item.source === 'HUMAN_VERIFIED' &&
-        Boolean(item.verifiedBy) &&
-        Boolean(item.verifiedAt),
-    ).length,
-    candidates: evidence.filter(
-      item => item.source === 'AI_CANDIDATE',
-    ).length,
-    rejected: evidence.filter(
-      item => item.source === 'REJECTED',
-    ).length,
+    studyId: state.studyId,
+    instrumentId: state.research!.selectedInstrumentId!,
+    evidence: getVerifiedResearchEvidence(state),
+    document: state.research!.document,
+    classification: state.research!.evidenceBundle.classification,
   };
 }
 
@@ -436,18 +350,22 @@ export async function handoffWorkflow(
     toRole,
     context: { studyId },
     reason,
-    correlationId:
-      foundation.state.snapshot().correlationId,
+    correlationId: foundation.state.snapshot().correlationId,
   });
 }
 
-function createDocumentId(value: string): string {
-  let hash = 2166136261;
-
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return `doc-${(hash >>> 0).toString(16)}`;
+export function getResearchEvidenceSummary(state: WorkflowState) {
+  const evidence = state.research?.evidenceBundle.evidence ?? [];
+  return {
+    total: evidence.length,
+    verified: evidence.filter(
+      item =>
+        item.source === 'HUMAN_VERIFIED' &&
+        item.verifiedByResearcher &&
+        Boolean(item.verifiedBy) &&
+        Boolean(item.verifiedAt),
+    ).length,
+    candidates: evidence.filter(item => item.source === 'AI_CANDIDATE').length,
+    rejected: evidence.filter(item => item.source === 'REJECTED').length,
+  };
 }
