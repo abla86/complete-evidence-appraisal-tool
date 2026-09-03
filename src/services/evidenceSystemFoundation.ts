@@ -3,7 +3,7 @@ import { RbacService, type UserRole } from './rbacService';
 import { createId as sharedCreateId } from '../utils/id';
 
 export type EvidenceModule =
-  | 'project' | 'search' | 'reference-hub' | 'fulltext' | 'screening'
+  | 'project' | 'research' | 'search' | 'reference-hub' | 'fulltext' | 'screening'
   | 'pico' | 'appraisal' | 'dual-review' | 'adjudication' | 'extraction'
   | 'synthesis' | 'grade' | 'cerqual' | 'prisma' | 'writing' | 'export'
   | 'implementation' | 'instrument-registry' | 'meta-research';
@@ -33,20 +33,8 @@ export interface EvidenceHandoff {
 
 export interface AuthorityScope {
   role: UserRole | string;
-  allowedActions: readonly string[];
-  can(action: string): boolean;
-}
-
-export interface ImprovementSuggestion {
-  id: string;
-  module: EvidenceModule;
-  suggestion: string;
-  generatedBy: 'AI' | 'system' | 'human';
-  approved: boolean;
-  approvedBy?: string;
-  approvedAt?: string;
-  evidence?: string[];
-  createdAt: string;
+  allowedActions: string[];
+  can: (action: string) => boolean;
 }
 
 export interface EvidenceStateSnapshot {
@@ -58,35 +46,25 @@ export interface EvidenceStateSnapshot {
   correlationId: string;
 }
 
-export interface EvidenceStateStore {
-  get<T = unknown>(key: string): T | undefined;
-  set<T>(key: string, value: T, actor: string, reason: string, module: EvidenceModule): EvidenceEvent;
-  snapshot(): EvidenceStateSnapshot;
-  events(): readonly EvidenceEvent[];
-}
-
 function uid(prefix: string): string {
   return sharedCreateId(prefix);
 }
 
-function toAuditRole(actor: string): UserRole {
-  if (actor === 'admin' || actor === 'lead_reviewer' || actor === 'reviewer' || actor === 'adjudicator') return actor;
+function toAuditRole(actor: string): 'reviewer' | 'admin' | 'system' {
+  if (actor === 'system') return 'system';
+  if (actor.toLowerCase().includes('admin')) return 'admin';
   return 'reviewer';
 }
 
-export class EvidenceStateService implements EvidenceStateStore {
-  private readonly stateId: string;
-  private version = 1;
-  private readonly createdAt = new Date().toISOString();
-  private updatedAt = this.createdAt;
+export class EvidenceStateService {
   private readonly data = new Map<string, unknown>();
   private readonly eventLog: EvidenceEvent[] = [];
-  private readonly correlationId: string;
+  private readonly stateId = uid('state');
+  private readonly createdAt = new Date().toISOString();
+  private updatedAt = this.createdAt;
+  private version = 0;
 
-  constructor(correlationId = uid('run')) {
-    this.stateId = uid('state');
-    this.correlationId = correlationId;
-  }
+  constructor(private readonly correlationId = uid('correlation')) {}
 
   get<T = unknown>(key: string): T | undefined {
     return this.data.get(key) as T | undefined;
@@ -178,45 +156,16 @@ export class EvidenceFoundation {
       id: uid('handoff'),
       timestamp: new Date().toISOString(),
     };
-    await this.emit({
-      type: 'workflow.handoff',
-      module: input.fromModule,
-      actor: input.fromRole,
-      payload: handoff,
-      correlationId: input.correlationId,
+
+    await this.auditTrail.append({
+      actor: { id: input.fromRole, name: input.fromRole, role: toAuditRole(input.fromRole) },
+      action: 'EVIDENCE_HANDOFF',
+      subject: { entityType: input.fromModule, id: input.correlationId },
+      detail: handoff,
     });
+
     return handoff;
   }
-
-  async recordImprovement(suggestion: Omit<ImprovementSuggestion, 'id' | 'createdAt'>): Promise<ImprovementSuggestion> {
-    const item: ImprovementSuggestion = {
-      ...suggestion,
-      id: uid('improve'),
-      createdAt: new Date().toISOString(),
-    };
-    await this.emit({
-      type: 'improvement.suggested',
-      module: suggestion.module,
-      actor: suggestion.generatedBy,
-      payload: item,
-      correlationId: this.state.snapshot().correlationId,
-    });
-    return item;
-  }
-
-  async verifyAuditIntegrity(): Promise<{ valid: boolean; firstInvalidIndex: number | null; entries: readonly AuditEntry[] }> {
-    const result = await this.auditTrail.verify();
-    return {
-      valid: result.valid,
-      firstInvalidIndex: result.firstInvalidIndex,
-      entries: this.auditTrail.list(),
-    };
-  }
 }
 
-export function canRolePerformAction(role: UserRole | string, action: string): boolean {
-  const knownRole = ['admin', 'lead_reviewer', 'reviewer', 'adjudicator'].includes(role)
-    ? role as UserRole
-    : undefined;
-  return knownRole ? RbacService.checkPermission(knownRole, action as never) : false;
-}
+export type { AuditEntry };
