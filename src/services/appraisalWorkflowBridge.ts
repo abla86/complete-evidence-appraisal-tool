@@ -48,23 +48,31 @@ function assertPayload(payload: ResearchAppraisalPayload, reviewerId: string): v
   if (!payload.studyId.trim()) throw new Error('studyId is required.');
   if (!payload.instrumentId.trim()) throw new Error('instrumentId is required.');
   if (!payload.document.id.trim()) throw new Error('document.id is required.');
+  if (payload.evidence.length === 0) throw new Error('Appraisal payload contains no human-verified evidence.');
   if (payload.evidence.some(item => item.source !== 'HUMAN_VERIFIED' || !item.verifiedByResearcher)) {
     throw new Error('Appraisal payload contains unverified evidence.');
   }
 }
 
-export async function createAppraisalFromResearch(payload: ResearchAppraisalPayload, reviewerId: string): Promise<AppraisalWorkflowRecord> {
-  assertPayload(payload, reviewerId);
-
-  const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
-  const record: AppraisalWorkflowRecord = {
+function buildRecord(payload: ResearchAppraisalPayload, reviewerId: string, session: AppraisalSession): AppraisalWorkflowRecord {
+  return {
     session,
     researchStudyId: payload.studyId,
     sourceDocumentId: payload.document.id,
     instrumentId: payload.instrumentId,
     evidenceIds: payload.evidence.map(item => item.id),
   };
-  const saved = appraisalWorkflowStore.save(record);
+}
+
+export async function createAppraisalFromResearch(payload: ResearchAppraisalPayload, reviewerId: string): Promise<AppraisalWorkflowRecord> {
+  assertPayload(payload, reviewerId);
+
+  const existing = appraisalWorkflowStore.listByStudy(payload.studyId)
+    .find(item => item.instrumentId === payload.instrumentId && item.session.reviewerId === reviewerId && !item.session.locked);
+  if (existing) return existing;
+
+  const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
+  const saved = appraisalWorkflowStore.save(buildRecord(payload, reviewerId, session));
   await evidenceEventBus.emit('appraisal.session.created', {
     studyId: payload.studyId,
     sessionId: session.id,
@@ -81,15 +89,14 @@ export function createAndAttachAppraisal(
 ): { record: AppraisalWorkflowRecord; workflow: WorkflowState } {
   assertPayload(payload, reviewerId);
 
+  const existing = appraisalWorkflowStore.listByStudy(payload.studyId)
+    .find(item => item.instrumentId === payload.instrumentId && item.session.reviewerId === reviewerId && !item.session.locked);
+  if (existing) {
+    return { record: existing, workflow: updateWorkflow(existing.session) };
+  }
+
   const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
-  const record: AppraisalWorkflowRecord = {
-    session,
-    researchStudyId: payload.studyId,
-    sourceDocumentId: payload.document.id,
-    instrumentId: payload.instrumentId,
-    evidenceIds: payload.evidence.map(item => item.id),
-  };
-  appraisalWorkflowStore.save(record);
+  const record = appraisalWorkflowStore.save(buildRecord(payload, reviewerId, session));
   const workflow = updateWorkflow(session);
   void evidenceEventBus.emit('appraisal.session.created', {
     studyId: payload.studyId,
