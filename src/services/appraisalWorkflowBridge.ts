@@ -7,7 +7,7 @@ import {
   type AppraisalSession,
   type AppraisalSessionValidation,
 } from './universalAppraisalService';
-import type { ResearchAppraisalPayload } from './researchWorkflowService';
+import type { ResearchAppraisalPayload, WorkflowState } from './researchWorkflowService';
 import { evidenceEventBus } from './evidenceEventBus';
 
 export interface AppraisalWorkflowRecord {
@@ -43,10 +43,18 @@ export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
 
 export const appraisalWorkflowStore = new InMemoryAppraisalWorkflowStore();
 
-export async function createAppraisalFromResearch(payload: ResearchAppraisalPayload, reviewerId: string): Promise<AppraisalWorkflowRecord> {
+function assertPayload(payload: ResearchAppraisalPayload, reviewerId: string): void {
   if (!reviewerId.trim()) throw new Error('reviewerId is required.');
   if (!payload.studyId.trim()) throw new Error('studyId is required.');
   if (!payload.instrumentId.trim()) throw new Error('instrumentId is required.');
+  if (!payload.document.id.trim()) throw new Error('document.id is required.');
+  if (payload.evidence.some(item => item.source !== 'HUMAN_VERIFIED' || !item.verifiedByResearcher)) {
+    throw new Error('Appraisal payload contains unverified evidence.');
+  }
+}
+
+export async function createAppraisalFromResearch(payload: ResearchAppraisalPayload, reviewerId: string): Promise<AppraisalWorkflowRecord> {
+  assertPayload(payload, reviewerId);
 
   const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
   const record: AppraisalWorkflowRecord = {
@@ -64,6 +72,32 @@ export async function createAppraisalFromResearch(payload: ResearchAppraisalPayl
     reviewerId,
   });
   return saved;
+}
+
+export function createAndAttachAppraisal(
+  payload: ResearchAppraisalPayload,
+  reviewerId: string,
+  updateWorkflow: (session: AppraisalSession) => WorkflowState,
+): { record: AppraisalWorkflowRecord; workflow: WorkflowState } {
+  assertPayload(payload, reviewerId);
+
+  const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
+  const record: AppraisalWorkflowRecord = {
+    session,
+    researchStudyId: payload.studyId,
+    sourceDocumentId: payload.document.id,
+    instrumentId: payload.instrumentId,
+    evidenceIds: payload.evidence.map(item => item.id),
+  };
+  appraisalWorkflowStore.save(record);
+  const workflow = updateWorkflow(session);
+  void evidenceEventBus.emit('appraisal.session.created', {
+    studyId: payload.studyId,
+    sessionId: session.id,
+    instrumentId: payload.instrumentId,
+    reviewerId,
+  });
+  return { record, workflow };
 }
 
 export function getAppraisalWorkflowRecord(sessionId: string): AppraisalWorkflowRecord | undefined {
