@@ -12,7 +12,7 @@ const randomUUID = (): string => {
     const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0'));
     return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
   }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  throw new Error('Secure UUID generation is unavailable in this runtime.');
 };
 
 export type AppraisalAnswer = string | number | boolean | null;
