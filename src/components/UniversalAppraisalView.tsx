@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { createBlankAppraisalSession, decideAppraisalLaunch, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
 import { Amstar2AssessmentEngine, Agree2AssessmentEngine, JbiQualitativeAssessmentEngine, Rob2AssessmentEngine, RobinsIAssessmentEngine } from '../services/assessmentEngines';
@@ -14,6 +14,17 @@ const answerOptions = (instrumentId: string, allowed: string[]) => {
   return allowed?.length ? allowed : ['Yes','Partial Yes','No','Unclear','Not applicable'];
 };
 
+async function createCanonicalSession(studyId: string, reviewerId: string): Promise<AppraisalSession> {
+  const response = await fetch(`/api/research-workflow/${encodeURIComponent(studyId)}/appraisal/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewerId }),
+  });
+  const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null;
+  if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke opprette canonical appraisal-session.');
+  return payload.session;
+}
+
 async function saveCanonicalSession(session: AppraisalSession): Promise<AppraisalSession> {
   const response = await fetch(`/api/appraisal/${encodeURIComponent(session.id)}/sync`, {
     method: 'POST',
@@ -28,39 +39,57 @@ async function saveCanonicalSession(session: AppraisalSession): Promise<Appraisa
   return payload.session ?? session;
 }
 
-export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId = 'current-user', onSaved }) => {
+export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId, onSaved }) => {
+  const effectiveReviewerId = reviewerId?.trim() || '';
   const [instrumentId, setInstrumentId] = useState(initialInstrumentId);
-  const [session, setSession] = useState<AppraisalSession>(() => {
-    const existing = getLatestAppraisalSession(studyId, initialInstrumentId, reviewerId);
-    return existing ?? createBlankAppraisalSession(studyId, initialInstrumentId, reviewerId);
-  });
-  const [notice, setNotice] = useState('');
+  const [session, setSession] = useState<AppraisalSession | null>(() => getLatestAppraisalSession(studyId, initialInstrumentId, effectiveReviewerId) ?? null);
+  const [notice, setNotice] = useState(effectiveReviewerId ? '' : 'Reviewer-ID må oppgis før appraisal kan startes.');
+  const [starting, setStarting] = useState(false);
   const instrument = MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === instrumentId);
-  const validation = validateAppraisalSession(session);
+  const validation = session ? validateAppraisalSession(session) : null;
 
-  const changeInstrument = (id: string) => {
-    if (session.locked) return;
+  useEffect(() => {
+    if (!effectiveReviewerId || session || starting) return;
+    let cancelled = false;
+    setStarting(true);
+    void createCanonicalSession(studyId, effectiveReviewerId)
+      .then(next => { if (!cancelled) { setInstrumentId(next.instrumentId); setSession(next); } })
+      .catch(error => { if (!cancelled) setNotice(error instanceof Error ? error.message : 'Appraisal-session kunne ikke opprettes.'); })
+      .finally(() => { if (!cancelled) setStarting(false); });
+    return () => { cancelled = true; };
+  }, [effectiveReviewerId, session, starting, studyId]);
+
+  const changeInstrument = async (id: string) => {
+    if (!session || session.locked) return;
     const decision = decideAppraisalLaunch(studyDesign, id, false);
     setNotice(decision.warnings.join(' ') || decision.reason);
-    if (!decision.allowed) return;
+    if (!decision.allowed || !effectiveReviewerId) return;
     setInstrumentId(id);
-    const existing = getLatestAppraisalSession(studyId, id, reviewerId);
-    setSession(existing ?? createBlankAppraisalSession(studyId, id, reviewerId));
+    try {
+      const next = await createCanonicalSession(studyId, effectiveReviewerId);
+      setSession(next.instrumentId === id ? next : { ...next, instrumentId: id, instrumentVersion: MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === id)?.version ?? next.instrumentVersion });
+    } catch (error) {
+      const cached = getLatestAppraisalSession(studyId, id, effectiveReviewerId);
+      if (cached) setSession(cached);
+      else setNotice(error instanceof Error ? error.message : 'Appraisal-session kunne ikke opprettes.');
+    }
   };
 
   const patch = (itemId: number | string, value: Partial<{ answer: string | null; rationale: string; evidence: { quote?: string; page?: string; section?: string } }>) => {
+    if (!session) return;
     if (session.locked) {
       setNotice('Denne vurderingen er låst og kan ikke endres.');
       return;
     }
     setSession(prev => {
+      if (!prev) return prev;
       const old = prev.responses.find(r => String(r.itemId) === String(itemId));
       return upsertAppraisalResponse(prev, { itemId, answer: value.answer ?? old?.answer ?? null, rationale: value.rationale ?? old?.rationale ?? '', evidence: value.evidence ?? old?.evidence });
     });
   };
 
   const result = useMemo(() => {
-    if (!instrument) return null;
+    if (!instrument || !session) return null;
     const map = new Map(session.responses.map(r => [String(r.itemId), r]));
     if (instrument.id === 'amstar-2') {
       const responses: Record<number, string> = {};
@@ -90,13 +119,14 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       return JbiQualitativeAssessmentEngine.evaluate(session.responses.map(r => ({ questionId: Number(r.itemId), status: String(r.answer ?? ''), justification: r.rationale })));
     }
     return null;
-  }, [instrument, session.responses]);
+  }, [instrument, session]);
 
-  const interpretation = result && 'overallConfidence' in result ? result.overallConfidence : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias : result && 'verdict' in result ? result.verdict : `${session.responses.filter(r => r.answer !== null && r.answer !== '').length}/${instrument?.itemCount ?? 0} besvart`;
+  const interpretation = result && 'overallConfidence' in result ? result.overallConfidence : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias : result && 'verdict' in result ? result.verdict : `${session?.responses.filter(r => r.answer !== null && r.answer !== '').length ?? 0}/${instrument?.itemCount ?? 0} besvart`;
 
   const finalize = async () => {
-    if (session.locked) return;
-    if (!validation.valid) { setNotice(validation.issues.join(' ')); return; }
+    if (!session || session.locked) return;
+    if (!effectiveReviewerId) { setNotice('Reviewer-ID må oppgis.'); return; }
+    if (!validation?.valid) { setNotice(validation?.issues.join(' ') || 'Vurderingen er ikke komplett.'); return; }
     try {
       const canonical = await saveCanonicalSession(session);
       const response = await fetch(`/api/appraisal/${encodeURIComponent(canonical.id)}/finalize`, { method: 'POST' });
@@ -113,6 +143,10 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   if (!instrument) return <div className="bg-white border border-rose-200 rounded-2xl p-6 text-rose-900">Valgt instrument finnes ikke.</div>;
   const questions = instrument.questions ?? [];
 
+  if (!effectiveReviewerId || !session) {
+    return <section className="bg-white border border-slate-200 rounded-2xl p-6 space-y-3"><h2 className="text-xl font-bold">{instrument.name}</h2><p className="text-sm text-slate-600">{notice || (starting ? 'Oppretter canonical appraisal-session…' : 'Appraisal-session er ikke tilgjengelig.')}</p></section>;
+  }
+
   return (
     <section className="space-y-5 pb-16">
       <header className="bg-white border border-slate-200 rounded-2xl p-5">
@@ -120,9 +154,9 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
           <div>
             <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">EVIDENCE APPRAISAL · AKTIV VURDERING</div>
             <h2 className="text-2xl font-bold font-serif">{instrument.name}</h2>
-            <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} · Studie-ID: {studyId}</p>
+            <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} · Studie-ID: {studyId} · Reviewer: {effectiveReviewerId}</p>
           </div>
-          <select value={instrumentId} onChange={e => changeInstrument(e.target.value)} disabled={session.locked} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full disabled:opacity-50">
+          <select value={instrumentId} onChange={e => void changeInstrument(e.target.value)} disabled={session.locked} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full disabled:opacity-50">
             {MASTER_INSTRUMENTS_REGISTRY.map(i => <option key={i.id} value={i.id}>{i.shortName} · {i.version}</option>)}
           </select>
         </div>
@@ -152,12 +186,12 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       <aside className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div><div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div><h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>{result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}</div>
         {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map((d:any)=><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
-        <button type="button" disabled={!validation.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
-        {!validation.valid && <div className="text-xs text-amber-800">{validation.issues.join(' ')}</div>}
+        <button type="button" disabled={!validation?.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
+        {!validation?.valid && <div className="text-xs text-amber-800">{validation?.issues.join(' ')}</div>}
       </aside>
 
       {session.locked && instrument.id !== 'jbi-qualitative-2017' && session.responses.length > 0 && (
-        <QualityAssessmentPanel session={session} evidenceId={String(session.responses[0]?.evidence?.sourceId ?? '')} reviewerId={reviewerId} />
+        <QualityAssessmentPanel session={session} evidenceId={String(session.responses[0]?.evidence?.sourceId ?? '')} reviewerId={effectiveReviewerId} />
       )}
     </section>
   );
