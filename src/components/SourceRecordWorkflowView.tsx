@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { SourceRecord } from '../domain/sourceRecord';
 import { validateSourceRecord } from '../services/validateSourceRecord';
 import { validateReference } from '../services/referenceIntegrityService';
-import { createAuditTrail } from '../services/auditTrailService';
+import { appendAuditEntry } from '../services/auditTrailService';
 import {
   intakeSourceRecord,
   linkRecordToScreeningBatch,
@@ -22,9 +22,8 @@ class MemoryStore implements IntakeStore {
 }
 
 class TrailWriter implements AuditWriter {
-  constructor(private readonly trail: ReturnType<typeof createAuditTrail>) {}
-  append(input: Parameters<ReturnType<typeof createAuditTrail>['append']>[0]) {
-    return this.trail.append(input);
+  append(input: Parameters<typeof appendAuditEntry>[0]) {
+    return appendAuditEntry(input);
   }
 }
 
@@ -35,9 +34,8 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const [batchId, setBatchId] = useState('screening-batch-1');
   const [picoId, setPicoId] = useState('pico-1');
 
-  const audit = useMemo(() => createAuditTrail(), []);
   const store = useMemo(() => new MemoryStore(), []);
-  const auditWriter = useMemo(() => new TrailWriter(audit), [audit]);
+  const auditWriter = useMemo(() => new TrailWriter(), []);
 
   const importRecord = async () => {
     setMessage('');
@@ -103,9 +101,8 @@ export const SourceRecordWorkflowView: React.FC = () => {
     <section className="space-y-6">
       <header>
         <h2 className="text-2xl font-bold text-slate-900">SourceRecord → Screening → PICO</h2>
-        <p className="mt-1 text-sm text-slate-600">Eksplisitt testflyt. Hver handling er separat og spores i audit trail.</p>
+        <p className="mt-1 text-sm text-slate-600">Eksplisitt testflyt. Hver handling er separat og spores i canonical audit trail.</p>
       </header>
-
       <div className="grid xl:grid-cols-3 gap-5">
         <article className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold text-slate-700">SourceRecord JSON</label>
@@ -115,7 +112,6 @@ export const SourceRecordWorkflowView: React.FC = () => {
             <button onClick={verifyReferenceLocally} disabled={!record} className="px-4 py-2 rounded-xl border border-slate-300 text-sm font-semibold disabled:opacity-40">Valider referanse lokalt</button>
           </div>
         </article>
-
         <article className="bg-slate-900 text-white rounded-2xl p-5 space-y-4">
           <h3 className="font-bold">Workflow</h3>
           <div className="text-xs space-y-2">
@@ -130,9 +126,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
           <button onClick={() => void attach()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
         </article>
       </div>
-
       {message && <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">{message}</div>}
-
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950">
         <strong>Verifikasjonsregel:</strong> metadata-kompletthet eller lokal syntakskontroll oppgraderer ikke en kilde til <code>VALIDATED</code>. Egen, eksplisitt verifisering må fortsatt skje.
       </div>
