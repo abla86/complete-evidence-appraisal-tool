@@ -1,5 +1,5 @@
 import type { AppraisalSession } from './universalAppraisalService';
-import { createBlankAppraisalSession, decideAppraisalLaunch } from './universalAppraisalService';
+import { decideAppraisalLaunch } from './universalAppraisalService';
 import { EvidenceFoundation, type EvidenceModule } from './evidenceSystemFoundation';
 import { ResearchEngineGateway, type ResearchEngineDocument } from './researchEngineGateway';
 import { ResearchEvidenceBridge, type ResearchToAppraisalBundle } from './researchEvidenceBridge';
@@ -148,6 +148,7 @@ export function verifyResearchClassification(state: WorkflowState, reviewerId: s
 
 export function verifyResearchEvidence(state: WorkflowState, evidenceId: string, verified: boolean, reviewerId = 'researcher'): WorkflowState {
   if (!state.research) throw new Error('Research document is not attached.');
+  if (!reviewerId.trim()) throw new Error('Reviewer ID is required.');
   const evidenceBundle = ResearchEvidenceBridge.verifyEvidence(state.research.evidenceBundle, evidenceId, verified);
   return {
     ...state,
@@ -194,33 +195,9 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
   if (!state.research) throw new Error('Ingen research-workflow er knyttet til studien.');
   if (!state.research.classificationVerified) throw new Error('Human verification av dokumentklassifisering er påkrevd.');
   if (!state.research.selectedInstrumentId) throw new Error('Appraisal-instrument er ikke valgt.');
-  const verifiedEvidenceCount = getVerifiedResearchEvidence(state).length;
-  if (verifiedEvidenceCount === 0) throw new Error('Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.');
+  if (getVerifiedResearchEvidence(state).length === 0) throw new Error('Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.');
   const decision = decideAppraisalLaunch(state.studyDesign, state.research.selectedInstrumentId);
   if (!decision.allowed || !decision.instrument) throw new Error(decision.reason);
-}
-
-export function includeStudyAndCreateAppraisal(state: WorkflowState, input: { reviewerId: string; instrumentId: string }, foundation = new EvidenceFoundation()): WorkflowState {
-  if (!input.reviewerId.trim()) throw new Error('Reviewer ID is required.');
-  if (!input.instrumentId.trim()) throw new Error('Instrument ID is required.');
-  assertReadyForAppraisal(state);
-  if (state.research?.selectedInstrumentId !== input.instrumentId) {
-    throw new Error(`Selected instrument ${input.instrumentId} does not match research workflow instrument ${state.research?.selectedInstrumentId}.`);
-  }
-  const now = new Date().toISOString();
-  const existingScreen = state.screening.find(item => item.reviewerId === input.reviewerId);
-  const screening: ScreeningRecord[] = existingScreen
-    ? state.screening.map(item => item === existingScreen ? { ...item, decision: 'INCLUDED' as const, updatedAt: now } : item)
-    : [...state.screening, { studyId: state.studyId, reviewerId: input.reviewerId, decision: 'INCLUDED', updatedAt: now }];
-  const session = createBlankAppraisalSession(state.studyId, input.instrumentId, input.reviewerId);
-  foundation.state.set(`screening:${state.studyId}`, screening, input.reviewerId, 'Studie inkludert etter screening og klargjort for appraisal', 'screening');
-  foundation.state.set(`appraisal:${session.id}`, session, input.reviewerId, 'Opprettet appraisal-sesjon fra research workflow', 'appraisal');
-  return {
-    ...state,
-    screening,
-    appraisalSessions: [...state.appraisalSessions, session],
-    events: [...state.events, ...foundation.state.events()],
-  };
 }
 
 export function buildResearchAppraisalPayload(state: WorkflowState): ResearchAppraisalPayload {
