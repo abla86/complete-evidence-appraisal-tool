@@ -47,13 +47,20 @@ export class ResearchEvidenceBridge {
     studyId = document.id,
   ): ResearchToAppraisalBundle {
     const normalizedStudyId = studyId.trim();
+
     if (!normalizedStudyId) {
       throw new Error('studyId is required.');
     }
 
     const candidates = document.candidateEvidence ?? [];
+
     const evidence = candidates.map((candidate, index) =>
-      this.mapCandidate(document, normalizedStudyId, candidate, index),
+      this.mapCandidate(
+        document,
+        normalizedStudyId,
+        candidate,
+        index,
+      ),
     );
 
     const recommendedInstrument =
@@ -61,20 +68,22 @@ export class ResearchEvidenceBridge {
       document.metadata.recommendedInstrumentId?.trim() ??
       '';
 
+    const classificationApproved =
+      classification?.humanDecision?.status === 'APPROVED';
+
     return {
       contractVersion: '1.0.0',
       document,
       classification,
       evidence,
-      readyForAppraisal: Boolean(
-        classification &&
-          recommendedInstrument &&
-          classification.humanDecision?.status === 'APPROVED',
-      ),
+      readyForAppraisal:
+        classificationApproved &&
+        Boolean(recommendedInstrument),
       gating: {
         classificationRequired: true,
         humanVerificationRequired: true,
-        instrumentRecommendation: recommendedInstrument,
+        instrumentRecommendation:
+          recommendedInstrument,
       },
     };
   }
@@ -149,6 +158,8 @@ export class ResearchEvidenceBridge {
     candidate: CandidateEvidence,
     index: number,
   ): ResearchEvidenceRecord {
+    const humanVerified = candidate.verifiedByResearcher === true;
+
     return {
       id: `research-evidence-${document.id}-${index + 1}`,
       studyId,
@@ -157,19 +168,16 @@ export class ResearchEvidenceBridge {
         candidate.suggestedLocation,
       ),
       quote: candidate.extractedSnippet,
-      source: candidate.verifiedByResearcher
+      source: humanVerified
         ? 'HUMAN_VERIFIED'
         : 'AI_CANDIDATE',
-      verifiedByResearcher:
-        candidate.verifiedByResearcher,
-      verifiedAt: candidate.verifiedByResearcher
-        ? undefined
-        : undefined,
-      verifiedBy: undefined,
+      verifiedByResearcher: humanVerified,
       questionId: candidate.questionId,
       suggestedStatus: candidate.suggestedStatus,
       relevanceScore: candidate.relevanceScore,
-      confidenceReason: candidate.confidenceReason,
+      confidenceReason: humanVerified
+        ? 'Forhåndsmarkert som verifisert i innkommende data; reviewer-identitet og tidspunkt må følge med separat før materialet brukes som komplett auditspor.'
+        : candidate.confidenceReason,
     };
   }
 }
