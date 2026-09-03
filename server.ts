@@ -2,13 +2,10 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
-import { INITIAL_ARTICLES } from './src/data/jbiData';
-import { JbiQualitativeValidationService } from './src/services/jbiValidationService';
 import { DocumentAnalysisService } from './src/services/documentAnalysisService';
 import { DocumentParserService } from './src/services/documentParserService';
 import { MetaResearchService } from './src/services/metaResearchService';
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
-import { ArticleAppraisal, AuditTrailEntry } from './src/types';
 import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
@@ -22,9 +19,6 @@ function getGeminiClient(): GoogleGenAI | null {
   }
   return geminiClient;
 }
-
-let assessmentsStore: ArticleAppraisal[] = [...INITIAL_ARTICLES];
-let auditTrailStore: AuditTrailEntry[] = INITIAL_ARTICLES.flatMap(a => a.auditTrail || []);
 
 async function startServer() {
   const app = express();
@@ -51,34 +45,7 @@ async function startServer() {
     res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY });
   });
 
-  app.post('/api/jbi/qualitative/validate', (req: Request, res: Response) => {
-    try {
-      const assessment: Partial<ArticleAppraisal> = req.body;
-      res.json({ success: true, report: JbiQualitativeValidationService.validate(assessment) });
-    } catch (err: any) {
-      res.status(400).json({ success: false, error: err.message || 'Validation error' });
-    }
-  });
-
-  app.get('/api/jbi/qualitative/assessments', (_req: Request, res: Response) => {
-    res.json({ success: true, count: assessmentsStore.length, assessments: assessmentsStore });
-  });
-
-  app.post('/api/jbi/qualitative/assessments', (req: Request, res: Response) => {
-    try {
-      const newOrUpdated: ArticleAppraisal = req.body;
-      if (!newOrUpdated.id) newOrUpdated.id = `jbi-${Date.now()}`;
-      const report = JbiQualitativeValidationService.validate(newOrUpdated);
-      const existingIndex = assessmentsStore.findIndex(a => a.id === newOrUpdated.id);
-      if (existingIndex >= 0) assessmentsStore[existingIndex] = newOrUpdated;
-      else assessmentsStore.unshift(newOrUpdated);
-      res.json({ success: true, assessment: newOrUpdated, validationReport: report });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message || 'Failed to save assessment' });
-    }
-  });
-
-  app.post('/api/documents/parse-file', async (req: Request, res: Response) => {
+        app.post('/api/documents/parse-file', async (req: Request, res: Response) => {
     try {
       const { fileName, fileSizeBytes, mimeType, base64Content, textContent } = req.body;
       if (!fileName) return res.status(400).json({ success: false, error: 'Filnavn mangler.' });
@@ -99,17 +66,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/jbi/qualitative/analyze-document', (req: Request, res: Response) => {
-    try {
-      const { text, fileName } = req.body;
-      if (!text || typeof text !== 'string') return res.status(400).json({ success: false, error: 'Tekst fra forskningsartikkel er påkrevd.' });
-      res.json({ success: true, result: DocumentAnalysisService.analyzeText(text, fileName || 'uploaded-document.txt') });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message || 'Failed to analyze research document' });
-    }
-  });
-
-  app.post('/api/meta-research/analyze', async (req: Request, res: Response) => {
+    app.post('/api/meta-research/analyze', async (req: Request, res: Response) => {
     try {
       const { text, fileName } = req.body;
       if (!text || typeof text !== 'string') return res.status(400).json({ success: false, error: 'Dokumenttekst eller forskningsartikkel er påkrevd.' });
@@ -182,23 +139,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/jbi/qualitative/audit-trail', (req: Request, res: Response) => {
-    const studyId = req.query.studyId as string;
-    const entries = studyId ? auditTrailStore.filter(e => e.studyId === studyId) : auditTrailStore;
-    res.json({ success: true, count: entries.length, auditTrail: entries });
-  });
-
-  app.post('/api/jbi/qualitative/audit-trail', (req: Request, res: Response) => {
-    try {
-      const entry: AuditTrailEntry = { ...req.body, id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, timestamp: req.body.timestamp || new Date().toISOString() };
-      auditTrailStore.push(entry);
-      res.json({ success: true, entry });
-    } catch (err: any) {
-      res.status(400).json({ success: false, error: err.message || 'Audit trail error' });
-    }
-  });
-
-  const viteDev = process.env.NODE_ENV !== 'production';
+      const viteDev = process.env.NODE_ENV !== 'production';
   if (viteDev) {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
