@@ -1,5 +1,4 @@
-import { Amstar2AssessmentEngine, Agree2AssessmentEngine, Rob2AssessmentEngine } from './assessmentEngines';
-import { CaspValidationService } from './caspValidationService';
+import { Amstar2AssessmentEngine, Agree2AssessmentEngine, Rob2AssessmentEngine, CaspValidationService } from './assessmentEngines';
 
 export function buildAppraisalResult(session: { instrumentId: string; instrumentVersion: string; studyId: string; reviewerId: string; responses: Array<{ itemId: number | string; answer: unknown; rationale: string }> }) {
   const answers = session.responses.reduce<Record<string, unknown>>((acc, response) => {
