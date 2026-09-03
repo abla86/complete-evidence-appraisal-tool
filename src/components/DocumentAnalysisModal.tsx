@@ -68,14 +68,14 @@ export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
   const [parseResult, setParseResult] = useState<FileParseResult | null>(null);
   const [analysisResult, setAnalysisResult] = useState<DocumentAnalysisResult | null>(null);
   const [classification, setClassification] = useState<DocumentClassificationResult | null>(null);
-  const [selectedInstrument, setSelectedInstrument] = useState<string>('jbi-qualitative-2017');
+  const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isCustomizingClassification, setIsCustomizingClassification] = useState(false);
 
   // Manual classification edits
-  const [manualDocType, setManualDocType] = useState<StandardDocumentType>('QUALITATIVE_STUDY');
-  const [manualStudyDesign, setManualStudyDesign] = useState<string>('qualitative');
-  const [manualApproach, setManualApproach] = useState<MethodologicalApproach>('Kvalitativ');
-  const [manualPurpose, setManualPurpose] = useState<MethodologicalPurpose>('Levde erfaringer / Sosiale fenomener');
+  const [manualDocType, setManualDocType] = useState<StandardDocumentType | undefined>(undefined);
+  const [manualStudyDesign, setManualStudyDesign] = useState<string>('');
+  const [manualApproach, setManualApproach] = useState<MethodologicalApproach | undefined>(undefined);
+  const [manualPurpose, setManualPurpose] = useState<MethodologicalPurpose | undefined>(undefined);
 
   if (!isOpen) return null;
 
@@ -268,13 +268,13 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
       const newArticle: Partial<ArticleAppraisal> = {
         title: parseResult.metadata.title || fileName,
         authors: parseResult.metadata.authors || 'Forfattere',
-        year: parseResult.metadata.year || new Date().getFullYear(),
-        journal: parseResult.metadata.journal || 'Tidsskrift',
+        year: parseResult.metadata.year || undefined,
+        journal: parseResult.metadata.journal || undefined,
         doi: parseResult.metadata.doi || '',
-        doiUrl: parseResult.metadata.doi ? `https://doi.org/${parseResult.metadata.doi}` : '#',
-        design: classification.studyDesign || 'Kvalitativ studie',
-        studyContext: parseResult.metadata.abstract || 'Ekstrahert fra dokumentfil',
-        instrumentId: selectedInstrument || 'jbi-qualitative-2017'
+        doiUrl: parseResult.metadata.doi ? `https://doi.org/${parseResult.metadata.doi}` : undefined,
+        design: classification.studyDesign || undefined,
+        studyContext: parseResult.metadata.abstract || undefined,
+        instrumentId: selectedInstrument || undefined
       };
 
       onStartAssessmentWithArticle(newArticle);
