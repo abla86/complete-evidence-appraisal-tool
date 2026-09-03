@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { assessGRADE, assessCERQual, lockQualityAssessment, addQualityAssessment, type StoredQualityAssessment } from '../services/qualityAssessmentService';
+import { assessGRADE, assessCERQual, lockQualityAssessment, type StoredQualityAssessment } from '../services/qualityAssessmentService';
 import { getQualityAssessmentsForSession } from '../services/appraisalSessionStore';
 import type { AppraisalSession } from '../services/universalAppraisalService';
 
@@ -36,7 +36,6 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
         ? assessGRADE({ evidenceId, appraisalSessionId: session.id, outcomeName: outcome, studyDesign, ...downgrades, reviewerId })
         : assessCERQual({ evidenceId, appraisalSessionId: session.id, finding, ...cerqual, reviewerId });
       const locked = lockQualityAssessment(draft);
-      addQualityAssessment(session.id, locked);
       onSaved?.(locked);
       setMessage(`${mode} lagret og låst som versjon ${locked.version}.`);
     } catch (error) {
