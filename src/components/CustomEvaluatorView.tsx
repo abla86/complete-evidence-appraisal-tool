@@ -25,16 +25,16 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
 
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('');
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useState<number | undefined>(undefined);
   const [journal, setJournal] = useState('');
   const [doi, setDoi] = useState('');
-  const [design, setDesign] = useState('Kvalitativ studie');
-  const [dataCollection, setDataCollection] = useState('Semistrukturerte intervjuer');
-  const [participants, setParticipants] = useState('Informanter');
-  const [analyticMethod, setAnalyticMethod] = useState('Tematisk analyse');
+  const [design, setDesign] = useState('');
+  const [dataCollection, setDataCollection] = useState('');
+  const [participants, setParticipants] = useState('');
+  const [analyticMethod, setAnalyticMethod] = useState('');
   const [studyContext, setStudyContext] = useState('');
-  const [overallVerdict, setOverallVerdict] = useState<'Inkluder' | 'Ekskluder' | 'Vurder videre'>('Inkluder');
-  const [verdictNote, setVerdictNote] = useState('Metodisk forsvarlig kvalitativ studie.');
+  const [overallVerdict, setOverallVerdict] = useState<'Inkluder' | 'Ekskluder' | 'Vurder videre'>('Vurder videre');
+  const [verdictNote, setVerdictNote] = useState('');
   const [keyStrength, setKeyStrength] = useState('');
   const [mainLimitation, setMainLimitation] = useState('');
 
@@ -42,7 +42,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
   const [items, setItems] = useState<JBIEvaluationItem[]>(
     JBI_QUESTIONS.map(q => ({
       questionId: q.id,
-      status: 'Ja' as AssessmentStatus,
+      status: 'Uklart' as AssessmentStatus,
       justification: '',
       notes: ''
     }))
@@ -61,7 +61,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
   const uklartCount = items.filter(i => i.status === 'Uklart').length;
   const neiCount = items.filter(i => i.status === 'Nei').length;
 
-  const shortCitation = authors ? `${authors.split(',')[0].trim()} et al. (${year})` : `Ny Artikkel (${year})`;
+  const shortCitation = authors ? `${authors.split(',')[0].trim()} et al.${year ? ` (${year})` : ''}` : 'Ny artikkel';
 
   // Auto generated thesis paragraph
   const generatedParagraph = `${shortCitation} oppnådde ${jaCount} «Ja»${uklartCount > 0 ? `, ${uklartCount} «Uklart»` : ''}${neiCount > 0 ? ` og ${neiCount} «Nei»` : ''}. Studien benyttet ${design.toLowerCase()} og samlet data via ${dataCollection.toLowerCase()}. Analysen ble gjennomført ved hjelp av ${analyticMethod.toLowerCase()}. Samlet vurderes studien til å holde ${jaCount >= 8 ? 'god metodisk kvalitet' : 'akseptabel metodisk kvalitet'}, og ${overallVerdict === 'Inkluder' ? 'inkluderes i kunnskapsgrunnlaget' : 'vurderes videre før eventuell inklusjon'}.`;
@@ -77,14 +77,14 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
       id: `custom-${Date.now()}`,
       authors,
       shortCitation,
-      year: Number(year) || new Date().getFullYear(),
+      year,
       title,
-      journal: journal || 'Tidsskrift',
+      journal,
       doi: doi || '',
-      doiUrl: doi ? `https://doi.org/${doi}` : '#',
-      sourceUrl: '#',
-      sourceName: journal || 'Kilde',
-      studyContext: studyContext || 'Egendefinert studie',
+      doiUrl: doi ? `https://doi.org/${doi}` : undefined,
+      sourceUrl: undefined,
+      sourceName: journal || undefined,
+      studyContext: studyContext || undefined,
       design,
       dataCollection,
       participants,
@@ -96,9 +96,9 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
         total: 10
       },
       overallVerdict,
-      verdictNote: verdictNote || 'Egen vurdering iht. JBI sjekkliste.',
-      keyStrength: keyStrength || 'Tydelig metodisk forankring.',
-      mainLimitation: mainLimitation || 'Kvalitativt design kan ikke etablere kausal effekt.',
+      verdictNote: verdictNote || undefined,
+      keyStrength: keyStrength || undefined,
+      mainLimitation: mainLimitation || undefined,
       apaReference: `${authors} (${year}). ${title}. ${journal || 'Tidsskrift'}.${doi ? ` https://doi.org/${doi}` : ''}`,
       items
     };
