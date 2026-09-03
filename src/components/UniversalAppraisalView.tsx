@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
-import { createBlankAppraisalSession, decideAppraisalLaunch, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
+import { decideAppraisalLaunch, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
 import { Amstar2AssessmentEngine, Agree2AssessmentEngine, JbiQualitativeAssessmentEngine, Rob2AssessmentEngine, RobinsIAssessmentEngine } from '../services/assessmentEngines';
 import { QualityAssessmentPanel } from './QualityAssessmentPanel';
 import { getLatestAppraisalSession } from '../services/appraisalSessionStore';
@@ -16,9 +16,7 @@ const answerOptions = (instrumentId: string, allowed: string[]) => {
 
 async function createCanonicalSession(studyId: string, reviewerId: string): Promise<AppraisalSession> {
   const response = await fetch(`/api/research-workflow/${encodeURIComponent(studyId)}/appraisal/session`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reviewerId }),
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewerId }),
   });
   const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null;
   if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke opprette canonical appraisal-session.');
@@ -27,24 +25,34 @@ async function createCanonicalSession(studyId: string, reviewerId: string): Prom
 
 async function saveCanonicalSession(session: AppraisalSession): Promise<AppraisalSession> {
   const response = await fetch(`/api/appraisal/${encodeURIComponent(session.id)}/sync`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session }),
+  });
+  const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null;
+  if (!response.ok) throw new Error(payload?.error || 'Kunne ikke synkronisere appraisal-session.');
+  return payload?.session ?? session;
+}
+
+async function changeCanonicalInstrument(session: AppraisalSession, studyDesign: string, instrumentId: string, reviewerId: string): Promise<AppraisalSession> {
+  const decision = decideAppraisalLaunch(studyDesign, instrumentId, false);
+  if (!decision.allowed || !decision.instrument) throw new Error(decision.reason);
+  const response = await fetch(`/api/appraisal/${encodeURIComponent(session.id)}/instrument`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session }),
+    body: JSON.stringify({ instrumentId: decision.instrument.id, reviewerId }),
   });
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(payload?.error || 'Kunne ikke synkronisere appraisal-session.');
-  }
-  const payload = await response.json() as { session?: AppraisalSession };
-  return payload.session ?? session;
+  const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null;
+  if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke endre appraisal-instrument.');
+  return payload.session;
 }
 
 export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId, onSaved }) => {
   const effectiveReviewerId = reviewerId?.trim() || '';
-  const [instrumentId, setInstrumentId] = useState(initialInstrumentId);
-  const [session, setSession] = useState<AppraisalSession | null>(() => getLatestAppraisalSession(studyId, initialInstrumentId, effectiveReviewerId) ?? null);
+  const cached = getLatestAppraisalSession(studyId, initialInstrumentId, effectiveReviewerId);
+  const [instrumentId, setInstrumentId] = useState(cached?.instrumentId ?? initialInstrumentId);
+  const [session, setSession] = useState<AppraisalSession | null>(cached ?? null);
   const [notice, setNotice] = useState(effectiveReviewerId ? '' : 'Reviewer-ID må oppgis før appraisal kan startes.');
   const [starting, setStarting] = useState(false);
+  const [changingInstrument, setChangingInstrument] = useState(false);
   const instrument = MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === instrumentId);
   const validation = session ? validateAppraisalSession(session) : null;
 
@@ -60,32 +68,36 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   }, [effectiveReviewerId, session, starting, studyId]);
 
   const changeInstrument = async (id: string) => {
-    if (!session || session.locked) return;
-    const decision = decideAppraisalLaunch(studyDesign, id, false);
-    setNotice(decision.warnings.join(' ') || decision.reason);
-    if (!decision.allowed || !effectiveReviewerId) return;
-    setInstrumentId(id);
+    if (!session || session.locked || changingInstrument) return;
+    setChangingInstrument(true);
     try {
-      const next = await createCanonicalSession(studyId, effectiveReviewerId);
-      setSession(next.instrumentId === id ? next : { ...next, instrumentId: id, instrumentVersion: MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === id)?.version ?? next.instrumentVersion });
+      const next = await changeCanonicalInstrument(session, studyDesign, id, effectiveReviewerId);
+      setInstrumentId(next.instrumentId);
+      setSession(next);
+      setNotice(`Instrument endret til ${next.instrumentId} ${next.instrumentVersion}. Tidligere svar er nullstilt av canonical workflow.`);
     } catch (error) {
-      const cached = getLatestAppraisalSession(studyId, id, effectiveReviewerId);
-      if (cached) setSession(cached);
-      else setNotice(error instanceof Error ? error.message : 'Appraisal-session kunne ikke opprettes.');
+      setNotice(error instanceof Error ? error.message : 'Instrument kunne ikke endres.');
+    } finally {
+      setChangingInstrument(false);
     }
   };
 
-  const patch = (itemId: number | string, value: Partial<{ answer: string | null; rationale: string; evidence: { quote?: string; page?: string; section?: string } }>) => {
-    if (!session) return;
-    if (session.locked) {
-      setNotice('Denne vurderingen er låst og kan ikke endres.');
-      return;
+  const patch = (itemId: number | string, value: Partial<{ answer: string | null; rationale: string; evidence: { quote?: string; page?: string; section?: string; sourceId?: string } }>) => {
+    if (!session || session.locked) { if (session?.locked) setNotice('Denne vurderingen er låst og kan ikke endres.'); return; }
+    try {
+      setSession(prev => {
+        if (!prev) return prev;
+        const old = prev.responses.find(r => String(r.itemId) === String(itemId));
+        return upsertAppraisalResponse(prev, {
+          itemId,
+          answer: value.answer ?? old?.answer ?? null,
+          rationale: value.rationale ?? old?.rationale ?? '',
+          evidence: value.evidence ?? old?.evidence,
+        });
+      });
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Svar kunne ikke registreres.');
     }
-    setSession(prev => {
-      if (!prev) return prev;
-      const old = prev.responses.find(r => String(r.itemId) === String(itemId));
-      return upsertAppraisalResponse(prev, { itemId, answer: value.answer ?? old?.answer ?? null, rationale: value.rationale ?? old?.rationale ?? '', evidence: value.evidence ?? old?.evidence });
-    });
   };
 
   const result = useMemo(() => {
@@ -102,18 +114,16 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       return Object.keys(ratings).length ? Agree2AssessmentEngine.evaluateDomainScores(ratings, 1) : null;
     }
     if (instrument.id === 'rob-2') {
-      const values = {
+      return Rob2AssessmentEngine.evaluate({
         d1Randomisation: (map.get('1')?.answer || 'Some concerns') as any,
         d2Deviations: (map.get('2')?.answer || 'Some concerns') as any,
         d3Missing: (map.get('3')?.answer || 'Some concerns') as any,
         d4Measurement: (map.get('4')?.answer || 'Some concerns') as any,
         d5Selection: (map.get('5')?.answer || 'Some concerns') as any,
-      };
-      return Rob2AssessmentEngine.evaluate(values);
+      });
     }
     if (instrument.id === 'robins-i') {
-      const values = ['1','2','3','4','5','6','7'].map(id => String(map.get(id)?.answer || 'No information')) as any;
-      return RobinsIAssessmentEngine.evaluate(values);
+      return RobinsIAssessmentEngine.evaluate(['1','2','3','4','5','6','7'].map(id => String(map.get(id)?.answer || 'No information')) as any);
     }
     if (instrument.id === 'jbi-qualitative-2017') {
       return JbiQualitativeAssessmentEngine.evaluate(session.responses.map(r => ({ questionId: Number(r.itemId), status: String(r.answer ?? ''), justification: r.rationale })));
@@ -121,7 +131,10 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     return null;
   }, [instrument, session]);
 
-  const interpretation = result && 'overallConfidence' in result ? result.overallConfidence : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias : result && 'verdict' in result ? result.verdict : `${session?.responses.filter(r => r.answer !== null && r.answer !== '').length ?? 0}/${instrument?.itemCount ?? 0} besvart`;
+  const interpretation = result && 'overallConfidence' in result ? result.overallConfidence
+    : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias
+    : result && 'verdict' in result ? result.verdict
+    : `${session?.responses.filter(r => r.answer !== null && r.answer !== '').length ?? 0}/${instrument?.itemCount ?? 0} besvart`;
 
   const finalize = async () => {
     if (!session || session.locked) return;
@@ -156,7 +169,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
             <h2 className="text-2xl font-bold font-serif">{instrument.name}</h2>
             <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} · Studie-ID: {studyId} · Reviewer: {effectiveReviewerId}</p>
           </div>
-          <select value={instrumentId} onChange={e => void changeInstrument(e.target.value)} disabled={session.locked} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full disabled:opacity-50">
+          <select value={instrumentId} onChange={e => void changeInstrument(e.target.value)} disabled={session.locked || changingInstrument} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full disabled:opacity-50">
             {MASTER_INSTRUMENTS_REGISTRY.map(i => <option key={i.id} value={i.id}>{i.shortName} · {i.version}</option>)}
           </select>
         </div>
@@ -191,7 +204,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       </aside>
 
       {session.locked && instrument.id !== 'jbi-qualitative-2017' && session.responses.length > 0 && (
-        <QualityAssessmentPanel session={session} evidenceId={String(session.responses[0]?.evidence?.sourceId ?? '')} reviewerId={effectiveReviewerId} />
+        <QualityAssessmentPanel session={session} evidenceId={String(session.responses.find(response => response.evidence?.sourceId)?.evidence?.sourceId ?? '')} reviewerId={effectiveReviewerId} />
       )}
     </section>
   );
