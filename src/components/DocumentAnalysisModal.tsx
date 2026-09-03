@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { 
   CandidateEvidence, 
   DocumentAnalysisResult, 
@@ -73,6 +73,48 @@ export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
 
   // Manual classification edits
   const [manualDocType, setManualDocType] = useState<StandardDocumentType | undefined>(undefined);
+
+const STANDARD_DOCUMENT_TYPES: readonly StandardDocumentType[] = [
+    'PRIMARY_RESEARCH_ARTICLE',
+    'SYSTEMATIC_REVIEW',
+    'META_ANALYSIS',
+    'SCOPING_REVIEW',
+    'RAPID_REVIEW',
+    'INTEGRATIVE_REVIEW',
+    'UMBRELLA_REVIEW',
+    'QUALITATIVE_EVIDENCE_SYNTHESIS',
+    'METHODOLOGY_STUDY',
+    'DIAGNOSTIC_ACCURACY_STUDY',
+    'RCT',
+    'NON_RANDOMIZED_INTERVENTION_STUDY',
+    'COHORT_STUDY',
+    'CASE_CONTROL_STUDY',
+    'CROSS_SECTIONAL_STUDY',
+    'QUALITATIVE_STUDY',
+    'MIXED_METHODS_STUDY',
+    'CASE_REPORT',
+    'CASE_SERIES',
+    'PROTOCOL',
+    'GUIDELINE',
+    'NATIONAL_CLINICAL_GUIDELINE',
+    'CLINICAL_PRACTICE_GUIDELINE',
+    'PUBLIC_RECOMMENDATION_POLICY',
+    'CONSENSUS_DOCUMENT',
+    'IMPLEMENTATION_FRAMEWORK',
+    'METHODOLOGICAL_FRAMEWORK',
+    'REPORT',
+    'HTA',
+    'ECONOMIC_EVALUATION',
+    'EDITORIAL_COMMENTARY',
+    'LETTER_CORRESPONDENCE',
+    'PROTOCOL_SYSTEMATIC_REVIEW',
+    'OTHER',
+    'UNKNOWN_UNCERTAIN'
+];
+
+function isStandardDocumentType(value: string): value is StandardDocumentType {
+    return STANDARD_DOCUMENT_TYPES.includes(value as StandardDocumentType);
+}
   const [manualStudyDesign, setManualStudyDesign] = useState<string>('');
   const [manualApproach, setManualApproach] = useState<MethodologicalApproach | undefined>(undefined);
   const [manualPurpose, setManualPurpose] = useState<MethodologicalPurpose | undefined>(undefined);
@@ -90,7 +132,11 @@ export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
 
     setClassification(classRes);
     setSelectedInstrument(classRes.recommendedInstrumentId);
-    setManualDocType(classRes.documentType);
+    if (isStandardDocumentType(classRes.documentType)) {
+      setManualDocType(classRes.documentType);
+    } else {
+      setManualDocType(undefined);
+    }
     setManualApproach(classRes.methodologicalApproach);
     setManualPurpose(classRes.methodologicalPurpose);
   };
@@ -121,7 +167,7 @@ export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
       setAnalysisResult(analysis);
 
       if (parsed.isScannedOrImageOnly) {
-        showToast('Dokumentet er skannet bilde-PDF. Tekstuttrekk og metadata er basert på OCR-deteksjon.', 'warning');
+        showToast('Dokumentet er skannet bilde-PDF. Tekstuttrekk og metadata er basert pÃ¥ OCR-deteksjon.', 'warning');
       } else {
         showToast(`Dokument lastet opp og parset (${parsed.wordCount} ord).`);
       }
@@ -151,7 +197,7 @@ export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
 
   const handleRunTextAnalysis = () => {
     if (!pastedText.trim()) {
-      showToast('Lim inn artikkeltekst før du starter analysen.', 'error');
+      showToast('Lim inn artikkeltekst fÃ¸r du starter analysen.', 'error');
       return;
     }
 
@@ -197,7 +243,7 @@ Authors: Lund, H. M., Solberg, K. E., Vis, S. A., & Bakke, M. B. (2024). BMC Pri
 DOI: 10.1186/s12875-024-02269-9
 
 Background & Aim:
-Interprofessional collaboration in primary care is essential for vulnerable patient groups, yet fraught with structural barriers. The aim of this study was to explore general practitioners’ experiences of interprofessional collaboration, identifying structural and relational patterns in clinical practice.
+Interprofessional collaboration in primary care is essential for vulnerable patient groups, yet fraught with structural barriers. The aim of this study was to explore general practitionersâ€™ experiences of interprofessional collaboration, identifying structural and relational patterns in clinical practice.
 
 Methods:
 Study design: A qualitative study utilizing Grounded Theory methodology (Strauss & Corbin, Charmaz).
@@ -208,7 +254,7 @@ Reflexivity & Research team:
 The research team consisted of two practicing clinicians (authors 1 and 2), a health services researcher (author 3), and a medical anthropologist (author 4). Shared clinical background facilitated rapport during interviews, while multidisciplinary debriefings mitigated confirmation bias.
 
 Results:
-The core category emerged as 'There’s a will, but not a way', encompassing three main dimensions: (1) Asymmetrical communication channels, (2) Uncertainty regarding feedback and confidentiality boundaries, and (3) Desire for structured interprofessional meeting platforms.
+The core category emerged as 'Thereâ€™s a will, but not a way', encompassing three main dimensions: (1) Asymmetrical communication channels, (2) Uncertainty regarding feedback and confidentiality boundaries, and (3) Desire for structured interprofessional meeting platforms.
 
 Declarations & Ethics:
 Ethical approval was evaluated and granted by Sikt (ref 982121). Written informed consent was obtained from all participating GPs. Confidentiality was strictly maintained by pseudonymizing all transcripts.`;
@@ -248,7 +294,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
     const updated = DocumentClassifierService.applyHumanDecision(classification, {
       status: 'UNCERTAIN',
       verifiedBy: 'Forsker',
-      rationale: 'Markert som usikker av forsker – krever manuell fulltekst-gjennomgang'
+      rationale: 'Markert som usikker av forsker â€“ krever manuell fulltekst-gjennomgang'
     });
     setClassification(updated);
     showToast('Dokument markert som metodisk usikkert.', 'warning');
@@ -260,7 +306,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
 
   const handleStartAssessmentFromDocument = () => {
     if (!parseResult || !classification) {
-      showToast('Vennligst analyser dokumentet først.', 'warning');
+      showToast('Vennligst analyser dokumentet fÃ¸rst.', 'warning');
       return;
     }
 
@@ -279,7 +325,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
 
       onStartAssessmentWithArticle(newArticle);
       onClose();
-      showToast('Opprettet ny vurdering forhåndsutfylt fra dokumentet.');
+      showToast('Opprettet ny vurdering forhÃ¥ndsutfylt fra dokumentet.');
     }
   };
 
@@ -297,11 +343,11 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
               <h2 className="text-base sm:text-lg font-bold text-slate-900 font-serif flex items-center gap-2">
                 <span>Dokumentklassifisering & Studiedesign-Gate</span>
                 <span className="text-xs font-sans px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-semibold">
-                  Seksjon 8–22 Integritetskontroll
+                  Seksjon 8â€“22 Integritetskontroll
                 </span>
               </h2>
               <p className="text-xs text-slate-500">
-                Obligatorisk dokumentidentifisering, klassifisering og instrumentkompatibilitet før appraisal
+                Obligatorisk dokumentidentifisering, klassifisering og instrumentkompatibilitet fÃ¸r appraisal
               </p>
             </div>
           </div>
@@ -325,8 +371,8 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
               </span>
               <p className="text-amber-800 leading-relaxed">
                 Systemet <strong>antar aldri</strong> at et dokument er en kvalitativ forskningsartikkel bare fordi det inneholder tekst. 
-                Alle automatiske forslag markeres som <strong>«AI-kandidatforslag – krever verifisering»</strong>. 
-                Forskeren må eksplisitt godkjenne eller overstyre klassifiseringen før vurderingsinstrumentet velges.
+                Alle automatiske forslag markeres som <strong>Â«AI-kandidatforslag â€“ krever verifiseringÂ»</strong>. 
+                Forskeren mÃ¥ eksplisitt godkjenne eller overstyre klassifiseringen fÃ¸r vurderingsinstrumentet velges.
               </p>
             </div>
           </div>
@@ -404,7 +450,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                     Dra og slipp forskningsartikkel her, eller <span className="text-teal-700 underline">bla gjennom filer</span>
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Støtter PDF (.pdf), Word (.docx), ren tekst (.txt) og Markdown (.md) opptil 25 MB
+                    StÃ¸tter PDF (.pdf), Word (.docx), ren tekst (.txt) og Markdown (.md) opptil 25 MB
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 text-[11px] font-mono text-slate-500 bg-white px-3 py-1 rounded-md border border-slate-200">
@@ -485,7 +531,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                       </span>
                       {classification.isResearchDocument === false && (
                         <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300">
-                          Retningslinje / Ikke-primærforskning
+                          Retningslinje / Ikke-primÃ¦rforskning
                         </span>
                       )}
                     </div>
@@ -538,7 +584,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
 
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                      Metodisk Tilnærming (9.1)
+                      Metodisk TilnÃ¦rming (9.1)
                     </span>
                     <span className="font-bold text-slate-900 block">
                       {classification.methodologicalApproach}
@@ -547,7 +593,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
 
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                      Formål (10.1)
+                      FormÃ¥l (10.1)
                     </span>
                     <span className="font-bold text-slate-900 block">
                       {classification.methodologicalPurpose}
@@ -555,7 +601,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                   </div>
                 </div>
 
-                {/* Legal Identification & Normative Classification Card (Lovfestet plikt vs Faglig råd) */}
+                {/* Legal Identification & Normative Classification Card (Lovfestet plikt vs Faglig rÃ¥d) */}
                 {classification.legalAnalysis && (
                   <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -565,7 +611,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                         </div>
                         <div>
                           <span className="text-xs font-bold text-slate-900 block">
-                            Juridisk Forankring & Lovfestede Plikter vs. Faglige Råd
+                            Juridisk Forankring & Lovfestede Plikter vs. Faglige RÃ¥d
                           </span>
                           <span className="text-[11px] text-slate-500">
                             {classification.legalAnalysis.summary}
@@ -614,7 +660,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="text-indigo-600 hover:text-indigo-800 shrink-0 p-1 hover:bg-indigo-50 rounded"
-                                  title="Åpne på Lovdata"
+                                  title="Ã…pne pÃ¥ Lovdata"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
@@ -625,7 +671,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                       </div>
                     ) : (
                       <p className="text-xs text-slate-500 italic">
-                        Ingen spesifikke lovverk sitert i teksten (dokumentet baserer seg på faglige vurderinger eller generell forskningsmetodikk).
+                        Ingen spesifikke lovverk sitert i teksten (dokumentet baserer seg pÃ¥ faglige vurderinger eller generell forskningsmetodikk).
                       </p>
                     )}
 
@@ -635,7 +681,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
                             <Gavel className="w-3.5 h-3.5 text-rose-700" />
-                            <span>Lovfestede Plikter («skal / må»)</span>
+                            <span>Lovfestede Plikter (Â«skal / mÃ¥Â»)</span>
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">
                             {classification.legalAnalysis.statutoryDuties.length}
@@ -645,7 +691,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {classification.legalAnalysis.statutoryDuties.map((duty, idx) => (
                               <div key={idx} className="bg-white p-2 rounded border border-rose-100 text-[11px] text-slate-800">
-                                <span className="font-mono text-rose-900 font-semibold block">«{duty.rawText}»</span>
+                                <span className="font-mono text-rose-900 font-semibold block">Â«{duty.rawText}Â»</span>
                                 {duty.legalBasis && (
                                   <span className="text-[10px] text-rose-700 block mt-0.5">Hjemmel: {duty.legalBasis}</span>
                                 )}
@@ -654,7 +700,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           </div>
                         ) : (
                           <p className="text-[11px] text-rose-800/80 italic">
-                            Ingen eksplisitte lovfestede tvangsplikter eller «skal»-krav registrert.
+                            Ingen eksplisitte lovfestede tvangsplikter eller Â«skalÂ»-krav registrert.
                           </p>
                         )}
                       </div>
@@ -663,7 +709,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-teal-950 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-teal-700" />
-                            <span>Faglige Råd («bør / kan»)</span>
+                            <span>Faglige RÃ¥d (Â«bÃ¸r / kanÂ»)</span>
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold">
                             {classification.legalAnalysis.professionalAdvice.length}
@@ -673,14 +719,14 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {classification.legalAnalysis.professionalAdvice.map((advice, idx) => (
                               <div key={idx} className="bg-white p-2 rounded border border-teal-100 text-[11px] text-slate-800">
-                                <span className="font-mono text-teal-950 block">«{advice.rawText}»</span>
+                                <span className="font-mono text-teal-950 block">Â«{advice.rawText}Â»</span>
                                 <span className="text-[10px] text-teal-700 block mt-0.5">{advice.context}</span>
                               </div>
                             ))}
                           </div>
                         ) : (
                           <p className="text-[11px] text-teal-800/80 italic">
-                            Ingen spesifikke «bør»-råd registrert.
+                            Ingen spesifikke Â«bÃ¸rÂ»-rÃ¥d registrert.
                           </p>
                         )}
                       </div>
@@ -714,7 +760,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
 
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          Metodisk Tilnærming
+                          Metodisk TilnÃ¦rming
                         </label>
                         <select
                           value={manualApproach}
@@ -728,14 +774,14 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           <option value="Kunnskapsoppsummering / Syntese">Kunnskapsoppsummering / Syntese</option>
                           <option value="Klinisk retningslinje / Normativ praksis">Klinisk retningslinje / Normativ praksis</option>
                           <option value="Diagnostikk & Testvalidering">Diagnostikk & Testvalidering</option>
-                          <option value="Metodologi & Verktøyutvikling">Metodologi & Verktøyutvikling</option>
+                          <option value="Metodologi & VerktÃ¸yutvikling">Metodologi & VerktÃ¸yutvikling</option>
                           <option value="Ukjent / Uavklart">Ukjent / Uavklart</option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          Vurderingsformål
+                          VurderingsformÃ¥l
                         </label>
                         <select
                           value={manualPurpose}
@@ -749,7 +795,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           <option value="Kunnskapssyntese / Meta-analyse">Kunnskapssyntese / Meta-analyse</option>
                           <option value="Kvalitativ evidenssyntese">Kvalitativ evidenssyntese</option>
                           <option value="Kliniske handlingsanbefalinger">Kliniske handlingsanbefalinger</option>
-                          <option value="Diagnostisk nøyaktighet / Testvalidering">Diagnostisk nøyaktighet / Testvalidering</option>
+                          <option value="Diagnostisk nÃ¸yaktighet / Testvalidering">Diagnostisk nÃ¸yaktighet / Testvalidering</option>
                           <option value="Uavklart / Krever manuell presisering">Uavklart / Krever manuell presisering</option>
                         </select>
                       </div>
@@ -805,7 +851,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                       >
                         {MASTER_INSTRUMENTS_REGISTRY.map(inst => (
                           <option key={inst.id} value={inst.id}>
-                            {inst.shortName} ({inst.version}) – {inst.categoryName}
+                            {inst.shortName} ({inst.version}) â€“ {inst.categoryName}
                           </option>
                         ))}
                       </select>
@@ -820,7 +866,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                     <div className="bg-white/80 p-2.5 rounded-lg border border-rose-200 text-xs text-rose-900 space-y-1">
                       <span className="font-bold block text-[11px] uppercase">Gating-advarsel:</span>
                       {gateCheck.incompatibleReasons.map((reason, idx) => (
-                        <p key={idx}>• {reason}</p>
+                        <p key={idx}>â€¢ {reason}</p>
                       ))}
                     </div>
                   )}
@@ -867,7 +913,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                     Kandidat-evidens funnet ({analysisResult.candidateEvidence.length} av 10 JBI-kriterier)
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Vurder hvert funn og overfør til vurderingsskjemaet
+                    Vurder hvert funn og overfÃ¸r til vurderingsskjemaet
                   </p>
                 </div>
                 <span className="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">
@@ -897,11 +943,11 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                             {candidate ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200">
                                 <Sparkles className="w-3 h-3 text-teal-700" />
-                                <span>Candidate evidence – requires verification</span>
+                                <span>Candidate evidence â€“ requires verification</span>
                               </span>
                             ) : (
                               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">
-                                Ingen direkte teksttreff (Ikke funnet ≠ Nei)
+                                Ingen direkte teksttreff (Ikke funnet â‰  Nei)
                               </span>
                             )}
                           </div>
@@ -910,12 +956,12 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           {candidate && (
                             <div className="mt-3 space-y-2">
                               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-slate-800 font-mono leading-relaxed">
-                                «{candidate.extractedSnippet}»
+                                Â«{candidate.extractedSnippet}Â»
                               </div>
 
                               <div className="flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-2">
                                 <span>
-                                  Foreslått lokasjon: <strong>Side {candidate.suggestedLocation.page || '1'}</strong> | Seksjon: <strong>{candidate.suggestedLocation.section || 'Metode'}</strong>
+                                  ForeslÃ¥tt lokasjon: <strong>Side {candidate.suggestedLocation.page || '1'}</strong> | Seksjon: <strong>{candidate.suggestedLocation.section || 'Metode'}</strong>
                                 </span>
                                 
                                 {onApplyEvidenceToItem && (
@@ -927,12 +973,12 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                                         candidate.extractedSnippet,
                                         candidate.suggestedLocation
                                       );
-                                      showToast(`Evidens for Spørsmål ${q.id} er lagt til i skjemaet.`);
+                                      showToast(`Evidens for SpÃ¸rsmÃ¥l ${q.id} er lagt til i skjemaet.`);
                                     }}
                                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-300 font-semibold rounded-md transition-colors"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5 text-teal-700" />
-                                    <span>Overfør til Skjema</span>
+                                    <span>OverfÃ¸r til Skjema</span>
                                   </button>
                                 )}
                               </div>
@@ -965,3 +1011,4 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
     </div>
   );
 };
+

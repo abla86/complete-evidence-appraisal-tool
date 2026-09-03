@@ -145,7 +145,7 @@ export default function App() {
             {activeTab === 'reference_hub' && <ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} />}
             {activeTab === 'writing_studio' && <WritingStudioView references={referenceRecords} />}
             {activeTab === 'reference_library' && <ReferenceLibraryView articles={articles} />}
-            {activeTab === 'validation_dashboard' && <ValidationDashboardView articles={articles} />}
+            {activeTab === 'validation_dashboard' && <ValidationDashboardView />}
             {activeTab === 'help_examples' && <HelpAndExamplesView />}
             {activeTab === 'source_workflow' && <SourceRecordWorkflowView />}
             {activeTab === 'appraisal' && <UniversalAppraisalView studyId={selectedArticleId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />}
@@ -154,9 +154,34 @@ export default function App() {
 
         <DocumentAnalysisModal isOpen={isDocAnalysisOpen} onClose={() => setIsDocAnalysisOpen(false)} />
         <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} initialTab={importExportInitialTab} articles={articles} onImportArticles={handleImportArticles} />
-        <AutosaveModal isOpen={isAutosaveModalOpen} onClose={() => setIsAutosaveModalOpen(false)} />
-        <GdprPrivacyCenterModal isOpen={isPrivacyCenterOpen} onClose={() => setIsPrivacyCenterOpen(false)} />
+        <AutosaveModal
+          isOpen={isAutosaveModalOpen}
+          onClose={() => setIsAutosaveModalOpen(false)}
+          articles={articles}
+          onRestoreArticles={(restoredArticles) => {
+            setArticles(restoredArticles);
+            if (restoredArticles.length > 0) {
+              setSelectedArticleId(restoredArticles[0].id);
+            } else {
+              setSelectedArticleId('');
+            }
+          }}
+        />
+        <GdprPrivacyCenterModal
+          isOpen={isPrivacyCenterOpen}
+          onClose={() => setIsPrivacyCenterOpen(false)}
+          articles={articles}
+          onVaultPurged={() => {
+            setArticles([]);
+            setReferenceRecords([]);
+            setAppraisalSessions([]);
+            setSelectedArticleId('');
+            setEditingArticle(null);
+            setPipelineState(new EvidencePipelineService().create('workspace'));
+          }}
+        />
       </div>
     </ToastProvider>
   );
 }
+
