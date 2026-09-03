@@ -26,6 +26,12 @@ export type EvidenceEventMap = {
     instrumentId: string;
     reviewerId: string;
   };
+  'appraisal.instrument.changed': {
+    studyId: string;
+    sessionId: string;
+    instrumentId: string;
+    reviewerId: string;
+  };
   'review.consensus.required': {
     studyId: string;
     sessionId: string;
