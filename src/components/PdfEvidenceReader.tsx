@@ -5,11 +5,11 @@ import { annotationToEvidence, linkAnnotationToEvidence } from '../services/pdfE
 interface Props {
   file: File;
   referenceId: string;
-  reviewerId?: string;
+  reviewerId: string;
   onEvidence?: (evidence: ReturnType<typeof annotationToEvidence>, link: ReturnType<typeof linkAnnotationToEvidence>) => void;
 }
 
-export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewerId = 'current-user', onEvidence }) => {
+export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewerId, onEvidence }) => {
   const [page, setPage] = useState(1);
   const [selectedText, setSelectedText] = useState('');
   const [note, setNote] = useState('');
@@ -21,23 +21,28 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
 
   const createHighlight = () => {
     const text = selectedText.trim();
+    const actorId = reviewerId.trim();
+    if (!actorId) {
+      setMessage('Reviewer-ID må være eksplisitt angitt.');
+      return;
+    }
     if (!text) {
       setMessage('Marker eller lim inn tekst fra PDF før du oppretter evidens.');
       return;
     }
 
     const annotation: PdfAnnotation = {
-      id: crypto.randomUUID(),
+      id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       attachmentId: referenceId,
       page,
       type: 'HIGHLIGHT',
       text,
       note: note.trim() || undefined,
       createdAt: new Date().toISOString(),
-      createdBy: reviewerId,
+      createdBy: actorId,
     };
-    const evidence = annotationToEvidence(annotation, referenceId, reviewerId);
-    const link = linkAnnotationToEvidence(annotation, evidence, reviewerId, 1, 'claim');
+    const evidence = annotationToEvidence(annotation, referenceId, actorId);
+    const link = linkAnnotationToEvidence(annotation, evidence, actorId, 1, 'claim');
     setAnnotations(prev => [...prev, annotation]);
     onEvidence?.(evidence, link);
     setSelectedText('');
