@@ -11,22 +11,24 @@ This release documents the current stabilization work. It must not be considered
 - Research-to-appraisal payloads require explicit human verification provenance.
 - A local TypeScript declaration covers `http-cache-semantics` for the current dependency graph.
 - Temporary patch-record artifacts were removed from the repository.
+- Pre-merge validation now uses `npm ci` and npm dependency caching.
 
 ## Verification gate
 
-The repository CI workflow performs, in order:
+The repository contains multiple CI workflows. The pre-merge workflow runs:
 
 1. `npm ci`
 2. `npm run lint`
-3. `npm run build`
-4. `npm test`
-5. Docker build and container health verification
+3. `npm test`
+4. `npm run build`
 
-`package-lock.json` is required because CI and Docker both use `npm ci`. The lockfile is currently tracked as an open repository prerequisite and must be generated from the current `package.json` before the CI gate can pass reproducibly.
+The main CI workflow additionally performs Docker build and container health verification.
+
+`package-lock.json` is required because the Dockerfile and the hardened pre-merge workflow use `npm ci`. The lockfile is still absent from `main` and cannot be generated through the GitHub connector in this environment.
 
 ## Known release blocker
 
-`package-lock.json` is absent from `main`. Do not publish a release or claim a green CI state until it has been generated, committed, and validated by CI.
+`package-lock.json` is absent from `main`. Do not publish a release or claim a green CI state until it has been generated locally with the current `package.json`, committed, and validated by CI.
 
 ## Architecture notes
 
