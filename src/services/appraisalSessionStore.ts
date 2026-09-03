@@ -58,7 +58,9 @@ export function upsertAppraisalSession(session: AppraisalSession): AppraisalSess
 }
 
 export function getLatestAppraisalSession(studyId: string, instrumentId: string): AppraisalSession | null {
-  return read().find(item => item.studyId === studyId && item.instrumentId === instrumentId) ?? null;
+  return read()
+    .filter(item => item.studyId === studyId && item.instrumentId === instrumentId)
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0] ?? null;
 }
 
 export function getAppraisalSessionById(sessionId: string): AppraisalSession | null {
