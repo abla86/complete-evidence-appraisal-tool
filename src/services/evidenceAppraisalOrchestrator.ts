@@ -9,7 +9,10 @@ import {
   validateAppraisal,
   type AppraisalWorkflowRecord,
 } from './appraisalWorkflowBridge';
-import type { AppraisalItemResponse, AppraisalSessionValidation } from './universalAppraisalService';
+import type {
+  AppraisalItemResponse,
+  AppraisalSessionValidation,
+} from './universalAppraisalService';
 
 export interface EvidenceAppraisalContext {
   workflow: WorkflowState;
@@ -17,55 +20,109 @@ export interface EvidenceAppraisalContext {
 }
 
 export class EvidenceAppraisalOrchestrator {
-  public async start(workflow: WorkflowState, reviewerId: string): Promise<EvidenceAppraisalContext> {
+  public async start(
+    workflow: WorkflowState,
+    reviewerId: string,
+  ): Promise<EvidenceAppraisalContext> {
+    const normalizedReviewerId = reviewerId.trim();
+    if (!normalizedReviewerId) {
+      throw new Error('reviewerId is required.');
+    }
+
     const payload = buildResearchAppraisalPayload(workflow);
-    const attached = createAndAttachAppraisal(payload, reviewerId, (session) => ({
-      ...workflow,
-      screening: [
-        ...workflow.screening.filter(item => item.reviewerId !== reviewerId),
-        {
-          studyId: workflow.studyId,
-          reviewerId,
-          decision: 'INCLUDED' as const,
-          updatedAt: new Date().toISOString(),
-        },
-      ],
-      appraisalSessions: [...workflow.appraisalSessions, session],
-    }));
-    return { workflow: attached.workflow, appraisal: attached.record };
+    const attached = await createAndAttachAppraisal(
+      payload,
+      normalizedReviewerId,
+      session => ({
+        ...workflow,
+        screening: [
+          ...workflow.screening.filter(
+            item => item.reviewerId !== normalizedReviewerId,
+          ),
+          {
+            studyId: workflow.studyId,
+            reviewerId: normalizedReviewerId,
+            decision: 'INCLUDED' as const,
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        appraisalSessions: workflow.appraisalSessions.some(
+          item => item.id === session.id,
+        )
+          ? workflow.appraisalSessions.map(item =>
+              item.id === session.id ? session : item,
+            )
+          : [...workflow.appraisalSessions, session],
+      }),
+    );
+
+    return {
+      workflow: attached.workflow,
+      appraisal: attached.record,
+    };
   }
 
-  public async saveResponse(context: EvidenceAppraisalContext, response: AppraisalItemResponse): Promise<EvidenceAppraisalContext> {
-    const appraisal = await recordAppraisalResponse(context.appraisal.session.id, response);
+  public async saveResponse(
+    context: EvidenceAppraisalContext,
+    response: AppraisalItemResponse,
+  ): Promise<EvidenceAppraisalContext> {
+    const appraisal = await recordAppraisalResponse(
+      context.appraisal.session.id,
+      response,
+    );
+
     const workflow: WorkflowState = {
       ...context.workflow,
-      appraisalSessions: context.workflow.appraisalSessions.map(session =>
-        session.id === appraisal.session.id ? appraisal.session : session,
-      ),
+      appraisalSessions: context.workflow.appraisalSessions.some(
+        session => session.id === appraisal.session.id,
+      )
+        ? context.workflow.appraisalSessions.map(session =>
+            session.id === appraisal.session.id ? appraisal.session : session,
+          )
+        : [...context.workflow.appraisalSessions, appraisal.session],
     };
+
     return { workflow, appraisal };
   }
 
-  public validate(context: EvidenceAppraisalContext): AppraisalSessionValidation {
+  public validate(
+    context: EvidenceAppraisalContext,
+  ): AppraisalSessionValidation {
     return validateAppraisal(context.appraisal.session.id);
   }
 
-  public async finalize(context: EvidenceAppraisalContext): Promise<EvidenceAppraisalContext> {
+  public async finalize(
+    context: EvidenceAppraisalContext,
+  ): Promise<EvidenceAppraisalContext> {
     const validation = this.validate(context);
-    if (!validation.valid) throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
-    const appraisal = await finalizeAppraisal(context.appraisal.session.id);
+    if (!validation.valid) {
+      throw new Error(
+        `Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`,
+      );
+    }
+
+    const appraisal = await finalizeAppraisal(
+      context.appraisal.session.id,
+    );
+
     const workflow: WorkflowState = {
       ...context.workflow,
       appraisalSessions: context.workflow.appraisalSessions.map(session =>
         session.id === appraisal.session.id ? appraisal.session : session,
       ),
     };
+
     return { workflow, appraisal };
   }
 
   public toJson(context: EvidenceAppraisalContext) {
-    return { studyId: context.workflow.studyId, workflow: context.workflow, appraisal: context.appraisal };
+    return {
+      studyId: context.workflow.studyId,
+      workflow: context.workflow,
+      appraisal: context.appraisal,
+    };
   }
 }
 
-export const evidenceAppraisalOrchestrator = new EvidenceAppraisalOrchestrator();
+export const evidenceAppraisalOrchestrator =
+  new EvidenceAppraisalOrchestrator();
