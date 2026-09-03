@@ -5,7 +5,7 @@ import {
 } from './researchWorkflowService';
 import {
   appraisalWorkflowStore,
-  createAppraisalFromResearch,
+  createAndAttachAppraisal,
   finalizeAppraisal,
   recordAppraisalResponse,
   validateAppraisal,
@@ -14,15 +14,27 @@ import { researchWorkflowStore } from './researchWorkflowStore';
 import type { AppraisalItemResponse } from './universalAppraisalService';
 
 export function registerAppraisalWorkflowApi(app: { get: Function; post: Function }): void {
-  app.post('/api/research-workflow/:studyId/appraisal/session', async (req: Request, res: Response) => {
+  app.post('/api/research-workflow/:studyId/appraisal/session', (req: Request, res: Response) => {
     try {
       const workflow = researchWorkflowStore.get(req.params.studyId);
       if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
       const reviewerId = String(req.body?.reviewerId || '').trim();
       if (!reviewerId) return res.status(400).json({ success: false, error: 'reviewerId is required' });
       const payload = buildResearchAppraisalPayload(workflow);
-      const record = await createAppraisalFromResearch(payload, reviewerId);
-      return res.status(201).json({ success: true, session: record.session, research: getResearchEvidenceSummary(workflow) });
+      const attached = createAndAttachAppraisal(payload, reviewerId, (session) => {
+        const current = researchWorkflowStore.get(req.params.studyId);
+        if (!current) throw new Error('Workflow not found');
+        const now = new Date().toISOString();
+        const screening = current.screening.some(item => item.reviewerId === reviewerId)
+          ? current.screening.map(item => item.reviewerId === reviewerId ? { ...item, decision: 'INCLUDED' as const, updatedAt: now } : item)
+          : [...current.screening, { studyId: current.studyId, reviewerId, decision: 'INCLUDED', updatedAt: now }];
+        return researchWorkflowStore.save({
+          ...current,
+          screening,
+          appraisalSessions: [...current.appraisalSessions, session],
+        });
+      });
+      return res.status(201).json({ success: true, workflow: attached.workflow, session: attached.record.session, research: getResearchEvidenceSummary(attached.workflow) });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not create appraisal session' });
     }
@@ -31,7 +43,7 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
   app.get('/api/research-workflow/:studyId/appraisal/sessions', (req: Request, res: Response) => {
     const workflow = researchWorkflowStore.get(req.params.studyId);
     if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
-    return res.json({ success: true, sessions: appraisalWorkflowStore.listByStudy(req.params.studyId) });
+    return res.json({ success: true, sessions: appraisalWorkflowStore.listByStudy(req.params.studyId), workflow });
   });
 
   app.get('/api/appraisal/:sessionId', (req: Request, res: Response) => {
