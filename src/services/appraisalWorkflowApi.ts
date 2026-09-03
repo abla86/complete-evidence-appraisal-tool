@@ -15,7 +15,7 @@ import { getQualityAssessmentsForSession } from './qualityAssessmentService';
 import type { AppraisalItemResponse, AppraisalSession } from './universalAppraisalService';
 
 function getWorkflowOrNull(studyId: string) {
-  return researchWorkflowStore.get(studyId);
+  return researchWorkflowStore.get(studyId.trim());
 }
 
 function sessionResponse(sessionId: string) {
@@ -31,42 +31,64 @@ function sessionResponse(sessionId: string) {
   };
 }
 
+function sameResponse(a: AppraisalItemResponse, b: AppraisalItemResponse): boolean {
+  return JSON.stringify(a.answer) === JSON.stringify(b.answer)
+    && String(a.rationale ?? '') === String(b.rationale ?? '')
+    && JSON.stringify(a.evidence ?? null) === JSON.stringify(b.evidence ?? null);
+}
+
 export function registerAppraisalWorkflowApi(app: { get: Function; post: Function }): void {
-  app.post('/api/research-workflow/:studyId/appraisal/session', (req: Request, res: Response) => {
+  app.post('/api/research-workflow/:studyId/appraisal/session', async (req: Request, res: Response) => {
     try {
       const workflow = getWorkflowOrNull(req.params.studyId);
       if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
-      const reviewerId = String(req.body?.reviewerId || '').trim();
+
+      const reviewerId = String(req.body?.reviewerId ?? '').trim();
       if (!reviewerId) return res.status(400).json({ success: false, error: 'reviewerId is required' });
+
       const payload = buildResearchAppraisalPayload(workflow);
-      const attached = createAndAttachAppraisal(payload, reviewerId, (session) => {
+      const attached = await createAndAttachAppraisal(payload, reviewerId, session => {
         const current = getWorkflowOrNull(req.params.studyId);
         if (!current) throw new Error('Workflow not found');
         const now = new Date().toISOString();
         const screening = current.screening.some(item => item.reviewerId === reviewerId)
-          ? current.screening.map(item => item.reviewerId === reviewerId ? { ...item, decision: 'INCLUDED' as const, updatedAt: now } : item)
-          : [...current.screening, { studyId: current.studyId, reviewerId, decision: 'INCLUDED', updatedAt: now }];
+          ? current.screening.map(item => item.reviewerId === reviewerId
+            ? { ...item, decision: 'INCLUDED' as const, updatedAt: now }
+            : item)
+          : [...current.screening, { studyId: current.studyId, reviewerId, decision: 'INCLUDED' as const, updatedAt: now }];
+
+        const appraisalSessions = current.appraisalSessions.some(item => item.id === session.id)
+          ? current.appraisalSessions.map(item => item.id === session.id ? session : item)
+          : [...current.appraisalSessions, session];
+
         return researchWorkflowStore.save({
           ...current,
           screening,
-          appraisalSessions: current.appraisalSessions.some(item => item.id === session.id)
-            ? current.appraisalSessions.map(item => item.id === session.id ? session : item)
-            : [...current.appraisalSessions, session],
+          appraisalSessions,
         });
       });
+
       const response = sessionResponse(attached.record.session.id);
-      return res.status(201).json({ success: true, ...(response ?? { record: attached.record, session: attached.record.session, workflow: attached.workflow }) });
+      return res.status(201).json({
+        success: true,
+        ...(response ?? {
+          record: attached.record,
+          session: attached.record.session,
+          workflow: attached.workflow,
+        }),
+      });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not create appraisal session' });
     }
   });
 
   app.get('/api/research-workflow/:studyId/appraisal/sessions', (req: Request, res: Response) => {
-    const workflow = getWorkflowOrNull(req.params.studyId);
+    const studyId = req.params.studyId.trim();
+    const workflow = getWorkflowOrNull(studyId);
     if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
     return res.json({
       success: true,
-      sessions: appraisalWorkflowStore.listByStudy(req.params.studyId),
+      sessions: appraisalWorkflowStore.listByStudy(studyId),
       workflow,
       research: getResearchEvidenceSummary(workflow),
     });
@@ -80,26 +102,51 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
 
   app.post('/api/appraisal/:sessionId/sync', async (req: Request, res: Response) => {
     try {
-      const record = appraisalWorkflowStore.get(req.params.sessionId);
+      const sessionId = req.params.sessionId.trim();
+      const record = appraisalWorkflowStore.get(sessionId);
       if (!record) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
+
       const incoming = req.body?.session as AppraisalSession | undefined;
-      if (!incoming || incoming.id !== record.session.id) return res.status(400).json({ success: false, error: 'A valid matching session is required' });
-      if (incoming.studyId !== record.session.studyId || incoming.instrumentId !== record.session.instrumentId || incoming.reviewerId !== record.session.reviewerId) {
+      if (!incoming || incoming.id !== record.session.id) {
+        return res.status(400).json({ success: false, error: 'A valid matching session is required' });
+      }
+
+      if (
+        incoming.studyId !== record.session.studyId
+        || incoming.instrumentId !== record.session.instrumentId
+        || incoming.instrumentVersion !== record.session.instrumentVersion
+        || incoming.reviewerId !== record.session.reviewerId
+      ) {
         return res.status(409).json({ success: false, error: 'Session identity cannot be changed' });
       }
-      if (record.session.locked) return res.status(409).json({ success: false, error: 'Appraisal session is locked' });
-      if (!Array.isArray(incoming.responses)) return res.status(400).json({ success: false, error: 'responses must be an array' });
 
-      for (const response of incoming.responses) {
-        const existing = record.session.responses.find(item => String(item.itemId) === String(response.itemId));
-        const unchanged = existing
-          && JSON.stringify(existing.answer) === JSON.stringify(response.answer)
-          && String(existing.rationale ?? '') === String(response.rationale ?? '')
-          && JSON.stringify(existing.evidence ?? null) === JSON.stringify(response.evidence ?? null);
-        if (!unchanged) await recordAppraisalResponse(record.session.id, response);
+      if (record.session.locked) {
+        return res.status(409).json({ success: false, error: 'Appraisal session is locked' });
       }
-      const response = sessionResponse(record.session.id);
-      return res.json({ success: true, ...(response ?? { session: record.session }) });
+
+      if (!Array.isArray(incoming.responses)) {
+        return res.status(400).json({ success: false, error: 'responses must be an array' });
+      }
+
+      let currentRecord = record;
+      for (const response of incoming.responses) {
+        const existing = currentRecord.session.responses.find(item => String(item.itemId) === String(response.itemId));
+        if (existing && sameResponse(existing, response)) continue;
+        currentRecord = await recordAppraisalResponse(sessionId, response);
+      }
+
+      const currentIds = new Set(incoming.responses.map(response => String(response.itemId)));
+      const staleResponses = currentRecord.session.responses.filter(response => !currentIds.has(String(response.itemId)));
+      if (staleResponses.length > 0) {
+        return res.status(409).json({
+          success: false,
+          error: 'Sync cannot implicitly delete canonical appraisal responses; use an explicit response-delete operation.',
+        });
+      }
+
+      const response = sessionResponse(sessionId);
+      if (!response) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
+      return res.json({ success: true, ...response });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not sync appraisal session' });
     }
@@ -108,9 +155,11 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
   app.post('/api/appraisal/:sessionId/response', async (req: Request, res: Response) => {
     try {
       const response = req.body as AppraisalItemResponse;
-      if (response == null || response.itemId === undefined) return res.status(400).json({ success: false, error: 'itemId is required' });
-      await recordAppraisalResponse(req.params.sessionId, response);
-      const updated = sessionResponse(req.params.sessionId);
+      if (!response || response.itemId === undefined) {
+        return res.status(400).json({ success: false, error: 'itemId is required' });
+      }
+      await recordAppraisalResponse(req.params.sessionId.trim(), response);
+      const updated = sessionResponse(req.params.sessionId.trim());
       if (!updated) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       return res.json({ success: true, ...updated });
     } catch (error) {
@@ -120,7 +169,7 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
 
   app.get('/api/appraisal/:sessionId/validation', (req: Request, res: Response) => {
     try {
-      return res.json({ success: true, validation: validateAppraisal(req.params.sessionId) });
+      return res.json({ success: true, validation: validateAppraisal(req.params.sessionId.trim()) });
     } catch (error) {
       return res.status(404).json({ success: false, error: error instanceof Error ? error.message : 'Appraisal session not found' });
     }
@@ -128,8 +177,8 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
 
   app.post('/api/appraisal/:sessionId/finalize', async (req: Request, res: Response) => {
     try {
-      await finalizeAppraisal(req.params.sessionId);
-      const finalized = sessionResponse(req.params.sessionId);
+      await finalizeAppraisal(req.params.sessionId.trim());
+      const finalized = sessionResponse(req.params.sessionId.trim());
       if (!finalized) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       return res.json({ success: true, finalized: true, ...finalized });
     } catch (error) {
