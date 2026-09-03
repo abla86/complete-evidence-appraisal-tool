@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   JbiQualitativeValidationService
 } from '../src/services/jbiValidationService.ts';
+import type { JBIEvaluationItem } from '../src/types.ts';
 
 test('normalizes canonical assessment statuses', () => {
   assert.equal(JbiQualitativeValidationService.normalizeStatus('yes'), 'Ja');
@@ -12,7 +13,7 @@ test('normalizes canonical assessment statuses', () => {
 });
 
 test('computeScore is deterministic for a complete JBI assessment', () => {
-  const items = [
+  const items: JBIEvaluationItem[] = [
     'Ja','Ja','Ja','Ja','Ja',
     'Ja','Ja','Ja','Ja','Ja'
   ].map((status, index) => ({
@@ -39,7 +40,7 @@ test('computeScore is deterministic for a complete JBI assessment', () => {
 });
 
 test('Cohen kappa returns 1 for identical ratings', () => {
-  const items = Array.from({ length: 10 }, (_, index) => ({
+  const items: JBIEvaluationItem[] = Array.from({ length: 10 }, (_, index) => ({
     questionId: index + 1,
     status: index < 5 ? 'Ja' : 'Nei',
     justification: 'Dokumentert i studien.',
