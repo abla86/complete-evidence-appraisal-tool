@@ -3,7 +3,6 @@ import { createBlankAppraisalSession, decideAppraisalLaunch } from './universalA
 import { EvidenceFoundation, type EvidenceModule } from './evidenceSystemFoundation';
 import { ResearchEngineGateway, type ResearchEngineDocument } from './researchEngineGateway';
 import { ResearchEvidenceBridge, type ResearchToAppraisalBundle } from './researchEvidenceBridge';
-import { evidenceEventBus } from './evidenceEventBus';
 import type { DocumentClassificationResult } from '../types';
 
 export type ScreeningDecision = 'PENDING' | 'INCLUDED' | 'EXCLUDED';
@@ -59,8 +58,8 @@ export function createResearchWorkflow(document: ResearchEngineDocument, studyId
       evidenceBundle,
       classificationVerified: false,
       selectedInstrumentId: document.metadata.recommendedInstrumentId || undefined,
-      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
       evidenceCandidateCount: evidenceBundle.evidence.filter(item => item.source === 'AI_CANDIDATE').length,
+      evidenceVerifiedCount: evidenceBundle.evidence.filter(item => item.verifiedByResearcher && item.source === 'HUMAN_VERIFIED').length,
       evidenceRejectedCount: evidenceBundle.evidence.filter(item => item.source === 'REJECTED').length,
     },
   };
