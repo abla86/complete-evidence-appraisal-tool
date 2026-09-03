@@ -1,3 +1,6 @@
+import { appendAuditEntry, type AuditEntry } from './auditTrailService';
+import type { Actor } from './sourceIntakeService';
+
 export interface ProjectAuditEvent {
   id: string;
   timestamp: string;
@@ -8,10 +11,26 @@ export interface ProjectAuditEvent {
   detail: Record<string, unknown>;
 }
 
-export function appendProjectAuditEvent(input: Omit<ProjectAuditEvent, 'id' | 'timestamp'>): ProjectAuditEvent {
+export async function appendProjectAuditEvent(
+  input: Omit<ProjectAuditEvent, 'id' | 'timestamp'>,
+): Promise<ProjectAuditEvent> {
+  const actor: Actor = { id: input.actorId.trim(), role: 'reviewer' };
+  if (!actor.id) throw new Error('actorId is required.');
+
+  const entry: AuditEntry = await appendAuditEntry({
+    actor,
+    action: input.action,
+    subject: { entityType: input.subjectType, id: input.subjectId },
+    detail: input.detail,
+  });
+
   return {
-    id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    timestamp: new Date().toISOString(),
-    ...input,
+    id: entry.entryId,
+    timestamp: entry.timestamp,
+    actorId: entry.actor.id,
+    action: entry.action,
+    subjectType: entry.subject.entityType,
+    subjectId: entry.subject.id,
+    detail: entry.detail,
   };
 }
