@@ -8,7 +8,9 @@ export type EvidenceModule =
   | 'synthesis' | 'grade' | 'cerqual' | 'prisma' | 'writing' | 'export'
   | 'implementation' | 'instrument-registry' | 'meta-research';
 
-export interface EvidenceEvent<TPayload = Record<string, unknown>> {
+export type EvidencePayload = Record<string, unknown>;
+
+export interface EvidenceEvent<TPayload extends EvidencePayload = EvidencePayload> {
   id: string;
   type: string;
   module: EvidenceModule;
@@ -83,7 +85,7 @@ export class EvidenceStateService {
       type: 'state.updated',
       module,
       actor,
-      payload: { key, value, reason } as Record<string, unknown> as T,
+      payload: { key, value, reason },
       timestamp: this.updatedAt,
       stateVersion: this.version,
       correlationId: this.correlationId,
@@ -128,7 +130,7 @@ export class EvidenceFoundation {
     };
   }
 
-  async emit<TPayload extends Record<string, unknown>>(
+  async emit<TPayload extends EvidencePayload>(
     event: Omit<EvidenceEvent<TPayload>, 'id' | 'timestamp' | 'stateVersion'>,
   ): Promise<EvidenceEvent<TPayload>> {
     const enriched: EvidenceEvent<TPayload> = {
@@ -139,7 +141,7 @@ export class EvidenceFoundation {
     };
 
     await this.auditTrail.append({
-      actor: { id: enriched.actor, name: enriched.actor, role: toAuditRole(enriched.actor) },
+      actor: { id: enriched.actor, role: toAuditRole(enriched.actor) },
       action: enriched.type,
       subject: { entityType: enriched.module, id: enriched.correlationId },
       detail: {
@@ -158,10 +160,10 @@ export class EvidenceFoundation {
     };
 
     await this.auditTrail.append({
-      actor: { id: input.fromRole, name: input.fromRole, role: toAuditRole(input.fromRole) },
+      actor: { id: input.fromRole, role: toAuditRole(input.fromRole) },
       action: 'EVIDENCE_HANDOFF',
       subject: { entityType: input.fromModule, id: input.correlationId },
-      detail: handoff,
+      detail: { ...handoff },
     });
 
     return handoff;
