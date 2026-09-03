@@ -90,10 +90,16 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
       if (record.session.locked) return res.status(409).json({ success: false, error: 'Appraisal session is locked' });
       if (!Array.isArray(incoming.responses)) return res.status(400).json({ success: false, error: 'responses must be an array' });
 
-      let updated = record.session;
-      for (const response of incoming.responses) updated = (await recordAppraisalResponse(updated.id, response)).session;
-      const response = sessionResponse(updated.id);
-      return res.json({ success: true, ...(response ?? { session: updated }) });
+      for (const response of incoming.responses) {
+        const existing = record.session.responses.find(item => String(item.itemId) === String(response.itemId));
+        const unchanged = existing
+          && JSON.stringify(existing.answer) === JSON.stringify(response.answer)
+          && String(existing.rationale ?? '') === String(response.rationale ?? '')
+          && JSON.stringify(existing.evidence ?? null) === JSON.stringify(response.evidence ?? null);
+        if (!unchanged) await recordAppraisalResponse(record.session.id, response);
+      }
+      const response = sessionResponse(record.session.id);
+      return res.json({ success: true, ...(response ?? { session: record.session }) });
     } catch (error) {
       return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not sync appraisal session' });
     }
