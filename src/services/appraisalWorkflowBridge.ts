@@ -1,5 +1,6 @@
 import {
   createBlankAppraisalSession,
+  getInstrumentOrNull,
   lockAppraisalSession,
   upsertAppraisalResponse,
   validateAppraisalSession,
@@ -7,6 +8,7 @@ import {
   type AppraisalSession,
   type AppraisalSessionValidation,
 } from './universalAppraisalService';
+import { decideAppraisalLaunch } from './universalAppraisalService';
 import type { ResearchAppraisalPayload, WorkflowState } from './researchWorkflowService';
 import { researchWorkflowStore } from './researchWorkflowStore';
 import { evidenceEventBus } from './evidenceEventBus';
@@ -124,6 +126,34 @@ export async function createAndAttachAppraisal(
 }
 
 export function getAppraisalWorkflowRecord(sessionId: string): AppraisalWorkflowRecord | undefined { return appraisalWorkflowStore.get(sessionId); }
+
+export async function changeAppraisalInstrument(sessionId: string, instrumentId: string, reviewerId: string): Promise<AppraisalWorkflowRecord> {
+  const record = appraisalWorkflowStore.get(sessionId.trim());
+  if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
+  if (record.session.locked) throw new Error('Appraisal session is locked.');
+  if (record.session.reviewerId !== reviewerId.trim()) throw new Error('Reviewer stemmer ikke med appraisal-sesjonen.');
+  const workflow = researchWorkflowStore.get(record.session.studyId);
+  if (!workflow) throw new Error(`Research workflow not found: ${record.session.studyId}`);
+  const instrument = getInstrumentOrNull(instrumentId);
+  if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
+  const decision = decideAppraisalLaunch(workflow.studyDesign, instrument.id);
+  if (!decision.allowed) throw new Error(decision.reason);
+  const updatedSession: AppraisalSession = {
+    ...record.session,
+    instrumentId: instrument.id,
+    instrumentVersion: instrument.version,
+    responses: [],
+    overallJudgement: undefined,
+    overallRationale: undefined,
+    updatedAt: new Date().toISOString(),
+  };
+  const updatedRecord: AppraisalWorkflowRecord = { ...record, instrumentId: instrument.id, session: updatedSession };
+  appraisalWorkflowStore.save(updatedRecord);
+  syncToResearchWorkflow(updatedSession);
+  await appendAuditEntry({ actor: { id: reviewerId.trim(), role: 'reviewer' }, action: 'appraisal.instrument.changed', subject: { entityType: 'appraisal-session', id: record.session.id }, detail: { previousInstrumentId: record.session.instrumentId, previousInstrumentVersion: record.session.instrumentVersion, instrumentId: instrument.id, instrumentVersion: instrument.version, responsesReset: true } });
+  await evidenceEventBus.emit('appraisal.instrument.changed', { studyId: updatedSession.studyId, sessionId: updatedSession.id, instrumentId: instrument.id, reviewerId: reviewerId.trim() });
+  return updatedRecord;
+}
 
 export async function recordAppraisalResponse(sessionId: string, response: AppraisalItemResponse): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
