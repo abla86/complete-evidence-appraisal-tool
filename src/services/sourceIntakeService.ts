@@ -1,4 +1,4 @@
-import type { SourceRecord } from '../domain/sourceRecord';
+﻿import type { SourceRecord } from '../domain/sourceRecord';
 import { createRecordId } from '../domain/sourceRecord';
 import { validateSourceRecord } from './validateSourceRecord';
 
@@ -54,7 +54,7 @@ export async function intakeSourceRecord(
       generator: record.provenance.tool,
       generatorVersion: record.provenance.toolVersion,
       metadataStatus: record.metadata.status,
-      doiFormatValid: record.identifiers.doi?.formatValid ?? null,
+      doiFormatValid: record.identifiers?.doi ? record.identifiers.doi.formatValid === true : null,
       referenceVerified: false,
     },
   });
@@ -160,3 +160,4 @@ export async function attachReviewedRecordToPico(
 
   return { attached: true as const, picoEntityId };
 }
+
