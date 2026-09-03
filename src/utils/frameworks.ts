@@ -1,4 +1,4 @@
-import { AppraisalDomain, AppraisalInstrument } from '../types';
+import type { AppraisalDomain, AppraisalInstrument } from '../types/index.ts';
 
 /**
  * AMSTAR 2: A critical appraisal tool for systematic reviews that include randomised 
