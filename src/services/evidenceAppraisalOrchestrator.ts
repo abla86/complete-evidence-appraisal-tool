@@ -9,6 +9,7 @@ import {
   validateAppraisal,
   type AppraisalWorkflowRecord,
 } from './appraisalWorkflowBridge';
+import { researchWorkflowStore } from './researchWorkflowStore';
 import type {
   AppraisalItemResponse,
   AppraisalSessionValidation,
@@ -25,35 +26,47 @@ export class EvidenceAppraisalOrchestrator {
     reviewerId: string,
   ): Promise<EvidenceAppraisalContext> {
     const normalizedReviewerId = reviewerId.trim();
-    if (!normalizedReviewerId) {
-      throw new Error('reviewerId is required.');
-    }
+    if (!normalizedReviewerId) throw new Error('reviewerId is required.');
 
     const payload = buildResearchAppraisalPayload(workflow);
+
+    // The orchestrator is also a supported programmatic entry point. Ensure
+    // the supplied workflow is visible to the canonical store before the
+    // canonical appraisal bridge tries to attach the session.
+    const canonicalWorkflow = researchWorkflowStore.get(workflow.studyId);
+    if (!canonicalWorkflow) {
+      researchWorkflowStore.save(workflow);
+    }
+
     const attached = await createAndAttachAppraisal(
       payload,
       normalizedReviewerId,
-      session => ({
-        ...workflow,
-        screening: [
-          ...workflow.screening.filter(
+      session => {
+        const current = researchWorkflowStore.get(workflow.studyId) ?? workflow;
+        const screening = [
+          ...current.screening.filter(
             item => item.reviewerId !== normalizedReviewerId,
           ),
           {
-            studyId: workflow.studyId,
+            studyId: current.studyId,
             reviewerId: normalizedReviewerId,
             decision: 'INCLUDED' as const,
             updatedAt: new Date().toISOString(),
           },
-        ],
-        appraisalSessions: workflow.appraisalSessions.some(
-          item => item.id === session.id,
-        )
-          ? workflow.appraisalSessions.map(item =>
-              item.id === session.id ? session : item,
-            )
-          : [...workflow.appraisalSessions, session],
-      }),
+        ];
+
+        return researchWorkflowStore.save({
+          ...current,
+          screening,
+          appraisalSessions: current.appraisalSessions.some(
+            item => item.id === session.id,
+          )
+            ? current.appraisalSessions.map(item =>
+                item.id === session.id ? session : item,
+              )
+            : [...current.appraisalSessions, session],
+        });
+      },
     );
 
     return {
@@ -71,7 +84,7 @@ export class EvidenceAppraisalOrchestrator {
       response,
     );
 
-    const workflow: WorkflowState = {
+    const workflow = {
       ...context.workflow,
       appraisalSessions: context.workflow.appraisalSessions.some(
         session => session.id === appraisal.session.id,
