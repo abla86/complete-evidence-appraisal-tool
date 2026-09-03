@@ -32,14 +32,26 @@ export function buildProjectExportPackage(input: {
   references?: ReferenceRecord[];
   auditTrail?: AuditTrailService;
 }): ProjectExportPackage {
-  if (!input.projectId.trim()) throw new Error('projectId is required.');
+  const projectId = input.projectId.trim();
+  if (!projectId) throw new Error('projectId is required.');
+
   const references = input.references ?? loadReferenceLibrary([]);
-  const appraisal = loadAppraisalSessions().filter(session => session.studyId === input.projectId);
-  const storedQuality = loadQualityAssessments().filter(item => appraisal.some(session => session.id === item.appraisalSessionId));
-  const quality = input.quality ?? storedQuality;
+  const appraisal = loadAppraisalSessions().filter(
+    session => session.studyId === projectId,
+  );
+  const appraisalIds = new Set(appraisal.map(session => session.id));
+  const storedQuality = loadQualityAssessments().filter(item =>
+    appraisalIds.has(item.appraisalSessionId),
+  );
+
+  // Explicit quality data is accepted only when it belongs to this project's
+  // canonical appraisal sessions. This prevents cross-project leakage.
+  const quality = (input.quality ?? storedQuality).filter(item =>
+    appraisalIds.has(item.appraisalSessionId),
+  );
 
   return {
-    projectId: input.projectId,
+    projectId,
     exportedAt: new Date().toISOString(),
     pipeline: input.pipeline,
     appraisal,
@@ -60,12 +72,43 @@ export function serializeProjectExport(
 
   const rows = [
     ['type', 'id', 'label', 'status'],
-    ...packageData.appraisal.map(item => ['appraisal', item.id, item.instrumentId, item.locked ? 'locked' : 'open']),
-    ...packageData.quality.map(item => ['quality', item.id, item.kind, item.locked ? 'locked' : 'open']),
-    ...packageData.references.map(item => ['reference', item.id, item.title, item.verification ?? item.status ?? 'unknown']),
-    ...packageData.claims.map(item => ['claim', item.id, item.text, item.status]),
-    ...packageData.evidence.map(item => ['evidence', item.id, item.excerpt, item.researcherVerified ? 'verified' : 'unverified']),
+    ...packageData.appraisal.map(item => [
+      'appraisal',
+      item.id,
+      item.instrumentId,
+      item.locked ? 'locked' : 'open',
+    ]),
+    ...packageData.quality.map(item => [
+      'quality',
+      item.id,
+      item.kind,
+      item.locked ? 'locked' : 'open',
+    ]),
+    ...packageData.references.map(item => [
+      'reference',
+      item.id,
+      item.title,
+      item.verification ?? item.status ?? 'unknown',
+    ]),
+    ...packageData.claims.map(item => [
+      'claim',
+      item.id,
+      item.text,
+      item.status,
+    ]),
+    ...packageData.evidence.map(item => [
+      'evidence',
+      item.id,
+      item.excerpt,
+      item.researcherVerified ? 'verified' : 'unverified',
+    ]),
   ];
 
-  return '\uFEFF' + rows.map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+  return '\uFEFF' + rows
+    .map(row =>
+      row
+        .map(value => `"${String(value ?? '').replace(/"/g, '""')}"`)
+        .join(';'),
+    )
+    .join('\n');
 }
