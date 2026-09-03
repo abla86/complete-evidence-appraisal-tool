@@ -9,13 +9,14 @@ function read(): AppraisalSession[] {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(item => item && typeof item.id === 'string') as AppraisalSession[];
   } catch {
     return [];
   }
 }
 
-function write(sessions: AppraisalSession[]) {
+function write(sessions: AppraisalSession[]): void {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
 }
@@ -25,13 +26,14 @@ function readQuality(): StoredQualityAssessment[] {
   try {
     const raw = window.localStorage.getItem(QUALITY_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(item => item && typeof item.id === 'string') as StoredQualityAssessment[];
   } catch {
     return [];
   }
 }
 
-function writeQuality(items: StoredQualityAssessment[]) {
+function writeQuality(items: StoredQualityAssessment[]): void {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(QUALITY_KEY, JSON.stringify(items));
 }
@@ -41,16 +43,26 @@ export function loadAppraisalSessions(): AppraisalSession[] {
 }
 
 export function upsertAppraisalSession(session: AppraisalSession): AppraisalSession[] {
+  if (!session.id.trim()) throw new Error('Appraisal-session ID is required.');
+  if (!session.studyId.trim()) throw new Error('studyId is required.');
+  if (!session.instrumentId.trim()) throw new Error('instrumentId is required.');
+  if (!session.reviewerId.trim()) throw new Error('reviewerId is required.');
+
   const sessions = read();
   const index = sessions.findIndex(item => item.id === session.id);
-  if (index >= 0) sessions[index] = session;
-  else sessions.unshift(session);
-  write(sessions);
-  return sessions;
+  const next = [...sessions];
+  if (index >= 0) next[index] = session;
+  else next.unshift(session);
+  write(next);
+  return next;
 }
 
 export function getLatestAppraisalSession(studyId: string, instrumentId: string): AppraisalSession | null {
   return read().find(item => item.studyId === studyId && item.instrumentId === instrumentId) ?? null;
+}
+
+export function getAppraisalSessionById(sessionId: string): AppraisalSession | null {
+  return read().find(item => item.id === sessionId) ?? null;
 }
 
 export function loadQualityAssessments(): StoredQualityAssessment[] {
@@ -62,10 +74,14 @@ export function getQualityAssessmentsForSession(sessionId: string): StoredQualit
 }
 
 export function upsertQualityAssessment(item: StoredQualityAssessment): StoredQualityAssessment[] {
+  if (!item.id.trim()) throw new Error('Quality assessment ID is required.');
+  if (!item.evidenceId.trim()) throw new Error('Quality assessment evidenceId is required.');
+
   const items = readQuality();
   const index = items.findIndex(existing => existing.id === item.id);
-  if (index >= 0) items[index] = item;
-  else items.unshift(item);
-  writeQuality(items);
-  return items;
+  const next = [...items];
+  if (index >= 0) next[index] = item;
+  else next.unshift(item);
+  writeQuality(next);
+  return next;
 }
