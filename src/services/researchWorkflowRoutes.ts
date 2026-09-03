@@ -200,7 +200,7 @@ export function registerResearchWorkflowRoutes(app: {
     }
   });
 
-  app.post('/api/research-workflows/:studyId/appraisal/start', (req: Request, res: Response) => {
+  app.post('/api/research-workflows/:studyId/appraisal/start', async (req: Request, res: Response) => {
     try {
       const reviewerId = String(req.body?.reviewerId ?? '').trim();
       if (!reviewerId) {
@@ -222,7 +222,7 @@ export function registerResearchWorkflowRoutes(app: {
         );
       }
 
-      const attached = createAndAttachAppraisal(
+      const attached = await createAndAttachAppraisal(
         payload,
         reviewerId,
         session => {
@@ -230,8 +230,7 @@ export function registerResearchWorkflowRoutes(app: {
           const now = new Date().toISOString();
 
           const screening = current.screening.some(
-            item =>
-              item.reviewerId === reviewerId,
+            item => item.reviewerId === reviewerId,
           )
             ? current.screening.map(item =>
                 item.reviewerId === reviewerId
