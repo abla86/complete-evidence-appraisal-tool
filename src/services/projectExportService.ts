@@ -1,32 +1,77 @@
-import { AppraisalSession, ReferenceRecord, QualityAssessment, AcademicClaim, EvidenceExtraction } from '../domain/projectState';
-
-export interface ProjectPackageData {
-  appraisal: AppraisalSession[];
-  quality: QualityAssessment[];
-  references: ReferenceRecord[];
-  claims: AcademicClaim[];
-  evidence: EvidenceExtraction[];
-}
+import { loadAppraisalSessions } from './appraisalSessionStore';
+import { loadQualityAssessments } from './appraisalSessionStore';
+import { loadReferenceLibrary } from './referenceLibraryStore';
+import { calculatePRISMA, type PRISMAStages } from './prismaCalculator';
+import { AuditTrailService, type AuditEntry } from './auditTrailService';
+import type { ReferenceRecord } from './referenceHubService';
+import type { AppraisalSession } from './universalAppraisalService';
+import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
+import type { StoredQualityAssessment } from './qualityAssessmentService';
+import type { EvidencePipelineState } from './evidencePipelineService';
 
 export interface ProjectExportPackage {
-  manifest: Record<string, unknown>;
-  data: ProjectPackageData;
+  projectId: string;
+  exportedAt: string;
+  pipeline?: EvidencePipelineState;
+  appraisal: AppraisalSession[];
+  quality: StoredQualityAssessment[];
+  claims: AcademicClaim[];
+  evidence: EvidenceExtraction[];
+  references: ReferenceRecord[];
+  prisma: ReturnType<typeof calculatePRISMA>;
+  audit: readonly AuditEntry[];
 }
 
-export function buildProjectExportPackage(packageData: ProjectPackageData): ProjectExportPackage {
-  const manifest = {
-    schemaVersion: '1.0.0',
+export function buildProjectExportPackage(input: {
+  projectId: string;
+  pipeline?: EvidencePipelineState;
+  prismaStages: PRISMAStages;
+  claims?: AcademicClaim[];
+  evidence?: EvidenceExtraction[];
+  quality?: StoredQualityAssessment[];
+  references?: ReferenceRecord[];
+  auditTrail?: AuditTrailService;
+}): ProjectExportPackage {
+  const projectId = input.projectId.trim();
+  if (!projectId) throw new Error('projectId is required.');
+
+  const references = input.references ?? loadReferenceLibrary([]);
+  const appraisal = loadAppraisalSessions().filter(
+    session => session.studyId === projectId,
+  );
+  const appraisalIds = new Set(appraisal.map(session => session.id));
+  const storedQuality = loadQualityAssessments().filter(item =>
+    appraisalIds.has(item.appraisalSessionId),
+  );
+
+  // Explicit quality data is accepted only when it belongs to this project's
+  // canonical appraisal sessions. This prevents cross-project leakage.
+  const quality = (input.quality ?? storedQuality).filter(item =>
+    appraisalIds.has(item.appraisalSessionId),
+  );
+
+  return {
+    projectId,
     exportedAt: new Date().toISOString(),
-    counts: {
-      appraisal: packageData.appraisal.length,
-      quality: packageData.quality.length,
-      references: packageData.references.length,
-      claims: packageData.claims.length,
-      evidence: packageData.evidence.length,
-    },
+    pipeline: input.pipeline,
+    appraisal,
+    quality,
+    claims: input.claims ?? [],
+    evidence: input.evidence ?? [],
+    references,
+    prisma: calculatePRISMA(input.prismaStages),
+    audit: input.auditTrail?.list() ?? [],
   };
+}
+
+export function serializeProjectExport(
+  packageData: ProjectExportPackage,
+  format: 'json' | 'csv' = 'json',
+): string {
+  if (format === 'json') return JSON.stringify(packageData, null, 2);
 
   const rows = [
+    ['type', 'id', 'label', 'status'],
     ...packageData.appraisal.map(item => [
       'appraisal',
       item.id,
@@ -43,7 +88,7 @@ export function buildProjectExportPackage(packageData: ProjectPackageData): Proj
       'reference',
       item.id,
       item.title,
-      item.verification ?? 'unknown',
+      item.verification ?? item.status ?? 'unknown',
     ]),
     ...packageData.claims.map(item => [
       'claim',
@@ -59,8 +104,11 @@ export function buildProjectExportPackage(packageData: ProjectPackageData): Proj
     ]),
   ];
 
-  return {
-    manifest: { ...manifest, rows },
-    data: packageData,
-  };
+  return '\uFEFF' + rows
+    .map(row =>
+      row
+        .map(value => `"${String(value ?? '').replace(/"/g, '""')}"`)
+        .join(';'),
+    )
+    .join('\n');
 }
