@@ -1,4 +1,5 @@
-import { getInstrumentOrNull, createBlankAppraisalSession, type AppraisalSession } from './universalAppraisalService';
+import { getInstrumentOrNull, type AppraisalSession } from './universalAppraisalService';
+import { appraisalWorkflowStore } from './appraisalWorkflowBridge';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import type { PICO, ScreeningDecision, ReviewComparison, ReviewInstance, ResolvedAppraisal, DualReviewConfig, PRISMAFlow } from '../types/researchWorkflow';
 import { AuditTrailService } from './auditTrailService';
@@ -36,24 +37,24 @@ export async function triggerAppraisalForIncludedStudy(args: {
 }): Promise<ScreeningToAppraisalResult> {
   if (args.screening.studyId !== args.studyId) throw new Error('Screening og studie-ID samsvarer ikke.');
   if (args.screening.decision !== 'include') throw new Error('Kun inkluderte studier kan sendes til appraisal.');
+  if (!args.reviewerId.trim()) throw new Error('Reviewer ID er påkrevd.');
 
   const instrumentId = inferInstrumentId(args.studyDesign);
   const instrument = getInstrumentOrNull(instrumentId);
   if (!instrument) throw new Error(`Ingen appraisal-instrument funnet for design: ${args.studyDesign}`);
 
-  const appraisalSession = createBlankAppraisalSession(args.studyId, instrumentId, args.reviewerId);
-  let auditEntryId: string | undefined;
-  if (args.audit && args.actor) {
-    const entry = await args.audit.append({
-      actor: args.actor,
-      action: 'SCREENING_TO_APPRAISAL',
-      subject: { entityType: 'study', id: args.studyId },
-      detail: { screeningDecision: args.screening, instrumentId, appraisalSessionId: appraisalSession.id }
-    });
-    auditEntryId = entry.entryId;
+  const existing = appraisalWorkflowStore.listByStudy(args.studyId)
+    .find(item => item.instrumentId === instrumentId && item.session.reviewerId === args.reviewerId && !item.session.locked);
+  if (existing) {
+    return {
+      studyId: args.studyId,
+      decision: args.screening,
+      appraisalSession: existing.session,
+      instrumentId,
+    };
   }
 
-  return { studyId: args.studyId, decision: args.screening, appraisalSession, instrumentId, auditEntryId };
+  throw new Error('Studien må sendes gjennom canonical research-to-appraisal workflow før appraisal-session kan opprettes.');
 }
 
 export function compareReviewInstances(first: ReviewInstance, second: ReviewInstance, threshold = 0.3): ReviewComparison {
