@@ -88,7 +88,7 @@ export function serializeProjectExport(
       'reference',
       item.id,
       item.title,
-      item.verification ?? item.status ?? 'unknown',
+      item.verification ?? 'unknown',
     ]),
     ...packageData.claims.map(item => [
       'claim',
