@@ -68,3 +68,39 @@ After that gate is satisfied, `evidence-appraisal-tool` should be archived rathe
 ## Current conclusion
 
 The old repository is a substantial earlier implementation, not merely dead code. The main repository already contains most of its methodological surface, but the old repository contains additional **persistent research/implementation workflow functionality** that must not be lost. Those pieces are the remaining migration targets.
+
+## Consolidated deferred / removed material
+
+This section is the single review register for material intentionally kept outside the canonical Complete Evidence application. It replaces separate ecosystem/lab notes.
+
+### Excluded from Complete Evidence
+
+- Game Lab / developer-portfolio navigation: unrelated to evidence appraisal; not part of the application.
+- Warroom/security-lab UI and operational tooling: belongs to the separate Security project.
+- Experimental/offensive/internal security functionality: must not be copied into Complete Evidence.
+- Duplicate application frontends/backends from older evidence repositories: do not maintain a second application architecture.
+- Duplicate CI/security pipelines from source repositories: use the canonical repository pipeline only.
+
+### Retained as standalone extensions
+
+- academic-research-engine: standalone research/search capability; integration only through the existing research-engine gateway/contract.
+- research-privacy-inspector: standalone inspection capability; integration only through an explicit adapter/contract.
+
+### Deferred migration items that must not be deleted
+
+These remain outside the main application until deliberately implemented and tested:
+
+- persistent implementation workflow for CFIR/KTA;
+- implementation-specific validation semantics not already covered by the canonical engine;
+- implementation-specific CSV/XLSX/DOCX/PDF export behaviour;
+- persistent research operations/configuration/access;
+- persistent protocol/reviewer decision/consensus/PRISMA events;
+- persistent access/reviewer audit records.
+
+### Cleanup rule
+
+No code is deleted merely because it is old or duplicated-looking. A candidate is removed from the application only when:
+1. it is proven unrelated to the evidence-appraisal domain, or
+2. an equivalent canonical implementation exists and the old implementation has no unique required behaviour.
+
+All remaining migration work is tracked in this file. This is the only consolidation/deferred-work register.
