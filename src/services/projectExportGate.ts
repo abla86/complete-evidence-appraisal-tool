@@ -28,14 +28,29 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
   blockers.push(...integrity.issues.filter(issue => issue.severity === 'ERROR').map(issue => issue.message));
   warnings.push(...integrity.issues.filter(issue => issue.severity === 'WARNING').map(issue => issue.message));
 
+  const appraisalById = new Map(input.appraisal.map(session => [session.id, session]));
   const openAppraisals = input.appraisal.filter(item => !item.locked);
-  if (openAppraisals.length > 0) {
-    blockers.push(`${openAppraisals.length} appraisal-sesjon(er) er ikke låst.`);
-  }
+  if (openAppraisals.length > 0) blockers.push(`${openAppraisals.length} appraisal-sesjon(er) er ikke låst.`);
 
   const openQuality = input.quality.filter(item => !item.locked);
-  if (openQuality.length > 0) {
-    blockers.push(`${openQuality.length} GRADE/CERQual-vurdering(er) er ikke låst.`);
+  if (openQuality.length > 0) blockers.push(`${openQuality.length} GRADE/CERQual-vurdering(er) er ikke låst.`);
+
+  const orphanQuality = input.quality.filter(item => {
+    const session = appraisalById.get(item.appraisalSessionId);
+    return !session || session.studyId.trim() === '' || session.reviewerId !== item.reviewerId;
+  });
+  if (orphanQuality.length > 0) {
+    blockers.push(`${orphanQuality.length} quality-vurdering(er) er ikke konsistent knyttet til en appraisal-session.`);
+  }
+
+  const duplicatedQualityIds = new Set<string>();
+  for (const item of input.quality) {
+    const key = `${item.appraisalSessionId}:${item.evidenceId}:${item.kind}:${item.outcomeOrFinding.trim().toLowerCase()}`;
+    if (duplicatedQualityIds.has(key)) {
+      blockers.push('Dupliserte GRADE/CERQual-vurderinger må ryddes før eksport.');
+      break;
+    }
+    duplicatedQualityIds.add(key);
   }
 
   return { canExport: blockers.length === 0, blockers, warnings };
