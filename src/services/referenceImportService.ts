@@ -10,17 +10,24 @@ function mapAuthors(value?: string): string[] {
 }
 
 function parseRis(input: string): Partial<ReferenceRecord>[] {
-  const blocks = input.split(/\r?\n\s*\r?\n(?=TY\s*-)/i).filter(Boolean);
+  const normalized = input.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+  const blocks = normalized
+    .split(/\n\s*(?=TY\s*-\s*)/i)
+    .map(block => block.trim())
+    .filter(block => /^TY\s*-\s*/im.test(block));
+
   return blocks.map(block => {
     const fields: Record<string, string> = {};
     const authors: string[] = [];
-    for (const line of block.split(/\r?\n/)) {
+
+    for (const line of block.split('\n')) {
       const match = line.match(/^([A-Z0-9]{2})\s*-\s?(.*)$/);
       if (!match) continue;
       const [, tag, value] = match;
       if (tag === 'AU' || tag === 'A1') authors.push(value.trim());
-      else fields[tag] = value.trim();
+      else if (tag !== 'ER') fields[tag] = value.trim();
     }
+
     return {
       title: field(fields, 'TI') || field(fields, 'T1') || '',
       authors,
@@ -114,7 +121,6 @@ function parseEndnoteXml(input: string): Partial<ReferenceRecord>[] {
   return recordBlocks.map(block => {
     const authorMatches = [...block.matchAll(/<author>([\s\S]*?)<\/author>/gi)];
     const authors = authorMatches.map(m => esc(m[1].replace(/<[^>]+>/g, '').trim())).filter(Boolean);
-    const pages = text(block, 'pages');
     return {
       id: text(block, 'rec-number'),
       type: text(block, 'ref-type'),
@@ -124,7 +130,7 @@ function parseEndnoteXml(input: string): Partial<ReferenceRecord>[] {
       year: Number(text(block, 'year')) || undefined,
       volume: text(block, 'volume'),
       issue: text(block, 'number'),
-      pages,
+      pages: text(block, 'pages'),
       doi: text(block, 'electronic-resource-num'),
       issn: text(block, 'isbn'),
       url: text(block, 'url'),
