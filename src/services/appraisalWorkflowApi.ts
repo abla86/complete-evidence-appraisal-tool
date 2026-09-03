@@ -5,6 +5,7 @@ import {
 } from './researchWorkflowService';
 import {
   appraisalWorkflowStore,
+  changeAppraisalInstrument,
   createAndAttachAppraisal,
   finalizeAppraisal,
   recordAppraisalResponse,
@@ -98,6 +99,20 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
     const response = sessionResponse(req.params.sessionId);
     if (!response) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
     return res.json({ success: true, ...response });
+  });
+
+  app.post('/api/appraisal/:sessionId/instrument', async (req: Request, res: Response) => {
+    try {
+      const reviewerId = String(req.body?.reviewerId ?? '').trim();
+      const instrumentId = String(req.body?.instrumentId ?? '').trim();
+      if (!reviewerId) return res.status(400).json({ success: false, error: 'reviewerId is required' });
+      if (!instrumentId) return res.status(400).json({ success: false, error: 'instrumentId is required' });
+      const record = await changeAppraisalInstrument(req.params.sessionId.trim(), instrumentId, reviewerId);
+      const response = sessionResponse(record.session.id);
+      return res.json({ success: true, ...(response ?? { record, session: record.session }) });
+    } catch (error) {
+      return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not change appraisal instrument' });
+    }
   });
 
   app.post('/api/appraisal/:sessionId/sync', async (req: Request, res: Response) => {
