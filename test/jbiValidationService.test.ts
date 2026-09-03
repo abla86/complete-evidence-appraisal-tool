@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   JbiQualitativeValidationService
 } from '../src/services/jbiValidationService.ts';
-import type { JBIEvaluationItem } from '../src/types.ts';
+import type { AssessmentStatus, JBIEvaluationItem } from '../src/types.ts';
 
 test('normalizes canonical assessment statuses', () => {
   assert.equal(JbiQualitativeValidationService.normalizeStatus('yes'), 'Ja');
@@ -13,10 +13,11 @@ test('normalizes canonical assessment statuses', () => {
 });
 
 test('computeScore is deterministic for a complete JBI assessment', () => {
-  const items: JBIEvaluationItem[] = [
+  const statuses: AssessmentStatus[] = [
     'Ja','Ja','Ja','Ja','Ja',
     'Ja','Ja','Ja','Ja','Ja'
-  ].map((status, index) => ({
+  ];
+  const items: JBIEvaluationItem[] = statuses.map((status, index) => ({
     questionId: index + 1,
     status,
     justification: 'Dokumentert i studien.',
