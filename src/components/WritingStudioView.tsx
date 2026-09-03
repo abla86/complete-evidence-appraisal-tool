@@ -70,7 +70,7 @@ export const WritingStudioView: React.FC<Props> = ({ references }) => {
   const exportDocument = () => {
     if (!integrity.canExport) { setMessage('Eksport blokkert: rett integritetsfeil først.'); return; }
     const blob = new Blob([academicDocument.body], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob); const a = academicDocument.createElement('a'); a.href = url; a.download = `${academicDocument.title.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase() || 'academic-document'}.md`; a.click(); URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${academicDocument.title.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase() || 'academic-document'}.md`; a.click(); URL.revokeObjectURL(url);
   };
 
   return <section className="space-y-5 pb-16">
