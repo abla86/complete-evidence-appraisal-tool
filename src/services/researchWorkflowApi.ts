@@ -114,7 +114,7 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
       const payload = buildResearchAppraisalPayload(workflow);
       if (payload.instrumentId !== instrumentId) return res.status(409).json({ success: false, error: 'instrumentId does not match the selected research workflow instrument' });
 
-      const attached = createAndAttachAppraisal(payload, reviewerId, (session) => {
+      const attached = await createAndAttachAppraisal(payload, reviewerId, (session) => {
         const current = requireWorkflow(req.params.studyId);
         return save({
           ...current,
