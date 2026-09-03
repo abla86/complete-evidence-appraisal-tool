@@ -1,4 +1,5 @@
 import { loadAppraisalSessions } from './appraisalSessionStore';
+import { loadQualityAssessments } from './appraisalSessionStore';
 import { loadReferenceLibrary } from './referenceLibraryStore';
 import { calculatePRISMA, type PRISMAStages } from './prismaCalculator';
 import { AuditTrailService, type AuditEntry } from './auditTrailService';
@@ -31,15 +32,18 @@ export function buildProjectExportPackage(input: {
   references?: ReferenceRecord[];
   auditTrail?: AuditTrailService;
 }): ProjectExportPackage {
+  if (!input.projectId.trim()) throw new Error('projectId is required.');
   const references = input.references ?? loadReferenceLibrary([]);
   const appraisal = loadAppraisalSessions().filter(session => session.studyId === input.projectId);
+  const storedQuality = loadQualityAssessments().filter(item => appraisal.some(session => session.id === item.appraisalSessionId));
+  const quality = input.quality ?? storedQuality;
 
   return {
     projectId: input.projectId,
     exportedAt: new Date().toISOString(),
     pipeline: input.pipeline,
     appraisal,
-    quality: input.quality ?? [],
+    quality,
     claims: input.claims ?? [],
     evidence: input.evidence ?? [],
     references,
