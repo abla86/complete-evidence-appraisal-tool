@@ -1,0 +1,2 @@
+# Applied directly in commit cedfd5785a7daa50da2879d93a4d5834a2dd1c1c.
+# SourceRecordWorkflowView now writes through the canonical audit gateway.
