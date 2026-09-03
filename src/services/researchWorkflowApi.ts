@@ -9,10 +9,10 @@ import {
   verifyResearchClassification,
   verifyResearchEvidence,
   buildResearchAppraisalPayload,
-  includeStudyAndCreateAppraisal,
   type WorkflowState,
 } from './researchWorkflowService';
 import { researchWorkflowStore } from './researchWorkflowStore';
+import { createAndAttachAppraisal } from './appraisalWorkflowBridge';
 
 function requireWorkflow(studyId: string): WorkflowState {
   const workflow = researchWorkflowStore.get(studyId);
@@ -28,9 +28,7 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
   app.post('/api/research-workflow/create', (req: Request, res: Response) => {
     try {
       const { text, fileName, studyId } = req.body ?? {};
-      if (typeof text !== 'string' || !text.trim()) {
-        return res.status(400).json({ success: false, error: 'text is required' });
-      }
+      if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ success: false, error: 'text is required' });
       const workflow = save(createResearchWorkflowFromText(text, fileName || 'document.txt', studyId));
       return res.status(201).json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
@@ -44,11 +42,7 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
       if (typeof name !== 'string' || !name.trim() || !Number.isFinite(Number(size)) || content === undefined) {
         return res.status(400).json({ success: false, error: 'name, size and content are required' });
       }
-      const normalizedContent = typeof content === 'string'
-        ? content
-        : content instanceof ArrayBuffer
-          ? content
-          : Buffer.from(content, 'base64');
+      const normalizedContent = typeof content === 'string' ? content : content instanceof ArrayBuffer ? content : Buffer.from(content, 'base64');
       const workflow = save(await createResearchWorkflowFromFile({ name, size: Number(size), type, content: normalizedContent }, studyId));
       return res.status(201).json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
@@ -56,9 +50,7 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
     }
   });
 
-  app.get('/api/research-workflow', (_req: Request, res: Response) => {
-    return res.json({ success: true, workflows: researchWorkflowStore.list() });
-  });
+  app.get('/api/research-workflow', (_req: Request, res: Response) => res.json({ success: true, workflows: researchWorkflowStore.list() }));
 
   app.get('/api/research-workflow/:studyId', (req: Request, res: Response) => {
     try {
@@ -72,9 +64,7 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
   app.post('/api/research-workflow/:studyId/classification', (req: Request, res: Response) => {
     try {
       const classification = req.body?.classification as DocumentClassificationResult | undefined;
-      if (!classification?.documentType || !classification.recommendedInstrumentId) {
-        return res.status(400).json({ success: false, error: 'classification with documentType and recommendedInstrumentId is required' });
-      }
+      if (!classification?.documentType || !classification.recommendedInstrumentId) return res.status(400).json({ success: false, error: 'classification with documentType and recommendedInstrumentId is required' });
       const workflow = save(updateResearchClassification(requireWorkflow(req.params.studyId), classification));
       return res.json({ success: true, workflow });
     } catch (error) {
@@ -95,7 +85,7 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/evidence/:evidenceId/verify', (req: Request, res: Response) => {
     try {
-      const reviewerId = String(req.body?.reviewerId || 'researcher').trim() || 'researcher';
+      const reviewerId = String(req.body?.reviewerId || '').trim() || 'researcher';
       const workflow = save(verifyResearchEvidence(requireWorkflow(req.params.studyId), req.params.evidenceId, req.body?.verified === true, reviewerId));
       return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
@@ -114,13 +104,27 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
     }
   });
 
-  app.post('/api/research-workflow/:studyId/appraisal/start', (req: Request, res: Response) => {
+  app.post('/api/research-workflow/:studyId/appraisal/start', async (req: Request, res: Response) => {
     try {
       const reviewerId = String(req.body?.reviewerId || '').trim();
       const instrumentId = String(req.body?.instrumentId || '').trim();
       if (!reviewerId || !instrumentId) return res.status(400).json({ success: false, error: 'reviewerId and instrumentId are required' });
-      const workflow = save(includeStudyAndCreateAppraisal(requireWorkflow(req.params.studyId), { reviewerId, instrumentId }));
-      return res.status(201).json({ success: true, workflow, appraisal: workflow.appraisalSessions.at(-1) });
+      const workflow = requireWorkflow(req.params.studyId);
+      const payload = buildResearchAppraisalPayload(workflow);
+      if (payload.instrumentId !== instrumentId) return res.status(409).json({ success: false, error: 'instrumentId does not match the selected research workflow instrument' });
+
+      const attached = createAndAttachAppraisal(payload, reviewerId, (session) => {
+        const current = requireWorkflow(req.params.studyId);
+        return save({
+          ...current,
+          screening: current.screening.some(item => item.reviewerId === reviewerId)
+            ? current.screening.map(item => item.reviewerId === reviewerId ? { ...item, decision: 'INCLUDED' as const, updatedAt: new Date().toISOString() } : item)
+            : [...current.screening, { studyId: current.studyId, reviewerId, decision: 'INCLUDED', updatedAt: new Date().toISOString() }],
+          appraisalSessions: [...current.appraisalSessions, session],
+        });
+      });
+
+      return res.status(201).json({ success: true, workflow: attached.workflow, appraisal: attached.record.session, evidenceSummary: getResearchEvidenceSummary(attached.workflow) });
     } catch (error) {
       return res.status(409).json({ success: false, error: error instanceof Error ? error.message : 'Appraisal start failed' });
     }
