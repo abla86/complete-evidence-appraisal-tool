@@ -1,6 +1,19 @@
-import { randomUUID } from 'node:crypto';
 import type { AppraisalInstrument } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
+
+const randomUUID = (): string => {
+  const webCrypto = globalThis.crypto;
+  if (typeof webCrypto?.randomUUID === 'function') return webCrypto.randomUUID();
+  if (typeof webCrypto?.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16);
+    webCrypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0'));
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+};
 
 export type AppraisalAnswer = string | number | boolean | null;
 
@@ -93,53 +106,19 @@ export function upsertAppraisalResponse(
   session: AppraisalSession,
   response: AppraisalItemResponse,
 ): AppraisalSession {
-  if (session.locked) {
-    throw new Error('Vurderingen er låst og kan ikke endres.');
-  }
-
+  if (session.locked) throw new Error('Vurderingen er låst og kan ikke endres.');
   const instrument = getInstrumentOrNull(session.instrumentId);
-  if (!instrument) {
-    throw new Error(`Ukjent appraisal-instrument: ${session.instrumentId}`);
-  }
-
+  if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${session.instrumentId}`);
   const normalizedItemId = normalizeId(response.itemId);
-  if (!normalizedItemId) {
-    throw new Error('Vurderingspunkt-ID er påkrevd.');
-  }
-
-  const question = (instrument.questions ?? []).find(
-    q => normalizeId(q.id) === normalizedItemId,
-  );
-
-  if (!question) {
-    throw new Error(
-      `Vurderingspunkt ${normalizedItemId} finnes ikke i ${instrument.id} versjon ${instrument.version}.`,
-    );
-  }
-
-  const answerPresent =
-    response.answer !== null &&
-    response.answer !== undefined &&
-    String(response.answer).trim() !== '';
-
-  if (answerPresent && !String(response.rationale ?? '').trim()) {
-    throw new Error(
-      `Begrunnelse er påkrevd for vurderingspunkt ${normalizedItemId}.`,
-    );
-  }
-
+  if (!normalizedItemId) throw new Error('Vurderingspunkt-ID er påkrevd.');
+  const question = (instrument.questions ?? []).find(q => normalizeId(q.id) === normalizedItemId);
+  if (!question) throw new Error(`Vurderingspunkt ${normalizedItemId} finnes ikke i ${instrument.id} versjon ${instrument.version}.`);
+  const answerPresent = response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '';
+  if (answerPresent && !String(response.rationale ?? '').trim()) throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizedItemId}.`);
   const allowedAnswers = question.allowedAnswers ?? instrument.allowedAnswers ?? [];
-
-  if (
-    allowedAnswers.length > 0 &&
-    answerPresent &&
-    !allowedAnswers.map(String).includes(String(response.answer))
-  ) {
-    throw new Error(
-      `Svarverdien for vurderingspunkt ${normalizedItemId} er ikke tillatt av instrumentet.`,
-    );
+  if (allowedAnswers.length > 0 && answerPresent && !allowedAnswers.map(String).includes(String(response.answer))) {
+    throw new Error(`Svarverdien for vurderingspunkt ${normalizedItemId} er ikke tillatt av instrumentet.`);
   }
-
   const normalizedResponse: AppraisalItemResponse = {
     ...response,
     itemId: question.id,
@@ -157,258 +136,60 @@ export function upsertAppraisalResponse(
         }
       : undefined,
   };
-
-  const existing = session.responses.findIndex(
-    item => normalizeId(item.itemId) === normalizedItemId,
-  );
-
+  const existing = session.responses.findIndex(item => normalizeId(item.itemId) === normalizedItemId);
   const responses = [...session.responses];
-
-  if (existing >= 0) {
-    responses[existing] = normalizedResponse;
-  } else {
-    responses.push(normalizedResponse);
-  }
-
-  return {
-    ...session,
-    responses,
-    updatedAt: new Date().toISOString(),
-  };
+  if (existing >= 0) responses[existing] = normalizedResponse;
+  else responses.push(normalizedResponse);
+  return { ...session, responses, updatedAt: new Date().toISOString() };
 }
 
-export function validateAppraisalSession(
-  session: AppraisalSession,
-): AppraisalSessionValidation {
+export function validateAppraisalSession(session: AppraisalSession): AppraisalSessionValidation {
   const instrument = getInstrumentOrNull(session.instrumentId);
-
-  if (!instrument) {
-    return {
-      valid: false,
-      missingItemIds: [],
-      missingRationales: [],
-      issues: ['Instrumentet finnes ikke i MethodologyRegistry.'],
-    };
-  }
-
-  const expected = new Set(
-    (instrument.questions ?? []).map(q => normalizeId(q.id)),
-  );
-
-  const responseIds = session.responses.map(
-    response => normalizeId(response.itemId),
-  );
-
+  if (!instrument) return { valid: false, missingItemIds: [], missingRationales: [], issues: ['Instrumentet finnes ikke i MethodologyRegistry.'] };
+  const expected = new Set((instrument.questions ?? []).map(q => normalizeId(q.id)));
+  const responseIds = session.responses.map(response => normalizeId(response.itemId));
   const actual = new Set(responseIds);
-
-  const missingItemIds = [...expected].filter(
-    id => !actual.has(id),
-  );
-
-  const unexpectedItemIds = [
-    ...new Set(
-      responseIds.filter(id => !expected.has(id)),
-    ),
-  ];
-
-  const duplicateItemIds = [
-    ...new Set(
-      responseIds.filter(
-        (id, index) => responseIds.indexOf(id) !== index,
-      ),
-    ),
-  ];
-
-  const missingRationales = session.responses
-    .filter(
-      response =>
-        response.answer !== null &&
-        response.answer !== undefined &&
-        String(response.answer).trim() !== '' &&
-        !String(response.rationale ?? '').trim(),
-    )
-    .map(response => normalizeId(response.itemId));
-
+  const missingItemIds = [...expected].filter(id => !actual.has(id));
+  const unexpectedItemIds = [...new Set(responseIds.filter(id => !expected.has(id)))];
+  const duplicateItemIds = [...new Set(responseIds.filter((id, index) => responseIds.indexOf(id) !== index))];
+  const missingRationales = session.responses.filter(response => response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '' && !String(response.rationale ?? '').trim()).map(response => normalizeId(response.itemId));
   const invalidAnswerValues: string[] = [];
-
   for (const response of session.responses) {
-    const question = (instrument.questions ?? []).find(
-      q => normalizeId(q.id) === normalizeId(response.itemId),
-    );
-
+    const question = (instrument.questions ?? []).find(q => normalizeId(q.id) === normalizeId(response.itemId));
     if (!question) continue;
-
-    const allowedAnswers =
-      question.allowedAnswers ??
-      instrument.allowedAnswers ??
-      [];
-
-    if (
-      allowedAnswers.length > 0 &&
-      response.answer !== null &&
-      response.answer !== undefined &&
-      String(response.answer).trim() !== '' &&
-      !allowedAnswers
-        .map(String)
-        .includes(String(response.answer))
-    ) {
-      invalidAnswerValues.push(
-        normalizeId(response.itemId),
-      );
-    }
+    const allowedAnswers = question.allowedAnswers ?? instrument.allowedAnswers ?? [];
+    if (allowedAnswers.length > 0 && response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '' && !allowedAnswers.map(String).includes(String(response.answer))) invalidAnswerValues.push(normalizeId(response.itemId));
   }
-
   const issues: string[] = [];
-
-  if (!session.id.trim()) {
-    issues.push('Session-ID mangler.');
-  }
-
-  if (!session.studyId.trim()) {
-    issues.push('studyId mangler.');
-  }
-
-  if (!session.reviewerId.trim()) {
-    issues.push('reviewerId mangler.');
-  }
-
-  if (session.instrumentVersion !== instrument.version) {
-    issues.push(
-      `Instrumentversjonen i sesjonen (${session.instrumentVersion}) avviker fra registry (${instrument.version}). Sesjonen må migreres eller vurderes på nytt.`,
-    );
-  }
-
-  if (missingItemIds.length > 0) {
-    issues.push(
-      `${missingItemIds.length} vurderingspunkt mangler svar.`,
-    );
-  }
-
-  if (unexpectedItemIds.length > 0) {
-    issues.push(
-      `${unexpectedItemIds.length} svar peker til vurderingspunkt som ikke finnes i valgt instrumentversjon.`,
-    );
-  }
-
-  if (duplicateItemIds.length > 0) {
-    issues.push(
-      `Dupliserte svar finnes for vurderingspunkt: ${duplicateItemIds.join(', ')}.`,
-    );
-  }
-
-  if (missingRationales.length > 0) {
-    issues.push(
-      `${missingRationales.length} besvarte vurderingspunkt mangler begrunnelse.`,
-    );
-  }
-
-  if (invalidAnswerValues.length > 0) {
-    issues.push(
-      `${invalidAnswerValues.length} svar bruker en verdi som ikke er tillatt av instrumentet.`,
-    );
-  }
-
-  return {
-    valid: issues.length === 0,
-    missingItemIds,
-    missingRationales,
-    issues,
-  };
+  if (!session.id.trim()) issues.push('Session-ID mangler.');
+  if (!session.studyId.trim()) issues.push('studyId mangler.');
+  if (!session.reviewerId.trim()) issues.push('reviewerId mangler.');
+  if (session.instrumentVersion !== instrument.version) issues.push(`Instrumentversjonen i sesjonen (${session.instrumentVersion}) avviker fra registry (${instrument.version}). Sesjonen må migreres eller vurderes på nytt.`);
+  if (missingItemIds.length > 0) issues.push(`${missingItemIds.length} vurderingspunkt mangler svar.`);
+  if (unexpectedItemIds.length > 0) issues.push(`${unexpectedItemIds.length} svar peker til vurderingspunkt som ikke finnes i valgt instrumentversjon.`);
+  if (duplicateItemIds.length > 0) issues.push(`Dupliserte svar finnes for vurderingspunkt: ${duplicateItemIds.join(', ')}.`);
+  if (missingRationales.length > 0) issues.push(`${missingRationales.length} besvarte vurderingspunkt mangler begrunnelse.`);
+  if (invalidAnswerValues.length > 0) issues.push(`${invalidAnswerValues.length} svar bruker en verdi som ikke er tillatt av instrumentet.`);
+  return { valid: issues.length === 0, missingItemIds, missingRationales, issues };
 }
 
-export function lockAppraisalSession(
-  session: AppraisalSession,
-): AppraisalSession {
+export function lockAppraisalSession(session: AppraisalSession): AppraisalSession {
   if (session.locked) return session;
-
-  const validation = validateAppraisalSession(
-    session,
-  );
-
-  if (!validation.valid) {
-    throw new Error(
-      `Kan ikke låse vurderingen: ${validation.issues.join(' ')}`,
-    );
-  }
-
-  return {
-    ...session,
-    locked: true,
-    updatedAt: new Date().toISOString(),
-  };
+  const validation = validateAppraisalSession(session);
+  if (!validation.valid) throw new Error(`Kan ikke låse vurderingen: ${validation.issues.join(' ')}`);
+  return { ...session, locked: true, updatedAt: new Date().toISOString() };
 }
 
-export function decideAppraisalLaunch(
-  studyDesign: string,
-  instrumentId: string,
-  allowAlternative = false,
-): AppraisalLaunchDecision {
+export function decideAppraisalLaunch(studyDesign: string, instrumentId: string, allowAlternative = false): AppraisalLaunchDecision {
   const instrument = getInstrumentOrNull(instrumentId);
-
-  if (!instrument) {
-    return {
-      instrument: null,
-      allowed: false,
-      warnings: ['Ukjent instrument.'],
-      reason: 'Instrumentet finnes ikke.',
-    };
-  }
-
+  if (!instrument) return { instrument: null, allowed: false, warnings: ['Ukjent instrument.'], reason: 'Instrumentet finnes ikke.' };
   const design = studyDesign.trim().toLowerCase();
-
-  if (!design) {
-    return {
-      instrument,
-      allowed: false,
-      warnings: ['Studiedesign mangler.'],
-      reason:
-        'Registrer studiedesign før appraisal-instrument velges.',
-    };
-  }
-
-  const compatible = instrument.targetStudyDesign.some(
-    target => {
-      const normalizedTarget = target
-        .trim()
-        .toLowerCase();
-
-      return (
-        normalizedTarget === design ||
-        normalizedTarget.includes(design) ||
-        design.includes(normalizedTarget)
-      );
-    },
-  );
-
-  if (compatible) {
-    return {
-      instrument,
-      allowed: true,
-      warnings: [],
-      reason:
-        'Instrumentet er kompatibelt med registrert studiedesign.',
-    };
-  }
-
-  if (allowAlternative) {
-    return {
-      instrument,
-      allowed: true,
-      warnings: [
-        `Instrumentet er ikke et direkte design-treff for «${studyDesign}». Bruk krever eksplisitt metodisk begrunnelse.`,
-      ],
-      reason:
-        'Instrumentet er valgt som eksplisitt alternativ.',
-    };
-  }
-
-  return {
-    instrument,
-    allowed: false,
-    warnings: [
-      'Studiedesign og valgt instrument er metodisk inkompatible.',
-    ],
-    reason:
-      'Bytt instrument eller åpne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.',
-  };
+  if (!design) return { instrument, allowed: false, warnings: ['Studiedesign mangler.'], reason: 'Registrer studiedesign før appraisal-instrument velges.' };
+  const compatible = instrument.targetStudyDesign.some(target => {
+    const normalizedTarget = target.trim().toLowerCase();
+    return normalizedTarget === design || normalizedTarget.includes(design) || design.includes(normalizedTarget);
+  });
+  if (compatible) return { instrument, allowed: true, warnings: [], reason: 'Instrumentet er kompatibelt med registrert studiedesign.' };
+  if (allowAlternative) return { instrument, allowed: true, warnings: [`Instrumentet er ikke et direkte design-treff for «${studyDesign}». Bruk krever eksplisitt metodisk begrunnelse.`], reason: 'Instrumentet er valgt som eksplisitt alternativ.' };
+  return { instrument, allowed: false, warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'], reason: 'Bytt instrument eller åpne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.' };
 }
