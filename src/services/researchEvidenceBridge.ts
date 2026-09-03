@@ -116,8 +116,6 @@ export class ResearchEvidenceBridge {
       quote: candidate.extractedSnippet,
       source: candidate.verifiedByResearcher ? 'HUMAN_VERIFIED' : 'AI_CANDIDATE',
       verifiedByResearcher: candidate.verifiedByResearcher,
-      verifiedAt: candidate.verifiedByResearcher ? new Date().toISOString() : undefined,
-      verifiedBy: undefined,
       questionId: candidate.questionId,
       suggestedStatus: candidate.suggestedStatus,
       relevanceScore: candidate.relevanceScore,
