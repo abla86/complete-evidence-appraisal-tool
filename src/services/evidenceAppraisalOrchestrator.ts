@@ -1,13 +1,12 @@
 import {
   buildResearchAppraisalPayload,
-  includeStudyAndCreateAppraisal,
   type WorkflowState,
 } from './researchWorkflowService';
 import {
+  createAndAttachAppraisal,
   recordAppraisalResponse,
   finalizeAppraisal,
   validateAppraisal,
-  getAppraisalWorkflowRecord,
   type AppraisalWorkflowRecord,
 } from './appraisalWorkflowBridge';
 import type { AppraisalItemResponse, AppraisalSessionValidation } from './universalAppraisalService';
@@ -20,15 +19,20 @@ export interface EvidenceAppraisalContext {
 export class EvidenceAppraisalOrchestrator {
   public async start(workflow: WorkflowState, reviewerId: string): Promise<EvidenceAppraisalContext> {
     const payload = buildResearchAppraisalPayload(workflow);
-    const updatedWorkflow = includeStudyAndCreateAppraisal(workflow, {
-      reviewerId,
-      instrumentId: payload.instrumentId,
-    });
-    const createdSession = updatedWorkflow.appraisalSessions.at(-1);
-    if (!createdSession) throw new Error('Appraisal-sesjon ble ikke opprettet.');
-    const appraisal = getAppraisalWorkflowRecord(createdSession.id);
-    if (!appraisal) throw new Error(`Appraisal-workflow record mangler for session ${createdSession.id}.`);
-    return { workflow: updatedWorkflow, appraisal };
+    const attached = createAndAttachAppraisal(payload, reviewerId, (session) => ({
+      ...workflow,
+      screening: [
+        ...workflow.screening.filter(item => item.reviewerId !== reviewerId),
+        {
+          studyId: workflow.studyId,
+          reviewerId,
+          decision: 'INCLUDED' as const,
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+      appraisalSessions: [...workflow.appraisalSessions, session],
+    }));
+    return { workflow: attached.workflow, appraisal: attached.record };
   }
 
   public async saveResponse(context: EvidenceAppraisalContext, response: AppraisalItemResponse): Promise<EvidenceAppraisalContext> {
