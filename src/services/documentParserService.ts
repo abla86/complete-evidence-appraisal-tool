@@ -184,8 +184,7 @@ export class DocumentParserService {
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
       const loadingTask = pdfjs.getDocument({
         data: new Uint8Array(buffer),
-        disableWorker: true
-      });
+        });
       const pdf = await loadingTask.promise;
       const pages: string[] = [];
 
