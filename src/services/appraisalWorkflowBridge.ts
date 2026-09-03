@@ -85,10 +85,7 @@ function buildRecord(payload: ResearchAppraisalPayload, session: AppraisalSessio
   };
 }
 
-function findActiveSession(
-  payload: ResearchAppraisalPayload,
-  reviewerId: string,
-): AppraisalWorkflowRecord | undefined {
+function findActiveSession(payload: ResearchAppraisalPayload, reviewerId: string): AppraisalWorkflowRecord | undefined {
   const studyId = payload.studyId.trim();
   const instrumentId = payload.instrumentId.trim();
   const normalizedReviewerId = reviewerId.trim();
@@ -151,8 +148,10 @@ export async function createAndAttachAppraisal(
   const existing = findActiveSession(payload, reviewerId);
   if (existing) {
     const workflow = updateWorkflow(existing.session);
-    const syncedWorkflow = syncToResearchWorkflow(existing.session);
-    return { record: existing, workflow: syncedWorkflow ?? workflow };
+    const syncedWorkflow = researchWorkflowStore.get(existing.session.studyId)
+      ? syncToResearchWorkflow(existing.session)
+      : workflow;
+    return { record: existing, workflow: syncedWorkflow };
   }
 
   const session = createBlankAppraisalSession(
@@ -162,7 +161,11 @@ export async function createAndAttachAppraisal(
   );
   const record = buildRecord(payload, session);
   const workflow = updateWorkflow(session);
-  const syncedWorkflow = syncToResearchWorkflow(session);
+  const persistedWorkflow = researchWorkflowStore.get(session.studyId);
+  const syncedWorkflow = persistedWorkflow
+    ? syncToResearchWorkflow(session)
+    : workflow;
+
   appraisalWorkflowStore.save(record);
 
   await evidenceEventBus.emit('appraisal.session.created', {
@@ -172,12 +175,10 @@ export async function createAndAttachAppraisal(
     reviewerId: reviewerId.trim(),
   });
 
-  return { record, workflow: syncedWorkflow ?? workflow };
+  return { record, workflow: syncedWorkflow };
 }
 
-export function getAppraisalWorkflowRecord(
-  sessionId: string,
-): AppraisalWorkflowRecord | undefined {
+export function getAppraisalWorkflowRecord(sessionId: string): AppraisalWorkflowRecord | undefined {
   return appraisalWorkflowStore.get(sessionId);
 }
 
@@ -188,9 +189,7 @@ export async function recordAppraisalResponse(
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
   if (record.session.locked) throw new Error('Appraisal session is locked.');
-  if (!response || response.rationale === undefined) {
-    throw new Error('rationale is required.');
-  }
+  if (!response || response.rationale === undefined) throw new Error('rationale is required.');
 
   const session = upsertAppraisalResponse(record.session, {
     ...response,
@@ -211,18 +210,14 @@ export function validateAppraisal(sessionId: string): AppraisalSessionValidation
   return validateAppraisalSession(record.session);
 }
 
-export async function finalizeAppraisal(
-  sessionId: string,
-): Promise<AppraisalWorkflowRecord> {
+export async function finalizeAppraisal(sessionId: string): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
   if (record.session.locked) return record;
 
   const validation = validateAppraisalSession(record.session);
   if (!validation.valid) {
-    throw new Error(
-      `Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`,
-    );
+    throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
   }
 
   const session = lockAppraisalSession(record.session);
