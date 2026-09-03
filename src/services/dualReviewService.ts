@@ -73,3 +73,20 @@ export function resolveAppraisal(
     consensusResponses: { ...responses },
   };
 }
+
+/**
+ * Compatibility adapter for the universal dual-review UI.
+ * The canonical engine is calculateDisagreement + resolveAppraisal.
+ */
+export function resolveConflict(
+  appraisalId: string,
+  reviews: ReviewInstance[],
+  reviewer: string,
+  method: DualReviewConfig['arbitrationMethod'],
+): ResolvedAppraisal {
+  const comparison = calculateDisagreement(reviews);
+  const consensusResponses = reviews.length
+    ? { ...reviews[0].responses }
+    : {};
+  return resolveAppraisal(appraisalId, reviewer, comparison.items, method, consensusResponses);
+}
