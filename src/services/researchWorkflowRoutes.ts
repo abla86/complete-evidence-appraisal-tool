@@ -1,15 +1,16 @@
 import type { Request, Response } from 'express';
-import { ResearchEngineGateway } from './researchEngineGateway';
 import {
-  applyClassification,
-  buildVerifiedEvidencePayload,
-  createResearchWorkflow,
-  verifyClassification,
-  verifyEvidence,
-  type ResearchWorkflow,
-  assertAppraisalReady,
-} from './researchWorkflowCore';
+  createResearchWorkflowFromText,
+  getResearchEvidenceSummary,
+  buildResearchAppraisalPayload,
+  selectResearchInstrument,
+  updateResearchClassification,
+  verifyResearchClassification,
+  verifyResearchEvidence,
+  type WorkflowState,
+} from './researchWorkflowService';
 import { researchWorkflowStore } from './researchWorkflowStore';
+import { createAndAttachAppraisal } from './appraisalWorkflowBridge';
 import type { DocumentClassificationResult } from '../types';
 
 function sendError(res: Response, status: number, error: unknown) {
@@ -19,60 +20,59 @@ function sendError(res: Response, status: number, error: unknown) {
   });
 }
 
-function requireWorkflow(studyId: string): ResearchWorkflow {
-  const workflow = researchWorkflowStore.get(studyId);
-  if (!workflow) throw new Error(`Research workflow not found: ${studyId}`);
+function requireWorkflow(studyId: string): WorkflowState {
+  const normalizedStudyId = studyId.trim();
+  if (!normalizedStudyId) throw new Error('studyId is required.');
+
+  const workflow = researchWorkflowStore.get(normalizedStudyId);
+  if (!workflow) {
+    throw new Error(`Research workflow not found: ${normalizedStudyId}`);
+  }
+
   return workflow;
+}
+
+function save(workflow: WorkflowState): WorkflowState {
+  return researchWorkflowStore.save(workflow);
 }
 
 export function registerResearchWorkflowRoutes(app: {
   get: Function;
   post: Function;
-  delete?: Function;
 }): void {
   app.get('/api/research-workflows', (_req: Request, res: Response) => {
-    res.json({ success: true, workflows: researchWorkflowStore.list() });
+    return res.json({
+      success: true,
+      workflows: researchWorkflowStore.list(),
+    });
   });
 
-  app.post('/api/research-workflows', async (req: Request, res: Response) => {
+  app.post('/api/research-workflows', (req: Request, res: Response) => {
     try {
-      const { studyId, text, fileName } = req.body ?? {};
+      const text = req.body?.text;
+      const fileName =
+        typeof req.body?.fileName === 'string' &&
+        req.body.fileName.trim()
+          ? req.body.fileName
+          : 'document.txt';
+
       if (typeof text !== 'string' || !text.trim()) {
         return sendError(res, 400, 'text is required');
       }
 
-      const analysis = ResearchEngineGateway.analyzeText(
+      const workflow = createResearchWorkflowFromText(
         text,
-        typeof fileName === 'string' && fileName.trim() ? fileName : 'document.txt',
+        fileName,
+        req.body?.studyId,
       );
 
-      const document = {
-        id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        fileName: typeof fileName === 'string' && fileName.trim() ? fileName : 'document.txt',
-        fileType: 'txt' as const,
-        mimeType: 'text/plain',
-        extractedText: text,
-        wordCount: text.trim().split(/\s+/).length,
-        estimatedPages: Math.max(1, Math.ceil(text.trim().split(/\s+/).length / 500)),
-        metadata: {
-          title: typeof fileName === 'string' ? fileName.replace(/\.[^/.]+$/, '') : 'document',
-          authors: '',
-          year: new Date().getFullYear(),
-          journal: '',
-          doi: '',
-          abstract: '',
-          studyDesignDetected: '',
-          recommendedInstrumentId: '',
-        },
-        sections: [],
-        scanned: false,
-        ocrNeeded: false,
-        candidateEvidence: analysis.candidateEvidence,
-      };
+      const saved = save(workflow);
 
-      const workflow = createResearchWorkflow(document, studyId || document.id);
-      const saved = researchWorkflowStore.save(workflow);
-      return res.status(201).json({ success: true, workflow: saved });
+      return res.status(201).json({
+        success: true,
+        workflow: saved,
+        evidenceSummary: getResearchEvidenceSummary(saved),
+      });
     } catch (error) {
       return sendError(res, 400, error);
     }
@@ -80,7 +80,12 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.get('/api/research-workflows/:studyId', (req: Request, res: Response) => {
     try {
-      return res.json({ success: true, workflow: requireWorkflow(req.params.studyId) });
+      const workflow = requireWorkflow(req.params.studyId);
+      return res.json({
+        success: true,
+        workflow,
+        evidenceSummary: getResearchEvidenceSummary(workflow),
+      });
     } catch (error) {
       return sendError(res, 404, error);
     }
@@ -88,13 +93,22 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.post('/api/research-workflows/:studyId/classification', (req: Request, res: Response) => {
     try {
+      const classification =
+        req.body?.classification as DocumentClassificationResult | undefined;
+
+      if (!classification) {
+        return sendError(res, 400, 'classification is required');
+      }
+
       const workflow = requireWorkflow(req.params.studyId);
-      const classification = req.body?.classification as DocumentClassificationResult;
-      if (!classification) return sendError(res, 400, 'classification is required');
-      return res.json({
-        success: true,
-        workflow: researchWorkflowStore.save(applyClassification(workflow, classification)),
-      });
+      const updated = save(
+        updateResearchClassification(
+          workflow,
+          classification,
+        ),
+      );
+
+      return res.json({ success: true, workflow: updated });
     } catch (error) {
       return sendError(res, 400, error);
     }
@@ -102,15 +116,21 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.post('/api/research-workflows/:studyId/classification/verify', (req: Request, res: Response) => {
     try {
+      const reviewerId = String(req.body?.reviewerId ?? '').trim();
+      if (!reviewerId) {
+        return sendError(res, 400, 'reviewerId is required');
+      }
+
       const workflow = requireWorkflow(req.params.studyId);
-      const reviewerId = String(req.body?.reviewerId || '').trim();
-      if (!reviewerId) return sendError(res, 400, 'reviewerId is required');
-      const updated = verifyClassification(
-        workflow,
-        reviewerId,
-        req.body?.approved === true,
+      const updated = save(
+        verifyResearchClassification(
+          workflow,
+          reviewerId,
+          req.body?.approved === true,
+        ),
       );
-      return res.json({ success: true, workflow: researchWorkflowStore.save(updated) });
+
+      return res.json({ success: true, workflow: updated });
     } catch (error) {
       return sendError(res, 400, error);
     }
@@ -118,16 +138,47 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.post('/api/research-workflows/:studyId/evidence/:evidenceId/verify', (req: Request, res: Response) => {
     try {
+      const reviewerId = String(req.body?.reviewerId ?? '').trim();
+      if (!reviewerId) {
+        return sendError(res, 400, 'reviewerId is required');
+      }
+
       const workflow = requireWorkflow(req.params.studyId);
-      const reviewerId = String(req.body?.reviewerId || '').trim();
-      if (!reviewerId) return sendError(res, 400, 'reviewerId is required');
-      const updated = verifyEvidence(
-        workflow,
-        req.params.evidenceId,
-        reviewerId,
-        req.body?.approved === true,
+      const updated = save(
+        verifyResearchEvidence(
+          workflow,
+          req.params.evidenceId,
+          req.body?.approved === true,
+          reviewerId,
+        ),
       );
-      return res.json({ success: true, workflow: researchWorkflowStore.save(updated) });
+
+      return res.json({
+        success: true,
+        workflow: updated,
+        evidenceSummary: getResearchEvidenceSummary(updated),
+      });
+    } catch (error) {
+      return sendError(res, 400, error);
+    }
+  });
+
+  app.post('/api/research-workflows/:studyId/instrument', (req: Request, res: Response) => {
+    try {
+      const instrumentId = String(req.body?.instrumentId ?? '').trim();
+      if (!instrumentId) {
+        return sendError(res, 400, 'instrumentId is required');
+      }
+
+      const workflow = requireWorkflow(req.params.studyId);
+      const updated = save(
+        selectResearchInstrument(
+          workflow,
+          instrumentId,
+        ),
+      );
+
+      return res.json({ success: true, workflow: updated });
     } catch (error) {
       return sendError(res, 400, error);
     }
@@ -136,30 +187,103 @@ export function registerResearchWorkflowRoutes(app: {
   app.post('/api/research-workflows/:studyId/appraisal/ready', (req: Request, res: Response) => {
     try {
       const workflow = requireWorkflow(req.params.studyId);
-      assertAppraisalReady(workflow);
+      const payload = buildResearchAppraisalPayload(workflow);
+
       return res.json({
         success: true,
         ready: true,
-        instrumentId: workflow.selectedInstrumentId,
-        evidence: buildVerifiedEvidencePayload(workflow),
+        instrumentId: payload.instrumentId,
+        evidence: payload.evidence,
       });
     } catch (error) {
       return sendError(res, 409, error);
     }
   });
 
-  app.post('/api/research-workflows/:studyId/instrument', (req: Request, res: Response) => {
+  app.post('/api/research-workflows/:studyId/appraisal/start', (req: Request, res: Response) => {
     try {
+      const reviewerId = String(req.body?.reviewerId ?? '').trim();
+      if (!reviewerId) {
+        return sendError(res, 400, 'reviewerId is required');
+      }
+
       const workflow = requireWorkflow(req.params.studyId);
-      const instrumentId = String(req.body?.instrumentId || '').trim();
-      if (!instrumentId) return sendError(res, 400, 'instrumentId is required');
-      const updated: ResearchWorkflow = {
-        ...workflow,
-        selectedInstrumentId: instrumentId,
-      };
-      return res.json({ success: true, workflow: researchWorkflowStore.save(updated) });
+      const payload = buildResearchAppraisalPayload(workflow);
+      const requestedInstrument = String(req.body?.instrumentId ?? '').trim();
+
+      if (
+        requestedInstrument &&
+        requestedInstrument !== payload.instrumentId
+      ) {
+        return sendError(
+          res,
+          409,
+          'instrumentId does not match the selected research workflow instrument',
+        );
+      }
+
+      const attached = createAndAttachAppraisal(
+        payload,
+        reviewerId,
+        session => {
+          const current = requireWorkflow(req.params.studyId);
+          const now = new Date().toISOString();
+
+          const screening = current.screening.some(
+            item =>
+              item.reviewerId === reviewerId,
+          )
+            ? current.screening.map(item =>
+                item.reviewerId === reviewerId
+                  ? {
+                      ...item,
+                      decision: 'INCLUDED' as const,
+                      updatedAt: now,
+                    }
+                  : item,
+              )
+            : [
+                ...current.screening,
+                {
+                  studyId: current.studyId,
+                  reviewerId,
+                  decision: 'INCLUDED' as const,
+                  updatedAt: now,
+                },
+              ];
+
+          return save({
+            ...current,
+            screening,
+            appraisalSessions:
+              current.appraisalSessions.some(
+                item => item.id === session.id,
+              )
+                ? current.appraisalSessions.map(
+                    item =>
+                      item.id === session.id
+                        ? session
+                        : item,
+                  )
+                : [
+                    ...current.appraisalSessions,
+                    session,
+                  ],
+          });
+        },
+      );
+
+      return res.status(201).json({
+        success: true,
+        workflow: attached.workflow,
+        appraisal: attached.record.session,
+        evidenceSummary:
+          getResearchEvidenceSummary(
+            attached.workflow,
+          ),
+      });
     } catch (error) {
-      return sendError(res, 400, error);
+      return sendError(res, 409, error);
     }
   });
 }
