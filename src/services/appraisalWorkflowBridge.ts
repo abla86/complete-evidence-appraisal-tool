@@ -23,6 +23,7 @@ export interface AppraisalWorkflowStore {
   get(sessionId: string): AppraisalWorkflowRecord | undefined;
   save(record: AppraisalWorkflowRecord): AppraisalWorkflowRecord;
   listByStudy(studyId: string): AppraisalWorkflowRecord[];
+  delete(sessionId: string): boolean;
 }
 
 export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
@@ -40,6 +41,10 @@ export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
   public listByStudy(studyId: string): AppraisalWorkflowRecord[] {
     return [...this.records.values()].filter(item => item.researchStudyId === studyId);
   }
+
+  public delete(sessionId: string): boolean {
+    return this.records.delete(sessionId);
+  }
 }
 
 export const appraisalWorkflowStore = new InMemoryAppraisalWorkflowStore();
@@ -50,8 +55,8 @@ function assertPayload(payload: ResearchAppraisalPayload, reviewerId: string): v
   if (!payload.instrumentId.trim()) throw new Error('instrumentId is required.');
   if (!payload.document.id.trim()) throw new Error('document.id is required.');
   if (payload.evidence.length === 0) throw new Error('Appraisal payload contains no human-verified evidence.');
-  if (payload.evidence.some(item => item.source !== 'HUMAN_VERIFIED' || !item.verifiedByResearcher)) {
-    throw new Error('Appraisal payload contains unverified evidence.');
+  if (payload.evidence.some(item => item.source !== 'HUMAN_VERIFIED' || !item.verifiedByResearcher || !item.verifiedBy)) {
+    throw new Error('Appraisal payload contains evidence without complete human verification provenance.');
   }
 }
 
@@ -70,9 +75,10 @@ function findActiveSession(payload: ResearchAppraisalPayload, reviewerId: string
     .find(item => item.instrumentId === payload.instrumentId && item.session.reviewerId === reviewerId && !item.session.locked);
 }
 
-function syncToResearchWorkflow(session: AppraisalSession): void {
+function syncToResearchWorkflow(session: AppraisalSession): WorkflowState {
   const workflow = researchWorkflowStore.get(session.studyId);
-  if (workflow) researchWorkflowStore.updateAppraisalSession(session.studyId, session);
+  if (!workflow) throw new Error(`Research workflow not found: ${session.studyId}`);
+  return researchWorkflowStore.updateAppraisalSession(session.studyId, session);
 }
 
 export async function createAppraisalFromResearch(payload: ResearchAppraisalPayload, reviewerId: string): Promise<AppraisalWorkflowRecord> {
@@ -82,15 +88,16 @@ export async function createAppraisalFromResearch(payload: ResearchAppraisalPayl
   if (existing) return existing;
 
   const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
-  const saved = appraisalWorkflowStore.save(buildRecord(payload, session));
+  const record = buildRecord(payload, session);
   syncToResearchWorkflow(session);
+  appraisalWorkflowStore.save(record);
   await evidenceEventBus.emit('appraisal.session.created', {
     studyId: payload.studyId,
     sessionId: session.id,
     instrumentId: payload.instrumentId,
     reviewerId,
   });
-  return saved;
+  return record;
 }
 
 export function createAndAttachAppraisal(
@@ -110,8 +117,8 @@ export function createAndAttachAppraisal(
   const session = createBlankAppraisalSession(payload.studyId, payload.instrumentId, reviewerId);
   const record = buildRecord(payload, session);
   const workflow = updateWorkflow(session);
-  appraisalWorkflowStore.save(record);
   syncToResearchWorkflow(session);
+  appraisalWorkflowStore.save(record);
   void evidenceEventBus.emit('appraisal.session.created', {
     studyId: payload.studyId,
     sessionId: session.id,
@@ -134,9 +141,8 @@ export async function recordAppraisalResponse(sessionId: string, response: Appra
     ...response,
     rationale: String(response.rationale).trim(),
   });
-  const saved = appraisalWorkflowStore.save({ ...record, session });
   syncToResearchWorkflow(session);
-  return saved;
+  return appraisalWorkflowStore.save({ ...record, session });
 }
 
 export function validateAppraisal(sessionId: string): AppraisalSessionValidation {
@@ -152,8 +158,8 @@ export async function finalizeAppraisal(sessionId: string): Promise<AppraisalWor
   const validation = validateAppraisalSession(record.session);
   if (!validation.valid) throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
   const session = lockAppraisalSession(record.session);
-  const saved = appraisalWorkflowStore.save({ ...record, session });
   syncToResearchWorkflow(session);
+  const saved = appraisalWorkflowStore.save({ ...record, session });
   await evidenceEventBus.emit('appraisal.session.finalized', {
     studyId: record.researchStudyId,
     sessionId: session.id,
