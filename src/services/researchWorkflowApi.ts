@@ -85,7 +85,8 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
 
   app.post('/api/research-workflow/:studyId/evidence/:evidenceId/verify', (req: Request, res: Response) => {
     try {
-      const reviewerId = String(req.body?.reviewerId || '').trim() || 'researcher';
+      const reviewerId = String(req.body?.reviewerId || '').trim();
+      if (!reviewerId) return res.status(400).json({ success: false, error: 'reviewerId is required' });
       const workflow = save(verifyResearchEvidence(requireWorkflow(req.params.studyId), req.params.evidenceId, req.body?.verified === true, reviewerId));
       return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) {
@@ -120,7 +121,9 @@ export function registerResearchWorkflowApi(app: { get: Function; post: Function
           screening: current.screening.some(item => item.reviewerId === reviewerId)
             ? current.screening.map(item => item.reviewerId === reviewerId ? { ...item, decision: 'INCLUDED' as const, updatedAt: new Date().toISOString() } : item)
             : [...current.screening, { studyId: current.studyId, reviewerId, decision: 'INCLUDED', updatedAt: new Date().toISOString() }],
-          appraisalSessions: [...current.appraisalSessions, session],
+          appraisalSessions: current.appraisalSessions.some(item => item.id === session.id)
+            ? current.appraisalSessions.map(item => item.id === session.id ? session : item)
+            : [...current.appraisalSessions, session],
         });
       });
 
