@@ -599,36 +599,42 @@ export const DUAL_REVIEW_SAMPLE: DualReviewComparison = {
 
 export const COMPARISON_DIMENSIONS: ComparisonDimension[] = [
   {
+    id: 'comparison-research-design',
     dimension: 'Forskningsdesign',
     studyA: 'Grounded theory (Strauss & Corbin / Charmaz)',
     studyB: 'Kvalitativ deskriptiv studie / Framework analysis',
     methodologicalNote: 'Begge er induktivt orienterte, men Grounded Theory sikter mot begreps-/modellutvikling mens Framework analysis sikter mot policy- og intervensjonsforståelse.'
   },
   {
+    id: 'comparison-data-collection',
     dimension: 'Datainnsamling',
     studyA: '10 semistrukturerte individuelle intervjuer',
     studyB: 'Dybdeintervjuer (IDIs) og fokusgruppeintervjuer (FGDs)',
     methodologicalNote: 'Framework-studien triangulerer mellom individuelle intervjuer og gruppediskusjoner for å fange både personlige og sosiale normer.'
   },
   {
+    id: 'comparison-sample',
     dimension: 'Informanter / Utvalg',
     studyA: '10 allmennleger (én profesjonsgruppe)',
     studyB: 'Mødre, familiemedlemmer og frontlinjehelsearbeidere',
     methodologicalNote: 'Studie A representerer én part i et tverretatlig samarbeid, mens Studie B fanger et bredt økosystem rundt intervensjonen.'
   },
   {
+    id: 'comparison-analysis',
     dimension: 'Analysemetode',
     studyA: 'Grounded theory koding og konstant komparativ analyse',
     studyB: 'Framework analysis med matriser og tematiske rammer',
     methodologicalNote: 'Begge metodene er stringente og anerkjente kvalitative analyseverktøy.'
   },
   {
+    id: 'comparison-jbi-assessment',
     dimension: 'JBI Samlet Vurdering (2017)',
     studyA: '9 Ja, 1 Uklart, 0 Nei (Inkluder)',
     studyB: '8 Ja, 2 Uklart, 0 Nei (Inkluder)',
     methodologicalNote: 'Begge studiene holder høy metodisk kvalitet og skal inkluderes i kunnskapsoppsummeringen.'
   },
   {
+    id: 'comparison-knowledge-scope',
     dimension: 'Kunnskapens rekkevidde (Kausalitet vs. Opplevelse)',
     studyA: 'Gir dybdeinnsikt i allmennlegers opplevelser og barrierer. Kan ikke måle faktisk tverretatlig samarbeidskvalitet.',
     studyB: 'Beskriver hvordan helsetiltak oppleves og brukes i en lokal kontekst. Kan IKKE alene etablere en kausal effekt av tiltaket.',
