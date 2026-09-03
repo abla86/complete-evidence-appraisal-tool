@@ -57,9 +57,10 @@ export function upsertAppraisalSession(session: AppraisalSession): AppraisalSess
   return next;
 }
 
-export function getLatestAppraisalSession(studyId: string, instrumentId: string): AppraisalSession | null {
+export function getLatestAppraisalSession(studyId: string, instrumentId: string, reviewerId?: string): AppraisalSession | null {
+  const normalizedReviewer = reviewerId?.trim();
   return read()
-    .filter(item => item.studyId === studyId && item.instrumentId === instrumentId)
+    .filter(item => item.studyId === studyId && item.instrumentId === instrumentId && (!normalizedReviewer || item.reviewerId === normalizedReviewer))
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0] ?? null;
 }
 
@@ -77,7 +78,9 @@ export function getQualityAssessmentsForSession(sessionId: string): StoredQualit
 
 export function upsertQualityAssessment(item: StoredQualityAssessment): StoredQualityAssessment[] {
   if (!item.id.trim()) throw new Error('Quality assessment ID is required.');
+  if (!item.appraisalSessionId.trim()) throw new Error('Quality assessment appraisalSessionId is required.');
   if (!item.evidenceId.trim()) throw new Error('Quality assessment evidenceId is required.');
+  if (!item.reviewerId.trim()) throw new Error('Quality assessment reviewerId is required.');
 
   const items = readQuality();
   const index = items.findIndex(existing => existing.id === item.id);
