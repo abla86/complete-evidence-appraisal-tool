@@ -89,7 +89,7 @@ export function createResearchWorkflowFromText(text: string, fileName = 'documen
   const words = text.trim().split(/\s+/).filter(Boolean);
   const document: ResearchEngineDocument = {
     id: createDocumentId(`${normalizedFileName}:${text.length}:${text.slice(0, 1000)}`), fileName: normalizedFileName, fileType: 'txt', mimeType: 'text/plain', extractedText: text, wordCount: words.length, estimatedPages: Math.max(1, Math.ceil(words.length / 500)),
-    metadata: { title: normalizedFileName.replace(/\.[^/.]+$/, ''), authors: '', year: new Date().getFullYear(), journal: '', doi: '', abstract: '', studyDesignDetected: '', recommendedInstrumentId: '' },
+    metadata: { title: normalizedFileName.replace(/\.[^/.]+$/, ''), authors: '', year: undefined, journal: '', doi: '', abstract: '', studyDesignDetected: '', recommendedInstrumentId: '' },
     sections: [], scanned: false, ocrNeeded: false, candidateEvidence: analysis.candidateEvidence ?? [],
   };
   return createResearchWorkflow(document, studyId ?? document.id, analysis);
