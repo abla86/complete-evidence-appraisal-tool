@@ -6,3 +6,14 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Generated local verification output
+FINAL-build.txt
+FINAL-tests.txt
+FINAL-typescript.txt
+build-output.txt
+test-output.txt
+typescript-errors.txt
+
+# Temporary local files
+t 
