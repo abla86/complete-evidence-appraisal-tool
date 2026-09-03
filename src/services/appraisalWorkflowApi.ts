@@ -12,7 +12,7 @@ import {
 } from './appraisalWorkflowBridge';
 import { researchWorkflowStore } from './researchWorkflowStore';
 import { getQualityAssessmentsForSession } from './qualityAssessmentService';
-import type { AppraisalItemResponse } from './universalAppraisalService';
+import type { AppraisalItemResponse, AppraisalSession } from './universalAppraisalService';
 
 function getWorkflowOrNull(studyId: string) {
   return researchWorkflowStore.get(studyId);
@@ -76,6 +76,27 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
     const response = sessionResponse(req.params.sessionId);
     if (!response) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
     return res.json({ success: true, ...response });
+  });
+
+  app.post('/api/appraisal/:sessionId/sync', async (req: Request, res: Response) => {
+    try {
+      const record = appraisalWorkflowStore.get(req.params.sessionId);
+      if (!record) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
+      const incoming = req.body?.session as AppraisalSession | undefined;
+      if (!incoming || incoming.id !== record.session.id) return res.status(400).json({ success: false, error: 'A valid matching session is required' });
+      if (incoming.studyId !== record.session.studyId || incoming.instrumentId !== record.session.instrumentId || incoming.reviewerId !== record.session.reviewerId) {
+        return res.status(409).json({ success: false, error: 'Session identity cannot be changed' });
+      }
+      if (record.session.locked) return res.status(409).json({ success: false, error: 'Appraisal session is locked' });
+      if (!Array.isArray(incoming.responses)) return res.status(400).json({ success: false, error: 'responses must be an array' });
+
+      let updated = record.session;
+      for (const response of incoming.responses) updated = (await recordAppraisalResponse(updated.id, response)).session;
+      const response = sessionResponse(updated.id);
+      return res.json({ success: true, ...(response ?? { session: updated }) });
+    } catch (error) {
+      return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not sync appraisal session' });
+    }
   });
 
   app.post('/api/appraisal/:sessionId/response', async (req: Request, res: Response) => {
