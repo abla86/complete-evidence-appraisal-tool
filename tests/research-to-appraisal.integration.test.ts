@@ -8,10 +8,12 @@ import {
   verifyResearchClassification,
   verifyResearchEvidence,
   buildResearchAppraisalPayload,
+  getVerifiedResearchEvidence,
 } from '../src/services/researchWorkflowService';
 import { evidenceAppraisalOrchestrator } from '../src/services/evidenceAppraisalOrchestrator';
 import { getAppraisalWorkflowRecord } from '../src/services/appraisalWorkflowBridge';
 import { validateAppraisalSession } from '../src/services/universalAppraisalService';
+import { researchWorkflowStore } from '../src/services/researchWorkflowStore';
 
 function classification(instrumentId: string, studyDesign: string) {
   return {
@@ -76,21 +78,25 @@ test('research evidence must be human verified before appraisal payload', () => 
   assert.equal(payload.evidence[0].source, 'HUMAN_VERIFIED');
 });
 
-test('rejected evidence is never included in appraisal payload', () => {
+test('rejected evidence is never included in verified evidence', () => {
   const verifiedClassification = readyWorkflow('integration-study-reject');
   const firstEvidence = verifiedClassification.research?.evidenceBundle.evidence[0];
   assert.ok(firstEvidence);
 
   const rejected = verifyResearchEvidence(verifiedClassification, firstEvidence.id, false, 'reviewer-1');
   assert.equal(rejected.research?.evidenceBundle.evidence[0].source, 'REJECTED');
-  assert.deepEqual(buildResearchAppraisalPayload(rejected).evidence, []);
+  assert.deepEqual(getVerifiedResearchEvidence(rejected), []);
+  assert.throws(() => buildResearchAppraisalPayload(rejected));
 });
 
 test('orchestrator creates exactly one shared appraisal session', async () => {
-  const verifiedClassification = readyWorkflow('integration-orchestrator');
+  const studyId = 'integration-orchestrator';
+  const verifiedClassification = readyWorkflow(studyId);
   const firstEvidence = verifiedClassification.research?.evidenceBundle.evidence[0];
   assert.ok(firstEvidence);
   const verifiedWorkflow = verifyResearchEvidence(verifiedClassification, firstEvidence.id, true, 'reviewer-1');
+
+  researchWorkflowStore.save(verifiedWorkflow);
 
   const context = await evidenceAppraisalOrchestrator.start(verifiedWorkflow, 'reviewer-1');
   assert.equal(context.workflow.appraisalSessions.length, 1);
