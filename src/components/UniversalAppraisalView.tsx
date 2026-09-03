@@ -31,7 +31,7 @@ async function saveCanonicalSession(session: AppraisalSession): Promise<Appraisa
 export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId = 'current-user', onSaved }) => {
   const [instrumentId, setInstrumentId] = useState(initialInstrumentId);
   const [session, setSession] = useState<AppraisalSession>(() => {
-    const existing = getLatestAppraisalSession(studyId, initialInstrumentId);
+    const existing = getLatestAppraisalSession(studyId, initialInstrumentId, reviewerId);
     return existing ?? createBlankAppraisalSession(studyId, initialInstrumentId, reviewerId);
   });
   const [notice, setNotice] = useState('');
@@ -44,7 +44,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     setNotice(decision.warnings.join(' ') || decision.reason);
     if (!decision.allowed) return;
     setInstrumentId(id);
-    const existing = getLatestAppraisalSession(studyId, id);
+    const existing = getLatestAppraisalSession(studyId, id, reviewerId);
     setSession(existing ?? createBlankAppraisalSession(studyId, id, reviewerId));
   };
 
@@ -156,7 +156,9 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
         {!validation.valid && <div className="text-xs text-amber-800">{validation.issues.join(' ')}</div>}
       </aside>
 
-      {session.locked && instrument.id !== 'jbi-qualitative-2017' && <QualityAssessmentPanel session={session} evidenceId={studyId} reviewerId={reviewerId} />}
+      {session.locked && instrument.id !== 'jbi-qualitative-2017' && session.responses.length > 0 && (
+        <QualityAssessmentPanel session={session} evidenceId={String(session.responses[0]?.evidence?.sourceId ?? '')} reviewerId={reviewerId} />
+      )}
     </section>
   );
 };
