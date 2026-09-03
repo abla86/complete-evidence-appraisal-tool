@@ -1,6 +1,6 @@
 /**
  * Compatibility facade. The canonical workflow implementation lives in
- * researchWorkflowService.ts. No workflow logic belongs in this file.
+ * researchWorkflowService.ts. Appraisal creation is owned by appraisalWorkflowBridge.ts.
  */
 export {
   createResearchWorkflow,
@@ -12,7 +12,6 @@ export {
   verifyAllCandidateEvidence,
   selectResearchInstrument,
   assertReadyForAppraisal,
-  includeStudyAndCreateAppraisal,
   buildResearchAppraisalPayload,
   getVerifiedResearchEvidence,
   getResearchEvidenceSummary,
