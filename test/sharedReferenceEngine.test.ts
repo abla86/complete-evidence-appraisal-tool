@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createApa7JournalReference, createNorwegianLawReference } from '../src/services/sharedReferenceEngine.ts';
+import { createReferenceRecord, markReferenceVerified } from '../src/services/referenceHubService.ts';
 
 test('shared APA adapter produces a draft but never a false verification', () => {
   const result = createApa7JournalReference({
@@ -36,16 +37,26 @@ test('shared Norwegian law adapter keeps legal source distinct', () => {
 });
 
 test('explicit verification is required before status can become VALIDATED', () => {
-  const result = createApa7JournalReference({
+  const draft = createReferenceRecord({
+    id: 'reference-verification-test',
+    kind: 'JOURNAL_ARTICLE',
     authors: 'Hansen, K.',
     year: 2023,
     title: 'Effekt av tiltak X',
     journal: 'Norsk Tidsskrift for Forskning',
     doi: '10.1000/abc.123',
-    verifiedBy: 'researcher@example.invalid',
-    verifiedAt: '2026-09-02T18:00:00.000Z'
+    importedFrom: ['MANUAL'],
   });
 
-  assert.equal(result.status, 'VALIDATED');
-  assert.equal(result.verified, true);
+  assert.notEqual(draft.verification, 'VALIDATED');
+
+  const verified = markReferenceVerified(
+    draft,
+    'researcher@example.invalid',
+    '2026-09-02T18:00:00.000Z',
+  );
+
+  assert.equal(verified.verification, 'VALIDATED');
+  assert.equal(verified.verifiedBy, 'researcher@example.invalid');
+  assert.equal(verified.verifiedAt, '2026-09-02T18:00:00.000Z');
 });
