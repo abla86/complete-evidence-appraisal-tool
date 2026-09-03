@@ -1,32 +1,25 @@
 import type { AppraisalSession } from '../services/universalAppraisalService';
-
-const KEY = 'evidence-appraisal-sessions-v1';
+import {
+  loadAppraisalSessions as loadCanonicalAppraisalSessions,
+  upsertAppraisalSession as upsertCanonicalAppraisalSession,
+  getLatestAppraisalSession,
+  getAppraisalSessionById,
+} from '../services/appraisalSessionStore';
 
 export function loadAppraisalSessions(): AppraisalSession[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed as AppraisalSession[] : [];
-  } catch {
-    return [];
-  }
+  return loadCanonicalAppraisalSessions();
 }
 
 export function saveAppraisalSessions(sessions: AppraisalSession[]): void {
-  localStorage.setItem(KEY, JSON.stringify(sessions));
+  for (const session of sessions) upsertCanonicalAppraisalSession(session);
 }
 
 export function upsertAppraisalSession(session: AppraisalSession): AppraisalSession[] {
-  const current = loadAppraisalSessions();
-  const index = current.findIndex(item => item.id === session.id);
-  const next = [...current];
-  if (index >= 0) next[index] = session;
-  else next.push(session);
-  saveAppraisalSessions(next);
-  return next;
+  return upsertCanonicalAppraisalSession(session);
 }
 
 export function getAppraisalSessionsForStudy(studyId: string): AppraisalSession[] {
-  return loadAppraisalSessions().filter(item => item.studyId === studyId);
+  return loadCanonicalAppraisalSessions().filter(item => item.studyId === studyId);
 }
+
+export { getLatestAppraisalSession, getAppraisalSessionById };
