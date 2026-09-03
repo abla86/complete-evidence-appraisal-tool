@@ -47,43 +47,29 @@ export class ResearchEvidenceBridge {
     studyId = document.id,
   ): ResearchToAppraisalBundle {
     const normalizedStudyId = studyId.trim();
-
-    if (!normalizedStudyId) {
-      throw new Error('studyId is required.');
-    }
+    if (!normalizedStudyId) throw new Error('studyId is required.');
 
     const candidates = document.candidateEvidence ?? [];
-
     const evidence = candidates.map((candidate, index) =>
-      this.mapCandidate(
-        document,
-        normalizedStudyId,
-        candidate,
-        index,
-      ),
+      this.mapCandidate(document, normalizedStudyId, candidate, index),
     );
 
     const recommendedInstrument =
       classification?.recommendedInstrumentId?.trim() ??
       document.metadata.recommendedInstrumentId?.trim() ??
       '';
-
-    const classificationApproved =
-      classification?.humanDecision?.status === 'APPROVED';
+    const classificationApproved = classification?.humanDecision?.status === 'APPROVED';
 
     return {
       contractVersion: '1.0.0',
       document,
       classification,
       evidence,
-      readyForAppraisal:
-        classificationApproved &&
-        Boolean(recommendedInstrument),
+      readyForAppraisal: classificationApproved && Boolean(recommendedInstrument),
       gating: {
         classificationRequired: true,
         humanVerificationRequired: true,
-        instrumentRecommendation:
-          recommendedInstrument,
+        instrumentRecommendation: recommendedInstrument,
       },
     };
   }
@@ -96,56 +82,31 @@ export class ResearchEvidenceBridge {
   ): ResearchToAppraisalBundle {
     const normalizedEvidenceId = evidenceId.trim();
     const normalizedReviewerId = reviewerId.trim();
-
-    if (!normalizedEvidenceId) {
-      throw new Error('Evidence ID is required.');
-    }
-
-    if (!normalizedReviewerId) {
-      throw new Error('Reviewer ID is required.');
-    }
+    if (!normalizedEvidenceId) throw new Error('Evidence ID is required.');
+    if (!normalizedReviewerId) throw new Error('Reviewer ID is required.');
 
     let found = false;
     const now = new Date().toISOString();
-
     const evidence = bundle.evidence.map(item => {
-      if (item.id !== normalizedEvidenceId) {
-        return item;
-      }
-
+      if (item.id !== normalizedEvidenceId) return item;
       found = true;
-
       return {
         ...item,
-        source: verified
-          ? ('HUMAN_VERIFIED' as const)
-          : ('REJECTED' as const),
+        source: verified ? ('HUMAN_VERIFIED' as const) : ('REJECTED' as const),
         verifiedByResearcher: verified,
         verifiedAt: now,
         verifiedBy: normalizedReviewerId,
       };
     });
-
-    if (!found) {
-      throw new Error(
-        `Evidence finnes ikke: ${normalizedEvidenceId}`,
-      );
-    }
-
-    return {
-      ...bundle,
-      evidence,
-    };
+    if (!found) throw new Error(`Evidence finnes ikke: ${normalizedEvidenceId}`);
+    return { ...bundle, evidence };
   }
 
   public static toAppraisalLocation(
     location: CandidateEvidence['suggestedLocation'],
   ): EvidenceLocation {
     return {
-      page:
-        location.page === undefined
-          ? undefined
-          : String(location.page),
+      page: location.page === undefined ? undefined : String(location.page),
       section: location.section,
       table: location.table,
       figure: location.figure,
@@ -159,18 +120,13 @@ export class ResearchEvidenceBridge {
     index: number,
   ): ResearchEvidenceRecord {
     const humanVerified = candidate.verifiedByResearcher === true;
-
     return {
       id: `research-evidence-${document.id}-${index + 1}`,
       studyId,
       documentId: document.id,
-      location: this.toAppraisalLocation(
-        candidate.suggestedLocation,
-      ),
+      location: this.toAppraisalLocation(candidate.suggestedLocation),
       quote: candidate.extractedSnippet,
-      source: humanVerified
-        ? 'HUMAN_VERIFIED'
-        : 'AI_CANDIDATE',
+      source: humanVerified ? 'HUMAN_VERIFIED' : 'AI_CANDIDATE',
       verifiedByResearcher: humanVerified,
       questionId: candidate.questionId,
       suggestedStatus: candidate.suggestedStatus,
