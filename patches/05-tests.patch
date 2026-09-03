@@ -1,0 +1,2 @@
+# Test contract is already explicit in the repository: rejected evidence must not build an appraisal payload; human verification is required before appraisal.
+# The integration tests at tests/research-to-appraisal.integration.test.ts and tests/integration-contracts.test.ts encode that contract.
