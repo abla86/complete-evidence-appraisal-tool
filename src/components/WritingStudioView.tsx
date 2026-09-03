@@ -7,7 +7,7 @@ interface Props { references: ReferenceRecord[]; }
 const EMPTY_DOCUMENT: AcademicDocument = { id: 'new-document', title: 'Ny akademisk tekst', level: 'MASTER', body: '', claimIds: [], updatedAt: new Date().toISOString() };
 
 export const WritingStudioView: React.FC<Props> = ({ references }) => {
-  const [document, setDocument] = useState<AcademicDocument>(EMPTY_DOCUMENT);
+  const [academicDocument, setAcademicDocument] = useState<AcademicDocument>(EMPTY_DOCUMENT);
   const [claims, setClaims] = useState<AcademicClaim[]>([]);
   const [evidence, setEvidence] = useState<EvidenceExtraction[]>([]);
   const [style, setStyle] = useState<CitationStyle>('APA7');
@@ -22,7 +22,7 @@ export const WritingStudioView: React.FC<Props> = ({ references }) => {
     const now = new Date().toISOString();
     const claim: AcademicClaim = { id: crypto.randomUUID(), text: text.trim(), supportingEvidenceIds: [], contradictoryEvidenceIds: [], status: 'UNVERIFIED', createdAt: now, updatedAt: now, authorId: 'current-user' };
     setClaims(prev => [...prev, claim]);
-    setDocument(prev => ({ ...prev, claimIds: [...prev.claimIds, claim.id], updatedAt: now }));
+    setAcademicDocument(prev => ({ ...prev, claimIds: [...prev.claimIds, claim.id], updatedAt: now }));
   };
 
   const addEvidence = () => {
@@ -63,20 +63,20 @@ export const WritingStudioView: React.FC<Props> = ({ references }) => {
     const reference = references.find(r => r.id === selectedReferenceId);
     if (!reference) { setMessage('Velg en kilde.'); return; }
     const citation = buildCitation({ id: reference.id, ...reference }, style);
-    setDocument(prev => ({ ...prev, body: `${prev.body}${prev.body ? '\n\n' : ''}${citation.inline}`, updatedAt: new Date().toISOString() }));
+    setAcademicDocument(prev => ({ ...prev, body: `${prev.body}${prev.body ? '\n\n' : ''}${citation.inline}`, updatedAt: new Date().toISOString() }));
     setMessage(`${style}-sitat satt inn.`);
   };
 
   const exportDocument = () => {
     if (!integrity.canExport) { setMessage('Eksport blokkert: rett integritetsfeil først.'); return; }
-    const blob = new Blob([document.body], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${document.title.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase() || 'academic-document'}.md`; a.click(); URL.revokeObjectURL(url);
+    const blob = new Blob([academicDocument.body], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob); const a = academicDocument.createElement('a'); a.href = url; a.download = `${academicDocument.title.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase() || 'academic-document'}.md`; a.click(); URL.revokeObjectURL(url);
   };
 
   return <section className="space-y-5 pb-16">
-    <header className="bg-white border border-slate-200 rounded-2xl p-5"><div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4"><div><div className="text-[11px] uppercase tracking-wide text-slate-500">Evidence Appraisal · Writing Studio</div><h2 className="text-2xl font-bold font-serif">Master / PhD forskningsskriving</h2><p className="text-sm text-slate-600 mt-1">Påstand → evidens → Reference Hub → integritetskontroll → eksport.</p></div><div className="flex flex-wrap gap-2"><select value={document.level} onChange={e => setDocument({ ...document, level: e.target.value as AcademicDocument['level'] })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm"><option value="MASTER">Master</option><option value="PHD">PhD</option><option value="ARTICLE">Forskningsartikkel</option><option value="PROTOCOL">Protokoll</option><option value="REPORT">Rapport</option></select><select value={style} onChange={e => setStyle(e.target.value as CitationStyle)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm"><option value="APA7">APA 7</option><option value="VANCOUVER">Vancouver/NLM</option><option value="HARVARD">Harvard</option><option value="CHICAGO_AUTHOR_DATE">Chicago Author-Date</option><option value="MLA9">MLA 9</option><option value="IEEE">IEEE</option></select><button type="button" onClick={addClaim} className="px-3 py-2 rounded-xl bg-teal-800 text-white text-sm font-semibold">Ny påstand</button><button type="button" onClick={exportDocument} className="px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold">Eksporter</button></div></div></header>
+    <header className="bg-white border border-slate-200 rounded-2xl p-5"><div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4"><div><div className="text-[11px] uppercase tracking-wide text-slate-500">Evidence Appraisal · Writing Studio</div><h2 className="text-2xl font-bold font-serif">Master / PhD forskningsskriving</h2><p className="text-sm text-slate-600 mt-1">Påstand → evidens → Reference Hub → integritetskontroll → eksport.</p></div><div className="flex flex-wrap gap-2"><select value={academicDocument.level} onChange={e => setAcademicDocument({ ...academicDocument, level: e.target.value as AcademicDocument['level'] })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm"><option value="MASTER">Master</option><option value="PHD">PhD</option><option value="ARTICLE">Forskningsartikkel</option><option value="PROTOCOL">Protokoll</option><option value="REPORT">Rapport</option></select><select value={style} onChange={e => setStyle(e.target.value as CitationStyle)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm"><option value="APA7">APA 7</option><option value="VANCOUVER">Vancouver/NLM</option><option value="HARVARD">Harvard</option><option value="CHICAGO_AUTHOR_DATE">Chicago Author-Date</option><option value="MLA9">MLA 9</option><option value="IEEE">IEEE</option></select><button type="button" onClick={addClaim} className="px-3 py-2 rounded-xl bg-teal-800 text-white text-sm font-semibold">Ny påstand</button><button type="button" onClick={exportDocument} className="px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold">Eksporter</button></div></div></header>
 
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-5"><section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3"><input value={document.title} onChange={e => setDocument({ ...document, title: e.target.value, updatedAt: new Date().toISOString() })} className="w-full rounded-xl border border-slate-300 px-3 py-2 font-semibold" /><textarea value={document.body} onChange={e => setDocument({ ...document, body: e.target.value, updatedAt: new Date().toISOString() })} rows={25} className="w-full rounded-xl border border-slate-300 px-4 py-3 font-serif text-base leading-7" placeholder="Skriv her. Påstander kobles til evidens i sidepanelet." />{message && <div className="rounded-xl bg-sky-50 border border-sky-200 px-3 py-2 text-sm text-sky-900">{message}</div>}</section>
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-5"><section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3"><input value={academicDocument.title} onChange={e => setAcademicDocument({ ...academicDocument, title: e.target.value, updatedAt: new Date().toISOString() })} className="w-full rounded-xl border border-slate-300 px-3 py-2 font-semibold" /><textarea value={academicDocument.body} onChange={e => setAcademicDocument({ ...academicDocument, body: e.target.value, updatedAt: new Date().toISOString() })} rows={25} className="w-full rounded-xl border border-slate-300 px-4 py-3 font-serif text-base leading-7" placeholder="Skriv her. Påstander kobles til evidens i sidepanelet." />{message && <div className="rounded-xl bg-sky-50 border border-sky-200 px-3 py-2 text-sm text-sky-900">{message}</div>}</section>
 
       <aside className="space-y-5"><section className={`rounded-2xl border p-4 ${integrity.canExport ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}><div className="font-bold">Integritetskontroll</div><div className="text-sm mt-1">{integrity.canExport ? 'Klar for eksport.' : 'Eksport blokkert.'}</div><div className="text-xs mt-2">Støttede: {integrity.supportedClaims} · Ustøttede: {integrity.unsupportedClaims} · Feil: {integrity.issues.length}</div>{integrity.issues.map((issue, i) => <div key={`${issue.code}-${issue.claimId}-${i}`} className="mt-2 text-xs rounded-lg bg-white/70 p-2"><strong>{issue.severity}</strong> · {issue.message}</div>)}</section>
 

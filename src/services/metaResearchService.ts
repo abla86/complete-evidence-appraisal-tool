@@ -71,6 +71,11 @@ export class MetaResearchService {
 
     return {
       id: `meta-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      title,
+      integrityScore: Math.round(((highCount * 100) + ((integrityDimensions.length - highCount - lowCount - unclearCount) * 50)) / Math.max(1, integrityDimensions.length)),
+      classifications: [classification],
+      dimensions: integrityDimensions,
+      methodologyNotes: [],
       fileName,
       extractedTitle: title,
       extractedAuthors: authors,

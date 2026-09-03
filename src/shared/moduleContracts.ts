@@ -21,6 +21,7 @@ export interface ResearchMetadataRecord {
   description?: string;
   detectedAt: string;
   detectedFrom: Array<'citation-meta' | 'open-graph' | 'schema-org' | 'document' | 'manual'>;
+  fields?: Record<string, unknown>;
 }
 
 export interface PrivacyInspectionResult {

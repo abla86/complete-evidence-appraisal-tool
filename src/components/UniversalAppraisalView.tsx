@@ -117,7 +117,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       return Rob2AssessmentEngine.evaluate({
         d1Randomisation: (map.get('1')?.answer || 'Some concerns') as any,
         d2Deviations: (map.get('2')?.answer || 'Some concerns') as any,
-        d3Missing: (map.get('3')?.answer || 'Some concerns') as any,
+        d3MissingData: (map.get('3')?.answer || 'Some concerns') as any,
         d4Measurement: (map.get('4')?.answer || 'Some concerns') as any,
         d5Selection: (map.get('5')?.answer || 'Some concerns') as any,
       });
