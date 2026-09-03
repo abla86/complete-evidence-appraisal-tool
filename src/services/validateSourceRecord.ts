@@ -45,11 +45,16 @@ export function validateSourceRecord(record: unknown): SourceRecordValidationRes
   if (!objectLike(identifiers) || !Object.hasOwn(identifiers, 'doi')) {
     errors.push('identifiers.doi is required');
   } else if (identifiers.doi !== null) {
-    if (!objectLike(identifiers.doi)) errors.push('identifiers.doi must be object or null');
-    else {
-      if (typeof identifiers.doi.normalized !== 'string' || !DOI_RE.test(identifiers.doi.normalized)) errors.push('identifiers.doi.normalized must be a valid DOI');
+    if (!objectLike(identifiers.doi)) {
+      errors.push('identifiers.doi must be object or null');
+    } else {
+      const normalizedDoi = identifiers.doi.normalized;
+      const doiIsValid = typeof normalizedDoi === 'string' && DOI_RE.test(normalizedDoi);
+      if (!doiIsValid) errors.push('identifiers.doi.normalized must be a valid DOI');
       if (typeof identifiers.doi.formatValid !== 'boolean') errors.push('identifiers.doi.formatValid must be boolean');
-      if (identifiers.doi.formatValid !== DOI_RE.test(identifiers.doi.normalized)) errors.push('identifiers.doi.formatValid does not match normalized DOI syntax');
+      if (typeof identifiers.doi.formatValid === 'boolean' && identifiers.doi.formatValid !== doiIsValid) {
+        errors.push('identifiers.doi.formatValid does not match normalized DOI syntax');
+      }
     }
   }
 
