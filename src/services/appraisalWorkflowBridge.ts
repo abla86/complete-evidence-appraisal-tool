@@ -91,6 +91,9 @@ export async function createAppraisalFromResearch(payload: ResearchAppraisalPayl
   if (existing) return existing;
   const session = createBlankAppraisalSession(payload.studyId.trim(), payload.instrumentId.trim(), reviewerId.trim());
   const record = buildRecord(payload, session);
+  if (!researchWorkflowStore.get(session.studyId)) {
+    throw new Error(`Research workflow not found: ${session.studyId}`);
+  }
   syncToResearchWorkflow(session);
   appraisalWorkflowStore.save(record);
   await appendAuditEntry({ actor: { id: reviewerId.trim(), role: 'reviewer' }, action: 'appraisal.session.created', subject: { entityType: 'appraisal-session', id: session.id }, detail: { studyId: payload.studyId.trim(), instrumentId: session.instrumentId, evidenceIds: record.evidenceIds } });
@@ -106,22 +109,20 @@ export async function createAndAttachAppraisal(
   assertPayload(payload, reviewerId);
   const existing = findActiveSession(payload, reviewerId);
   if (existing) {
-    const workflow = updateWorkflow(existing.session);
-    const canonical = syncOrRegisterWorkflow(workflow);
-    const syncedWorkflow = syncToResearchWorkflow(existing.session);
-    return { record: existing, workflow: canonical.studyId === syncedWorkflow.studyId ? syncedWorkflow : canonical };
+    const workflow = syncOrRegisterWorkflow(updateWorkflow(existing.session));
+    return { record: existing, workflow: syncToResearchWorkflow(existing.session) || workflow };
   }
 
   const session = createBlankAppraisalSession(payload.studyId.trim(), payload.instrumentId.trim(), reviewerId.trim());
   const record = buildRecord(payload, session);
   const workflow = updateWorkflow(session);
-  syncOrRegisterWorkflow(workflow);
+  const canonical = syncOrRegisterWorkflow(workflow);
   const syncedWorkflow = syncToResearchWorkflow(session);
   appraisalWorkflowStore.save(record);
 
   await appendAuditEntry({ actor: { id: reviewerId.trim(), role: 'reviewer' }, action: 'appraisal.session.created', subject: { entityType: 'appraisal-session', id: session.id }, detail: { studyId: payload.studyId.trim(), instrumentId: session.instrumentId, evidenceIds: record.evidenceIds } });
   await evidenceEventBus.emit('appraisal.session.created', { studyId: payload.studyId.trim(), sessionId: session.id, instrumentId: session.instrumentId, reviewerId: reviewerId.trim() });
-  return { record, workflow: syncedWorkflow };
+  return { record, workflow: canonical.studyId === syncedWorkflow.studyId ? syncedWorkflow : canonical };
 }
 
 export function getAppraisalWorkflowRecord(sessionId: string): AppraisalWorkflowRecord | undefined { return appraisalWorkflowStore.get(sessionId); }
