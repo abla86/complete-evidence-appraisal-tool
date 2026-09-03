@@ -1,12 +1,11 @@
 import { createId } from '../utils/id';
 import { GradeAssessmentEngine, GradeCerqualAssessmentEngine } from './assessmentEngines';
-import type { GradeSummaryOfFindingsItem, GradeCerqualSummaryItem } from '../types';
-import { loadAppraisalSessions, upsertAppraisalSession } from './appraisalSessionStore';
-import type { AppraisalSession } from './universalAppraisalService';
+import type { GradeCerqualSummaryItem } from '../types';
+import { getQualityAssessmentsForSession as loadSessionQuality, upsertQualityAssessment } from './appraisalSessionStore';
 
 export interface StoredQualityAssessment {
   id: string;
-  appraisalSessionId?: string;
+  appraisalSessionId: string;
   evidenceId: string;
   kind: 'GRADE' | 'CERQual';
   outcomeOrFinding: string;
@@ -18,45 +17,22 @@ export interface StoredQualityAssessment {
   updatedAt: string;
 }
 
-const QUALITY_KEY = 'qualityAssessments';
-
-function readQuality(session: AppraisalSession): StoredQualityAssessment[] {
-  const raw = (session as AppraisalSession & { qualityAssessments?: StoredQualityAssessment[] })[QUALITY_KEY];
-  return Array.isArray(raw) ? raw : [];
-}
-
-function writeQuality(session: AppraisalSession, qualityAssessments: StoredQualityAssessment[]): AppraisalSession {
-  return {
-    ...session,
-    [QUALITY_KEY]: qualityAssessments,
-    updatedAt: new Date().toISOString(),
-  } as AppraisalSession;
-}
-
 export function getQualityAssessmentsForSession(sessionId: string): StoredQualityAssessment[] {
-  const session = loadAppraisalSessions().find(item => item.id === sessionId);
-  return session ? readQuality(session) : [];
+  return loadSessionQuality(sessionId);
 }
 
-export function addQualityAssessment(sessionId: string, assessment: StoredQualityAssessment): AppraisalSession {
-  const session = loadAppraisalSessions().find(item => item.id === sessionId);
-  if (!session) throw new Error(`Appraisal-sesjon finnes ikke: ${sessionId}`);
-  if (session.locked) throw new Error('Appraisal-sesjonen er låst og kan ikke få ny kvalitetsvurdering.');
-  if (assessment.appraisalSessionId && assessment.appraisalSessionId !== sessionId) {
-    throw new Error('Kvalitetsvurderingen peker til feil appraisal-sesjon.');
-  }
+export function addQualityAssessment(sessionId: string, assessment: StoredQualityAssessment): StoredQualityAssessment {
+  if (assessment.appraisalSessionId !== sessionId) throw new Error('Kvalitetsvurderingen peker til feil appraisal-sesjon.');
   if (!assessment.evidenceId.trim()) throw new Error('Kvalitetsvurderingen mangler evidenceId.');
   if (!assessment.reviewerId.trim()) throw new Error('Kvalitetsvurderingen mangler reviewerId.');
-
-  const nextAssessment: StoredQualityAssessment = { ...assessment, appraisalSessionId: sessionId };
-  const next = writeQuality(session, [...readQuality(session), nextAssessment]);
-  upsertAppraisalSession(next);
-  return next;
+  const normalized = { ...assessment, appraisalSessionId: sessionId };
+  upsertQualityAssessment(normalized);
+  return normalized;
 }
 
 export function assessGRADE(input: {
   evidenceId: string;
-  appraisalSessionId?: string;
+  appraisalSessionId: string;
   outcomeName: string;
   studyDesign: 'RCT' | 'Observational';
   riskOfBias: 0 | -1 | -2;
@@ -66,6 +42,10 @@ export function assessGRADE(input: {
   publicationBias: 0 | -1 | -2;
   reviewerId: string;
 }): StoredQualityAssessment {
+  if (!input.appraisalSessionId.trim()) throw new Error('appraisalSessionId is required.');
+  if (!input.evidenceId.trim()) throw new Error('evidenceId is required.');
+  if (!input.outcomeName.trim()) throw new Error('Outcome må fylles ut.');
+  if (!input.reviewerId.trim()) throw new Error('reviewerId is required.');
   const result = GradeAssessmentEngine.evaluateOutcome(input);
   const now = new Date().toISOString();
   return {
@@ -73,7 +53,7 @@ export function assessGRADE(input: {
     appraisalSessionId: input.appraisalSessionId,
     evidenceId: input.evidenceId,
     kind: 'GRADE',
-    outcomeOrFinding: input.outcomeName,
+    outcomeOrFinding: input.outcomeName.trim(),
     result,
     reviewerId: input.reviewerId,
     version: 1,
@@ -85,7 +65,7 @@ export function assessGRADE(input: {
 
 export function assessCERQual(input: {
   evidenceId: string;
-  appraisalSessionId?: string;
+  appraisalSessionId: string;
   finding: string;
   methodologicalLimitations: GradeCerqualSummaryItem['methodologicalLimitations'];
   coherence: GradeCerqualSummaryItem['coherence'];
@@ -93,8 +73,12 @@ export function assessCERQual(input: {
   relevance: GradeCerqualSummaryItem['relevance'];
   reviewerId: string;
 }): StoredQualityAssessment {
+  if (!input.appraisalSessionId.trim()) throw new Error('appraisalSessionId is required.');
+  if (!input.evidenceId.trim()) throw new Error('evidenceId is required.');
+  if (!input.finding.trim()) throw new Error('Finding må fylles ut.');
+  if (!input.reviewerId.trim()) throw new Error('reviewerId is required.');
   const result = GradeCerqualAssessmentEngine.evaluateFinding({
-    reviewFinding: input.finding,
+    reviewFinding: input.finding.trim(),
     methodologicalLimitations: input.methodologicalLimitations,
     coherence: input.coherence,
     adequacyOfData: input.adequacyOfData,
@@ -106,7 +90,7 @@ export function assessCERQual(input: {
     appraisalSessionId: input.appraisalSessionId,
     evidenceId: input.evidenceId,
     kind: 'CERQual',
-    outcomeOrFinding: input.finding,
+    outcomeOrFinding: input.finding.trim(),
     result,
     reviewerId: input.reviewerId,
     version: 1,
@@ -118,10 +102,12 @@ export function assessCERQual(input: {
 
 export function lockQualityAssessment(assessment: StoredQualityAssessment): StoredQualityAssessment {
   if (assessment.locked) throw new Error('Kvalitetsvurderingen er allerede låst.');
-  return {
+  const locked = {
     ...assessment,
     locked: true,
     version: assessment.version + 1,
     updatedAt: new Date().toISOString(),
   };
+  upsertQualityAssessment(locked);
+  return locked;
 }
