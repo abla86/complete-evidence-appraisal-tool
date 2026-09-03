@@ -64,7 +64,7 @@ export function linkHighlightToEvidence(
   };
 
   void audit.append({
-    actor: { id: link.createdBy, name: link.createdBy, role: 'reviewer' },
+    actor: { id: link.createdBy, role: 'reviewer' },
     action: 'PDF_HIGHLIGHT_LINKED_TO_EVIDENCE',
     subject: { entityType: 'evidence', id: link.evidenceId },
     detail: { highlightId: link.highlightId, confidence: link.confidence, tag: link.tag ?? null },
@@ -98,7 +98,7 @@ export function attachEvidenceToClaim(
   if (!evidence.linkedClaims.includes(claim.id)) evidence.linkedClaims.push(claim.id);
 
   void audit.append({
-    actor: { id: claim.authorId, name: claim.authorId, role: 'reviewer' },
+    actor: { id: claim.authorId, role: 'reviewer' },
     action: 'EVIDENCE_ATTACHED_TO_CLAIM',
     subject: { entityType: 'claim', id: claim.id },
     detail: { evidenceId },
