@@ -28,9 +28,7 @@ export function getGoogleOAuthClient(): OAuth2Client {
 
 function scopes(): string[] {
   return (process.env.GOOGLE_OAUTH_SCOPES || 'openid email profile')
-    .split(/\s+/)
-    .map(value => value.trim())
-    .filter(Boolean);
+    .split(/\s+/).map(value => value.trim()).filter(Boolean);
 }
 
 function sign(value: string): string {
@@ -54,46 +52,28 @@ function decode<T>(value: string): T | null {
     const parsed = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as T & { exp?: number };
     if (parsed.exp && Number(parsed.exp) < Date.now()) return null;
     return parsed;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export function createAuthorizationRequest(): { url: string; state: string } {
   const client = getGoogleOAuthClient();
   const state = encode({ nonce: crypto.randomBytes(24).toString('hex'), exp: Date.now() + 10 * 60 * 1000 });
-  const url = client.generateAuthUrl({
-    access_type: 'offline',
-    scope: scopes(),
-    include_granted_scopes: true,
-    state,
-    prompt: 'select_account',
-  });
-  return { url, state };
+  return { state, url: client.generateAuthUrl({ access_type: 'offline', scope: scopes(), include_granted_scopes: true, state, prompt: 'select_account' }) };
 }
 
-export function createAuthorizationUrl(): string {
-  return createAuthorizationRequest().url;
-}
-
-export function authorizationStateCookieHeader(state: string, secure: boolean): string {
-  return `evidence_google_oauth_state=${encodeURIComponent(state)}; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=600${secure ? '; Secure' : ''}`;
-}
-
+export function createAuthorizationUrl(): string { return createAuthorizationRequest().url; }
+export function authorizationStateCookieHeader(state: string, secure: boolean): string { return `evidence_google_oauth_state=${encodeURIComponent(state)}; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=600${secure ? '; Secure' : ''}`; }
 export function readAuthorizationStateCookie(cookieHeader?: string): string | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.split(';').map(value => value.trim()).find(value => value.startsWith('evidence_google_oauth_state='));
   return match ? decodeURIComponent(match.slice('evidence_google_oauth_state='.length)) : null;
 }
-
-export function clearAuthorizationStateCookie(secure: boolean): string {
-  return `evidence_google_oauth_state=; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`;
-}
+export function clearAuthorizationStateCookie(secure: boolean): string { return `evidence_google_oauth_state=; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
 
 export async function exchangeCode(code: string, state: string, expectedState?: string): Promise<GoogleUser> {
   if (!code.trim()) throw new Error('Google authorization code is required.');
   if (!decode(state)) throw new Error('Invalid or expired OAuth state.');
-  if (expectedState && !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) throw new Error('OAuth state mismatch.');
+  if (expectedState && expectedState.length !== state.length || expectedState && !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) throw new Error('OAuth state mismatch.');
   const client = getGoogleOAuthClient();
   const { tokens } = await client.getToken(code);
   if (!tokens.id_token) throw new Error('Google did not return an ID token.');
@@ -103,25 +83,12 @@ export async function exchangeCode(code: string, state: string, expectedState?: 
   return { sub: payload.sub, email: payload.email, name: payload.name, picture: payload.picture };
 }
 
-export function createSessionCookie(user: GoogleUser): string {
-  return encode({ ...user, iat: Date.now(), exp: Date.now() + 7 * 24 * 60 * 60 * 1000 });
-}
-
+export function createSessionCookie(user: GoogleUser): string { return encode({ ...user, iat: Date.now(), exp: Date.now() + 7 * 24 * 60 * 60 * 1000 }); }
 export function readSessionCookie(cookieHeader?: string): GoogleUser | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.split(';').map(value => value.trim()).find(value => value.startsWith(`${COOKIE_NAME}=`));
-  if (!match) return null;
-  return decode<GoogleUser>(match.slice(COOKIE_NAME.length + 1));
+  return match ? decode<GoogleUser>(match.slice(COOKIE_NAME.length + 1)) : null;
 }
-
-export function sessionCookieHeader(value: string, secure: boolean): string {
-  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure ? '; Secure' : ''}`;
-}
-
-export function clearSessionCookie(secure: boolean): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`;
-}
-
-export function publicAuthConfig() {
-  return { configured: googleOAuthConfigured(), clientId: CLIENT_ID || null, redirectUri: GOOGLE_REDIRECT_URI, scopes: scopes() };
-}
+export function sessionCookieHeader(value: string, secure: boolean): string { return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure ? '; Secure' : ''}`; }
+export function clearSessionCookie(secure: boolean): string { return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
+export function publicAuthConfig() { return { configured: googleOAuthConfigured(), clientId: CLIENT_ID || null, redirectUri: GOOGLE_REDIRECT_URI, scopes: scopes() }; }
