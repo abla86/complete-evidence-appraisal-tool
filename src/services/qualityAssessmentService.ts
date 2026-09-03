@@ -22,6 +22,7 @@ function assertQualityContext(sessionId: string, evidenceId: string, reviewerId:
   const normalizedSessionId = sessionId.trim();
   const normalizedEvidenceId = evidenceId.trim();
   const normalizedReviewerId = reviewerId.trim();
+
   if (!normalizedSessionId) throw new Error('appraisalSessionId is required.');
   if (!normalizedEvidenceId) throw new Error('evidenceId is required.');
   if (!normalizedReviewerId) throw new Error('reviewerId is required.');
@@ -29,7 +30,9 @@ function assertQualityContext(sessionId: string, evidenceId: string, reviewerId:
   const record = getAppraisalWorkflowRecord(normalizedSessionId);
   if (!record) throw new Error(`Appraisal-sesjon finnes ikke i canonical workflow: ${normalizedSessionId}`);
   if (record.session.locked) throw new Error('Appraisal-sesjonen er låst.');
-  if (record.session.reviewerId !== normalizedReviewerId) throw new Error('Reviewer stemmer ikke med appraisal-sesjonen.');
+  if (record.session.reviewerId !== normalizedReviewerId) {
+    throw new Error('Reviewer stemmer ikke med appraisal-sesjonen.');
+  }
   if (!record.evidenceIds.includes(normalizedEvidenceId)) {
     throw new Error('Evidence er ikke en del av appraisal-payloaden for denne sesjonen.');
   }
@@ -39,10 +42,36 @@ export function getQualityAssessmentsForSession(sessionId: string): StoredQualit
   return loadSessionQuality(sessionId);
 }
 
-export function addQualityAssessment(sessionId: string, assessment: StoredQualityAssessment): StoredQualityAssessment {
-  assertQualityContext(sessionId, assessment.evidenceId, assessment.reviewerId);
-  if (assessment.appraisalSessionId !== sessionId) throw new Error('Kvalitetsvurderingen peker til feil appraisal-sesjon.');
-  const normalized = { ...assessment, appraisalSessionId: sessionId.trim(), evidenceId: assessment.evidenceId.trim(), reviewerId: assessment.reviewerId.trim() };
+export function addQualityAssessment(
+  sessionId: string,
+  assessment: StoredQualityAssessment,
+): StoredQualityAssessment {
+  const normalizedSessionId = sessionId.trim();
+  if (!assessment.appraisalSessionId.trim()) {
+    throw new Error('Quality assessment appraisalSessionId is required.');
+  }
+  if (assessment.appraisalSessionId.trim() !== normalizedSessionId) {
+    throw new Error('Kvalitetsvurderingen peker til feil appraisal-sesjon.');
+  }
+
+  assertQualityContext(
+    normalizedSessionId,
+    assessment.evidenceId,
+    assessment.reviewerId,
+  );
+
+  const normalized: StoredQualityAssessment = {
+    ...assessment,
+    appraisalSessionId: normalizedSessionId,
+    evidenceId: assessment.evidenceId.trim(),
+    reviewerId: assessment.reviewerId.trim(),
+    outcomeOrFinding: assessment.outcomeOrFinding.trim(),
+  };
+
+  if (!normalized.outcomeOrFinding) {
+    throw new Error('Outcome eller finding må fylles ut.');
+  }
+
   upsertQualityAssessment(normalized);
   return normalized;
 }
@@ -59,10 +88,17 @@ export function assessGRADE(input: {
   publicationBias: 0 | -1 | -2;
   reviewerId: string;
 }): StoredQualityAssessment {
-  assertQualityContext(input.appraisalSessionId, input.evidenceId, input.reviewerId);
+  assertQualityContext(
+    input.appraisalSessionId,
+    input.evidenceId,
+    input.reviewerId,
+  );
+
   if (!input.outcomeName.trim()) throw new Error('Outcome må fylles ut.');
+
   const result = GradeAssessmentEngine.evaluateOutcome(input);
   const now = new Date().toISOString();
+
   return {
     id: createId('grade'),
     appraisalSessionId: input.appraisalSessionId.trim(),
@@ -88,8 +124,14 @@ export function assessCERQual(input: {
   relevance: GradeCerqualSummaryItem['relevance'];
   reviewerId: string;
 }): StoredQualityAssessment {
-  assertQualityContext(input.appraisalSessionId, input.evidenceId, input.reviewerId);
+  assertQualityContext(
+    input.appraisalSessionId,
+    input.evidenceId,
+    input.reviewerId,
+  );
+
   if (!input.finding.trim()) throw new Error('Finding må fylles ut.');
+
   const result = GradeCerqualAssessmentEngine.evaluateFinding({
     reviewFinding: input.finding.trim(),
     methodologicalLimitations: input.methodologicalLimitations,
@@ -98,6 +140,7 @@ export function assessCERQual(input: {
     relevance: input.relevance,
   });
   const now = new Date().toISOString();
+
   return {
     id: createId('cerqual'),
     appraisalSessionId: input.appraisalSessionId.trim(),
@@ -113,14 +156,32 @@ export function assessCERQual(input: {
   };
 }
 
-export function lockQualityAssessment(assessment: StoredQualityAssessment): StoredQualityAssessment {
-  if (assessment.locked) throw new Error('Kvalitetsvurderingen er allerede låst.');
-  const locked = {
+export function lockQualityAssessment(
+  assessment: StoredQualityAssessment,
+): StoredQualityAssessment {
+  if (assessment.locked) return assessment;
+
+  assertQualityContext(
+    assessment.appraisalSessionId,
+    assessment.evidenceId,
+    assessment.reviewerId,
+  );
+
+  const locked: StoredQualityAssessment = {
     ...assessment,
+    appraisalSessionId: assessment.appraisalSessionId.trim(),
+    evidenceId: assessment.evidenceId.trim(),
+    reviewerId: assessment.reviewerId.trim(),
+    outcomeOrFinding: assessment.outcomeOrFinding.trim(),
     locked: true,
     version: assessment.version + 1,
     updatedAt: new Date().toISOString(),
   };
+
+  if (!locked.outcomeOrFinding) {
+    throw new Error('Outcome eller finding må fylles ut før låsing.');
+  }
+
   upsertQualityAssessment(locked);
   return locked;
 }
