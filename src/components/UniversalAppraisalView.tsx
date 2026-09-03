@@ -14,10 +14,24 @@ const answerOptions = (instrumentId: string, allowed: string[]) => {
   return allowed?.length ? allowed : ['Yes','Partial Yes','No','Unclear','Not applicable'];
 };
 
+async function saveCanonicalSession(session: AppraisalSession): Promise<AppraisalSession> {
+  const response = await fetch(`/api/appraisal/${encodeURIComponent(session.id)}/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session }),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(payload?.error || 'Kunne ikke synkronisere appraisal-session.');
+  }
+  const payload = await response.json() as { session?: AppraisalSession };
+  return payload.session ?? session;
+}
+
 export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId = 'current-user', onSaved }) => {
   const [instrumentId, setInstrumentId] = useState(initialInstrumentId);
   const [session, setSession] = useState<AppraisalSession>(() => {
-    const existing = getLatestAppraisalSession(studyId, initialInstrumentId, reviewerId);
+    const existing = getLatestAppraisalSession(studyId, initialInstrumentId);
     return existing ?? createBlankAppraisalSession(studyId, initialInstrumentId, reviewerId);
   });
   const [notice, setNotice] = useState('');
@@ -25,11 +39,12 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   const validation = validateAppraisalSession(session);
 
   const changeInstrument = (id: string) => {
+    if (session.locked) return;
     const decision = decideAppraisalLaunch(studyDesign, id, false);
     setNotice(decision.warnings.join(' ') || decision.reason);
     if (!decision.allowed) return;
     setInstrumentId(id);
-    const existing = getLatestAppraisalSession(studyId, id, reviewerId);
+    const existing = getLatestAppraisalSession(studyId, id);
     setSession(existing ?? createBlankAppraisalSession(studyId, id, reviewerId));
   };
 
@@ -79,12 +94,20 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
 
   const interpretation = result && 'overallConfidence' in result ? result.overallConfidence : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias : result && 'verdict' in result ? result.verdict : `${session.responses.filter(r => r.answer !== null && r.answer !== '').length}/${instrument?.itemCount ?? 0} besvart`;
 
-  const finalize = () => {
+  const finalize = async () => {
     if (session.locked) return;
     if (!validation.valid) { setNotice(validation.issues.join(' ')); return; }
-    setNotice('Vurderingen valideres og låses.');
-    onSaved?.(session);
-    setNotice('Vurderingen er lagret. Låsing håndteres av canonical appraisal workflow.');
+    try {
+      const canonical = await saveCanonicalSession(session);
+      const response = await fetch(`/api/appraisal/${encodeURIComponent(canonical.id)}/finalize`, { method: 'POST' });
+      const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null;
+      if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke ferdigstille appraisal.');
+      setSession(payload.session);
+      onSaved?.(payload.session);
+      setNotice('Vurderingen er validert og låst i canonical appraisal workflow.');
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Vurderingen kunne ikke lagres.');
+    }
   };
 
   if (!instrument) return <div className="bg-white border border-rose-200 rounded-2xl p-6 text-rose-900">Valgt instrument finnes ikke.</div>;
@@ -129,7 +152,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       <aside className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div><div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div><h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>{result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}</div>
         {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map((d:any)=><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
-        <button type="button" disabled={!validation.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre vurdering'}</button>
+        <button type="button" disabled={!validation.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
         {!validation.valid && <div className="text-xs text-amber-800">{validation.issues.join(' ')}</div>}
       </aside>
 
