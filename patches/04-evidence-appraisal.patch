@@ -1,0 +1,2 @@
+# Applied directly in commit 19c9b8234e930c15b20d1db0b33f3806d1534593.
+# buildResearchAppraisalPayload now explicitly requires at least one HUMAN_VERIFIED evidence record.
