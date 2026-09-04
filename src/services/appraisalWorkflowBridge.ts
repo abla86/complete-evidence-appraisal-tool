@@ -203,10 +203,11 @@ export async function recordAppraisalResponse(sessionId: string, response: Appra
   if (record.session.locked) throw new Error('Appraisal session is locked.');
   if (reviewerId !== undefined && reviewerId.trim() !== record.session.reviewerId) throw new Error('Reviewer stemmer ikke med appraisal-sesjonen.');
   if (!response || response.rationale === undefined) throw new Error('rationale is required.');
-  if (!response.itemId?.trim()) throw new Error('itemId is required.');
+  const normalizedItemId = String(response.itemId ?? '').trim();
+  if (!normalizedItemId) throw new Error('itemId is required.');
   const instrument = getInstrumentOrNull(record.session.instrumentId);
-  if (!instrument || !instrument.items.some(item => item.id === response.itemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
-  const session = upsertAppraisalResponse(record.session, { ...response, rationale: String(response.rationale).trim() });
+  if (!instrument || !(instrument.questions ?? instrument.items ?? []).some(item => String(item.id).trim() === normalizedItemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
+  const session = upsertAppraisalResponse(record.session, { ...response, itemId: normalizedItemId, rationale: String(response.rationale).trim() });
   syncToResearchWorkflow(session);
   const saved = appraisalWorkflowStore.save({ ...record, session });
   await appendAuditEntry({ actor: { id: session.reviewerId, role: 'reviewer' }, action: 'appraisal.response.updated', subject: { entityType: 'appraisal-session', id: sessionId }, detail: { itemId: response.itemId, answer: response.answer } });
