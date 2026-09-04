@@ -47,6 +47,17 @@ test('IMRaD does not invent boundaries for unstructured text', () => {
   assert.match(result.methodologicalNotice, /genererer ikke kvalitetspoeng/);
 });
 
+test('an explicit heading without extracted content is not reported as a detected section', () => {
+  const result = IMRaDAnalysisService.analyze(
+    'Introduction\n\nMethods\nA methods section with enough content to be considered extracted. This describes participants and data collection in sufficient detail for the structural parser.',
+    'empty-introduction.txt'
+  );
+  const introduction = result.sections.find(section => section.key === 'introduction');
+  assert.equal(introduction?.explicitHeading, true);
+  assert.equal(introduction?.detected, false);
+  assert.equal(introduction?.status, 'MISSING');
+});
+
 test('unstructured text remains structurally missing rather than paragraph-inferred', () => {
   const result = IMRaDAnalysisService.analyze(
     'This is a long paragraph about a study and its context. '.repeat(10) +

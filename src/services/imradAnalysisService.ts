@@ -101,7 +101,9 @@ export class IMRaDAnalysisService {
         characterCount: content.length,
         wordCount: content ? content.split(/\s+/).filter(Boolean).length : 0,
         evidencePreview: content.slice(0, 500),
-        status: explicitHeading ? 'DETECTED' : hasContent ? 'INFERRED' : 'MISSING'
+        // A heading alone does not establish that a usable section was extracted.
+        // "INFERRED" is intentionally unused because this service does not infer boundaries.
+        status: hasContent && explicitHeading ? 'DETECTED' : 'MISSING'
       };
     });
 
