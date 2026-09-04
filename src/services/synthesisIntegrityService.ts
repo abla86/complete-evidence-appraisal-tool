@@ -59,6 +59,9 @@ export function validateSynthesis(
   const claimById = new Map(claims.map(c => [c.id, c]));
   for(const input of synthesis.inputs){
     if(!input.eligible) blockers.push(`Synteseinput ${input.id} er ikke eligible.`);
+    if(!input.outcomeOrFinding.trim()) blockers.push(`Synteseinput ${input.id} mangler outcome/finding.`);
+    if((synthesis.type === 'QUALITATIVE_THEMATIC' || synthesis.type === 'META_AGGREGATION') && input.evidenceIds.length === 0) blockers.push(`Kvalitativt synteseinput ${input.id} må ha minst én evidenskilde.`);
+    if((synthesis.type === 'QUALITATIVE_THEMATIC' || synthesis.type === 'META_AGGREGATION') && (input.value !== undefined || input.standardError !== undefined || input.confidenceInterval !== undefined)) warnings.push(`Kvalitativt synteseinput ${input.id} inneholder kvantitativt metadata; kontroller at dette ikke blandes inn i kvalitativ syntese.`);
     if(!appraisalIds.has(input.appraisalSessionId)) blockers.push(`Synteseinput ${input.id} mangler låst appraisal.`);
     const appraisal = appraisals.find(a => a.id === input.appraisalSessionId);
     if (appraisal && appraisal.studyId !== input.studyId) blockers.push(`Synteseinput ${input.id} har studyId som ikke samsvarer med appraisal.`);
