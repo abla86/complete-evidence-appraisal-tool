@@ -62,6 +62,9 @@ export function compareReviewInstances(first: ReviewInstance, second: ReviewInst
   if (first.studyId !== second.studyId || first.instrumentId !== second.instrumentId) {
     throw new Error('Reviewerinstansene må gjelde samme studie og instrument.');
   }
+  if (first.reviewerId === second.reviewerId) throw new Error('Dual review krever to forskjellige reviewere.');
+  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) throw new Error('Disagreement threshold må være mellom 0 og 1.');
+  if (first.status !== 'completed' || second.status !== 'completed') throw new Error('Begge reviewerinstanser må være completed før sammenligning.');
   const itemIds = [...new Set([...Object.keys(first.responses), ...Object.keys(second.responses)])];
   const items = itemIds.map(itemId => ({
     itemId,
