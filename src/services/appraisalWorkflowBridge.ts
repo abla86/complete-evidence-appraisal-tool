@@ -37,7 +37,48 @@ export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
   public delete(sessionId: string): boolean { return this.records.delete(sessionId); }
 }
 
-export const appraisalWorkflowStore = new InMemoryAppraisalWorkflowStore();
+export class LocalStorageAppraisalWorkflowStore extends InMemoryAppraisalWorkflowStore {
+  private readonly storageKey = 'complete-evidence-appraisal-tool:appraisal-workflows:v1';
+  constructor() {
+    super();
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(this.storageKey);
+        const records = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(records)) records.forEach(record => {
+          if (record?.session?.id && record?.researchStudyId) super.save(record);
+        });
+      } catch {
+        localStorage.removeItem(this.storageKey);
+      }
+    }
+  }
+  override save(record: AppraisalWorkflowRecord): AppraisalWorkflowRecord {
+    const saved = super.save(record);
+    this.persist();
+    return saved;
+  }
+  override delete(sessionId: string): boolean {
+    const deleted = super.delete(sessionId);
+    if (deleted) this.persist();
+    return deleted;
+  }
+  private persist(): void {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(this.storageKey, JSON.stringify(this.listAll()));
+  }
+  private listAll(): AppraisalWorkflowRecord[] {
+    return this.recordsForPersistence();
+  }
+  private recordsForPersistence(): AppraisalWorkflowRecord[] {
+    const result: AppraisalWorkflowRecord[] = [];
+    for (const studyId of new Set([...this.records.values()].map(item => item.researchStudyId))) result.push(...super.listByStudy(studyId));
+    return result;
+  }
+}
+export const appraisalWorkflowStore: AppraisalWorkflowStore =
+  typeof localStorage !== 'undefined'
+    ? new LocalStorageAppraisalWorkflowStore()
+    : new InMemoryAppraisalWorkflowStore();
 
 function assertPayload(payload: ResearchAppraisalPayload, reviewerId: string): void {
   const normalizedReviewerId = reviewerId.trim();
