@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { JBI_QUESTIONS } from './data/jbiData';
+import { createBlankAppraisalSession, upsertAppraisalResponse } from './services/universalAppraisalService';
 import { ArticleAppraisal, AssessmentStatus, JBIEvaluationItem } from './types';
 import { generateArticleId, generateAuditId } from './services/idGenerator';
 import { AutosaveService } from './services/autosaveService';
@@ -40,6 +41,8 @@ import { EvidencePipelineService, type EvidencePipelineState } from './services/
 function createBlankJbiItems(defaultStatus: AssessmentStatus = 'Uklart', defaultJustification = ''): JBIEvaluationItem[] {
   return JBI_QUESTIONS.map(q => ({ questionId: q.id, status: defaultStatus, justification: defaultJustification, evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } }));
 }
+
+// Legacy JBI UI remains available, but persistence and scoring are delegated to the canonical appraisal service.
 
 function articleToReference(article: ArticleAppraisal): ReferenceRecord {
   return createReferenceRecord({
