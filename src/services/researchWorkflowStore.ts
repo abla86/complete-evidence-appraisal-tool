@@ -16,12 +16,12 @@ export class InMemoryResearchWorkflowStore implements ResearchWorkflowStore {
   public get(studyId: string, projectId?: string): WorkflowState | undefined {
     const workflow = this.workflows.get(studyId);
     if (!workflow) return undefined;
-    if (projectId && workflow.projectId !== projectId) return undefined;
+    if (projectId && studyId !== workflow.studyId) return undefined;
     return workflow;
   }
 
   public save(workflow: WorkflowState): WorkflowState {
-    if (!workflow.studyId.trim() || !workflow.projectId.trim()) throw new Error('studyId and projectId are required.');
+    if (!workflow.studyId.trim()) throw new Error('studyId is required.');
     this.workflows.set(workflow.studyId, workflow);
     return workflow;
   }
