@@ -54,7 +54,7 @@ export const MethodologyAuditView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedReport, setCopiedReport] = useState<boolean>(false);
   const [activeFrameworkDemo, setActiveFrameworkDemo] = useState<string>('amstar-2');
-  const [expandedInstrumentId, setExpandedInstrumentId] = useState<string | null>('jbi-qualitative-2017');
+  const [expandedInstrumentId, setExpandedInstrumentId] = useState<string | null>(null);
 
   const auditReport: ComprehensiveAuditReport = useMemo(() => {
     return MethodIntegrityService.runFullSystemAudit();

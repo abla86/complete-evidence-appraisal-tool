@@ -66,7 +66,7 @@ function articleToReference(article: ArticleAppraisal): ReferenceRecord {
 export default function App() {
   const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
-  const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('jbi-qualitative-2017');
+  const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [selectedArticleId, setSelectedArticleId] = useState<string>(() => { const loaded = AutosaveService.loadArticles([]); return loaded[0]?.id || ''; });
   const [editingArticle, setEditingArticle] = useState<ArticleAppraisal | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>('lead_reviewer');
@@ -132,7 +132,7 @@ export default function App() {
         <Header activeTab={activeTab} setActiveTab={setActiveTab} articles={articles} selectedArticleId={selectedArticleId} onSelectArticleId={setSelectedArticleId} selectedInstrumentId={selectedInstrumentId} onSelectInstrument={setSelectedInstrumentId} currentUserRole={currentUserRole} onSelectUserRole={setCurrentUserRole} onOpenPrivacyCenter={() => setIsPrivacyCenterOpen(true)} onOpenDocAnalysis={() => setIsDocAnalysisOpen(true)} onOpenImportExport={handleOpenImportExport} onOpenAutosave={() => setIsAutosaveModalOpen(true)} onNewArticle={handleNewArticle} />
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
           {activeTab === 'overview' && <PipelineDashboard projectId={pipelineProjectId || 'workspace'} actor={actor} initialState={pipelineState} onStateChange={setPipelineState} />}
-          {selectedInstrumentId !== 'jbi-qualitative-2017' && activeTab === 'instrumentinfo' ? (
+          {Boolean(selectedInstrumentId) && activeTab === 'instrumentinfo' ? (
             <UniversalAppraisalView studyId={currentStudyId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />
           ) : <>
             {activeTab === 'overview' && <OverviewView articles={articles} onSelectArticle={handleSelectArticle} onEditArticle={handleEditArticle} onGoToThesis={() => setActiveTab('synthesis')} onOpenCustomEvaluator={handleNewArticle} onOpenImportExport={handleOpenImportExport} />}
