@@ -15,7 +15,10 @@ export class WhoValidationService {
     article: Partial<ArticleAppraisal>, 
     instrumentId: string = 'jbi-qualitative-2017'
   ): MethodologyControlReport {
-    const instrument = INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId) || INSTRUMENTS_REGISTRY[0];
+    const instrument = INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
+    if (!instrument) {
+      throw new Error(`Ukjent instrument: ${instrumentId || 'mangler'}. Metodisk kontroll kan ikke gjennomføres uten et eksplisitt registrert instrument.`);
+    }
     const rules: MethodologyRuleEvaluation[] = [];
     const recommendations: string[] = [];
 

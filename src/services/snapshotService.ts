@@ -32,8 +32,10 @@ export class SnapshotService {
     appraisal: ArticleAppraisal,
     reviewer: string = 'Reviewer 1'
   ): AssessmentSnapshot {
-    const inst = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === appraisal.instrumentId) 
-      || MASTER_INSTRUMENTS_REGISTRY[0];
+    const inst = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === appraisal.instrumentId);
+    if (!inst) {
+      throw new Error(`SNAPSHOT_INTEGRITY: unknown appraisal instrument: ${appraisal.instrumentId || 'missing'}`);
+    }
 
     const lockHash = this.generateLockHash(appraisal, inst);
 
@@ -47,12 +49,12 @@ export class SnapshotService {
       source: inst.officialSource,
       sourcePublication: inst.primaryPublication,
       doi: inst.doi,
-      studyDesign: appraisal.design || 'Kvalitativ forskning',
+      studyDesign: appraisal.design || 'UNKNOWN',
       createdAt: appraisal.assessmentDate || new Date().toISOString().split('T')[0],
       createdBy: appraisal.reviewerName || reviewer,
       finalizedAt: appraisal.lifecycleStatus === 'FINALIZED' ? (appraisal.assessmentDate || new Date().toISOString()) : undefined,
       finalizedBy: appraisal.lifecycleStatus === 'FINALIZED' ? (appraisal.reviewerName || reviewer) : undefined,
-      documentHash: appraisal.documentHash || `SHA256:${appraisal.id.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0).toString(16).padStart(16, '0')}`,
+      documentHash: appraisal.documentHash || '',
       immutableLockHash: lockHash,
       lifecycleStatus: appraisal.lifecycleStatus || 'IN_REVIEW',
       reopenHistory: []
@@ -92,8 +94,8 @@ export class SnapshotService {
       id: `AUD-${Date.now()}`,
       studyId: appraisal.id,
       reviewer: reopenedBy,
-      instrumentId: appraisal.instrumentId || 'jbi-qualitative-2017',
-      version: appraisal.instrumentVersion || '2017',
+      instrumentId: currentSnapshot.instrumentId,
+      version: currentSnapshot.instrumentVersion,
       itemId: 0,
       itemTitle: 'Gjenåpning av finalisert vurdering',
       previousAnswer: 'FINALIZED',
@@ -132,8 +134,8 @@ export class SnapshotService {
       id: `AUD-${Date.now()}`,
       studyId: appraisal.id,
       reviewer: finalizedBy,
-      instrumentId: appraisal.instrumentId || 'jbi-qualitative-2017',
-      version: appraisal.instrumentVersion || '2017',
+      instrumentId: currentSnapshot.instrumentId,
+      version: currentSnapshot.instrumentVersion,
       itemId: 0,
       itemTitle: 'Finalisering og låsing av vurdering',
       previousAnswer: appraisal.lifecycleStatus || 'IN_REVIEW',

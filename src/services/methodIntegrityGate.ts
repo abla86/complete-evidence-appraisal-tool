@@ -390,7 +390,7 @@ export class MethodIntegrityGate {
       hash = (hash << 5) - hash + rawContent.charCodeAt(i);
       hash |= 0;
     }
-    const integrityHash = `MIG-SHA256:${Math.abs(hash).toString(16).padStart(8, '0')}${instrument.validationChecksum?.slice(-6) || '8f4c2e'}`;
+    const integrityHash = `MIG-CHECKSUM:${Math.abs(hash).toString(16).padStart(8, '0')}${instrument.validationChecksum?.slice(-6) || ''}`;
 
     return {
       appraisalId: appraisal.id,
@@ -504,8 +504,8 @@ export class MethodIntegrityGate {
         id: `AUD-VERIFY-${Date.now()}`,
         studyId: appraisal.id,
         reviewer: verifiedBy,
-        instrumentId: appraisal.instrumentId || 'jbi-qualitative-2017',
-        version: appraisal.instrumentVersion || '2017',
+        instrumentId: check.gateResult.instrumentId,
+        version: check.gateResult.registeredInstrument.version,
         itemId: 0,
         itemTitle: 'MethodIntegrityGate Verifikasjon',
         previousAnswer: appraisal.methodologyAlignmentStatus || 'PENDING_VERIFICATION',

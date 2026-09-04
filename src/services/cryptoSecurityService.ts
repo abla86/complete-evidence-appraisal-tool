@@ -78,13 +78,13 @@ export class CryptoSecurityService {
    */
   public static calculateAssessmentHash(payload: CanonicalAssessmentPayload): string {
     const canonicalObject = {
-      projectId: payload.projectId || 'default-project',
+      projectId: payload.projectId || '',
       studyId: payload.studyId || '',
-      instrumentId: payload.instrumentId || 'jbi-qualitative-2017',
-      instrumentVersion: payload.instrumentVersion || '2017',
-      reviewerId: payload.reviewerId || 'rev-1',
+      instrumentId: payload.instrumentId || '',
+      instrumentVersion: payload.instrumentVersion || '',
+      reviewerId: payload.reviewerId || '',
       assessmentId: payload.assessmentId || '',
-      overallVerdict: payload.overallVerdict || 'Vurder videre',
+      overallVerdict: payload.overallVerdict || '',
       items: (payload.items || []).map(it => ({
         q: it.questionId,
         s: it.status,
