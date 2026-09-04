@@ -541,7 +541,7 @@ export function promoteReferenceToStudy(ref: ReferenceItem, projectId: string): 
 }
 
 // ---------------------------------------------------------------------------
-// EXPORTERS: RIS, BibTeX, EndNote XML, CSL-JSON, Word CWYW, Google Docs
+// EXPORTERS: RIS, BibTeX, EndNote XML, CSL-JSON, Word CWYW, Rich Text HTML
 // ---------------------------------------------------------------------------
 
 /**

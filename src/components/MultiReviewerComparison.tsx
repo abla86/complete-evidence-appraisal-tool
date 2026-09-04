@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { 
   AppraisalAssessment, 
   AppraisalInstrument, 
+  DomainRating,
   MultiRaterComparison, 
   MultiRaterDomainRow, 
   RatingAnswer, 
@@ -129,11 +130,11 @@ export const MultiReviewerComparison: React.FC<MultiReviewerComparisonProps> = (
   };
 
   const handleLockConsensus = () => {
-    const finalRatings: Record<string, any> = {};
+    const finalRatings: Record<string, DomainRating> = {};
     for (const domain of domains) {
       const res = resolvedRatings[domain.id];
       const row = stats.domainRows.find(r => r.domainId === domain.id);
-      const fallbackAns = res?.answer || row?.majorityAnswer || activeAssessments[0]?.ratings[domain.id]?.answer || 'yes';
+      const fallbackAns: RatingAnswer = res?.answer || row?.majorityAnswer || activeAssessments[0]?.ratings[domain.id]?.answer || 'yes';
       
       finalRatings[domain.id] = {
         answer: fallbackAns,

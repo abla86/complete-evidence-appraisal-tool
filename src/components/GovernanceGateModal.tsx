@@ -46,7 +46,7 @@ export const GovernanceGateModal: React.FC<GovernanceGateModalProps> = ({
   const [rekEthicsStatus, setRekEthicsStatus] = useState<
     'REK Pre-Approval Registered' | 'Exempt / Open Access Scientific Publications' | 'Institutional Review Board Verified' | 'Not Applicable'
   >(
-    (currentGate?.rekEthicsStatus as any) || 'Exempt / Open Access Scientific Publications'
+    currentGate?.rekEthicsStatus || 'Exempt / Open Access Scientific Publications'
   );
   const [rekReferenceNumber, setRekReferenceNumber] = useState<string>(
     currentGate?.rekReferenceNumber || 'REK-NORD-2026-EXEMPT-04'
@@ -286,7 +286,7 @@ export const GovernanceGateModal: React.FC<GovernanceGateModalProps> = ({
               </label>
               <select
                 value={rekEthicsStatus}
-                onChange={(e) => setRekEthicsStatus(e.target.value as any)}
+                onChange={(e) => setRekEthicsStatus(e.target.value as 'REK Pre-Approval Registered' | 'Exempt / Open Access Scientific Publications' | 'Institutional Review Board Verified' | 'Not Applicable')}
                 className="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white font-medium cursor-pointer"
               >
                 <option value="Exempt / Open Access Scientific Publications">

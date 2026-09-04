@@ -33,7 +33,7 @@ export const PrismaFlowDiagram: React.FC<PrismaFlowDiagramProps> = ({
   const [eligibilityReasonKey, setEligibilityReasonKey] = useState('');
   const [eligibilityReasonVal, setEligibilityReasonVal] = useState<number>(10);
 
-  const handleUpdateField = (field: keyof PrismaFlowData, value: any) => {
+  const handleUpdateField = <K extends keyof PrismaFlowData>(field: K, value: PrismaFlowData[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: typeof value === 'number' ? Math.max(0, value) : value

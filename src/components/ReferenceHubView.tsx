@@ -329,8 +329,9 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({
       onUpdateReferences([...newItems, ...references]);
       setShowImportModal(false);
       setImportText('');
-    } catch (err: any) {
-      setImportError(err?.message || 'Feil under import av RIS.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Feil under import av RIS.';
+      setImportError(msg);
     }
   };
 

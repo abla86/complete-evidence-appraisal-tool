@@ -1,10 +1,12 @@
-import { DocumentAnalysisFinding, StudyRecord } from '../types';
+import { DocumentAnalysisFinding, IMRaDAnalysisResult, StudyRecord } from '../types';
 import { calculateSha256 } from './crypto';
+import { analyzeIMRaDStructure } from '../services/imradAnalysisService';
 
 export interface ParsedDocumentResult {
   study: StudyRecord;
   findings: DocumentAnalysisFinding[];
   warnings: string[];
+  imradAnalysis?: IMRaDAnalysisResult;
 }
 
 export interface MultiParsedDocumentResult {
@@ -96,6 +98,9 @@ export async function parseAndAnalyzeDocument(
   // Deep Article Identification & Signal Mining
   const characteristics = identifyArticleCharacteristics(rawContent, file.name);
 
+  // Structural Reporting Integrity Analysis (IMRaD)
+  const imradAnalysis = analyzeIMRaDStructure(rawContent, file.name, characteristics.studyType);
+
   const study: StudyRecord = {
     id: `study-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
     title: metadata.title || file.name.replace(/\.[^/.]+$/, ''),
@@ -112,13 +117,15 @@ export async function parseAndAnalyzeDocument(
     documentHashSha256: hash,
     importedAt: new Date().toISOString(),
     isLocked: false,
-    findings: characteristics.signals
+    findings: characteristics.signals,
+    imradAnalysis
   };
 
   return {
     study,
     findings: characteristics.signals,
-    warnings
+    warnings,
+    imradAnalysis
   };
 }
 
@@ -436,7 +443,7 @@ export function parseCsvString(text: string): Array<{
       journal: journalIdx !== -1 ? cells[journalIdx] : 'Research Archive',
       doi: doiIdx !== -1 ? cells[doiIdx] : undefined,
       abstract: absIdx !== -1 ? cells[absIdx] : undefined,
-      documentType: (typeIdx !== -1 ? cells[typeIdx] as any : undefined),
+      documentType: (typeIdx !== -1 ? cells[typeIdx] as StudyRecord['documentType'] : undefined),
       rawContent: rawLine
     });
   }
@@ -453,18 +460,44 @@ export function parseJsonString(text: string): Array<Partial<StudyRecord>> {
     if (Array.isArray(parsed)) {
       return parsed;
     }
-    if (parsed['@graph'] && Array.isArray(parsed['@graph'])) {
-      return parsed['@graph'].map((item: any) => ({
-        id: item.id || item['@id'],
-        title: item.title || item.name,
-        authors: item.authors || (item.author ? (Array.isArray(item.author) ? item.author.map((a: any) => a.name || a).join(', ') : item.author.name || item.author) : 'Authors Not Specified'),
-        year: item.year || item.datePublished?.substring(0, 4) || '',
-        journal: item.journal || item.publication?.name || '',
-        doi: item.doi || item.identifier,
-        abstract: item.abstract || item.description || '',
-        documentType: item.documentType || 'General Research Document',
-        documentHashSha256: item.documentHashSha256 || item.sha256
-      }));
+    if (parsed && typeof parsed === 'object' && Array.isArray((parsed as Record<string, unknown>)['@graph'])) {
+      const graph = (parsed as { '@graph': Array<Record<string, unknown>> })['@graph'];
+      return graph.map((item) => {
+        const authorField = item.authors || item.author;
+        let authorsStr = 'Authors Not Specified';
+        if (typeof authorField === 'string') {
+          authorsStr = authorField;
+        } else if (Array.isArray(authorField)) {
+          authorsStr = authorField.map((a: unknown) => {
+            if (typeof a === 'string') return a;
+            if (a && typeof a === 'object' && 'name' in a && typeof (a as { name: unknown }).name === 'string') {
+              return (a as { name: string }).name;
+            }
+            return String(a);
+          }).join(', ');
+        } else if (authorField && typeof authorField === 'object' && 'name' in authorField) {
+          authorsStr = String((authorField as { name: unknown }).name);
+        }
+
+        const datePub = typeof item.datePublished === 'string' ? item.datePublished.substring(0, 4) : '';
+        const journalName = typeof item.journal === 'string' 
+          ? item.journal 
+          : (item.publication && typeof item.publication === 'object' && 'name' in item.publication) 
+            ? String((item.publication as { name: unknown }).name) 
+            : '';
+
+        return {
+          id: typeof item.id === 'string' ? item.id : typeof item['@id'] === 'string' ? item['@id'] : undefined,
+          title: typeof item.title === 'string' ? item.title : typeof item.name === 'string' ? item.name : undefined,
+          authors: authorsStr,
+          year: typeof item.year === 'string' ? item.year : datePub,
+          journal: journalName,
+          doi: typeof item.doi === 'string' ? item.doi : typeof item.identifier === 'string' ? item.identifier : undefined,
+          abstract: typeof item.abstract === 'string' ? item.abstract : typeof item.description === 'string' ? item.description : '',
+          documentType: (typeof item.documentType === 'string' ? item.documentType : 'General Research Document') as StudyRecord['documentType'],
+          documentHashSha256: typeof item.documentHashSha256 === 'string' ? item.documentHashSha256 : typeof item.sha256 === 'string' ? item.sha256 : undefined
+        };
+      });
     }
     if (parsed.studies && Array.isArray(parsed.studies)) {
       return parsed.studies;

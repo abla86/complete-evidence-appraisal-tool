@@ -245,19 +245,21 @@ Styrker:
 
         {/* Section Navigation */}
         <div className="flex border-b border-slate-800 bg-slate-950/60 px-6 pt-2 gap-1 overflow-x-auto">
-          {[
-            { id: 'methods', label: '1. Metodekapittel' },
-            { id: 'search', label: '2. Litteratursøk' },
-            { id: 'criteria', label: '3. Inklusjonskriterier' },
-            { id: 'appraisal', label: '4. Kritisk vurdering (JBI)' },
-            { id: 'results', label: '5. Resultater & Syntese' },
-            { id: 'limitations', label: '6. Begrensninger' },
-            { id: 'references', label: '7. Referanseliste' },
-            { id: 'tables', label: '8. Metodetabeller' },
-          ].map(tab => (
+          {(
+            [
+              { id: 'methods', label: '1. Metodekapittel' },
+              { id: 'search', label: '2. Litteratursøk' },
+              { id: 'criteria', label: '3. Inklusjonskriterier' },
+              { id: 'appraisal', label: '4. Kritisk vurdering (JBI)' },
+              { id: 'results', label: '5. Resultater & Syntese' },
+              { id: 'limitations', label: '6. Begrensninger' },
+              { id: 'references', label: '7. Referanseliste' },
+              { id: 'tables', label: '8. Metodetabeller' },
+            ] as const
+          ).map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveSection(tab.id as any)}
+              onClick={() => setActiveSection(tab.id)}
               className={`px-3 py-2 text-xs font-semibold rounded-t-lg transition-colors whitespace-nowrap border-t-2 ${
                 activeSection === tab.id
                   ? 'bg-slate-900 text-white border-indigo-500'

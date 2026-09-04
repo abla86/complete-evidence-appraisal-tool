@@ -297,7 +297,7 @@ export const ResearchSearchHubModal: React.FC<ResearchSearchHubModalProps> = ({
 
               <select
                 value={selectedDatabase}
-                onChange={(e) => setSelectedDatabase(e.target.value as any)}
+                onChange={(e) => setSelectedDatabase(e.target.value as 'ALL' | 'PubMed' | 'Europe PMC' | 'OpenAlex' | 'CrossRef')}
                 className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-blue-300 font-semibold"
               >
                 <option value="ALL">Alle databaser (PubMed + PMC + OpenAlex)</option>

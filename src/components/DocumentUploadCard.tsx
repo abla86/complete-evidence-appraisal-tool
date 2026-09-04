@@ -64,9 +64,10 @@ export const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       setTimeout(() => {
         if (onClose) onClose();
       }, 900);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Document parsing error:', err);
-      setErrorMessage(`Feil under lesing av dokument: ${err?.message || 'Ukjent formatfeil'}`);
+      const msg = err instanceof Error ? err.message : 'Ukjent formatfeil';
+      setErrorMessage(`Feil under lesing av dokument: ${msg}`);
     } finally {
       setIsProcessing(false);
     }
@@ -129,8 +130,9 @@ export const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
           if (onClose) onClose();
         }, 900);
       }
-    } catch (err: any) {
-      setErrorMessage(`Kunne ikke analysere innlimt tekst: ${err?.message}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Ukjent formatfeil';
+      setErrorMessage(`Kunne ikke analysere innlimt tekst: ${msg}`);
     } finally {
       setIsProcessing(false);
     }

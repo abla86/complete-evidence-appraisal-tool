@@ -314,7 +314,7 @@ export const ProjectProtocolModal: React.FC<ProjectProtocolModalProps> = ({
                   </label>
                   <select
                     value={protocol.registrationStatus}
-                    onChange={(e) => setProtocol(prev => ({ ...prev, registrationStatus: e.target.value as any }))}
+                    onChange={(e) => setProtocol(prev => ({ ...prev, registrationStatus: e.target.value as ResearchProtocol['registrationStatus'] }))}
                     className="w-full text-xs p-2 border border-slate-300 rounded text-slate-800 bg-white font-medium cursor-pointer"
                   >
                     <option value="Registered">Registered (PROSPERO a priori)</option>
@@ -342,7 +342,7 @@ export const ProjectProtocolModal: React.FC<ProjectProtocolModalProps> = ({
                 </label>
                 <select
                   value={protocol.synthesisApproach}
-                  onChange={(e) => setProtocol(prev => ({ ...prev, synthesisApproach: e.target.value as any }))}
+                  onChange={(e) => setProtocol(prev => ({ ...prev, synthesisApproach: e.target.value as ResearchProtocol['synthesisApproach'] }))}
                   className="w-full text-xs p-2 border border-slate-300 rounded text-slate-800 mb-2 bg-white font-medium cursor-pointer"
                 >
                   <option value="Random-Effects Meta-Analysis">Random-Effects Meta-Analysis</option>

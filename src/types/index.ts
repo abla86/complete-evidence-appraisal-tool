@@ -348,6 +348,7 @@ export interface StudyRecord {
   sourceRefId?: string;
   findings?: DocumentAnalysisFinding[];
   extraction?: DataExtractionRecord;
+  imradAnalysis?: IMRaDAnalysisResult;
 }
 
 export interface DocumentAnalysisFinding {
@@ -669,4 +670,53 @@ export interface ThesisDraftSection {
   isLocked: boolean;
   updatedAt: string;
 }
+
+// ===========================================================================
+// IMRaD STRUCTURAL REPORTING ARCHITECTURE
+// Standardized structural layer: Introduction, Methods, Results, Discussion
+// ===========================================================================
+
+export type IMRaDSectionKey =
+  | 'introduction'
+  | 'methods'
+  | 'results'
+  | 'discussion';
+
+export type IMRaDSectionStatus =
+  | 'DETECTED'
+  | 'INFERRED'
+  | 'MISSING';
+
+export interface IMRaDSectionAnalysis {
+  key: IMRaDSectionKey;
+  label: string;
+  detected: boolean;
+  explicitHeading: boolean;
+  confidence: number; // 0 to 1
+  characterCount: number;
+  wordCount: number;
+  evidencePreview: string;
+  status: IMRaDSectionStatus;
+  detectedHeading?: string;
+  subsections?: string[];
+}
+
+export interface IMRaDAnalysisResult {
+  fileName: string;
+  standard: 'IMRaD';
+  standardDescription: string;
+  analyzedAt: string;
+  complete: boolean;
+  explicitComplete: boolean;
+  detectedSectionCount: number;
+  explicitHeadingCount: number;
+  confidence: number; // 0 to 1
+  sections: IMRaDSectionAnalysis[];
+  missingSections: string[];
+  limitations: string[];
+  methodologicalNotice: string;
+  expectedStructureRationale?: string;
+  recommendedReportingStandard?: 'CONSORT' | 'PRISMA' | 'STROBE' | 'COREQ' | 'SRQR' | 'STARD' | 'CARE' | 'SQUIRE' | 'RIGHT' | 'General';
+}
+
 

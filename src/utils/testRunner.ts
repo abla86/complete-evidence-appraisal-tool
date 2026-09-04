@@ -28,8 +28,8 @@ import {
 
 export interface TestAssertion {
   name: string;
-  expected: any;
-  actual: any;
+  expected: unknown;
+  actual: unknown;
   passed: boolean;
   details?: string;
 }

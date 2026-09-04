@@ -23,12 +23,17 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Filter,
-  Sparkle
+  Sparkle,
+  LayoutTemplate,
+  AlertTriangle,
+  Info,
+  HelpCircle
 } from 'lucide-react';
-import { AppraisalInstrument, DocumentAnalysisFinding, StudyRecord } from '../types';
+import { AppraisalInstrument, DocumentAnalysisFinding, IMRaDAnalysisResult, StudyRecord } from '../types';
 import { OcrDiagnosticsModal } from './OcrDiagnosticsModal';
 import { DOMAIN_COLOR_PALETTES, getDomainColorByDomainId, getDomainColorPalette } from '../utils/domainColors';
 import { parseDocumentPages, scanDocumentForFramework } from '../utils/evidenceScanner';
+import { analyzeIMRaDStructure } from '../services/imradAnalysisService';
 
 interface EvidenceDocumentViewerProps {
   study: StudyRecord;
@@ -53,13 +58,20 @@ export const EvidenceDocumentViewer: React.FC<EvidenceDocumentViewerProps> = ({
   onRunAutoScan,
   onOpenDoiVerifier
 }) => {
-  const [activeView, setActiveView] = useState<'reader' | 'findings' | 'pages' | 'raw'>('reader');
+  const [activeView, setActiveView] = useState<'reader' | 'findings' | 'pages' | 'imrad' | 'raw'>('reader');
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedHash, setCopiedHash] = useState(false);
   const [showOcrModal, setShowOcrModal] = useState(false);
   const [showColorLegend, setShowColorLegend] = useState(true);
   const [filterDomainId, setFilterDomainId] = useState<string>('all');
   const [isScanning, setIsScanning] = useState(false);
+
+  // Compute or obtain IMRaD Structural Reporting Analysis
+  const imradAnalysis: IMRaDAnalysisResult = study.imradAnalysis || analyzeIMRaDStructure(
+    study.rawContent || study.abstract || '',
+    study.fileName,
+    study.documentType
+  );
   
   // Readability & Usability States
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('base');
@@ -331,6 +343,24 @@ export const EvidenceDocumentViewer: React.FC<EvidenceDocumentViewerProps> = ({
               }`}
             >
               Funnliste
+            </button>
+            <button
+              id="view-tab-imrad"
+              onClick={() => setActiveView('imrad')}
+              className={`px-2.5 py-1 font-medium rounded transition-colors flex items-center gap-1 ${
+                activeView === 'imrad'
+                  ? 'bg-blue-600 text-white shadow-2xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="IMRaD Rapporteringsstruktur (Introduction, Methods, Results, Discussion)"
+            >
+              <LayoutTemplate className="w-3 h-3" />
+              <span>IMRaD-struktur</span>
+              <span className={`text-[9px] px-1 py-0.2 rounded font-mono font-bold ${
+                activeView === 'imrad' ? 'bg-blue-800 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {imradAnalysis.detectedSectionCount}/4
+              </span>
             </button>
           </div>
 
@@ -690,6 +720,179 @@ export const EvidenceDocumentViewer: React.FC<EvidenceDocumentViewerProps> = ({
                   );
                 })
               )}
+            </div>
+          )}
+
+          {/* IMRaD Structural Reporting Analysis View */}
+          {activeView === 'imrad' && (
+            <div className="max-w-4xl mx-auto space-y-4 font-sans pb-8">
+              
+              {/* Top Banner: Methodology Notice & Separation of Reporting vs Appraisal */}
+              <div className="p-4 bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-600/30 border border-blue-500/40 text-blue-300 flex items-center justify-center">
+                      <LayoutTemplate className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span>IMRaD Rapporteringsstrukturanalyse</span>
+                        <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold ${
+                          imradAnalysis.explicitComplete 
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                            : imradAnalysis.complete
+                              ? 'bg-blue-950 text-blue-300 border border-blue-800'
+                              : 'bg-amber-950 text-amber-300 border border-amber-800'
+                        }`}>
+                          {imradAnalysis.explicitComplete ? 'Fullstendig (Eksplisitte overskrifter)' : imradAnalysis.complete ? 'Komplett (Inkludert inferens)' : 'Avvikende / Ufullstendig'}
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-300">
+                        {imradAnalysis.standardDescription}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] font-mono text-slate-400 block">Identifisert</span>
+                    <span className="text-base font-mono font-bold text-blue-400">
+                      {imradAnalysis.detectedSectionCount}/4 ledd
+                    </span>
+                  </div>
+                </div>
+
+                {/* Crucial Methodological Principle Notice */}
+                <div className="mt-2 p-2.5 bg-blue-950/70 border border-blue-800/80 rounded-lg text-xs text-blue-200 flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-blue-100">
+                      Viktig metodisk skille: Rapportering ≠ Kritiske kvalitetsvurderinger (Critical Appraisal)
+                    </p>
+                    <p className="text-[11px] text-blue-200/90 leading-relaxed">
+                      {imradAnalysis.methodologicalNotice}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Reporting standard mapping link */}
+                <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-slate-400">Studiens form:</span>
+                    <strong className="text-white">{study.documentType}</strong>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-slate-400">Anbefalt rapporteringsstandard:</span>
+                    <span className="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-amber-300 border border-slate-700">
+                      {imradAnalysis.recommendedReportingStandard || 'General'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Limitations alerts if any */}
+              {imradAnalysis.limitations.length > 0 && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-950">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Metodiske begrensninger i tekstgrunnlaget:</span>
+                  </div>
+                  <ul className="list-disc list-inside space-y-0.5 text-[11px] text-amber-900 pl-1">
+                    {imradAnalysis.limitations.map((lim, idx) => (
+                      <li key={idx}>{lim}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Table / Matrix of IMRaD Sections */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <h4 className="font-bold text-xs text-slate-900 uppercase tracking-tight">
+                    IMRaD Seksjonsmatrise &amp; Evidensbevis
+                  </h4>
+                  <span className="text-xs text-slate-500 font-mono">
+                    Gjennomsnittlig konfidens: {Math.round(imradAnalysis.confidence * 100)}%
+                  </span>
+                </div>
+
+                <div className="divide-y divide-slate-200">
+                  {imradAnalysis.sections.map((sec) => {
+                    const isDetected = sec.status === 'DETECTED';
+                    const isInferred = sec.status === 'INFERRED';
+                    const isMissing = sec.status === 'MISSING';
+
+                    return (
+                      <div key={sec.key} className="p-4 space-y-2.5 hover:bg-slate-50/50 transition-colors">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${
+                              isDetected ? 'bg-emerald-500 ring-4 ring-emerald-100' : isInferred ? 'bg-amber-500 ring-4 ring-amber-100' : 'bg-red-500 ring-4 ring-red-100'
+                            }`} />
+                            <span className="font-bold text-xs text-slate-900 uppercase">
+                              {sec.label}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {/* Status badge */}
+                            <span className={`px-2 py-0.5 text-[10px] font-bold font-mono rounded uppercase border ${
+                              isDetected 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : isInferred
+                                  ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                  : 'bg-red-50 text-red-800 border-red-200'
+                            }`}>
+                              {sec.status}
+                            </span>
+
+                            {/* Heading badge */}
+                            <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${
+                              sec.explicitHeading 
+                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                : 'bg-slate-100 text-slate-500 border border-slate-200'
+                            }`}>
+                              {sec.explicitHeading ? `Heading: "${sec.detectedHeading}"` : 'Ingen eksplisitt heading'}
+                            </span>
+
+                            {/* Confidence rating */}
+                            <span className="text-[11px] font-mono text-slate-500">
+                              Konfidens: <strong>{Math.round(sec.confidence * 100)}%</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Evidence preview box */}
+                        {sec.evidencePreview ? (
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-slate-800 space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                              <span>Tekstutdrag / evidensgrunnlag ({sec.wordCount} ord):</span>
+                              <span>{sec.characterCount} tegn</span>
+                            </div>
+                            <p className="font-serif italic leading-relaxed text-slate-700">
+                              "{sec.evidencePreview}"
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="p-2.5 bg-slate-50 rounded border border-dashed border-slate-200 text-xs text-slate-500 italic">
+                            Ingen eksplisitte eller semantiske signaler funnet for denne seksjonen i dokumentet.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Explanatory footer */}
+              <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 space-y-2">
+                <h5 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Hvordan tolke IMRaD i evidensvurderingen?</span>
+                </h5>
+                <p className="text-[11px] leading-relaxed text-slate-600">
+                  IMRaD er rapporteringsformatets struktur. Artikkelens metodiske kvalitet og troverdighet (Risk of Bias / CASP / JBI / AMSTAR 2) avhenger av designets stringens, transparens, refleksivitet og analysemetoder. En kvalitativ studie med underkapitler som "Bakgrunn, Metode, Funn og Drøfting" er strukturelt komplett selv om den ikke benytter begrepet "Results".
+                </p>
+              </div>
+
             </div>
           )}
 

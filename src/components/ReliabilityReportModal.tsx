@@ -671,7 +671,7 @@ A total of ${reliabilitySummary.totalDiscrepancies} individual domain discrepanc
                   <select
                     id="reliability-sort-by"
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
+                    onChange={(e) => setSortBy(e.target.value as 'kappa_desc' | 'kappa_asc' | 'agreement_desc' | 'discrepancies_desc' | 'title')}
                     className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-blue-500 cursor-pointer"
                   >
                     <option value="kappa_desc">Høyest &kappa; først</option>
