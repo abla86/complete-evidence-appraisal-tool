@@ -55,6 +55,11 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
   const openAppraisals = input.appraisal.filter(item => !item.locked);
   if (openAppraisals.length > 0) blockers.push(`${openAppraisals.length} appraisal-sesjon(er) er ikke låst.`);
 
+  const evidenceIds = new Set(input.evidence.map(item => item.id));
+  const appraisalIds = new Set(input.appraisal.map(item => item.id));
+  const invalidQualityLinks = input.quality.filter(item => !evidenceIds.has(item.evidenceId) || !appraisalIds.has(item.appraisalSessionId));
+  if (invalidQualityLinks.length > 0) blockers.push(`${invalidQualityLinks.length} quality-vurdering(er) peker til manglende evidence eller appraisal-session.`);
+
   const openQuality = input.quality.filter(item => !item.locked);
   if (openQuality.length > 0) blockers.push(`${openQuality.length} GRADE/CERQual-vurdering(er) er ikke låst.`);
 
