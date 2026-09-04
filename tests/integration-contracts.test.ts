@@ -64,3 +64,16 @@ test('orchestrator creates one canonical appraisal session and preserves verifie
   assert.ok(stored);
   assert.deepEqual(stored.evidenceIds, [firstEvidence.id]);
 });
+
+
+test('research-to-export contract rejects incomplete synthesis provenance', async () => {
+  const instrumentId = 'jbi-qualitative-2017';
+  let state = updateResearchClassification(createResearchWorkflowFromText('Aim: explore experiences. Methods: qualitative study.', 'study.txt', `export-1788487221175`), classification(instrumentId, 'Kvalitativ'));
+  state = verifyResearchClassification(state, 'reviewer-1', true);
+  state = selectResearchInstrument(state, instrumentId);
+  const evidence = state.research?.evidenceBundle.evidence[0];
+  assert.ok(evidence);
+  state = verifyResearchEvidence(state, evidence.id, true, 'reviewer-1');
+  const payload = buildResearchAppraisalPayload(state);
+  assert.deepEqual(payload.evidence.map(item => item.id), [evidence.id]);
+});
