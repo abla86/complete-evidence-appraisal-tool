@@ -13,6 +13,8 @@ export interface EvidenceExtraction {
   linkedClaims: string[];
   researcherVerified: boolean;
   verificationNote?: string;
+  referenceDraft?: string;
+  sourceMetadata?: Record<string, unknown>;
 }
 
 export interface AcademicClaim {

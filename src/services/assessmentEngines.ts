@@ -395,41 +395,47 @@ export class Rob2AssessmentEngine {
 export class GradeAssessmentEngine {
   public static evaluateOutcome(input: {
     outcomeName: string;
-    studyDesign: 'RCT' | 'Observational';
-    riskOfBias: 0 | -1 | -2;
-    inconsistency: 0 | -1 | -2;
-    indirectness: 0 | -1 | -2;
-    imprecision: 0 | -1 | -2;
-    publicationBias: 0 | -1 | -2;
-    largeEffect?: 0 | 1 | 2;
-    doseResponse?: 0 | 1;
-    opposingConfounders?: 0 | 1;
+    studyDesign: string;
+    riskOfBias: string | number;
+    inconsistency: string | number;
+    indirectness: string | number;
+    imprecision: string | number;
+    publicationBias: string | number;
+    largeEffect?: string | number;
+    doseResponse?: string | number;
+    opposingConfounders?: string | number;
     finalCertainty?: GradeCertaintyEvaluation['finalCertainty'];
     certaintyRationale?: string;
   }): GradeCertaintyEvaluation {
+    const studyDesign: GradeCertaintyEvaluation['studyDesign'] = input.studyDesign === 'RCT' ? 'RCT' : 'Observational';
+    const toDowngrade = (value: string | number): 0 | -1 | -2 => { const n = Number(value); if (n !== 0 && n !== -1 && n !== -2) throw new Error('GRADE downgrade judgments must be 0, -1 or -2.'); return n; };
+    const toLarge = (value: string | number | undefined): 0 | 1 | 2 => { const n = Number(value ?? 0); if (n !== 0 && n !== 1 && n !== 2) throw new Error('GRADE large-effect adjustment must be 0, 1 or 2.'); return n; };
+    const toBinary = (value: string | number | undefined): 0 | 1 => { const n = Number(value ?? 0); if (n !== 0 && n !== 1) throw new Error('GRADE upgrade adjustment must be 0 or 1.'); return n; };
+    const riskOfBias = toDowngrade(input.riskOfBias), inconsistency = toDowngrade(input.inconsistency), indirectness = toDowngrade(input.indirectness), imprecision = toDowngrade(input.imprecision), publicationBias = toDowngrade(input.publicationBias);
+    const largeEffect = toLarge(input.largeEffect), doseResponse = toBinary(input.doseResponse), opposingConfounders = toBinary(input.opposingConfounders);
     if (!input.outcomeName.trim()) throw new Error('GRADE outcomeName er påkrevd.');
     if (input.finalCertainty && !input.certaintyRationale?.trim()) throw new Error('Eksplisitt GRADE-final certainty krever begrunnelse.');
-    const downgrade = [input.riskOfBias,input.inconsistency,input.indirectness,input.imprecision,input.publicationBias];
-    const upgrade = [input.largeEffect ?? 0,input.doseResponse ?? 0,input.opposingConfounders ?? 0];
+    const downgrade = [riskOfBias,inconsistency,indirectness,imprecision,publicationBias];
+    const upgrade = [largeEffect,doseResponse,opposingConfounders];
     const reasons:string[] = [];
-    if(input.riskOfBias < 0) reasons.push(`risk of bias ${input.riskOfBias}`);
-    if(input.inconsistency < 0) reasons.push(`inconsistency ${input.inconsistency}`);
-    if(input.indirectness < 0) reasons.push(`indirectness ${input.indirectness}`);
-    if(input.imprecision < 0) reasons.push(`imprecision ${input.imprecision}`);
-    if(input.publicationBias < 0) reasons.push(`publication bias ${input.publicationBias}`);
-    if((input.largeEffect ?? 0)>0) reasons.push(`large effect +${input.largeEffect}`);
-    if((input.doseResponse ?? 0)>0) reasons.push('dose-response +1');
-    if((input.opposingConfounders ?? 0)>0) reasons.push('opposing confounding +1');
+    if(riskOfBias < 0) reasons.push(`risk of bias ${input.riskOfBias}`);
+    if(inconsistency < 0) reasons.push(`inconsistency ${input.inconsistency}`);
+    if(indirectness < 0) reasons.push(`indirectness ${input.indirectness}`);
+    if(imprecision < 0) reasons.push(`imprecision ${input.imprecision}`);
+    if(publicationBias < 0) reasons.push(`publication bias ${input.publicationBias}`);
+    if((largeEffect)>0) reasons.push(`large effect +${input.largeEffect}`);
+    if((doseResponse)>0) reasons.push('dose-response +1');
+    if((opposingConfounders)>0) reasons.push('opposing confounding +1');
     if (![input.riskOfBias,input.inconsistency,input.indirectness,input.imprecision,input.publicationBias].every(value => value === 0 || value === -1 || value === -2)) throw new Error('GRADE downgrade judgments must be 0, -1 or -2.');
-    const initialLevel = input.studyDesign === 'RCT' ? 4 : 2;
+    const initialLevel = studyDesign === 'RCT' ? 4 : 2;
     const calculatedLevel = Math.max(1, Math.min(4, initialLevel + downgrade.reduce((a,b)=>a+b,0) + upgrade.reduce((a,b)=>a+b,0)));
     const calculated: GradeCertaintyEvaluation['finalCertainty'] = calculatedLevel === 4 ? 'High' : calculatedLevel === 3 ? 'Moderate' : calculatedLevel === 2 ? 'Low' : 'Very Low';
     return {
       outcomeName: input.outcomeName,
-      studyDesign: input.studyDesign,
+      studyDesign,
       initialCertainty: input.studyDesign === 'RCT' ? 'High' : 'Low',
-      downgradeFactors:{riskOfBias:input.riskOfBias,inconsistency:input.inconsistency,indirectness:input.indirectness,imprecision:input.imprecision,publicationBias:input.publicationBias},
-      upgradeFactors:{largeEffect:input.largeEffect ?? 0,doseResponse:input.doseResponse ?? 0,opposingConfounders:input.opposingConfounders ?? 0},
+      downgradeFactors:{riskOfBias,inconsistency,indirectness,imprecision,publicationBias},
+      upgradeFactors:{largeEffect,doseResponse,opposingConfounders},
       finalCertainty: input.finalCertainty ?? calculated,
       certaintyRationale: input.certaintyRationale?.trim() ?? `Foreløpig regelberegning basert på registrerte GRADE-domener: ${reasons.length ? reasons.join('; ') : 'ingen eksplisitte justeringer'}.`
     };
@@ -494,7 +500,7 @@ export class GradeCerqualAssessmentEngine {
   }): GradeCerqualEvaluationResult {
     const concernFields = [input.methodologicalLimitations, input.coherence, input.adequacyOfData, input.relevance];
     if (concernFields.some(value => value === undefined || value === null || !String(value).trim())) throw new Error('CERQual requires an explicit judgment for all four components.');
-    if (!input.reviewFinding.trim()) throw new Error('CERQual-funn må beskrives.');
+    if (!(input.reviewFinding ?? '').trim()) throw new Error('CERQual-funn må beskrives.');
     if (!input.confidenceExplanation.trim()) throw new Error('CERQual samlet confidence krever eksplisitt begrunnelse.');
     return {
       reviewFinding: input.reviewFinding,

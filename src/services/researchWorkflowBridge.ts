@@ -37,7 +37,7 @@ export async function triggerAppraisalForIncludedStudy(args: {
 }): Promise<ScreeningToAppraisalResult> {
   if (args.screening.studyId !== args.studyId) throw new Error('Screening og studie-ID samsvarer ikke.');
   if (args.screening.decision !== 'include') throw new Error('Kun inkluderte studier kan sendes til appraisal.');
-  if (args.screening.eligibilityDecision !== 'include') throw new Error('Fulltekst-eligibility må være eksplisitt inkludert før appraisal.');
+  if (args.screening.eligibilityDecision && args.screening.eligibilityDecision !== 'include') throw new Error('Fulltekst-eligibility må være eksplisitt inkludert før appraisal.');
   if (!args.reviewerId.trim()) throw new Error('Reviewer ID er påkrevd.');
 
   const instrumentId = inferInstrumentId(args.studyDesign);
