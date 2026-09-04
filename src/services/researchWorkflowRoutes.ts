@@ -81,7 +81,7 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.get('/api/research-workflows/:studyId', (req: Request, res: Response) => {
     try {
-      const workflow = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
+      const workflow = requireWorkflow(req.params.studyId, typeof req.query?.projectId === 'string' ? req.query.projectId : undefined);
       return res.json({
         success: true,
         workflow,
@@ -101,7 +101,7 @@ export function registerResearchWorkflowRoutes(app: {
         return sendError(res, 400, 'classification is required');
       }
 
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
       const updated = save(
         updateResearchClassification(
           workflow,
@@ -187,7 +187,7 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.post('/api/research-workflows/:studyId/appraisal/ready', (req: Request, res: Response) => {
     try {
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
       const payload = buildResearchAppraisalPayload(workflow);
 
       return res.json({
