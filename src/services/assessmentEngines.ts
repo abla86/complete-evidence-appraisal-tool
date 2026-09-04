@@ -182,6 +182,7 @@ export class Amstar2AssessmentEngine {
     let overallConfidence: 'High' | 'Moderate' | 'Low' | 'Critically Low';
     let confidenceRationale = '';
 
+    if (Object.keys(itemResponses).some(key => !Number.isInteger(Number(key)) || Number(key) < 1 || Number(key) > 16)) throw new Error('AMSTAR 2 contains an invalid item number.');
     if (criticalFlawsCount === 0) {
       if (nonCriticalFlawsCount <= 1) {
         overallConfidence = 'High';
@@ -233,7 +234,8 @@ export class Agree2AssessmentEngine {
     const domainScores: Agree2DomainScore[] = this.DOMAINS.map(domain => {
       let obtained = 0;
       domain.items.forEach(itemId => {
-        const val = ratings[itemId] || 1; // default to min score 1 if unrated
+        const val = ratings[itemId];
+      if (val === undefined || val < 1 || val > 7) throw new Error(`AGREE II item ${itemId} must be rated 1–7 before scoring.`);
         obtained += val;
       });
 
@@ -253,6 +255,8 @@ export class Agree2AssessmentEngine {
         standardizedScorePercent: Math.max(0, Math.min(100, scorePercent))
       };
     });
+
+    if (Object.keys(ratings).length !== 23) throw new Error('AGREE II scoring requires all 23 items.');
 
     // Rigour domain (Domain 3) is key for recommendation
     const rigourScore = domainScores.find(d => d.domainId === 3)?.standardizedScorePercent || 0;
