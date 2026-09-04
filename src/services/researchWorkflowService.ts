@@ -148,6 +148,9 @@ export function getVerifiedResearchEvidence(state: WorkflowState) {
 }
 
 export function assertReadyForAppraisal(state: WorkflowState): void {
+  if (!state.screening.some(item => item.studyId === state.studyId && item.decision === 'INCLUDED')) {
+    throw new Error('Studien må være eksplisitt inkludert i screening før appraisal kan startes.');
+  }
   if (!state.research) throw new Error('Ingen research-workflow er knyttet til studien.');
   if (!state.research.classificationVerified) throw new Error('Human verification av dokumentklassifisering er påkrevd.');
   if (!state.research.selectedInstrumentId) throw new Error('Appraisal-instrument er ikke valgt.');
