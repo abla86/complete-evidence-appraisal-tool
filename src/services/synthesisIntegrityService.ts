@@ -11,6 +11,7 @@ export interface SynthesisInput {
   value?: number;
   standardError?: number;
   effectMeasure?: 'OR' | 'RR' | 'HR' | 'MD' | 'SMD' | 'RD' | 'CORRELATION' | 'OTHER';
+  confidenceInterval?: { lower: number; upper: number };
   direction?: 'FAVOURS_INTERVENTION' | 'FAVOURS_COMPARATOR' | 'NO_DIFFERENCE' | 'MIXED' | 'NOT_APPLICABLE';
   eligible: boolean;
   notes?: string;
@@ -25,6 +26,8 @@ export interface SynthesisRecord {
   createdBy: string;
   createdAt: string;
   locked: boolean;
+  poolingMethod?: 'FIXED_EFFECT' | 'RANDOM_EFFECTS' | 'NOT_APPLICABLE';
+  heterogeneity?: { i2?: number; tau2?: number; qPValue?: number };
 }
 
 export interface SynthesisValidation {
@@ -44,6 +47,11 @@ export function validateSynthesis(
   const provenance = synthesis.inputs.map(input => ({ inputId: input.id, studyId: input.studyId, appraisalSessionId: input.appraisalSessionId, evidenceIds: [...input.evidenceIds], claimIds: claims.filter(c => c.supportingEvidenceIds.some(id => input.evidenceIds.includes(id))).map(c => c.id) }));
   if (!synthesis.question.trim()) blockers.push('Syntesen mangler forskningsspørsmål.');
   if (!synthesis.inputs.length) blockers.push('Syntesen har ingen inkluderte input-enheter.');
+  if (synthesis.type === 'META_ANALYSIS' && !synthesis.poolingMethod) blockers.push('Meta-analysen mangler pooling method.');
+  if (synthesis.type === 'META_ANALYSIS' && synthesis.poolingMethod === 'NOT_APPLICABLE') blockers.push('Meta-analyse kan ikke merkes NOT_APPLICABLE for pooling.');
+  if (synthesis.heterogeneity?.i2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.i2) || synthesis.heterogeneity.i2 < 0 || synthesis.heterogeneity.i2 > 100)) blockers.push('I² må være mellom 0 og 100.');
+  if (synthesis.heterogeneity?.tau2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.tau2) || synthesis.heterogeneity.tau2 < 0)) blockers.push('Tau² kan ikke være negativ.');
+
   const appraisalIds=new Set(appraisals.filter(a=>a.locked).map(a=>a.id));
   const evidenceIds=new Set(evidence.map(e=>e.id));
   const claimEvidence=new Set(claims.flatMap(c=>c.supportingEvidenceIds));
@@ -66,6 +74,11 @@ export function validateSynthesis(
     if(synthesis.type==='META_ANALYSIS' && input.standardError !== undefined && (!Number.isFinite(input.standardError) || input.standardError <= 0)) blockers.push(`Meta-analyseinput ${input.id} har ugyldig standard error.`);
     if(synthesis.type==='META_ANALYSIS' && input.value !== undefined && !Number.isFinite(input.value)) blockers.push(`Meta-analyseinput ${input.id} har ugyldig effect estimate.`);
     if(synthesis.type==='META_ANALYSIS' && !input.effectMeasure) blockers.push(`Meta-analyseinput ${input.id} mangler effect measure.`);
+    if(synthesis.type==='META_ANALYSIS' && input.confidenceInterval) {
+      const { lower, upper } = input.confidenceInterval;
+      if(!Number.isFinite(lower) || !Number.isFinite(upper) || lower > upper) blockers.push(`Meta-analyseinput ${input.id} har ugyldig konfidensintervall.`);
+      if(input.value !== undefined && (input.value < lower || input.value > upper)) blockers.push(`Meta-analyseinput ${input.id} har effect estimate utenfor konfidensintervallet.`);
+    }
   }
   for (const claim of claims) for (const evidenceId of claim.supportingEvidenceIds) if (!evidenceIds.has(evidenceId)) blockers.push(`Claim ${claim.id} peker til ukjent evidens ${evidenceId}.`);
   for (const input of synthesis.inputs) for (const evidenceId of input.evidenceIds) { const extraction = evidenceById.get(evidenceId); if (extraction && extraction.sourceRecordId.trim() === '') blockers.push(`Evidens ${evidenceId} mangler sourceRecordId.`); }
