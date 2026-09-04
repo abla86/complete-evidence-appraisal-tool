@@ -62,7 +62,13 @@ export function resolveAppraisal(
   disagreements: ReviewDisagreement[],
   method: DualReviewConfig['arbitrationMethod'],
   responses: Record<string, string | number | boolean | null>,
+  rationale = '',
 ): ResolvedAppraisal {
+  if (!appraisalId.trim() || !reviewer.trim()) throw new Error('appraisalId og adjudicator er påkrevd.');
+  if (disagreements.some(item => item.disagreement) && !rationale.trim()) throw new Error('Adjudication krever eksplisitt begrunnelse når det finnes uenighet.');
+  if (disagreements.some(item => item.disagreement) && method === 'autoResolve') throw new Error('autoResolve er ikke tillatt for metodisk appraisal-uenighet.');
+  const unresolved = disagreements.filter(item => item.disagreement).filter(item => responses[item.itemId] === null || responses[item.itemId] === undefined);
+  if (unresolved.length) throw new Error(`Alle uenigheter må ha en eksplisitt consensus-respons: ${unresolved.map(item => item.itemId).join(', ')}`);
   return {
     appraisalId,
     status: 'resolved',
@@ -71,6 +77,7 @@ export function resolveAppraisal(
     resolvedAt: new Date().toISOString(),
     disagreements,
     consensusResponses: { ...responses },
+    proposedResponses: { ...responses },
   };
 }
 
@@ -83,10 +90,11 @@ export function resolveConflict(
   reviews: ReviewInstance[],
   reviewer: string,
   method: DualReviewConfig['arbitrationMethod'],
+  consensusResponses?: Record<string, string | number | boolean | null>,
+  rationale = '',
 ): ResolvedAppraisal {
   const comparison = calculateDisagreement(reviews);
-  const consensusResponses = reviews.length
-    ? { ...reviews[0].responses }
-    : {};
-  return resolveAppraisal(appraisalId, reviewer, comparison.items, method, consensusResponses);
+  const proposedResponses = consensusResponses ?? {};
+  if (method === 'consensus' && Object.keys(proposedResponses).length === 0 && comparison.requiresArbitration) throw new Error('Consensus krever eksplisitte valgte svar.');
+  return resolveAppraisal(appraisalId, reviewer, comparison.items, method, proposedResponses, rationale);
 }
