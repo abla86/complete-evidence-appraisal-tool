@@ -64,6 +64,8 @@ export function evaluateAcademicIntegrity(
     }
 
     const linked = evidence.filter(e => claim.supportingEvidenceIds.includes(e.id));
+    const dangling = claim.supportingEvidenceIds.filter(id => !evidence.some(e => e.id === id));
+    if (dangling.length) issues.push({ code: 'UNSUPPORTED_CLAIM', severity: 'ERROR', message: `Påstanden peker til ukjent evidens: ${dangling.join(', ')}`, claimId: claim.id });
     if (linked.length === 0) {
       issues.push({ code: 'UNSUPPORTED_CLAIM', severity: 'ERROR', message: 'Påstanden mangler lenket evidens.', claimId: claim.id });
       continue;
