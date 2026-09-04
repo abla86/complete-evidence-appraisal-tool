@@ -160,6 +160,9 @@ export function buildPrismaFlow(store: {
     reasonCounts.set(reason, (reasonCounts.get(reason) ?? 0) + 1);
   }
   const assessedIds = new Set(store.appraisalSessions.map(session => session.studyId));
+  const includedStudyIds = new Set(included.map(item => item.studyId));
+  const invalidAppraisals = [...assessedIds].filter(id => !includedStudyIds.has(id));
+  if (invalidAppraisals.length) throw new Error(`PRISMA integrity violation: excluded/unknown studies have appraisal sessions: ${invalidAppraisals.join(', ')}`);
   const completedIds = new Set(store.appraisalSessions.filter(session => session.locked).map(session => session.studyId));
 
   return {
