@@ -14,6 +14,8 @@ const answerOptions = (instrumentId: string, allowed: string[]) => {
   return allowed?.length ? allowed : ['Yes','Partial Yes','No','Unclear','Not applicable'];
 };
 
+const hasAnswer = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== '';
+
 async function createCanonicalSession(studyId: string, reviewerId: string): Promise<AppraisalSession> {
   const response = await fetch(`/api/research-workflow/${encodeURIComponent(studyId)}/appraisal/session`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewerId }),
@@ -106,24 +108,32 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     if (instrument.id === 'amstar-2') {
       const responses: Record<number, string> = {};
       map.forEach((r,k) => { responses[Number(k)] = String(r.answer ?? ''); });
-      return Amstar2AssessmentEngine.evaluate(responses);
+      return Object.keys(responses).length === instrument.itemCount && Object.values(responses).every(hasAnswer)
+        ? Amstar2AssessmentEngine.evaluate(responses)
+        : null;
     }
     if (instrument.id === 'agree-ii') {
       const ratings: Record<number, number> = {};
-      map.forEach((r,k) => { if (r.answer !== null && r.answer !== '') ratings[Number(k)] = Number(r.answer); });
-      return Object.keys(ratings).length ? Agree2AssessmentEngine.evaluateDomainScores(ratings, 1) : null;
+      map.forEach((r,k) => { if (hasAnswer(r.answer)) ratings[Number(k)] = Number(r.answer); });
+      return Object.keys(ratings).length === instrument.itemCount && Object.values(ratings).every(Number.isInteger)
+        ? Agree2AssessmentEngine.evaluateDomainScores(ratings, 1)
+        : null;
     }
     if (instrument.id === 'rob-2') {
+      const required = ['1','2','3','4','5'];
+      if (!required.every(id => hasAnswer(map.get(id)?.answer))) return null;
       return Rob2AssessmentEngine.evaluate({
-        d1Randomisation: (map.get('1')?.answer || 'Some concerns') as any,
-        d2Deviations: (map.get('2')?.answer || 'Some concerns') as any,
-        d3MissingData: (map.get('3')?.answer || 'Some concerns') as any,
-        d4Measurement: (map.get('4')?.answer || 'Some concerns') as any,
-        d5Selection: (map.get('5')?.answer || 'Some concerns') as any,
+        d1Randomisation: map.get('1')!.answer as any,
+        d2Deviations: map.get('2')!.answer as any,
+        d3MissingData: map.get('3')!.answer as any,
+        d4Measurement: map.get('4')!.answer as any,
+        d5Selection: map.get('5')!.answer as any,
       });
     }
     if (instrument.id === 'robins-i') {
-      return RobinsIAssessmentEngine.evaluate(['1','2','3','4','5','6','7'].map(id => String(map.get(id)?.answer || 'No information')) as any);
+      const required = ['1','2','3','4','5','6','7'];
+      if (!required.every(id => hasAnswer(map.get(id)?.answer))) return null;
+      return RobinsIAssessmentEngine.evaluate(required.map(id => String(map.get(id)!.answer)) as any);
     }
     if (instrument.id === 'jbi-qualitative-2017') {
       return JbiQualitativeAssessmentEngine.evaluate(session.responses.map(r => ({ questionId: Number(r.itemId), status: String(r.answer ?? ''), justification: r.rationale })));
@@ -131,10 +141,11 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     return null;
   }, [instrument, session]);
 
+  const answeredCount = session?.responses.filter(r => hasAnswer(r.answer)).length ?? 0;
   const interpretation = result && 'overallConfidence' in result ? result.overallConfidence
     : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias
     : result && 'verdict' in result ? result.verdict
-    : `${session?.responses.filter(r => r.answer !== null && r.answer !== '').length ?? 0}/${instrument?.itemCount ?? 0} besvart`;
+    : `${answeredCount}/${instrument?.itemCount ?? 0} besvart — ingen instrumentspesifikk skår før vurderingen er komplett`;
 
   const finalize = async () => {
     if (!session || session.locked) return;
@@ -177,7 +188,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       </header>
 
       <div className="grid sm:grid-cols-3 gap-3">
-        <Info label="Svar" value={`${session.responses.filter(r => r.answer !== null && r.answer !== '').length}/${questions.length}`} />
+        <Info label="Svar" value={`${answeredCount}/${questions.length}`} />
         <Info label="Instrument" value={`${instrument.shortName} ${instrument.version}`} />
         <Info label="Tolkningsresultat" value={String(interpretation)} />
       </div>

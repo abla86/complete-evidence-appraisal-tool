@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Amstar2AssessmentEngine, Agree2AssessmentEngine, Rob2AssessmentEngine, GradeAssessmentEngine, GradeCerqualAssessmentEngine } from '../src/services/assessmentEngines.ts';
+import { buildAppraisalResult } from '../src/services/appraisalResultService.ts';
 
 test('AMSTAR 2 uses 16 items and does not produce a numeric total score', () => {
   const responses: Record<number, string> = Object.fromEntries(Array.from({ length: 16 }, (_, i) => [i + 1, 'Yes']));
@@ -54,4 +55,18 @@ test('CERQual returns one confidence judgement for one synthesis finding', () =>
   });
   assert.equal(result.reviewFinding, 'Pasienter beskrev behov for kontinuitet.');
   assert.equal(result.overallConfidence, 'Moderate confidence');
+});
+
+test('incomplete persisted appraisal data never receives a fallback methodological score', () => {
+  const base = {
+    instrumentVersion: 'test',
+    studyId: 'study-1',
+    reviewerId: 'reviewer-1',
+  };
+  const amstar = buildAppraisalResult({ ...base, instrumentId: 'amstar-2', responses: [{ itemId: 1, answer: 'Yes', rationale: 'evidence' }] });
+  const agree = buildAppraisalResult({ ...base, instrumentId: 'agree-ii', responses: [{ itemId: 1, answer: 7, rationale: 'evidence' }] });
+  const rob2 = buildAppraisalResult({ ...base, instrumentId: 'rob-2', responses: [{ itemId: 1, answer: 'Low risk', rationale: 'evidence' }] });
+  assert.equal(amstar.result, null);
+  assert.equal(agree.result, null);
+  assert.equal(rob2.result, null);
 });
