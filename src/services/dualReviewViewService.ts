@@ -61,6 +61,9 @@ export function getDualReviewSessionView(
     session => session.studyId === studyId && session.instrumentId === instrumentId,
   );
 
+  const uniqueReviewers = new Set(sessions.map(session => session.reviewerId));
+  if (uniqueReviewers.size < 2) return null;
+  if (sessions.some(session => !session.locked)) return null;
   if (sessions.length < 2) return null;
 
   const selected = reviewerIds
