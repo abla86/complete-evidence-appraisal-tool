@@ -11,9 +11,11 @@ import type { EvidencePipelineState } from './evidencePipelineService';
 import type { SynthesisRecord } from './synthesisIntegrityService';
 import { requireProjectScope } from './projectScopeService';
 import type { ProjectAccess } from './projectAccessService';
+import type { ResearchProject } from '../domain/researchProject';
 
 export interface ProjectExportPackage {
   projectId: string;
+  studyIds: string[];
   exportedAt: string;
   pipeline?: EvidencePipelineState;
   appraisal: AppraisalSession[];
@@ -37,14 +39,17 @@ export function buildProjectExportPackage(input: {
   auditTrail?: AuditTrailService;
   synthesis?: SynthesisRecord[];
   projectAccess?: ProjectAccess;
+  project?: ResearchProject;
 }): ProjectExportPackage {
   const projectId = input.projectId.trim();
   if (!projectId) throw new Error('projectId is required.');
   if (input.projectAccess) requireProjectScope({ projectId, actor: input.projectAccess }, 'EXPORT');
+  const studyIds = [...new Set(input.project?.studyIds ?? [])];
+  if (input.project && input.project.id !== projectId) throw new Error('EXPORT_BLOCKED: project identity mismatch.');
 
   const references = input.references ?? loadReferenceLibrary([]);
   const appraisal = loadAppraisalSessions().filter(
-    session => session.studyId === projectId,
+    session => studyIds.includes(session.studyId),
   );
   const appraisalIds = new Set(appraisal.map(session => session.id));
   const storedQuality = loadQualityAssessments().filter(item =>
@@ -59,6 +64,7 @@ export function buildProjectExportPackage(input: {
 
   const packageData: ProjectExportPackage = {
     projectId,
+    studyIds,
     exportedAt: new Date().toISOString(),
     pipeline: input.pipeline,
     appraisal,
@@ -89,7 +95,9 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
     if (!evidence.sourceRecordId.trim()) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no sourceRecordId.`);
     if (!evidence.researcherVerified) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} is not researcher verified.`);
   }
-  const referenceIds = new Set(pkg.references.map(r => r.id));
+  const studyIds = new Set(pkg.studyIds);
+  for (const appraisal of pkg.appraisal) if (!studyIds.has(appraisal.studyId)) throw new Error(`EXPORT_BLOCKED: appraisal ${appraisal.id} references a study outside the project.`);
+  for (const synthesis of pkg.synthesis) for (const input of synthesis.inputs) if (!studyIds.has(input.studyId)) throw new Error(`EXPORT_BLOCKED: synthesis input ${input.id} references a study outside the project.`);
   for (const evidence of pkg.evidence) {
     const identifiers = evidence.sourceIdentifiers;
     if (!identifiers || !Object.values(identifiers).some(value => typeof value === 'string' && value.trim())) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no source identifier.`);
