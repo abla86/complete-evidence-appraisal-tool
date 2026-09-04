@@ -2,7 +2,7 @@ import type { AppraisalSession } from './universalAppraisalService';
 import type { WorkflowState } from './researchWorkflowService';
 
 export interface ResearchWorkflowStore {
-  get(studyId: string): WorkflowState | undefined;
+  get(studyId: string, projectId?: string): WorkflowState | undefined;
   save(workflow: WorkflowState): WorkflowState;
   updateAppraisalSession(studyId: string, session: AppraisalSession): WorkflowState;
   delete(studyId: string): boolean;
@@ -13,11 +13,15 @@ export interface ResearchWorkflowStore {
 export class InMemoryResearchWorkflowStore implements ResearchWorkflowStore {
   private readonly workflows = new Map<string, WorkflowState>();
 
-  public get(studyId: string): WorkflowState | undefined {
-    return this.workflows.get(studyId);
+  public get(studyId: string, projectId?: string): WorkflowState | undefined {
+    const workflow = this.workflows.get(studyId);
+    if (!workflow) return undefined;
+    if (projectId && workflow.projectId !== projectId) return undefined;
+    return workflow;
   }
 
   public save(workflow: WorkflowState): WorkflowState {
+    if (!workflow.studyId.trim() || !workflow.projectId.trim()) throw new Error('studyId and projectId are required.');
     this.workflows.set(workflow.studyId, workflow);
     return workflow;
   }
