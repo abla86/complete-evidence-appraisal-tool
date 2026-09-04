@@ -43,7 +43,6 @@ export function buildProjectExportPackage(input: {
   if (input.projectAccess) requireProjectScope({ projectId, actor: input.projectAccess }, 'EXPORT');
 
   const references = input.references ?? loadReferenceLibrary([]);
-  const referenceIds = new Set(references.map(r => r.id));
   const appraisal = loadAppraisalSessions().filter(
     session => session.studyId === projectId,
   );
