@@ -43,27 +43,10 @@ export class EvidenceAppraisalOrchestrator {
       normalizedReviewerId,
       session => {
         const current = researchWorkflowStore.get(workflow.studyId) ?? workflow;
-        const screening = [
-          ...current.screening.filter(
-            item => item.reviewerId !== normalizedReviewerId,
-          ),
-          {
-            studyId: current.studyId,
-            reviewerId: normalizedReviewerId,
-            decision: 'INCLUDED' as const,
-            updatedAt: new Date().toISOString(),
-          },
-        ];
-
         return researchWorkflowStore.save({
           ...current,
-          screening,
-          appraisalSessions: current.appraisalSessions.some(
-            item => item.id === session.id,
-          )
-            ? current.appraisalSessions.map(item =>
-                item.id === session.id ? session : item,
-              )
+          appraisalSessions: current.appraisalSessions.some(item => item.id === session.id)
+            ? current.appraisalSessions.map(item => item.id === session.id ? session : item)
             : [...current.appraisalSessions, session],
         });
       },
