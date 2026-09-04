@@ -223,6 +223,10 @@ export async function finalizeAppraisal(sessionId: string): Promise<AppraisalWor
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
   if (record.session.locked) return record;
+  const workflow = researchWorkflowStore.get(record.researchStudyId);
+  if (!workflow) throw new Error(`Research workflow not found: ${record.researchStudyId}`);
+  if (workflow.appraisalSessionId && workflow.appraisalSessionId !== record.session.id) throw new Error('Research workflow peker til en annen appraisal-session.');
+  if (workflow.appraisalInstrumentId && workflow.appraisalInstrumentId !== record.session.instrumentId) throw new Error('Research workflow peker til et annet appraisal-instrument.');
   const validation = validateAppraisalSession(record.session);
   if (!validation.valid) throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
   const session = lockAppraisalSession(record.session);
