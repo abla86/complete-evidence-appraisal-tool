@@ -492,6 +492,8 @@ export class GradeCerqualAssessmentEngine {
     confidenceExplanation: string;
     methodologicalNote?: string;
   }): GradeCerqualEvaluationResult {
+    const concernFields = [input.methodologicalLimitations, input.coherence, input.adequacyOfData, input.relevance];
+    if (concernFields.some(value => value === undefined || value === null || !String(value).trim())) throw new Error('CERQual requires an explicit judgment for all four components.');
     if (!input.reviewFinding.trim()) throw new Error('CERQual-funn må beskrives.');
     if (!input.confidenceExplanation.trim()) throw new Error('CERQual samlet confidence krever eksplisitt begrunnelse.');
     return {
