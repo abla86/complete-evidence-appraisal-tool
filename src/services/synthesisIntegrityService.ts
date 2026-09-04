@@ -82,6 +82,10 @@ export function validateSynthesis(
   }
   for (const claim of claims) for (const evidenceId of claim.supportingEvidenceIds) if (!evidenceIds.has(evidenceId)) blockers.push(`Claim ${claim.id} peker til ukjent evidens ${evidenceId}.`);
   for (const input of synthesis.inputs) for (const evidenceId of input.evidenceIds) { const extraction = evidenceById.get(evidenceId); if (extraction && extraction.sourceRecordId.trim() === '') blockers.push(`Evidens ${evidenceId} mangler sourceRecordId.`); }
+  if (synthesis.type === 'META_ANALYSIS') {
+    const measures = new Set(synthesis.inputs.map(input => input.effectMeasure).filter(Boolean));
+    if (measures.size > 1) blockers.push('Meta-analysen blander ulike effect measures. Eksplisitt harmonisering/transformasjon må dokumenteres før pooling.');
+  }
   if(new Set(synthesis.inputs.map(i=>i.studyId)).size<2) warnings.push('Syntesen bygger foreløpig på færre enn to studier.');
   return {provenance,valid:blockers.length===0,blockers:[...new Set(blockers)],warnings:[...new Set(warnings)]};
 }
