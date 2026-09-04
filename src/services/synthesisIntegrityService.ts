@@ -67,5 +67,5 @@ export function createSynthesisRecord(input: Omit<SynthesisRecord,'createdAt'|'l
 export function lockSynthesis(synthesis:SynthesisRecord, validation:SynthesisValidation, lockedBy:string):SynthesisRecord {
   if(!validation.valid) throw new Error(`Synthesis kan ikke låses: ${validation.blockers.join(' | ')}`);
   if(!lockedBy.trim()) throw new Error('lockedBy er påkrevd.');
-  return {...synthesis,locked:true,notes:undefined};
+  return {...synthesis,locked:true};
 }
