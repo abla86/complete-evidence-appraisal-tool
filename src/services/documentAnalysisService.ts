@@ -1,5 +1,6 @@
 import { CandidateEvidence, DocumentAnalysisResult } from '../types';
 import { JBI_QUESTIONS } from '../data/jbiData';
+import { IMRaDAnalysisService } from './imradAnalysisService';
 
 export class DocumentAnalysisService {
   /**
@@ -21,6 +22,7 @@ export class DocumentAnalysisService {
         goldenRule:
           'Metodisk prinsipp: Ikke funnet i tekstsøk betyr IKKE automatisk «Nei». All vurdering krever menneskelig faglig skjønn.',
         candidateEvidence: [],
+        imradAnalysis: IMRaDAnalysisService.analyze('', fileName),
       };
     }
 
@@ -316,6 +318,7 @@ export class DocumentAnalysisService {
       fileName,
       analyzedAt: new Date().toISOString(),
       totalPassagesFound: candidates.length,
+      imradAnalysis: IMRaDAnalysisService.analyze(text, fileName),
       disclaimer:
         'Candidate evidence – requires researcher verification. Dette er automatisk identifiserte tekstutdrag som må evalueres og verifiseres av forsker/vurderer. Lokasjon fra ren tekstanalyse skal ikke behandles som verifisert sidehenvisning.',
       goldenRule:

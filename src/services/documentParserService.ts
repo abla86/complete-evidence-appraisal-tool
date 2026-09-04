@@ -388,43 +388,41 @@ export class DocumentParserService {
    * Structure sections from document
    */
   public static extractSections(text: string) {
-    const sectionNames = [
-      'Title & Abstract',
-      'Introduction / Background',
-      'Methods / Design',
-      'Data Collection & Sampling',
-      'Data Analysis',
-      'Reflexivity & Ethics',
-      'Results & Findings',
-      'Discussion & Limitations',
-      'Conclusion & Declarations'
-    ];
-
-    const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 20);
-    const sections: { title: string; content: string; characterCount: number }[] = [];
-
-    if (paragraphs.length <= 4) {
-      sections.push({
-        title: 'Hovedtekst / Metodedel',
-        content: text.trim(),
-        characterCount: text.length
+    const imrad = IMRaDAnalysisService.analyze(text, 'document');
+    const labels: Record<string, string> = {
+      introduction: 'Introduction / Background',
+      methods: 'Methods / Design',
+      results: 'Results / Findings',
+      discussion: 'Discussion / Limitations',
+    };
+    const sections = imrad.sections
+      .filter(section => section.detected && section.evidencePreview)
+      .map(section => {
+        const content = this.extractImradContent(text, section.key);
+        return { title: labels[section.key], content, characterCount: content.length };
       });
-      return sections;
-    }
+    return sections.length ? sections : [{
+      title: 'Hovedtekst – manuell gjennomgang',
+      content: text.trim(),
+      characterCount: text.length
+    }];
+  }
 
-    const chunkSize = Math.ceil(paragraphs.length / sectionNames.length);
-    for (let i = 0; i < sectionNames.length; i++) {
-      const slice = paragraphs.slice(i * chunkSize, (i + 1) * chunkSize);
-      if (slice.length > 0) {
-        const content = slice.join('\n\n');
-        sections.push({
-          title: sectionNames[i],
-          content,
-          characterCount: content.length
-        });
-      }
+  private static extractImradContent(text: string, key: 'introduction'|'methods'|'results'|'discussion'): string {
+    const lines = text.replace(/\r\n/g, '\n').split('\n');
+    const headings: Record<string, RegExp[]> = {
+      introduction: [/^\s*(?:1[.)\s-]*)?(?:introduction|background|bakgrunn|innledning)\s*$/i, /^\s*(?:aim|objectives|purpose|formål|hensikt)\s*$/i],
+      methods: [/^\s*(?:2[.)\s-]*)?(?:methods?|methodology|materials and methods|metode|metodologi|materiale og metode)\s*$/i, /^\s*(?:study design|research design|studiedesign)\s*$/i],
+      results: [/^\s*(?:3[.)\s-]*)?(?:results?|findings?|resultater|funn)\s*$/i],
+      discussion: [/^\s*(?:4[.)\s-]*)?(?:discussion|interpretation|drøfting|diskusjon)\s*$/i, /^\s*(?:strengths and limitations|limitations|styrker og begrensninger|begrensninger)\s*$/i]
+    };
+    let active: string|null=null; const out:string[]=[];
+    for(const line of lines){
+      const found=Object.entries(headings).find(([,patterns])=>patterns.some(pattern=>pattern.test(line.trim())));
+      if(found){active=found[0]; if(active===key) continue;}
+      else if(active===key) out.push(line);
+      if(active!==key && active!==null && out.length) break;
     }
-
-    return sections;
+    return out.join('\n').trim();
   }
 }
