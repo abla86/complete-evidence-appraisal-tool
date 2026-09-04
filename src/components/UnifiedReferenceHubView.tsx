@@ -124,8 +124,8 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
       }
       const newArticles = result.references.map((record, index) => ({
         id: record.id || `ref-import-${Date.now()}-${index}`,
-        instrumentId: 'jbi-qualitative-2017',
-        instrumentVersion: '2017',
+        instrumentId: 'UNKNOWN',
+        instrumentVersion: 'UNKNOWN',
         lifecycleStatus: 'DRAFT',
         title: record.title || 'Importert referanse',
         authors: record.authors || 'Ukjent forfatter',

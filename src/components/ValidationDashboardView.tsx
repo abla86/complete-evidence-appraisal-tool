@@ -76,8 +76,8 @@ export const ValidationDashboardView: React.FC = () => {
         releaseGatePassed: true
       },
       {
-        instrumentId: 'jbi-qualitative-2017',
-        instrumentName: 'JBI Qualitative',
+        instrumentId: 'UNKNOWN',
+        instrumentName: 'Instrument ikke valgt',
         version: '2017 (2024 review)',
         statusBadge: 'GREEN',
         statusExplanation: '10 items, kvalitativt skjønn, epistemologisk samsvar og etikk validert.',

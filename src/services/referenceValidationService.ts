@@ -185,7 +185,7 @@ export class ReferenceValidationService {
       } else if (art.instrumentId === 'agree-ii') {
         const ratings: Record<number, number> = {};
         art.itemData.forEach(it => {
-          ratings[it.itemNumber] = parseInt(it.referenceResponse, 10) || 7;
+          ratings[it.itemNumber] = Number.isFinite(Number.parseInt(it.referenceResponse, 10)) ? Number.parseInt(it.referenceResponse, 10) : 0;
         });
         for (let i = 1; i <= 23; i++) {
           if (ratings[i] === undefined) ratings[i] = 7;
