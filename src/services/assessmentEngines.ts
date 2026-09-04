@@ -159,6 +159,11 @@ export class Amstar2AssessmentEngine {
   public static evaluate(
     itemResponses: Record<number, 'Yes' | 'Partial Yes' | 'No' | 'No meta-analysis conducted' | string>
   ): Amstar2EvaluationResult {
+    const expectedItems = Array.from({ length: 16 }, (_, index) => index + 1);
+    const responseKeys = Object.keys(itemResponses).map(Number);
+    if (responseKeys.some(key => !Number.isInteger(key) || key < 1 || key > 16) || responseKeys.length !== 16 || expectedItems.some(key => itemResponses[key] === undefined)) {
+      throw new Error('AMSTAR 2 scoring requires exactly one response for all 16 items.');
+    }
     let criticalFlawsCount = 0;
     let nonCriticalFlawsCount = 0;
     const criticalFlawItems: number[] = [];
@@ -182,7 +187,6 @@ export class Amstar2AssessmentEngine {
     let overallConfidence: 'High' | 'Moderate' | 'Low' | 'Critically Low';
     let confidenceRationale = '';
 
-    if (Object.keys(itemResponses).some(key => !Number.isInteger(Number(key)) || Number(key) < 1 || Number(key) > 16)) throw new Error('AMSTAR 2 contains an invalid item number.');
     if (criticalFlawsCount === 0) {
       if (nonCriticalFlawsCount <= 1) {
         overallConfidence = 'High';
@@ -256,7 +260,7 @@ export class Agree2AssessmentEngine {
       };
     });
 
-    if (Object.keys(ratings).length !== 23) throw new Error('AGREE II scoring requires all 23 items.');
+    if (Object.keys(ratings).some(key => !Number.isInteger(Number(key)) || Number(key) < 1 || Number(key) > 23) || Object.keys(ratings).length !== 23) throw new Error('AGREE II scoring requires exactly one valid rating for all 23 items.');
 
     // Rigour domain (Domain 3) is key for recommendation
     const rigourScore = domainScores.find(d => d.domainId === 3)?.standardizedScorePercent || 0;
@@ -415,6 +419,7 @@ export class GradeAssessmentEngine {
     if((input.largeEffect ?? 0)>0) reasons.push(`large effect +${input.largeEffect}`);
     if((input.doseResponse ?? 0)>0) reasons.push('dose-response +1');
     if((input.opposingConfounders ?? 0)>0) reasons.push('opposing confounding +1');
+    if (![input.riskOfBias,input.inconsistency,input.indirectness,input.imprecision,input.publicationBias].every(value => value === 0 || value === -1 || value === -2)) throw new Error('GRADE downgrade judgments must be 0, -1 or -2.');
     const initialLevel = input.studyDesign === 'RCT' ? 4 : 2;
     const calculatedLevel = Math.max(1, Math.min(4, initialLevel + downgrade.reduce((a,b)=>a+b,0) + upgrade.reduce((a,b)=>a+b,0)));
     const calculated: GradeCertaintyEvaluation['finalCertainty'] = calculatedLevel === 4 ? 'High' : calculatedLevel === 3 ? 'Moderate' : calculatedLevel === 2 ? 'Low' : 'Very Low';
