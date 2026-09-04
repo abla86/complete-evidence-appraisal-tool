@@ -46,15 +46,23 @@ export function validateSynthesis(
   const appraisalIds=new Set(appraisals.filter(a=>a.locked).map(a=>a.id));
   const evidenceIds=new Set(evidence.map(e=>e.id));
   const claimEvidence=new Set(claims.flatMap(c=>c.supportingEvidenceIds));
+  const evidenceById = new Map(evidence.map(e => [e.id, e]));
+  const claimById = new Map(claims.map(c => [c.id, c]));
   for(const input of synthesis.inputs){
     if(!input.eligible) blockers.push(`Synteseinput ${input.id} er ikke eligible.`);
     if(!appraisalIds.has(input.appraisalSessionId)) blockers.push(`Synteseinput ${input.id} mangler låst appraisal.`);
     for(const id of input.evidenceIds){
       if(!evidenceIds.has(id)) blockers.push(`Synteseinput ${input.id} peker til ukjent evidens ${id}.`);
-      else if(!claimEvidence.has(id)) warnings.push(`Evidens ${id} er ikke knyttet til en akademisk påstand.`);
+      else {
+        if(!claimEvidence.has(id)) warnings.push(`Evidens ${id} er ikke knyttet til en akademisk påstand.`);
+        const extraction = evidenceById.get(id);
+        if (extraction && !claims.some(claim => claim.supportingEvidenceIds.includes(id))) blockers.push(`Evidens ${id} kan ikke inngå i syntesen uten en støttende akademisk påstand.`);
+      }
     }
     if(synthesis.type==='META_ANALYSIS' && (input.value===undefined || input.standardError===undefined)) blockers.push(`Meta-analyseinput ${input.id} mangler effect estimate eller standard error.`);
   }
+  for (const claim of claims) for (const evidenceId of claim.supportingEvidenceIds) if (!evidenceIds.has(evidenceId)) blockers.push(`Claim ${claim.id} peker til ukjent evidens ${evidenceId}.`);
+  for (const input of synthesis.inputs) for (const evidenceId of input.evidenceIds) { const extraction = evidenceById.get(evidenceId); if (extraction && extraction.sourceRecordId.trim() === '') blockers.push(`Evidens ${evidenceId} mangler sourceRecordId.`); }
   if(new Set(synthesis.inputs.map(i=>i.studyId)).size<2) warnings.push('Syntesen bygger foreløpig på færre enn to studier.');
   return {provenance,valid:blockers.length===0,blockers:[...new Set(blockers)],warnings:[...new Set(warnings)]};
 }
