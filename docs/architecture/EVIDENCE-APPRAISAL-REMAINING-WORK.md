@@ -18,11 +18,16 @@ This is the implementation gap list for `main`. It deliberately separates what a
 - Meta-research/integrity surfaces.
 - GitHub repository privacy and a CI workflow definition.
 
+## Current implementation status
+
+The current `main` tree has executable foundations for canonical source identity, research screening/appraisal gating, IMRaD-aware document analysis, and export integrity. Focused regression tests cover these paths. The application is **not** declared external-ready until the release gates are observed passing in CI and the remaining external integrations are exercised against real runtime dependencies.
+
 ## Remaining work before external test-group release
 
 ### P0 — Must be executable end-to-end
 
 1. **Reference ↔ SourceRecord ↔ Evidence identity adapter**
+   - **Implemented:** explicit `sourceRecordIds` linkage and stable identifier matching; implicit ID equality is prohibited and regression-tested.
    - Stop assuming `sourceRecordId === reference.id`.
    - Resolve by stable identifiers (DOI/PMID/PMCID/ISBN) and explicit linkage IDs.
    - Citation audit, evidence extraction, appraisal and writing must use the same canonical source.
@@ -46,11 +51,13 @@ This is the implementation gap list for `main`. It deliberately separates what a
    - Preserve local-first privacy and SHA-256 fingerprint.
 
 5. **End-to-end screening → appraisal flow**
+   - **Implemented:** screening inclusion, human classification verification, human evidence verification and instrument compatibility are enforced before appraisal creation; regression-tested.
    - Included SourceRecord can become a study/article record without losing provenance.
    - Full-text eligibility decision, standard exclusion reason, rationale and evidence location.
    - Appraisal opens on the correct instrument/version.
 
 6. **Final export gate**
+   - **Implemented:** project export performs citation, evidence, reference, appraisal, quality and synthesis integrity checks before serialization.
    - Block final export when citation/evidence integrity gates fail.
    - Export project package containing sources, evidence, appraisal, screening, PRISMA data and audit trail.
    - Keep detected/unverified/AI-generated content visibly distinguished.
