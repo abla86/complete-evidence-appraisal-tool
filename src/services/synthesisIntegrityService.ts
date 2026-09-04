@@ -27,6 +27,7 @@ export interface SynthesisRecord {
 }
 
 export interface SynthesisValidation {
+  provenance: Array<{ inputId:string; studyId:string; appraisalSessionId:string; evidenceIds:string[]; claimIds:string[] }>;
   valid: boolean;
   blockers: string[];
   warnings: string[];
@@ -39,6 +40,7 @@ export function validateSynthesis(
   claims: AcademicClaim[],
 ): SynthesisValidation {
   const blockers:string[]=[]; const warnings:string[]=[];
+  const provenance = synthesis.inputs.map(input => ({ inputId: input.id, studyId: input.studyId, appraisalSessionId: input.appraisalSessionId, evidenceIds: [...input.evidenceIds], claimIds: claims.filter(c => c.supportingEvidenceIds.some(id => input.evidenceIds.includes(id))).map(c => c.id) }));
   if (!synthesis.question.trim()) blockers.push('Syntesen mangler forskningsspørsmål.');
   if (!synthesis.inputs.length) blockers.push('Syntesen har ingen inkluderte input-enheter.');
   const appraisalIds=new Set(appraisals.filter(a=>a.locked).map(a=>a.id));
@@ -54,7 +56,7 @@ export function validateSynthesis(
     if(synthesis.type==='META_ANALYSIS' && (input.value===undefined || input.standardError===undefined)) blockers.push(`Meta-analyseinput ${input.id} mangler effect estimate eller standard error.`);
   }
   if(new Set(synthesis.inputs.map(i=>i.studyId)).size<2) warnings.push('Syntesen bygger foreløpig på færre enn to studier.');
-  return {valid:blockers.length===0,blockers:[...new Set(blockers)],warnings:[...new Set(warnings)]};
+  return {provenance,valid:blockers.length===0,blockers:[...new Set(blockers)],warnings:[...new Set(warnings)]};
 }
 
 export function createSynthesisRecord(input: Omit<SynthesisRecord,'createdAt'|'locked'>): SynthesisRecord {
