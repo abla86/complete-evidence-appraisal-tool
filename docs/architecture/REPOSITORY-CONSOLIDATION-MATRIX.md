@@ -104,3 +104,23 @@ No code is deleted merely because it is old or duplicated-looking. A candidate i
 2. an equivalent canonical implementation exists and the old implementation has no unique required behaviour.
 
 All remaining migration work is tracked in this file. This is the only consolidation/deferred-work register.
+
+## Repository disposition — 2026-09-04
+
+| Repository | Disposition | Required action |
+|---|---|---|
+| `abla86/complete-evidence-appraisal-tool` | **CANONICAL** | Only active Complete Evidence application target. |
+| `abla86/evidence-appraisal-tool` | **ARCHIVE CANDIDATE** | Preserve unique backend/workflow semantics until deliberately migrated or explicitly rejected; then archive. Never maintain as a second active application. |
+| `abla86/complete-evidence-appraisal-tool-` | **DUPLICATE/STAGING CANDIDATE** | Compare unique extension/module material against canonical code. Migrate only genuinely missing, reusable behaviour. Do not copy its whole application. After comparison, remove/archive the duplicate repository. |
+| `abla86/academic-research-engine` | **STANDALONE ARM — KEEP** | Independent research/search engine; integrate through the research-engine contract. |
+| `abla86/research-privacy-inspector` | **STANDALONE ARM — KEEP** | Independent privacy/metadata/accessibility inspection capability; integrate through explicit adapter/contract. |
+
+### Duplicate review result
+
+A Git-tree comparison was performed against the canonical `main` tree.
+
+- `evidence-appraisal-tool`: 173 paths are unique by path; these are not assumed to be missing functionality. The largest unique group is the old ASP.NET backend and its tests. Unique behaviour must be migrated selectively.
+- `complete-evidence-appraisal-tool-`: 67 paths are unique by path. Its notable unique material includes browser-collector files, duplicate detection utilities, OCR diagnostics, extraction/reviewer UI, PRISMA UI, thesis/writing UI, and standalone utility modules.
+- Exact blob-identical paths were not treated as migration candidates.
+- The canonical application already contains its own duplicate-review, inter-rater, IMRaD, PRISMA, evidence-traceability and module-contract implementations. Those should remain authoritative rather than creating parallel copies.
+- Legacy code containing unverifiable hard-coded bibliographic/DOI claims is **not** to be migrated merely because it exists in a source repository.

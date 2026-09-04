@@ -1,3 +1,5 @@
+import type { SuperprogramFailure, SuperprogramResult, SuperprogramSuccess } from '../integration/superprogramContract';
+
 export type IntegrationModuleId =
   | 'REFERENCE_ENGINE'
   | 'PRIVACY_INSPECTOR'
@@ -68,3 +70,42 @@ export const MODULE_CONTRACTS = Object.freeze({
   DOCUMENT_EVIDENCE: { schemaVersion: '1.0', sourceOfTruth: 'evidence-traceability' },
   RESEARCH_WORKFLOW: { schemaVersion: '1.0', sourceOfTruth: 'research-workflow' },
 });
+
+
+/**
+ * Standalone/integrated module boundary.
+ *
+ * A module must be usable independently through its public contract and must
+ * not require the superprogram UI or state store. When integrated, failures
+ * are isolated unless the contract explicitly declares a blocking dependency.
+ */
+export interface StandaloneModuleContract<I, O> {
+  readonly moduleId: IntegrationModuleId;
+  readonly contractVersion: '1.0';
+  readonly standalone: true;
+  readonly integrated: true;
+  readonly failureMode: 'isolated' | 'blocking';
+  execute(input: I): Promise<SuperprogramResult<O>>;
+}
+
+export interface ModuleHealth {
+  moduleId: IntegrationModuleId;
+  contractVersion: '1.0';
+  standalone: true;
+  integrated: true;
+  healthy: boolean;
+  checkedAt: string;
+  details?: string[];
+}
+
+export function moduleFailure(
+  code: string,
+  message: string,
+  recoverable = true
+): SuperprogramFailure {
+  return { ok: false, code, message, recoverable };
+}
+
+export function moduleSuccess<T>(value: T): SuperprogramSuccess<T> {
+  return { ok: true, value };
+}
