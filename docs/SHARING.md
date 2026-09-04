@@ -1,146 +1,53 @@
-# Evidence Appraisal Tool — deling og lokal kjøring
+# Sharing and real-world use
 
-## Formål
+## Goal
 
-Dette dokumentet beskriver den enkleste og mest etterprøvbare måten å dele og kjøre Evidence Appraisal-superprogrammet på.
+The Evidence Appraisal Tool is a private flagship application. The source repository remains private while the application can be made available to the researcher through a controlled deployment.
 
-Repoet er et samlet Evidence-system. JBI Qualitative 2017 er én spesialmodul i instrumentregisteret, ikke systemets hovedarkitektur.
+## Recommended use
 
-## Kjør lokalt
+1. Keep the GitHub repository private.
+2. Deploy a protected application from the repository.
+3. Use Google OAuth for authenticated access.
+4. Keep all credentials in deployment secrets; never commit them.
+5. Use the application's import/export functions to move appraisal sessions and evidence records when appropriate.
+6. Create a release/tag before using a version for a formal assignment so the exact software version is traceable.
 
-Forutsetter Node.js 20 eller kompatibel moderne Node-versjon.
+## Local use
 
-```bash
-git clone https://github.com/abla86/complete-evidence-appraisal-tool.git
-cd complete-evidence-appraisal-tool
-npm ci
-npm run dev
-```
+`npm ci`
 
-Valider lokalt med:
+`npm run lint`
 
-```bash
-npm test
-npm run lint
-npm run build
-```
+`npm test`
 
-## Hovedflyt
+`npm run build`
 
-```text
-Search
-  ↓
-Import
-  ↓
-Reference Hub
-  ↓
-Duplicate Check
-  ↓
-Fulltext / PDF
-  ↓
-Screening
-  ↓
-PICO
-  ↓
-Appraisal
-  ↓
-Dual Review
-  ↓
-Consensus / Adjudication
-  ↓
-Extraction
-  ↓
-Synthesis
-  ↓
-GRADE / CERQual
-  ↓
-PRISMA / Reporting
-  ↓
-Writing
-  ↓
-Export
-```
+`npm start`
 
-## Delingsmåter
+The development server is started with `npm run dev`.
 
-### GitHub-repo
+## Assignment-ready workflow
 
-Autoritativ kildekode og dokumentasjon:
+Create a project/session → register the source → identify study design → select the appropriate appraisal instrument → complete item-level evidence locations and rationale → review/dual-review where required → inspect the audit trail → export the resulting record.
 
-```text
-https://github.com/abla86/complete-evidence-appraisal-tool
-```
+## Sharing
 
-### GitHub Codespaces
+For a temporary or controlled deployment, use a deployment provider connected to the private repository and configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `AUTH_SESSION_SECRET` as deployment secrets. The production OAuth callback must exactly match the deployed application URL.
 
-Repoet har en `.devcontainer/devcontainer.json` som installerer Node 20-miljøet og videresender port 3000. Åpne repoet i Codespaces og kjør:
+Do not publish the repository merely to make the application accessible.
 
-```bash
-npm run dev
-```
+## Release checklist
 
-Codespaces er den praktiske måten å kjøre den eksisterende Express/Vite-applikasjonen uten lokal Node-installasjon.
+- CI is green.
+- `npm run lint` passes.
+- `npm test` passes.
+- `npm run build` passes.
+- OAuth callback is configured for the exact deployment URL.
+- No secrets are present in repository history or deployment artifacts.
+- The release/version is recorded in the assignment's methods/materials where relevant.
+- Exported appraisal data contains evidence locations and reviewer rationale required by the selected methodology.
 
-### GitHub Pages
+## Methodological boundary
 
-Repoet har en separat Pages-workflow for klientdelen. Pages kan bare servere statiske filer; den eksisterende `npm run build` bygger også `dist/server.cjs` for Express. Pages-versjonen skal derfor ikke omtales som den komplette serverbaserte applikasjonen før backend er deployet separat.
-
-Pages er en klientbasert delingsflate, ikke en erstatning for full lokal/Codespaces-kjøring.
-
-### Release
-
-En release bør bygges fra en konkret verifisert commit og inneholde:
-
-- kildekodeversjon
-- `dist/` fra vellykket build
-- `docs/IMPLEMENTATION_STATUS.md`
-- `docs/RELEASE-CHECKLIST.md`
-- changelog/release notes
-
-Ikke opprett en release som «Verified» før CI og relevante release-kontroller faktisk er grønne.
-
-## PWA-status
-
-PWA skal ikke beskrives som offline-komplett bare ved å legge inn et minimalt manifest og en tom fetch-handler. En reell PWA krever blant annet korrekt base path på GitHub Pages, web app manifest, ikoner og en service-worker/caching-strategi som faktisk cacher klientressurser. Repoet skal derfor ikke markedsføre offline-funksjonalitet før dette er implementert og verifisert.
-
-## Sentrale integrasjoner
-
-### Reference Hub
-
-Reference Hub er den sentrale referanseflaten. Referanser skal ikke dupliseres i parallelle biblioteker. Duplikater identifiseres og vises for kontroll; systemet skal ikke automatisk slette dem.
-
-### Appraisal
-
-Instrumenter velges fra masterregisteret og vurderingen lagres som en versjonert appraisal-session. Instrumentets egne metoderegler skal respekteres. For eksempel skal AMSTAR 2 ikke reduseres til en totalsum, og JBI Qualitative skal ikke behandles som en generell prosentmodell.
-
-### Dual Review
-
-To uavhengige vurderinger kan sammenlignes. Konflikter skal kunne håndteres gjennom konsensus/adjudication med sporbar historikk.
-
-### PDF → evidence → claim
-
-PDF-markeringer og uttrekk kan knyttes til `EvidenceExtraction`, videre til `AcademicClaim`, slik at påstander kan spores tilbake til den konkrete kilden og lokasjonen.
-
-### GRADE / CERQual
-
-Kvalitetsvurderinger lagres separat fra appraisal, men kan kobles til appraisal-session via `appraisalSessionId`. Vurderinger skal være eksplisitte og låsbare.
-
-### Audit og state
-
-Systemet bruker en hash-kjedet auditmotor for sporbarhet. Viktige arbeidssteg skal kunne knyttes til aktør, tidspunkt, endring og begrunnelse.
-
-### Pipeline
-
-Arbeidsflyten håndheves sekvensielt. Et senere trinn skal ikke kunne hoppes over uten at forrige trinn er fullført og nødvendige tilgangsregler er oppfylt.
-
-### Export integrity
-
-Prosjekteksport skal gå gjennom integritetskontroller før eksport. Ufullførte eller ulåste vurderinger, manglende evidensgrunnlag og andre identifiserte integritetsbrudd skal kunne blokkere eksport.
-
-## AI-bruk
-
-Automatiske forslag er assistanse, ikke verifisering. `Not found` skal ikke behandles som `No`, og AI-funn skal kreve menneskelig kontroll før de inngår som verifiserte forskningsfunn.
-
-## Verifikasjonsstatus
-
-CI skal ikke omtales som grønn eller verifisert før GitHub Actions har en faktisk vellykket run for relevant commit. En tom liste over workflow-runs er ikke et grønt resultat.
+Software validation demonstrates that the implementation behaves as specified. It does not certify the methodological quality of a study. Human appraisal and authoritative instrument guidance remain necessary.
