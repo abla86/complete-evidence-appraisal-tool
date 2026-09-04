@@ -147,6 +147,27 @@ export function getVerifiedResearchEvidence(state: WorkflowState) {
   return state.research.evidenceBundle.evidence.filter(item => item.source === 'HUMAN_VERIFIED' && item.verifiedByResearcher && Boolean(item.verifiedBy) && Boolean(item.verifiedAt));
 }
 
+export function recordScreeningDecision(state: WorkflowState, reviewerId: string, decision: ScreeningDecision, reason?: string): WorkflowState {
+  const normalizedReviewerId = reviewerId.trim();
+  if (!normalizedReviewerId) throw new Error('Reviewer ID is required.');
+  if (!['PENDING', 'INCLUDED', 'EXCLUDED'].includes(decision)) throw new Error('Ugyldig screeningbeslutning.');
+  if ((decision === 'EXCLUDED' || decision === 'PENDING') && !reason?.trim()) throw new Error('Begrunnelse er påkrevd for PENDING/EXCLUDED.');
+  const record: ScreeningRecord = {
+    studyId: state.studyId,
+    reviewerId: normalizedReviewerId,
+    decision,
+    reason: reason?.trim() || undefined,
+    updatedAt: new Date().toISOString(),
+  };
+  return {
+    ...state,
+    screening: [
+      ...state.screening.filter(item => item.reviewerId !== normalizedReviewerId),
+      record,
+    ],
+  };
+}
+
 export function assertReadyForAppraisal(state: WorkflowState): void {
   if (!state.screening.some(item => item.studyId === state.studyId && item.decision === 'INCLUDED')) {
     throw new Error('Studien må være eksplisitt inkludert i screening før appraisal kan startes.');
