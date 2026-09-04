@@ -230,6 +230,18 @@ export async function finalizeAppraisal(sessionId: string): Promise<AppraisalWor
   const validation = validateAppraisalSession(record.session);
   if (!validation.valid) throw new Error(`Kan ikke ferdigstille appraisal: ${validation.issues.join(' ')}`);
   const session = lockAppraisalSession(record.session);
+  await appendAuditEntry({
+    actor: { id: session.reviewerId, role: 'reviewer' },
+    action: 'appraisal.session.locked',
+    subject: { entityType: 'appraisal-session', id: session.id },
+    detail: { studyId: session.studyId, instrumentId: session.instrumentId, responseCount: session.responses.length }
+  });
+  await evidenceEventBus.emit('appraisal.session.locked', {
+    studyId: session.studyId,
+    sessionId: session.id,
+    instrumentId: session.instrumentId,
+    reviewerId: session.reviewerId
+  });
   syncToResearchWorkflow(session);
   const saved = appraisalWorkflowStore.save({ ...record, session });
   await appendAuditEntry({ actor: { id: session.reviewerId, role: 'reviewer' }, action: 'appraisal.session.locked', subject: { entityType: 'appraisal-session', id: sessionId }, detail: { studyId: session.studyId, instrumentId: session.instrumentId } });
