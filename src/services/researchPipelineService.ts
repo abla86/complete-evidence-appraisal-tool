@@ -83,3 +83,36 @@ export function nextPipelineStage(stage: PipelineStage): PipelineStage | null {
   const index = DEFAULT_PIPELINE.indexOf(stage);
   return index >= 0 && index < DEFAULT_PIPELINE.length - 1 ? DEFAULT_PIPELINE[index + 1] : null;
 }
+
+
+export interface PipelineAdvanceResult {
+  ok: boolean;
+  snapshot: PipelineSnapshot;
+  reason?: string;
+}
+
+const STAGE_ORDER = new Map(DEFAULT_PIPELINE.map((stage, index) => [stage, index]));
+
+export function validatePipelineTransition(from: PipelineStage, to: PipelineStage): boolean {
+  const fromIndex = STAGE_ORDER.get(from);
+  const toIndex = STAGE_ORDER.get(to);
+  return fromIndex !== undefined && toIndex !== undefined && toIndex === fromIndex + 1;
+}
+
+export function advancePipeline(
+  snapshot: PipelineSnapshot,
+  to: PipelineStage,
+  actor: string,
+  recordIds: string[] = [],
+  rationale?: string,
+): PipelineAdvanceResult {
+  if (snapshot.blocked) {
+    return { ok: false, snapshot, reason: snapshot.blockingReasons.join(' ') || 'Pipeline is blocked.' };
+  }
+  if (!actor.trim()) return { ok: false, snapshot, reason: 'actor is required.' };
+  if (!validatePipelineTransition(snapshot.currentStage, to)) {
+    return { ok: false, snapshot, reason: `Invalid pipeline transition: ${snapshot.currentStage} -> ${to}.` };
+  }
+  const link = createPipelineLink(snapshot.currentStage, to, recordIds, actor, rationale);
+  return { ok: true, snapshot: buildPipelineSnapshot(to, [...snapshot.links, link]) };
+}
