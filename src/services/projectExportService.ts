@@ -9,6 +9,8 @@ import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEviden
 import type { StoredQualityAssessment } from './qualityAssessmentService';
 import type { EvidencePipelineState } from './evidencePipelineService';
 import type { SynthesisRecord } from './synthesisIntegrityService';
+import { requireProjectScope } from './projectScopeService';
+import type { ProjectAccess } from './projectAccessService';
 
 export interface ProjectExportPackage {
   projectId: string;
@@ -34,9 +36,11 @@ export function buildProjectExportPackage(input: {
   references?: ReferenceRecord[];
   auditTrail?: AuditTrailService;
   synthesis?: SynthesisRecord[];
+  projectAccess?: ProjectAccess;
 }): ProjectExportPackage {
   const projectId = input.projectId.trim();
   if (!projectId) throw new Error('projectId is required.');
+  if (input.projectAccess) requireProjectScope({ projectId, actor: input.projectAccess }, 'EXPORT');
 
   const references = input.references ?? loadReferenceLibrary([]);
   const appraisal = loadAppraisalSessions().filter(
