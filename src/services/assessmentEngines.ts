@@ -386,70 +386,38 @@ export class Rob2AssessmentEngine {
 export class GradeAssessmentEngine {
   public static evaluateOutcome(input: {
     outcomeName: string;
-    studyDesign: string;
-    riskOfBias: number | string;
-    inconsistency: number | string;
-    indirectness: number | string;
-    imprecision: number | string;
-    publicationBias: number | string;
-    largeEffect?: number | string;
-    doseResponse?: number | string;
-    opposingConfounders?: number | string;
+    studyDesign: 'RCT' | 'Observational';
+    riskOfBias: 0 | -1 | -2;
+    inconsistency: 0 | -1 | -2;
+    indirectness: 0 | -1 | -2;
+    imprecision: 0 | -1 | -2;
+    publicationBias: 0 | -1 | -2;
+    largeEffect?: 0 | 1 | 2;
+    doseResponse?: 0 | 1;
+    opposingConfounders?: 0 | 1;
   }): GradeCertaintyEvaluation {
-    const delta = (value: number | string | undefined): number => {
-      if (typeof value === 'number' && Number.isFinite(value)) return value;
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : 0;
-    };
-    const riskOfBias = delta(input.riskOfBias);
-    const inconsistency = delta(input.inconsistency);
-    const indirectness = delta(input.indirectness);
-    const imprecision = delta(input.imprecision);
-    const publicationBias = delta(input.publicationBias);
-    const largeEffect = delta(input.largeEffect);
-    const doseResponse = delta(input.doseResponse);
-    const opposingConfounders = delta(input.opposingConfounders);
-    const startLevel = input.studyDesign === 'RCT' ? 4 : 2; // High (4) vs Low (2)
-    const downgrades = riskOfBias + inconsistency + indirectness + imprecision + publicationBias;
-    const upgrades = largeEffect + doseResponse + opposingConfounders;
-
-    const finalNumeric = Math.max(1, Math.min(4, startLevel + downgrades + upgrades));
-
-    let finalCertainty: 'High' | 'Moderate' | 'Low' | 'Very Low';
-    if (finalNumeric === 4) finalCertainty = 'High';
-    else if (finalNumeric === 3) finalCertainty = 'Moderate';
-    else if (finalNumeric === 2) finalCertainty = 'Low';
-    else finalCertainty = 'Very Low';
-
-    const reasons: string[] = [];
-    if (riskOfBias < 0) reasons.push(`Risk of bias (${riskOfBias})`);
-    if (inconsistency < 0) reasons.push(`Inconsistency (${inconsistency})`);
-    if (indirectness < 0) reasons.push(`Indirectness (${indirectness})`);
-    if (imprecision < 0) reasons.push(`Imprecision (${imprecision})`);
-    if (publicationBias < 0) reasons.push(`Publication bias (${publicationBias})`);
-
-    const certaintyRationale = reasons.length > 0
-      ? `Nedgradert pga: ${reasons.join(', ')}.`
-      : 'Ingen nedgraderingsfaktorer identifisert.';
-
+    const downgrade = [input.riskOfBias,input.inconsistency,input.indirectness,input.imprecision,input.publicationBias];
+    const upgrade = [input.largeEffect ?? 0,input.doseResponse ?? 0,input.opposingConfounders ?? 0];
+    const initial = input.studyDesign === 'RCT' ? 4 : 2;
+    const level = Math.max(1, Math.min(4, initial + downgrade.reduce((a,b)=>a+b,0) + upgrade.reduce((a,b)=>a+b,0)));
+    const finalCertainty = level === 4 ? 'High' : level === 3 ? 'Moderate' : level === 2 ? 'Low' : 'Very Low';
+    const reasons:string[] = [];
+    if(input.riskOfBias < 0) reasons.push(`risk of bias ${input.riskOfBias}`);
+    if(input.inconsistency < 0) reasons.push(`inconsistency ${input.inconsistency}`);
+    if(input.indirectness < 0) reasons.push(`indirectness ${input.indirectness}`);
+    if(input.imprecision < 0) reasons.push(`imprecision ${input.imprecision}`);
+    if(input.publicationBias < 0) reasons.push(`publication bias ${input.publicationBias}`);
+    if((input.largeEffect ?? 0)>0) reasons.push(`large effect +${input.largeEffect}`);
+    if((input.doseResponse ?? 0)>0) reasons.push('dose-response +1');
+    if((input.opposingConfounders ?? 0)>0) reasons.push('opposing confounding +1');
     return {
       outcomeName: input.outcomeName,
       studyDesign: input.studyDesign,
       initialCertainty: input.studyDesign === 'RCT' ? 'High' : 'Low',
-      downgradeFactors: {
-        riskOfBias: input.riskOfBias,
-        inconsistency: input.inconsistency,
-        indirectness: input.indirectness,
-        imprecision: input.imprecision,
-        publicationBias: input.publicationBias
-      },
-      upgradeFactors: {
-        largeEffect: input.largeEffect || 0,
-        doseResponse: input.doseResponse || 0,
-        opposingConfounders: input.opposingConfounders || 0
-      },
+      downgradeFactors:{riskOfBias:input.riskOfBias,inconsistency:input.inconsistency,indirectness:input.indirectness,imprecision:input.imprecision,publicationBias:input.publicationBias},
+      upgradeFactors:{largeEffect:input.largeEffect ?? 0,doseResponse:input.doseResponse ?? 0,opposingConfounders:input.opposingConfounders ?? 0},
       finalCertainty,
-      certaintyRationale
+      certaintyRationale: reasons.length ? `GRADE-justeringer: ${reasons.join('; ')}.` : 'Ingen eksplisitte GRADE-justeringer er registrert.'
     };
   }
 }
