@@ -15,11 +15,11 @@ export interface ScreeningToAppraisalResult {
 
 export function inferInstrumentId(studyDesign: string): string {
   const design = studyDesign.trim().toLowerCase();
-  if (/(systematisk|systematic|meta-analyse|meta analysis|systematic review)/i.test(design)) return 'amstar-2';
+  if (/(systematisk oversikt|systematic review|meta-analyse|meta analysis)/i.test(design)) return 'amstar-2';
   if (/(retningslinje|guideline|clinical practice guideline)/i.test(design)) return 'agree-ii';
-  if (/(rct|randomisert|randomized)/i.test(design)) return 'rob-2';
+  if (/(rct|randomisert|randomized)/i.test(design)) return 'casp-rct';
   if (/(ikke-randomisert intervensjon|non-randomized intervention|quasi-experimental)/i.test(design)) return 'robins-i';
-  if (/(kvalitativ|qualitative)/i.test(design)) return 'jbi-qualitative-2017';
+  if (/(kvalitativ|qualitative)/i.test(design)) return 'casp-qualitative';
   throw new Error(`Studiedesignet «${studyDesign || 'ukjent'}» kan ikke kobles sikkert til et appraisal-instrument. Manuell metodisk avklaring kreves.`);
 }
 

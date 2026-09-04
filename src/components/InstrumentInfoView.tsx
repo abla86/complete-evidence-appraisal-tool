@@ -31,7 +31,11 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
   const [copiedCitation, setCopiedCitation] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'questions' | 'anti_slop'>('overview');
 
-  const inst = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId) || MASTER_INSTRUMENTS_REGISTRY[0];
+  const inst = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
+
+  if (!inst) {
+    return <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-sm text-amber-950">Ukjent eller manglende instrument. Velg et eksplisitt registrert instrument før instrumentinformasjon vises.</div>;
+  }
 
   const handleCopyCitation = () => {
     const citation = `${inst.publisher} (${inst.year}). ${inst.name} [Versjon ${inst.version}]. ${inst.officialSource}${inst.doi ? ` https://doi.org/${inst.doi}` : ''}`;

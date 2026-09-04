@@ -29,7 +29,7 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
-  const currentInstrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === selectedInstrumentId) || MASTER_INSTRUMENTS_REGISTRY[0];
+  const currentInstrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === selectedInstrumentId);
 
   const filteredInstruments = MASTER_INSTRUMENTS_REGISTRY.filter(inst => {
     if (filterCategory !== 'all' && inst.category !== filterCategory) {
@@ -65,9 +65,9 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 font-bold hover:bg-teal-100 transition-colors shadow-2xs"
               >
                 <ShieldCheck className="w-4 h-4 text-teal-700" />
-                <span>{currentInstrument.shortName} ({currentInstrument.year})</span>
+                <span>{currentInstrument ? `${currentInstrument.shortName} (${currentInstrument.year})` : 'Ingen gyldig instrument valgt'}</span>
                 <span className="px-1.5 py-0.2 rounded text-[9px] bg-teal-200/60 text-teal-900 font-medium">
-                  {currentInstrument.categoryName}
+                  {currentInstrument?.categoryName ?? 'Manuelt valg kreves'}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 text-teal-700" />
               </button>
@@ -189,7 +189,7 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
 
             <span className="text-slate-400 hidden lg:inline">|</span>
             <span className="text-slate-600 hidden lg:inline line-clamp-1 max-w-md">
-              Formål: <strong className="text-slate-800">{currentInstrument.purpose}</strong>
+              Formål: <strong className="text-slate-800">{currentInstrument?.purpose ?? 'Ingen instrumentinformasjon tilgjengelig'}</strong>
             </span>
           </div>
 

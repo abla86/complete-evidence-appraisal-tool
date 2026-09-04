@@ -340,30 +340,30 @@ export class DocumentParserService {
     }
 
     // 7. Study Design & Instrument Recommendation
-    let studyDesignDetected = 'Kvalitativ studie';
-    let recommendedInstrumentId = 'jbi-qualitative-2017';
+    let studyDesignDetected = 'Ukjent / kan ikke fastslås sikkert';
+    let recommendedInstrumentId = 'UNKNOWN';
 
     if (textLower.includes('systematic review') || textLower.includes('meta-analysis') || textLower.includes('systematisk oversikt')) {
       studyDesignDetected = 'Systematisk oversikt / Meta-analyse';
       recommendedInstrumentId = 'amstar-2';
     } else if (textLower.includes('randomized controlled trial') || textLower.includes('randomised controlled trial') || textLower.includes('rct')) {
       studyDesignDetected = 'Randomisert kontrollert studie (RCT)';
-      recommendedInstrumentId = 'jbi-rct-2020';
+      recommendedInstrumentId = 'casp-rct';
     } else if (textLower.includes('clinical practice guideline') || textLower.includes('retningslinje') || textLower.includes('guideline')) {
       studyDesignDetected = 'Klinisk retningslinje (Guideline)';
       recommendedInstrumentId = 'agree-ii';
     } else if (textLower.includes('cohort study') || textLower.includes('kohortstudie')) {
       studyDesignDetected = 'Kohortstudie (Observasjonell)';
-      recommendedInstrumentId = 'jbi-cohort-2020';
+      recommendedInstrumentId = 'jbi-cohort';
     } else if (textLower.includes('case-control') || textLower.includes('kasuskontroll')) {
       studyDesignDetected = 'Kasus-kontrollstudie';
-      recommendedInstrumentId = 'jbi-casecontrol-2020';
+      recommendedInstrumentId = 'jbi-case-control';
     } else if (textLower.includes('cross-sectional') || textLower.includes('tverrsnittsstudie')) {
       studyDesignDetected = 'Tverrsnittsstudie';
-      recommendedInstrumentId = 'jbi-crosssectional-2020';
+      recommendedInstrumentId = 'jbi-cross-sectional';
     } else if (textLower.includes('diagnostic') || textLower.includes('sensitivitet') || textLower.includes('spesifisitet')) {
       studyDesignDetected = 'Diagnostisk nøyaktighetsstudie';
-      recommendedInstrumentId = 'jbi-diagnostic-2020';
+      recommendedInstrumentId = 'jbi-diagnostic-accuracy';
     } else if (textLower.includes('mixed methods') || textLower.includes('flermetode')) {
       studyDesignDetected = 'Mixed Methods (Kombinert design)';
       recommendedInstrumentId = 'mmat-2018';
