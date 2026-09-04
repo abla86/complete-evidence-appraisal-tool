@@ -88,8 +88,8 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       const result = await ImportExportService.parseImport(content, file.name, articles);
       setImportResult(result);
       showToast(`Analyserte ${file.name}: Fant ${result.totalParsed} oppføringer.`);
-    } catch (err: any) {
-      showToast(`Feil under filimport: ${err.message}`, 'error');
+    } catch (err: unknown) {
+      showToast(`Feil under filimport: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     } finally {
       setIsProcessingImport(false);
     }
@@ -107,8 +107,8 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       const result = await ImportExportService.parseImport(pastedContent, 'utklippstavle-tekst.txt', articles);
       setImportResult(result);
       showToast(`Fant ${result.totalParsed} oppføringer i teksten (${result.formatName}).`);
-    } catch (err: any) {
-      showToast(`Feil under parsing: ${err.message}`, 'error');
+    } catch (err: unknown) {
+      showToast(`Feil under parsing: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     } finally {
       setIsProcessingImport(false);
     }
@@ -175,8 +175,8 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       showToast(`Lastet ned fil: ${data.filename}`);
-    } catch (err: any) {
-      showToast(`Feil under eksport: ${err.message}`, 'error');
+    } catch (err: unknown) {
+      showToast(`Feil under eksport: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     }
   };
 
@@ -189,8 +189,8 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       const data = getExportData();
       navigator.clipboard.writeText(data.content);
       showToast(`Innhold kopiert til utklippstavlen (${selectedExportFormat.toUpperCase()})!`);
-    } catch (err: any) {
-      showToast(`Feil under kopiering: ${err.message}`, 'error');
+    } catch (err: unknown) {
+      showToast(`Feil under kopiering: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     }
   };
 
@@ -198,7 +198,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
     window.print();
   };
 
-  const formatList: { id: SupportedExportFormat; label: string; ext: string; desc: string; icon: any }[] = [
+  const formatList: { id: SupportedExportFormat; label: string; ext: string; desc: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'zip', label: 'ZIP Fullpakke Arkiv', ext: '.zip', desc: 'Pakket arkiv med JSON, Word, CSV, BibTeX, RIS, Markdown og Audit Trail', icon: Layers },
     { id: 'excel', label: 'Excel (CSV med UTF-8)', ext: '.csv', desc: 'Åpnes direkte i Microsoft Excel og SPSS med alle JBI-skårer', icon: Table },
     { id: 'word', label: 'Word Rapport', ext: '.doc', desc: 'Komplett akademisk rapport med formaterte tabeller for Word', icon: FileText },
@@ -582,7 +582,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                     <div className="flex items-center gap-2">
                       <select
                         value={importTargetMode}
-                        onChange={(e) => setImportTargetMode(e.target.value as any)}
+                        onChange={(e) => setImportTargetMode(e.target.value === 'replace' ? 'replace' : 'append')}
                         className="text-xs font-semibold bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-teal-600"
                       >
                         <option value="append">Legg til i biblioteket ({articles.length} + {importResult.totalParsed})</option>

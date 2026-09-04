@@ -637,7 +637,12 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                         <div className="flex items-center gap-2">
                           <select
                             value={item.importance}
-                            onChange={(e) => handleRecalculateGradeOutcome(item.id, { importance: e.target.value as any })}
+                            onChange={(e) => {
+                              const importance = e.target.value;
+                              if (importance === 'Critical' || importance === 'Important' || importance === 'Not important') {
+                                handleRecalculateGradeOutcome(item.id, { importance });
+                              }
+                            }}
                             className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
                           >
                             <option value="Critical">Kritisk (Critical)</option>
@@ -646,7 +651,12 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                           </select>
                           <select
                             value={item.studyDesign}
-                            onChange={(e) => handleRecalculateGradeOutcome(item.id, { studyDesign: e.target.value as any })}
+                            onChange={(e) => {
+                              const studyDesign = e.target.value;
+                              if (studyDesign === 'RCT' || studyDesign === 'Observational' || studyDesign === 'Qualitative' || studyDesign === 'Mixed methods') {
+                                handleRecalculateGradeOutcome(item.id, { studyDesign });
+                              }
+                            }}
                             className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
                           >
                             <option value="RCT">RCT (Starter Høy)</option>

@@ -74,8 +74,11 @@ export class MethodIntegrityGate {
    * Systematically validates a single active appraisal against the MethodologyRegistry.
    */
   public static validateAppraisal(appraisal: ArticleAppraisal): MethodIntegrityGateResult {
-    const instrumentId = appraisal.instrumentId || 'jbi-qualitative-2017';
-    const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId) || MASTER_INSTRUMENTS_REGISTRY[0];
+    const instrumentId = appraisal.instrumentId?.trim() || '';
+    const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
+    if (!instrument) {
+      throw new MethodIntegrityGateError(`Ukjent appraisal-instrument: ${instrumentId || 'mangler'}. Vurderingen kan ikke valideres uten et registrert instrument.`);
+    }
 
     const sourceChecks: GateCheckItem[] = [];
     const versioningChecks: GateCheckItem[] = [];

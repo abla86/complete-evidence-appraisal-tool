@@ -186,8 +186,10 @@ export class StudyDesignGateService {
     studyDesignId: string,
     instrumentId: string
   ): CompatibilityCheckResult {
-    const design = SUPPORTED_STUDY_DESIGNS.find(d => d.id === studyDesignId) || SUPPORTED_STUDY_DESIGNS[SUPPORTED_STUDY_DESIGNS.length - 1];
-    const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId) || MASTER_INSTRUMENTS_REGISTRY[0];
+    const design = SUPPORTED_STUDY_DESIGNS.find(d => d.id === studyDesignId);
+    const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
+    if (!design) throw new Error(`Ukjent studiedesign: ${studyDesignId}`);
+    if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
 
     const recommendedList = MASTER_INSTRUMENTS_REGISTRY.filter(
       i => i.id === design.primaryInstrumentId || design.alternativeInstrumentIds.includes(i.id)

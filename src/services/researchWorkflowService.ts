@@ -99,7 +99,7 @@ export function updateResearchClassification(state: WorkflowState, classificatio
   if (!state.research) throw new Error('Research document must be attached before classification is updated.');
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(state.research.document, classification, state.studyId);
   const counts = evidenceCounts(evidenceBundle.evidence);
-  const verified = classification.confidenceStatus === 'HUMAN_VERIFIED' || classification.confidenceStatus === 'DEFINITIVE' || classification.humanDecision?.status === 'APPROVED';
+  const verified = classification.confidenceStatus === 'HUMAN_VERIFIED' && classification.humanDecision?.status === 'APPROVED';
   return { ...state, studyDesign: classification.studyDesign?.trim() ?? '', research: { ...state.research, evidenceBundle, classificationVerified: verified, selectedInstrumentId: classification.recommendedInstrumentId?.trim() || state.research.selectedInstrumentId, ...counts } };
 }
 

@@ -20,7 +20,7 @@ export function inferInstrumentId(studyDesign: string): string {
   if (/(rct|randomisert|randomized)/i.test(design)) return 'rob-2';
   if (/(ikke-randomisert intervensjon|non-randomized intervention|quasi-experimental)/i.test(design)) return 'robins-i';
   if (/(kvalitativ|qualitative)/i.test(design)) return 'jbi-qualitative-2017';
-  return MASTER_INSTRUMENTS_REGISTRY[0]?.id ?? 'jbi-qualitative-2017';
+  throw new Error(`Studiedesignet «${studyDesign || 'ukjent'}» kan ikke kobles sikkert til et appraisal-instrument. Manuell metodisk avklaring kreves.`);
 }
 
 export function createScreeningDecision(input: Omit<ScreeningDecision, 'timestamp'>): ScreeningDecision {

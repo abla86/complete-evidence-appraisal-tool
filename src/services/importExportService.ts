@@ -468,7 +468,8 @@ export class ImportExportService {
       const doi = doiIdx >= 0 ? cols[doiIdx].replace(/^https?:\/\/doi\.org\//i, '').trim() : '';
       const design = designIdx >= 0 ? cols[designIdx] : 'Kvalitativ studie';
       const abstract = abstractIdx >= 0 ? cols[abstractIdx] : '';
-      const verdict = verdictIdx >= 0 ? cols[verdictIdx] as any : undefined;
+      const rawVerdict = verdictIdx >= 0 ? cols[verdictIdx].trim() : '';
+      const verdict: ImportPreviewItem['verdict'] = ['Inkluder', 'Ekskluder', 'Vurder videre', 'Søk mer informasjon'].includes(rawVerdict) ? rawVerdict as ImportPreviewItem['verdict'] : undefined;
 
       if (title || authors) {
         items.push({
