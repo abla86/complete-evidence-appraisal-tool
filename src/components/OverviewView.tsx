@@ -148,8 +148,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   const sortLabelMap: Record<SortOption, string> = {
     'year-desc': 'Dato (Nyeste først)',
     'year-asc': 'Dato (Eldste først)',
-    'jbi-desc': 'JBI-score (Høyest: 10 → 0)',
-    'jbi-asc': 'JBI-score (Lavest: 0 → 10)',
+    'jbi-desc': 'JBI-vurdering (mest positiv → minst positiv)',
+    'jbi-asc': 'JBI-vurdering (minst positiv → mest positiv)',
     'author-asc': 'Forfatter (A → Å)',
     'author-desc': 'Forfatter (Å → A)',
     'title-asc': 'Tittel (A → Å)',
@@ -603,7 +603,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   <th className="py-3.5 px-4">År</th>
                   <th className="py-3.5 px-4">Design & Metode</th>
                   <th className="py-3.5 px-4">Utvalg / Kontekst</th>
-                  <th className="py-3.5 px-4 text-center">JBI Score</th>
+                  <th className="py-3.5 px-4 text-center">JBI-vurdering</th>
                   <th className="py-3.5 px-4 text-center">Beslutning</th>
                   <th className="py-3.5 px-4 text-right">Handling</th>
                 </tr>
