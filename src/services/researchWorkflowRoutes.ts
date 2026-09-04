@@ -227,33 +227,8 @@ export function registerResearchWorkflowRoutes(app: {
         reviewerId,
         session => {
           const current = requireWorkflow(req.params.studyId);
-          const now = new Date().toISOString();
-
-          const screening = current.screening.some(
-            item => item.reviewerId === reviewerId,
-          )
-            ? current.screening.map(item =>
-                item.reviewerId === reviewerId
-                  ? {
-                      ...item,
-                      decision: 'INCLUDED' as const,
-                      updatedAt: now,
-                    }
-                  : item,
-              )
-            : [
-                ...current.screening,
-                {
-                  studyId: current.studyId,
-                  reviewerId,
-                  decision: 'INCLUDED' as const,
-                  updatedAt: now,
-                },
-              ];
-
           return save({
             ...current,
-            screening,
             appraisalSessions:
               current.appraisalSessions.some(
                 item => item.id === session.id,
