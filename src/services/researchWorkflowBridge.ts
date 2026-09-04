@@ -80,6 +80,7 @@ export function resolveReviewComparison(args: {
   resolvedBy: string;
   first: ReviewInstance;
   second: ReviewInstance;
+  rationale?: string;
 }): ResolvedAppraisal {
   const consensusResponses: Record<string, string | number | boolean | null> = {};
   const itemIds = [...new Set([...Object.keys(args.first.responses), ...Object.keys(args.second.responses)])];
@@ -87,9 +88,11 @@ export function resolveReviewComparison(args: {
     const a = args.first.responses[itemId] ?? null;
     const b = args.second.responses[itemId] ?? null;
     if (a === b) consensusResponses[itemId] = a;
-    else if (args.method === 'autoResolve') consensusResponses[itemId] = a;
     else consensusResponses[itemId] = null;
   }
+  if (args.comparison.requiresArbitration && !args.rationale?.trim()) throw new Error('Adjudication krever begrunnelse.');
+  if (args.comparison.requiresArbitration && args.method === 'autoResolve') throw new Error('autoResolve er ikke tillatt ved uenighet i appraisal.');
+  if (args.comparison.requiresArbitration && itemIds.some(itemId => consensusResponses[itemId] === null)) throw new Error('Alle konfliktitems må ha eksplisitt consensus-respons.');
   return {
     appraisalId: args.appraisalId,
     status: 'resolved',
@@ -97,7 +100,8 @@ export function resolveReviewComparison(args: {
     resolvedBy: args.resolvedBy,
     resolvedAt: new Date().toISOString(),
     disagreements: args.comparison.items,
-    consensusResponses
+    consensusResponses,
+    proposedResponses: { ...consensusResponses }
   };
 }
 
