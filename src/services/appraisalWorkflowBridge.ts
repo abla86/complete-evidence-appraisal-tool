@@ -85,6 +85,12 @@ function assertPayload(payload: ResearchAppraisalPayload, reviewerId: string): v
   if (payload.evidence.some(item => item.source !== 'HUMAN_VERIFIED' || !item.verifiedByResearcher || !item.verifiedBy || !item.verifiedAt)) {
     throw new Error('Appraisal payload contains evidence without complete human verification provenance.');
   }
+  const evidenceIds = payload.evidence.map(item => item.id.trim());
+  if (evidenceIds.some(id => !id)) throw new Error('Every appraisal evidence item must have an id.');
+  if (new Set(evidenceIds).size !== evidenceIds.length) throw new Error('Appraisal payload contains duplicate evidence ids.');
+  const workflow = researchWorkflowStore.get(payload.studyId.trim());
+  if (!workflow) throw new Error(`Research workflow not found: ${payload.studyId}`);
+  if (workflow.studyId !== payload.studyId.trim()) throw new Error('Research workflow study provenance mismatch.');
 }
 
 function buildRecord(payload: ResearchAppraisalPayload, session: AppraisalSession): AppraisalWorkflowRecord {
