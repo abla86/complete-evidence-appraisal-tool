@@ -105,6 +105,26 @@ export function resolveReviewComparison(args: {
   };
 }
 
+export interface DeduplicationCandidate { studyId:string; matchedStudyId:string; key:'doi'|'pmid'|'title'; value:string; }
+
+export function findDuplicateStudies(records: Array<{studyId:string; doi?:string; pmid?:string; title?:string}>): DeduplicationCandidate[] {
+  const seen = new Map<string, {studyId:string;key:'doi'|'pmid'|'title';value:string}>();
+  const duplicates: DeduplicationCandidate[] = [];
+  for (const record of records) {
+    const keys:Array<{key:'doi'|'pmid'|'title';value:string}> = [];
+    if (record.doi?.trim()) keys.push({key:'doi',value:record.doi.trim().toLowerCase()});
+    if (record.pmid?.trim()) keys.push({key:'pmid',value:record.pmid.trim()});
+    if (record.title?.trim()) keys.push({key:'title',value:record.title.trim().toLowerCase().replace(/\\s+/g,' ')});
+    for (const candidate of keys) {
+      const composite = candidate.key + ':' + candidate.value;
+      const previous = seen.get(composite);
+      if (previous && previous.studyId !== record.studyId) duplicates.push({studyId:record.studyId,matchedStudyId:previous.studyId,key:candidate.key,value:candidate.value});
+      else seen.set(composite,{studyId:record.studyId,...candidate});
+    }
+  }
+  return duplicates;
+}
+
 export function buildPrismaFlow(store: {
   screening: ScreeningDecision[];
   appraisalSessions: AppraisalSession[];
