@@ -45,4 +45,53 @@ export class InMemoryResearchWorkflowStore implements ResearchWorkflowStore {
   }
 }
 
-export const researchWorkflowStore = new InMemoryResearchWorkflowStore();
+export class LocalStorageResearchWorkflowStore extends InMemoryResearchWorkflowStore {
+  private readonly storageKey = 'complete-evidence-appraisal-tool:research-workflows:v1';
+
+  constructor() {
+    super();
+    this.restore();
+  }
+
+  override save(workflow: WorkflowState): WorkflowState {
+    const saved = super.save(workflow);
+    this.persist();
+    return saved;
+  }
+
+  override delete(studyId: string): boolean {
+    const deleted = super.delete(studyId);
+    if (deleted) this.persist();
+    return deleted;
+  }
+
+  override clear(): void {
+    super.clear();
+    this.persist();
+  }
+
+  private persist(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(this.storageKey, JSON.stringify(this.list()));
+  }
+
+  private restore(): void {
+    if (typeof localStorage === 'undefined') return;
+    const raw = localStorage.getItem(this.storageKey);
+    if (!raw) return;
+    try {
+      const workflows = JSON.parse(raw) as WorkflowState[];
+      if (!Array.isArray(workflows)) return;
+      for (const workflow of workflows) {
+        if (workflow && typeof workflow.studyId === 'string' && workflow.studyId.trim()) super.save(workflow);
+      }
+    } catch {
+      localStorage.removeItem(this.storageKey);
+    }
+  }
+}
+
+export const researchWorkflowStore: ResearchWorkflowStore =
+  typeof localStorage !== 'undefined'
+    ? new LocalStorageResearchWorkflowStore()
+    : new InMemoryResearchWorkflowStore();
