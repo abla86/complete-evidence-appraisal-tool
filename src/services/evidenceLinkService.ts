@@ -30,6 +30,7 @@ export function createEvidenceExtraction(input: {
   if (!input.sourceRecordId.trim()) throw new Error('sourceRecordId is required.');
   if (!input.excerpt.trim()) throw new Error('Evidence excerpt is required.');
   if (!input.extractedBy.trim()) throw new Error('extractedBy is required.');
+  if (input.location && !Object.values(input.location).some(value => typeof value === 'string' && value.trim())) throw new Error('Evidence location must contain page, section, table or figure when provided.');
   const now = new Date().toISOString();
   return {
     id: input.id ?? createId('evidence'),
@@ -81,6 +82,8 @@ export function attachEvidenceToClaim(
 ): AcademicClaim {
   const evidence = context.evidence.find(item => item.id === evidenceId);
   if (!evidence) throw new Error('Evidensen finnes ikke.');
+  if (claim.authorId.trim() === '') throw new Error('Claim authorId is required.');
+  if (evidence.researcherVerified === false && claim.status === 'SUPPORTED') throw new Error('Unverified evidence cannot support a claim marked SUPPORTED.');
   if (claim.contradictoryEvidenceIds.includes(evidenceId)) {
     throw new Error('Evidensen er registrert som motstridende for denne påstanden.');
   }
