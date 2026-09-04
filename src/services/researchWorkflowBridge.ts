@@ -125,9 +125,31 @@ export function findDuplicateStudies(records: Array<{studyId:string; doi?:string
   return duplicates;
 }
 
+export interface DeduplicationDecision {
+  recordId: string;
+  canonicalStudyId: string;
+  duplicateOfRecordId?: string;
+  reason: 'doi' | 'pmid' | 'title';
+  reviewerId: string;
+  timestamp: string;
+}
+
+export function applyDeduplicationDecisions(
+  records: Array<{studyId:string; doi?:string; pmid?:string; title?:string}>,
+  decisions: DeduplicationDecision[],
+): { canonicalRecords: typeof records; unresolved: typeof records; duplicatesRemoved: number } {
+  const duplicateIds = new Set(decisions.filter(d => d.duplicateOfRecordId).map(d => d.recordId));
+  const canonicalIds = new Set(records.map(r => r.studyId));
+  const invalid = decisions.filter(d => !canonicalIds.has(d.recordId) || !canonicalIds.has(d.canonicalStudyId) || (d.duplicateOfRecordId && !canonicalIds.has(d.duplicateOfRecordId)));
+  if (invalid.length) throw new Error('Deduplication contains references to unknown records.');
+  const canonicalRecords = records.filter(r => !duplicateIds.has(r.studyId));
+  return { canonicalRecords, unresolved: canonicalRecords.filter(r => !decisions.some(d => d.recordId === r.studyId)), duplicatesRemoved: duplicateIds.size };
+}
+
 export function buildPrismaFlow(store: {
   screening: ScreeningDecision[];
   appraisalSessions: AppraisalSession[];
+  duplicatesRemoved?: number;
 }): PRISMAFlow {
   const screening = store.screening;
   const included = screening.filter(item => item.decision === 'include');
@@ -145,7 +167,7 @@ export function buildPrismaFlow(store: {
       recordsFromDatabases: screening.length,
       recordsFromOtherSources: 0,
       totalIdentified: screening.length,
-      duplicatesRemoved: 0
+      duplicatesRemoved: store.duplicatesRemoved ?? 0
     },
     screening: {
       recordsScreened: screening.length,
