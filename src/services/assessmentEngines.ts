@@ -513,6 +513,8 @@ export class GradeCerqualAssessmentEngine {
 // 7B. WHO EVIDENCE-TO-DECISION (EtD / DECIDE) FRAMEWORK ENGINE
 // -------------------------------------------------------------
 export class WhoEtdAssessmentEngine {
+    const required = ['guidelineQuestion','targetPopulation','intervention','comparison','balanceOfEffects','certaintyOfEvidence','valuesUncertainty','resourcesRequired','costEffectiveness','equity','acceptability','feasibility'];
+    for (const key of required) { const value = (input as Record<string, unknown>)[key]; if (typeof value !== 'string' || !value.trim()) throw new Error(`WHO EtD requires ${key}.`); }
   public static evaluateEtD(input: WhoEtdCriteriaInput): WhoEtdEvaluationResult {
     const detailedCriteriaAudit: {
       criterionName: string;
