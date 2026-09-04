@@ -83,7 +83,7 @@ export function attachEvidenceToClaim(
   const evidence = context.evidence.find(item => item.id === evidenceId);
   if (!evidence) throw new Error('Evidensen finnes ikke.');
   if (claim.authorId.trim() === '') throw new Error('Claim authorId is required.');
-  if (evidence.researcherVerified === false && claim.status === 'SUPPORTED') throw new Error('Unverified evidence cannot support a claim marked SUPPORTED.');
+  if ((evidence.researcherVerified === false || evidence.aiReviewRequired === true) && claim.status === 'SUPPORTED') throw new Error('Evidence requiring researcher review cannot support a claim marked SUPPORTED.');
   if (claim.contradictoryEvidenceIds.includes(evidenceId)) {
     throw new Error('Evidensen er registrert som motstridende for denne påstanden.');
   }
