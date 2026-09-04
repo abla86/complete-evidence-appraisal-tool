@@ -13,26 +13,23 @@ permissions:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
-
+          node-version: 24
+          cache: npm
       - name: Install dependencies
-        run: npm install
-
+        run: npm ci
       - name: Run tests with V8 coverage
         env:
           NODE_V8_COVERAGE: coverage
         run: npm run test:coverage
-
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: v8-coverage
           path: coverage/
