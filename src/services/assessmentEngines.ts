@@ -395,12 +395,13 @@ export class GradeAssessmentEngine {
     largeEffect?: 0 | 1 | 2;
     doseResponse?: 0 | 1;
     opposingConfounders?: 0 | 1;
+    finalCertainty?: GradeCertaintyEvaluation['finalCertainty'];
+    certaintyRationale?: string;
   }): GradeCertaintyEvaluation {
+    if (!input.outcomeName.trim()) throw new Error('GRADE outcomeName er påkrevd.');
+    if (input.finalCertainty && !input.certaintyRationale?.trim()) throw new Error('Eksplisitt GRADE-final certainty krever begrunnelse.');
     const downgrade = [input.riskOfBias,input.inconsistency,input.indirectness,input.imprecision,input.publicationBias];
     const upgrade = [input.largeEffect ?? 0,input.doseResponse ?? 0,input.opposingConfounders ?? 0];
-    const initial = input.studyDesign === 'RCT' ? 4 : 2;
-    const level = Math.max(1, Math.min(4, initial + downgrade.reduce((a,b)=>a+b,0) + upgrade.reduce((a,b)=>a+b,0)));
-    const finalCertainty = level === 4 ? 'High' : level === 3 ? 'Moderate' : level === 2 ? 'Low' : 'Very Low';
     const reasons:string[] = [];
     if(input.riskOfBias < 0) reasons.push(`risk of bias ${input.riskOfBias}`);
     if(input.inconsistency < 0) reasons.push(`inconsistency ${input.inconsistency}`);
@@ -410,14 +411,17 @@ export class GradeAssessmentEngine {
     if((input.largeEffect ?? 0)>0) reasons.push(`large effect +${input.largeEffect}`);
     if((input.doseResponse ?? 0)>0) reasons.push('dose-response +1');
     if((input.opposingConfounders ?? 0)>0) reasons.push('opposing confounding +1');
+    const initialLevel = input.studyDesign === 'RCT' ? 4 : 2;
+    const calculatedLevel = Math.max(1, Math.min(4, initialLevel + downgrade.reduce((a,b)=>a+b,0) + upgrade.reduce((a,b)=>a+b,0)));
+    const calculated: GradeCertaintyEvaluation['finalCertainty'] = calculatedLevel === 4 ? 'High' : calculatedLevel === 3 ? 'Moderate' : calculatedLevel === 2 ? 'Low' : 'Very Low';
     return {
       outcomeName: input.outcomeName,
       studyDesign: input.studyDesign,
       initialCertainty: input.studyDesign === 'RCT' ? 'High' : 'Low',
       downgradeFactors:{riskOfBias:input.riskOfBias,inconsistency:input.inconsistency,indirectness:input.indirectness,imprecision:input.imprecision,publicationBias:input.publicationBias},
       upgradeFactors:{largeEffect:input.largeEffect ?? 0,doseResponse:input.doseResponse ?? 0,opposingConfounders:input.opposingConfounders ?? 0},
-      finalCertainty,
-      certaintyRationale: reasons.length ? `GRADE-justeringer: ${reasons.join('; ')}.` : 'Ingen eksplisitte GRADE-justeringer er registrert.'
+      finalCertainty: input.finalCertainty ?? calculated,
+      certaintyRationale: input.certaintyRationale?.trim() ?? `Foreløpig regelberegning basert på registrerte GRADE-domener: ${reasons.length ? reasons.join('; ') : 'ingen eksplisitte justeringer'}.`
     };
   }
 }
