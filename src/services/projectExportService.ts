@@ -86,6 +86,14 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   if (pkg.appraisal.some(a => !a.locked)) throw new Error('EXPORT_BLOCKED: all appraisal sessions must be locked.');
   if (pkg.quality.some(q => !q.locked)) throw new Error('EXPORT_BLOCKED: all quality assessments must be locked.');
   const evidenceIds = new Set(pkg.evidence.map(e => e.id));
+  const referenceIds = new Set(pkg.references.map(reference => reference.id));
+  const evidenceIds = new Set(pkg.evidence.map(evidence => evidence.id));
+  for (const evidence of pkg.evidence) {
+    if (!referenceIds.has(evidence.referenceId)) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no exported reference.`);
+  }
+  for (const claim of pkg.claims) {
+    if (claim.supportingEvidenceIds.some(id => !evidenceIds.has(id))) throw new Error(`EXPORT_BLOCKED: claim ${claim.id} contains a missing evidence link.`);
+  }
   for (const reference of pkg.references) {
     if (reference.verification === 'RETRACTED' || reference.retraction?.detected) throw new Error(`EXPORT_BLOCKED: reference ${reference.id} is retracted or under concern.`);
     if (reference.verification !== 'VALIDATED') throw new Error(`EXPORT_BLOCKED: reference ${reference.id} is not bibliographically validated.`);
