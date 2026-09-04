@@ -441,6 +441,9 @@ export class GradeAssessmentEngine {
 // -------------------------------------------------------------
 export class CaspAssessmentEngine {
   public static evaluateQualitative(responses: Record<number, 'Yes' | 'Can’t tell' | 'No'>): CaspQualitativeResult {
+    const expectedItems = Array.from({ length: 10 }, (_, index) => index + 1);
+    const responseKeys = Object.keys(responses).map(Number);
+    if (responseKeys.length !== 10 || responseKeys.some(key => !expectedItems.includes(key)) || expectedItems.some(key => responses[key] === undefined)) throw new Error('CASP qualitative appraisal requires exactly one response for all 10 questions.');
     const q1 = responses[1];
     const q2 = responses[2];
     const screeningPassed = q1 === 'Yes' && q2 === 'Yes';
