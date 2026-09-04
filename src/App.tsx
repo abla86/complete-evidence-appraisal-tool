@@ -119,8 +119,9 @@ export default function App() {
   };
 
   const actor = { id: currentUserRole === 'lead_reviewer' ? 'lead-reviewer' : currentUserRole, role: currentUserRole } as const;
-  const pipelineProjectId = selectedArticleId || pipelineState.projectId;
+  const pipelineProjectId = pipelineState.projectId || 'workspace';
   const appraisalReviewerId = actor.id;
+  const currentStudyId = selectedArticleId || currentArticle?.id || '';
 
   return (
     <ToastProvider>
@@ -129,7 +130,7 @@ export default function App() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
           {activeTab === 'overview' && <PipelineDashboard projectId={pipelineProjectId || 'workspace'} actor={actor} initialState={pipelineState} onStateChange={setPipelineState} />}
           {selectedInstrumentId !== 'jbi-qualitative-2017' && activeTab === 'instrumentinfo' ? (
-            <UniversalAppraisalView studyId={selectedArticleId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />
+            <UniversalAppraisalView studyId={currentStudyId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />
           ) : <>
             {activeTab === 'overview' && <OverviewView articles={articles} onSelectArticle={handleSelectArticle} onEditArticle={handleEditArticle} onGoToThesis={() => setActiveTab('synthesis')} onOpenCustomEvaluator={handleNewArticle} onOpenImportExport={handleOpenImportExport} />}
             {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported) => { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId: 'jbi-qualitative-2017', instrumentVersion: '2017', lifecycleStatus: 'DRAFT', title: imported.title || 'Uten tittel', authors: imported.authors || 'Ukjent forfatter', shortCitation: imported.shortCitation || 'Ukjent (2024)', year: imported.publicationYear || 2024, doi: imported.doi || '', doiUrl: imported.doi ? `https://doi.org/${imported.doi}` : '', sourceUrl: '', sourceName: 'Forskningssøk (API)', journal: imported.journal || 'Vitenskapelig tidsskrift', studyContext: 'Importert fra ekstern database for appraisal', design: imported.studyDesign || 'Ukjent / Uavklart', dataCollection: 'Dokumentert i fulltekst', participants: 'Se fulltekst', analyticMethod: 'Se fulltekst', summaryScore: { ja: 0, uklart: 10, nei: 0, ikkeRelevant: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Importert via ekstern forskningsdatabase', keyStrength: 'Metadata importert; metodisk vurdering ikke utført', mainLimitation: 'Fulltekst må kontrolleres', apaReference: `${imported.authors || 'Forfattere'} (${imported.publicationYear || 2024}). ${imported.title || 'Artikkel'}. ${imported.journal || ''}.`, items: createBlankJbiItems('Uklart', 'Vurdering må gjennomføres med valgt instrument'), auditTrail: [{ id: generateAuditId('audit'), studyId: articleId, reviewer: 'System (Research Search)', instrumentId: 'jbi-qualitative-2017', version: '2017', itemId: 1, itemTitle: 'Initialisering', previousAnswer: 'NONE', newAnswer: 'UNCLEAR', previousRationale: '', newRationale: 'Importert fra forskningsdatabase', changedBy: 'Forsker', timestamp: new Date().toISOString(), comment: 'Opprettet via Forskningssøk' }] }; setArticles(prev => [newArt, ...prev]); setSelectedArticleId(newArt.id); }} />}
