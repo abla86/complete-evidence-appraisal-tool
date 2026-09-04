@@ -51,6 +51,8 @@ export function validateSynthesis(
   for(const input of synthesis.inputs){
     if(!input.eligible) blockers.push(`Synteseinput ${input.id} er ikke eligible.`);
     if(!appraisalIds.has(input.appraisalSessionId)) blockers.push(`Synteseinput ${input.id} mangler låst appraisal.`);
+    const appraisal = appraisals.find(a => a.id === input.appraisalSessionId);
+    if (appraisal && appraisal.studyId !== input.studyId) blockers.push(`Synteseinput ${input.id} har studyId som ikke samsvarer med appraisal.`);
     for(const id of input.evidenceIds){
       if(!evidenceIds.has(id)) blockers.push(`Synteseinput ${input.id} peker til ukjent evidens ${id}.`);
       else {
@@ -73,6 +75,7 @@ export function createSynthesisRecord(input: Omit<SynthesisRecord,'createdAt'|'l
 }
 
 export function lockSynthesis(synthesis:SynthesisRecord, validation:SynthesisValidation, lockedBy:string):SynthesisRecord {
+  if(synthesis.inputs.some(input => !input.studyId.trim() || !input.appraisalSessionId.trim())) throw new Error('Alle synteseinputs må ha studyId og appraisalSessionId før låsing.');
   if(!validation.valid) throw new Error(`Synthesis kan ikke låses: ${validation.blockers.join(' | ')}`);
   if(!lockedBy.trim()) throw new Error('lockedBy er påkrevd.');
   return {...synthesis,locked:true};
