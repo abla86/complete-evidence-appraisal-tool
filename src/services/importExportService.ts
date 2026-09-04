@@ -551,6 +551,10 @@ export class ImportExportService {
     format: SupportedExportFormat,
     options: ExportOptions
   ): { content: string; filename: string; mimeType: string } {
+    if (!Array.isArray(articles)) throw new Error('EXPORT_INVALID: articles must be an array.');
+    if (options.scope === 'selected_only' && !options.selectedArticleId) {
+      throw new Error('EXPORT_INVALID: selectedArticleId is required for selected_only export.');
+    }
     let filteredArticles = articles;
     if (options.scope === 'included_only') {
       filteredArticles = articles.filter(a => a.overallVerdict === 'Inkluder' || a.overallVerdict === 'Vurder videre');
