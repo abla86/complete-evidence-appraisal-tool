@@ -14,7 +14,11 @@ export interface InstrumentCoverage {
   note: string;
 }
 
-const ENGINE_IDS = new Set(['jbi-qualitative-2017', 'amstar-2', 'agree-ii', 'rob-2', 'casp-qualitative']);
+const ENGINE_IDS = new Set([
+  'jbi-qualitative-2017', 'amstar-2', 'agree-ii', 'rob-2', 'casp-qualitative',
+  'grade', 'grade-cerqual', 'who-etd', 'cfir-2', 'kta', 'robins-i', 'robis',
+  'quadas-2', 'quips', 'probast', 'mmat'
+]);
 
 export function getInstrumentCoverage(): InstrumentCoverage[] {
   return MASTER_INSTRUMENTS_REGISTRY.map((instrument: AppraisalInstrument) => {
