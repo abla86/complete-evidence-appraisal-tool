@@ -69,6 +69,9 @@ export function resolveAppraisal(
   if (disagreements.some(item => item.disagreement) && method === 'autoResolve') throw new Error('autoResolve er ikke tillatt for metodisk appraisal-uenighet.');
   const unresolved = disagreements.filter(item => item.disagreement).filter(item => responses[item.itemId] === null || responses[item.itemId] === undefined);
   if (unresolved.length) throw new Error(`Alle uenigheter må ha en eksplisitt consensus-respons: ${unresolved.map(item => item.itemId).join(', ')}`);
+  if (method !== 'consensus' && method !== 'thirdReviewer') throw new Error('Methodisk appraisal-uenighet må løses ved consensus eller third reviewer.');
+  if (!rationale.trim()) throw new Error('Adjudication krever eksplisitt begrunnelse.');
+  if (disagreements.some(item => item.disagreement) && disagreements.some(item => responses[item.itemId] === null || responses[item.itemId] === undefined)) throw new Error('Alle konfliktitems må ha eksplisitt consensus-respons.');
   return {
     appraisalId,
     status: 'resolved',
