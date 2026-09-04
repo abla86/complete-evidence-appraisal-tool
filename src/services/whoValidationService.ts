@@ -144,17 +144,17 @@ export class WhoValidationService {
       recommendation: 'Kvalitative studier kan belyse hvordan og hvorfor opplevelser skapes, men kan aldri isolere kausalitet.'
     });
 
-    // Calculate score
+    // Calculate compliance for reporting/validation only; this is not an evidence-quality score.
     const criticalRules = rules.filter(r => r.severity === 'critical');
     const allCriticalPassed = criticalRules.every(r => r.passed);
     const passedCount = rules.filter(r => r.passed).length;
     const totalCount = rules.length;
-    const complianceScore = Math.round((passedCount / totalCount) * 100);
+    const completionPercent = totalCount === 0 ? 0 : Math.round((passedCount / totalCount) * 100);
 
     let summaryVerdict: 'INTERN_METODISK_KONTROLLERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT' = 'INTERN_METODISK_KONTROLLERT';
     if (!allCriticalPassed) {
       summaryVerdict = 'KREVER_KOMPLETTERING';
-    } else if (complianceScore < 70) {
+    } else if (completionPercent < 70) {
       summaryVerdict = 'KREVER_KOMPLETTERING';
     }
 
