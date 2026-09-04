@@ -77,6 +77,9 @@ export function getQualityAssessmentsForSession(sessionId: string): StoredQualit
 }
 
 export function upsertQualityAssessment(item: StoredQualityAssessment): StoredQualityAssessment[] {
+  const session = getAppraisalSessionById(item.appraisalSessionId);
+  if (!session) throw new Error('Quality assessment must reference an existing appraisal session.');
+  if (session.locked) throw new Error('Quality assessment cannot be changed after its appraisal session is locked.');
   if (!item.id.trim()) throw new Error('Quality assessment ID is required.');
   if (!item.appraisalSessionId.trim()) throw new Error('Quality assessment appraisalSessionId is required.');
   if (!item.evidenceId.trim()) throw new Error('Quality assessment evidenceId is required.');
