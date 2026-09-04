@@ -150,8 +150,8 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     sourceAttribution: 'Glasgow et al., RE-AIM.',
     allowedAnswers: ['Høy', 'Moderat', 'Lav', 'Ikke målt / Uklart'],
     scoringModel: 'domain-based',
-    scoringModelExplanation: '5 evalueringsdimensjoner: R (Reach), E (Effectiveness), A (Adoption), I (Implementation), M (Maintenance).',
-    interpretationModel: 'Samlet folkehelseeffekt = R × E × A × I × M.',
+    scoringModelExplanation: 'Fem evalueringsdimensjoner: R (Reach), E (Effectiveness), A (Adoption), I (Implementation), M (Maintenance). Det finnes ingen generell validert R×E×A×I×M-totalskår i rammeverket.',
+    interpretationModel: 'Profilbasert vurdering av Reach, Effectiveness, Adoption, Implementation og Maintenance; dimensjonene skal rapporteres og fortolkes samlet, ikke reduseres til en validert multiplikativ totalskår.',
     criticalDomains: [
       'Reach (Hvor stor andel av målgruppen nås, og er de representative?)',
       'Effectiveness (Hvilke positive og negative utfall oppnås?)',
