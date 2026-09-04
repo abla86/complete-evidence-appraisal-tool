@@ -10,6 +10,7 @@ export interface SynthesisInput {
   outcomeOrFinding: string;
   value?: number;
   standardError?: number;
+  effectMeasure?: 'OR' | 'RR' | 'HR' | 'MD' | 'SMD' | 'RD' | 'CORRELATION' | 'OTHER';
   direction?: 'FAVOURS_INTERVENTION' | 'FAVOURS_COMPARATOR' | 'NO_DIFFERENCE' | 'MIXED' | 'NOT_APPLICABLE';
   eligible: boolean;
   notes?: string;
@@ -62,6 +63,9 @@ export function validateSynthesis(
       }
     }
     if(synthesis.type==='META_ANALYSIS' && (input.value===undefined || input.standardError===undefined)) blockers.push(`Meta-analyseinput ${input.id} mangler effect estimate eller standard error.`);
+    if(synthesis.type==='META_ANALYSIS' && input.standardError !== undefined && (!Number.isFinite(input.standardError) || input.standardError <= 0)) blockers.push(`Meta-analyseinput ${input.id} har ugyldig standard error.`);
+    if(synthesis.type==='META_ANALYSIS' && input.value !== undefined && !Number.isFinite(input.value)) blockers.push(`Meta-analyseinput ${input.id} har ugyldig effect estimate.`);
+    if(synthesis.type==='META_ANALYSIS' && !input.effectMeasure) blockers.push(`Meta-analyseinput ${input.id} mangler effect measure.`);
   }
   for (const claim of claims) for (const evidenceId of claim.supportingEvidenceIds) if (!evidenceIds.has(evidenceId)) blockers.push(`Claim ${claim.id} peker til ukjent evidens ${evidenceId}.`);
   for (const input of synthesis.inputs) for (const evidenceId of input.evidenceIds) { const extraction = evidenceById.get(evidenceId); if (extraction && extraction.sourceRecordId.trim() === '') blockers.push(`Evidens ${evidenceId} mangler sourceRecordId.`); }
