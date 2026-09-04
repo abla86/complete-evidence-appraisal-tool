@@ -347,6 +347,7 @@ export class JbiQualitativeAssessmentEngine {
 export class Rob2AssessmentEngine {
   public static evaluate(
     domainRisks: {
+      variant?: 'parallel-group' | 'cluster-randomised' | 'crossover';
       d1Randomisation: 'Low risk' | 'Some concerns' | 'High risk';
       d2Deviations: 'Low risk' | 'Some concerns' | 'High risk';
       d3MissingData: 'Low risk' | 'Some concerns' | 'High risk';
@@ -380,7 +381,7 @@ export class Rob2AssessmentEngine {
     }
 
     return {
-      variant: 'parallel-group',
+      variant: domainRisks.variant ?? 'parallel-group',
       domainEvaluations: list,
       overallRiskOfBias,
       algorithmRationale
