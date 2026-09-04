@@ -12,10 +12,7 @@ test('IMRaD detects explicit English structure', () => {
     'The primary outcome was estimated and findings are presented with confidence intervals.',
     'Discussion',
     'The main findings are interpreted in relation to previous research, including strengths and limitations.'
-  ].join('
-
-');
-
+  ].join('\n\n');
   const result = IMRaDAnalysisService.analyze(text, 'article.txt');
   assert.equal(result.standard, 'IMRaD');
   assert.equal(result.complete, true);
@@ -33,37 +30,30 @@ test('IMRaD detects common Norwegian headings', () => {
     'Resultatene viser hovedutfallet for deltakerne.',
     'Diskusjon',
     'Funnene drøftes i lys av tidligere forskning og begrensninger.'
-  ].join('
-
-');
-
+  ].join('\n\n');
   const result = IMRaDAnalysisService.analyze(text, 'artikkel.txt');
   assert.equal(result.explicitComplete, true);
   assert.deepEqual(result.missingSections, []);
 });
 
-test('missing sections remain structural findings, not quality verdicts', () => {
+test('IMRaD does not invent boundaries for unstructured text', () => {
   const result = IMRaDAnalysisService.analyze(
-    'Introduction
-Background and purpose are described.
-
-Methods
-Participants and data collection are described.',
+    'Introduction\nBackground and purpose are described.\n\nMethods\nParticipants and data collection are described.',
     'incomplete.txt'
   );
-
   assert.equal(result.complete, false);
   assert.ok(result.missingSections.includes('Results'));
   assert.ok(result.missingSections.includes('Discussion'));
   assert.match(result.methodologicalNotice, /genererer ikke kvalitetspoeng/);
 });
 
-test('short or empty text cannot receive high IMRaD confidence', () => {
-  const empty = IMRaDAnalysisService.analyze('');
-  assert.equal(empty.detectedSectionCount, 0);
-  assert.equal(empty.confidence, 0);
-
-  const short = IMRaDAnalysisService.analyze('Introduction
-A short text.');
-  assert.ok(short.confidence < 0.5);
+test('unstructured text remains structurally missing rather than paragraph-inferred', () => {
+  const result = IMRaDAnalysisService.analyze(
+    'This is a long paragraph about a study and its context. '.repeat(10) +
+    '\n\nAnother long paragraph discussing findings without a heading. '.repeat(10),
+    'unstructured.txt'
+  );
+  assert.equal(result.detectedSectionCount, 0);
+  assert.equal(result.explicitHeadingCount, 0);
+  assert.equal(result.confidence, 0);
 });

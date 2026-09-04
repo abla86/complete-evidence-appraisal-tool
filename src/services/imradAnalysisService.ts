@@ -79,26 +79,13 @@ function extractByHeadings(text: string): Record<IMRaDSectionKey, string> {
   };
 }
 
-function fallbackByParagraphs(text: string): Record<IMRaDSectionKey, string> {
-  const paragraphs = normalise(text).split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 80);
-  const result: Record<IMRaDSectionKey, string> = { introduction: '', methods: '', results: '', discussion: '' };
-  if (paragraphs.length < 4) return result;
-  const chunks = [0.20, 0.30, 0.30, 0.20];
-  let offset = 0;
-  RULES.forEach((rule, index) => {
-    const count = Math.max(1, Math.round(paragraphs.length * chunks[index]));
-    result[rule.key] = paragraphs.slice(offset, offset + count).join('\n\n');
-    offset += count;
-  });
-  return result;
-}
-
 export class IMRaDAnalysisService {
   public static analyze(text: string, fileName = 'research-document'): IMRaDAnalysisResult {
     const clean = normalise(text);
     const headingSections = extractByHeadings(clean);
     const headingHits = Object.values(headingSections).filter(Boolean).length;
-    const sections = headingHits >= 2 ? headingSections : fallbackByParagraphs(clean);
+    // IMRaD is a structural analysis. Never infer section boundaries from paragraph position.
+    const sections = headingHits >= 1 ? headingSections : { introduction: '', methods: '', results: '', discussion: '' };
 
     const analyses: IMRaDSectionAnalysis[] = RULES.map(rule => {
       const content = sections[rule.key];
