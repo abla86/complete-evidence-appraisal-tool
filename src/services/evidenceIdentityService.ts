@@ -24,13 +24,14 @@ function fields(source: SourceIdentityLike) {
 
 export function resolveReferenceForSource(source: SourceIdentityLike, references: ReferenceRecord[]): ReferenceRecord | null {
   const ids = fields(source);
+  const explicit = references.find(reference => reference.sourceRecordIds?.includes(source.recordId));
+  if (explicit) return explicit;
   return references.find(reference =>
     (ids.doi && norm(reference.doi) === ids.doi) ||
     (ids.pmid && norm(reference.pmid) === ids.pmid) ||
     (ids.pmcid && norm(reference.pmcid) === ids.pmcid) ||
     (ids.isbn && norm(reference.isbn) === ids.isbn) ||
-    (ids.issn && norm(reference.issn) === ids.issn) ||
-    reference.id === source.recordId
+    (ids.issn && norm(reference.issn) === ids.issn)
   ) ?? null;
 }
 

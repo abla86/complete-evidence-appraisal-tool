@@ -47,6 +47,7 @@ export interface ReferenceRecord extends SharedReferenceInput {
   createdAt: string;
   updatedAt: string;
   duplicateOf?: string;
+  sourceRecordIds?: string[];
   verification: ReferenceVerificationState;
   verifiedBy?: string;
   verifiedAt?: string;
