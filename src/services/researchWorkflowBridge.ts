@@ -37,6 +37,7 @@ export async function triggerAppraisalForIncludedStudy(args: {
 }): Promise<ScreeningToAppraisalResult> {
   if (args.screening.studyId !== args.studyId) throw new Error('Screening og studie-ID samsvarer ikke.');
   if (args.screening.decision !== 'include') throw new Error('Kun inkluderte studier kan sendes til appraisal.');
+  if (args.screening.eligibilityDecision !== 'include') throw new Error('Fulltekst-eligibility må være eksplisitt inkludert før appraisal.');
   if (!args.reviewerId.trim()) throw new Error('Reviewer ID er påkrevd.');
 
   const instrumentId = inferInstrumentId(args.studyDesign);
@@ -159,9 +160,10 @@ export function buildPrismaFlow(store: {
     const reason = item.reason?.trim() || 'Ikke spesifisert';
     reasonCounts.set(reason, (reasonCounts.get(reason) ?? 0) + 1);
   }
+  const eligibleIds = new Set(screening.filter(item => item.eligibilityDecision === 'include').map(item => item.studyId));
   const assessedIds = new Set(store.appraisalSessions.map(session => session.studyId));
   const includedStudyIds = new Set(included.map(item => item.studyId));
-  const invalidAppraisals = [...assessedIds].filter(id => !includedStudyIds.has(id));
+  const invalidAppraisals = [...assessedIds].filter(id => !includedStudyIds.has(id) || !eligibleIds.has(id));
   if (invalidAppraisals.length) throw new Error(`PRISMA integrity violation: excluded/unknown studies have appraisal sessions: ${invalidAppraisals.join(', ')}`);
   const completedIds = new Set(store.appraisalSessions.filter(session => session.locked).map(session => session.studyId));
 
@@ -177,8 +179,8 @@ export function buildPrismaFlow(store: {
       recordsExcluded: excluded.length
     },
     eligibility: {
-      fullTextsAssessed: assessedIds.size,
-      fullTextsExcluded: [...reasonCounts.entries()].map(([reason, count]) => ({ reason, count }))
+      fullTextsAssessed: screening.filter(item => item.eligibilityDecision === 'include' || item.eligibilityDecision === 'exclude').length,
+      fullTextsExcluded: [...new Map(screening.filter(item => item.eligibilityDecision === 'exclude').map(item => [item.eligibilityReason?.trim() || item.reason?.trim() || 'Ikke spesifisert', 0])).entries()].map(([reason]) => ({ reason, count: screening.filter(item => item.eligibilityDecision === 'exclude' && (item.eligibilityReason?.trim() || item.reason?.trim() || 'Ikke spesifisert') === reason).length }))
     },
     included: {
       studiesFinalSynthesis: included.length,
