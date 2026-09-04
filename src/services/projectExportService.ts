@@ -57,7 +57,7 @@ export function buildProjectExportPackage(input: {
     appraisalIds.has(item.appraisalSessionId),
   );
 
-  return {
+  const packageData: ProjectExportPackage = {
     projectId,
     exportedAt: new Date().toISOString(),
     pipeline: input.pipeline,
@@ -70,6 +70,32 @@ export function buildProjectExportPackage(input: {
     prisma: calculatePRISMA(input.prismaStages),
     audit: input.auditTrail?.list() ?? [],
   };
+  assertProjectExportIntegrity(packageData);
+  return packageData;
+}
+
+export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
+  if (!pkg.projectId.trim()) throw new Error('EXPORT_BLOCKED: projectId is required.');
+  const appraisalIds = new Set(pkg.appraisal.map(a => a.id));
+  if (pkg.appraisal.some(a => !a.locked)) throw new Error('EXPORT_BLOCKED: all appraisal sessions must be locked.');
+  if (pkg.quality.some(q => !q.locked)) throw new Error('EXPORT_BLOCKED: all quality assessments must be locked.');
+  const evidenceIds = new Set(pkg.evidence.map(e => e.id));
+  for (const claim of pkg.claims) {
+    const missing = claim.supportingEvidenceIds.filter(id => !evidenceIds.has(id));
+    if (missing.length) throw new Error(`EXPORT_BLOCKED: claim ${claim.id} has unknown evidence: ${missing.join(', ')}`);
+    if (claim.status === 'SUPPORTED' && claim.supportingEvidenceIds.length === 0) throw new Error(`EXPORT_BLOCKED: supported claim ${claim.id} has no evidence.`);
+  }
+  for (const evidence of pkg.evidence) {
+    if (!evidence.sourceRecordId.trim()) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no sourceRecordId.`);
+    if (!evidence.researcherVerified) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} is not researcher verified.`);
+  }
+  const referenceIds = new Set(pkg.references.map(r => r.id));
+  for (const evidence of pkg.evidence) {
+    if (evidence.referenceId && !referenceIds.has(evidence.referenceId)) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has unknown reference.`);
+  }
+  for (const synthesis of pkg.synthesis) {
+    if (!synthesis.locked) throw new Error(`EXPORT_BLOCKED: synthesis ${synthesis.id} is not locked.`);
+  }
 }
 
 export function serializeProjectExport(
