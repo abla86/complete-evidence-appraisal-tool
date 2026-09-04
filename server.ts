@@ -61,8 +61,8 @@ async function startServer() {
         content: contentBuffer,
       });
       res.json({ success: true, data: parseResult, integration: { contractVersion: '1.0.0', evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0, humanVerificationRequired: true, appraisalGateRequired: true } });
-    } catch (err: any) {
-      res.status(400).json({ success: false, error: err.message || 'Feil under dokumentbehandling og tekstraksjon.' });
+    } catch (err: unknown) {
+      res.status(400).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil under dokumentbehandling og tekstraksjon.' });
     }
   });
 
@@ -108,8 +108,8 @@ async function startServer() {
         baseReport.engineUsed = 'DETERMINISTIC_FALLBACK';
       }
       res.json({ success: true, report: baseReport });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message || 'Feil ved metaundersøkelse av dokument' });
+    } catch (err: unknown) {
+      res.status(500).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil ved metaundersøkelse av dokument' });
     }
   });
 
@@ -120,8 +120,8 @@ async function startServer() {
       const verification = await EvidenceIntelligenceService.verifyPublicationByDoi(doi);
       if (!verification) return res.status(404).json({ success: false, status: 'NOT_FOUND', message: 'Ingen verifiserbar Crossref-post ble funnet.' });
       res.json({ success: true, verification, methodologicalNote: 'Crossref metadata kan ikke alene bekrefte fagfellevurdering.' });
-    } catch (err: any) {
-      res.status(502).json({ success: false, error: err.message || 'Feil ved ekstern kildeverifisering.' });
+    } catch (err: unknown) {
+      res.status(502).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil ved ekstern kildeverifisering.' });
     }
   });
 
@@ -134,8 +134,8 @@ async function startServer() {
       const result = await EvidenceIntelligenceService.searchEuropePmc(query, pageSize, page);
       const searchRecord = EvidenceIntelligenceService.createSearchRecord('Europe PMC', result.query, { pageSize, page }, result.total, 0, result.results);
       res.json({ success: true, ...result, searchRecord, prismaSNote: 'Søkehistorikken kan brukes som grunnlag for transparent rapportering av databasesøk; PRISMA-S-felter må fylles/valideres av forskeren.' });
-    } catch (err: any) {
-      res.status(502).json({ success: false, error: err.message || 'Europe PMC-søk feilet.' });
+    } catch (err: unknown) {
+      res.status(502).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Europe PMC-søk feilet.' });
     }
   });
 
