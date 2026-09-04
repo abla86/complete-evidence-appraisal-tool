@@ -20,11 +20,12 @@ function sendError(res: Response, status: number, error: unknown) {
   });
 }
 
-function requireWorkflow(studyId: string): WorkflowState {
+function requireWorkflow(studyId: string, projectId?: string): WorkflowState {
   const normalizedStudyId = studyId.trim();
   if (!normalizedStudyId) throw new Error('studyId is required.');
+  if (projectId !== undefined && !projectId.trim()) throw new Error('projectId is required when supplied.');
 
-  const workflow = researchWorkflowStore.get(normalizedStudyId);
+  const workflow = researchWorkflowStore.get(normalizedStudyId, projectId);
   if (!workflow) {
     throw new Error(`Research workflow not found: ${normalizedStudyId}`);
   }
@@ -80,7 +81,7 @@ export function registerResearchWorkflowRoutes(app: {
 
   app.get('/api/research-workflows/:studyId', (req: Request, res: Response) => {
     try {
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
       return res.json({
         success: true,
         workflow,
@@ -226,7 +227,7 @@ export function registerResearchWorkflowRoutes(app: {
         payload,
         reviewerId,
         session => {
-          const current = requireWorkflow(req.params.studyId);
+          const current = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
           return save({
             ...current,
             appraisalSessions:
