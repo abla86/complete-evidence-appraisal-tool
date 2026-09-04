@@ -105,6 +105,15 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   for (const synthesis of pkg.synthesis) {
     if (!synthesis.locked) throw new Error(`EXPORT_BLOCKED: synthesis ${synthesis.id} is not locked.`);
   }
+  for (const evidence of pkg.evidence) {
+    if (evidence.aiReviewRequired === true && !evidence.researcherVerified) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} requires researcher review.`);
+  }
+  for (const claim of pkg.claims) {
+    if (claim.status === 'SUPPORTED') {
+      const linked = pkg.evidence.filter(e => claim.supportingEvidenceIds.includes(e.id));
+      if (linked.some(e => e.aiReviewRequired === true && !e.researcherVerified)) throw new Error(`EXPORT_BLOCKED: supported claim ${claim.id} depends on unreviewed AI evidence.`);
+    }
+  }
 }
 
 export function serializeProjectExport(
@@ -143,7 +152,7 @@ export function serializeProjectExport(
       'evidence',
       item.id,
       item.excerpt,
-      item.researcherVerified ? 'verified' : 'unverified',
+      item.aiReviewRequired && !item.researcherVerified ? 'AI review required' : item.researcherVerified ? 'verified' : 'unverified',
     ]),
   ];
 
