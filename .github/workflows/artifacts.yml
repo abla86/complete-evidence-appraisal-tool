@@ -7,27 +7,36 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   artifacts:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         run: npm test
+
+      - name: Typecheck
+        run: npm run lint
 
       - name: Build project
         run: npm run build
@@ -38,6 +47,7 @@ jobs:
           mkdir -p artifacts
           cp -r dist artifacts/dist
           cp package.json artifacts/package.json
+          cp package-lock.json artifacts/package-lock.json
           cp tsconfig.json artifacts/tsconfig.json
 
       - name: Upload build artifacts
