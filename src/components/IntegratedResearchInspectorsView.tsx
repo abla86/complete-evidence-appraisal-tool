@@ -1,11 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { inspectPrivacy } from '../services/privacyInspector';
 import { inspectAccessibility } from '../services/accessibilityInspector';
+import { IMRaDAnalysisService } from '../services/imradAnalysisService';
 
 export const IntegratedResearchInspectorsView: React.FC = () => {
   const [url, setUrl] = useState('https://example.test/article');
   const [externalUrls, setExternalUrls] = useState('https://cdn.example.org/app.js\nhttps://www.google-analytics.com/analytics.js');
   const [htmlSignals, setHtmlSignals] = useState({ missingAlt: 1, emptyAlt: 1, unnamedButtons: 0, h1Count: 1, mainLandmarkCount: 1, headingCount: 4 });
+  const [researchText, setResearchText] = useState('Introduction\nBackground and purpose.\n\nMethods\nStudy design, participants, data collection and analysis.\n\nResults\nPrimary and secondary outcomes are reported.\n\nDiscussion\nMain findings, strengths, limitations and implications.');
+  const imrad = useMemo(() => IMRaDAnalysisService.analyze(researchText, 'research-document'), [researchText]);
 
   const privacy = useMemo(() => inspectPrivacy({ sourceUrl: url, externalUrls: externalUrls.split(/\r?\n/).filter(Boolean), analyzedAt: '2026-09-02T18:00:00.000Z' }), [url, externalUrls]);
   const accessibility = useMemo(() => inspectAccessibility({ sourceUrl: url, images: Array(htmlSignals.missingAlt + htmlSignals.emptyAlt).fill(null).map((_, i) => ({ hasAlt: i >= htmlSignals.missingAlt, alt: i < htmlSignals.missingAlt ? '' : i < htmlSignals.missingAlt + htmlSignals.emptyAlt ? '' : 'image' })), buttons: Array(htmlSignals.unnamedButtons).fill(null).map(() => ({ text: '' })), ...htmlSignals, analyzedAt: '2026-09-02T18:00:00.000Z' }), [url, htmlSignals]);
@@ -16,6 +19,23 @@ export const IntegratedResearchInspectorsView: React.FC = () => {
         <h2 className="text-xl font-bold text-slate-900">Integrert Research Inspector</h2>
         <p className="text-sm text-slate-600 mt-1">Lokal metadata-, personvern- og tilgjengelighetsanalyse som støttefunksjon i evidence-workflowen.</p>
       </header>
+
+      <article className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-2">
+        <h3 className="font-bold text-slate-900">IMRaD – rapporteringsstruktur</h3>
+        <p className="text-xs text-slate-600 mt-1">Strukturell analyse av Introduction, Methods, Results og Discussion. Dette er ikke en appraisal-score.</p>
+        <textarea value={researchText} onChange={e => setResearchText(e.target.value)} className="mt-4 w-full border rounded-lg p-3 text-sm h-32" aria-label="Forskningsdokument for IMRaD-analyse" />
+        <div className="grid md:grid-cols-4 gap-3 mt-4">
+          {imrad.sections.map(section => (
+            <div key={section.key} className="rounded-lg bg-slate-50 border p-3">
+              <div className="font-semibold text-sm">{section.label}</div>
+              <div className="text-xs mt-1">{section.status}</div>
+              <div className="text-xs text-slate-600 mt-1">Heading: {section.explicitHeading ? 'Ja' : 'Nei'} · {section.wordCount} ord</div>
+              <div className="text-xs text-slate-600">Confidence: {Math.round(section.confidence * 100)}%</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-xs text-slate-600">{imrad.methodologicalNotice}</div>
+      </article>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <article className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
