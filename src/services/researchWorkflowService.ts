@@ -69,11 +69,11 @@ export function createResearchWorkflow(document: ResearchEngineDocument, studyId
   foundation.state.set(`research:${normalizedStudyId}`, evidenceBundle, 'system', 'Research document attached', 'research');
   return {
     studyId: normalizedStudyId,
-    studyDesign: document.metadata.studyDesignDetected?.trim() ?? '',
+    studyDesign: document.metadata.studyDesignDetected?.trim() || 'UNKNOWN',
     screening: [],
     appraisalSessions: [],
     events: foundation.state.events(),
-    research: { document, evidenceBundle, analysis, classificationVerified: false, selectedInstrumentId: document.metadata.recommendedInstrumentId?.trim() || undefined, ...counts },
+    research: { document, evidenceBundle, analysis, classificationVerified: false, selectedInstrumentId: document.metadata.recommendedInstrumentId?.trim() && document.metadata.recommendedInstrumentId !== 'UNKNOWN' ? document.metadata.recommendedInstrumentId.trim() : undefined, ...counts },
   };
 }
 
@@ -100,7 +100,7 @@ export function updateResearchClassification(state: WorkflowState, classificatio
   const evidenceBundle = ResearchEvidenceBridge.buildBundle(state.research.document, classification, state.studyId);
   const counts = evidenceCounts(evidenceBundle.evidence);
   const verified = classification.confidenceStatus === 'HUMAN_VERIFIED' && classification.humanDecision?.status === 'APPROVED';
-  return { ...state, studyDesign: classification.studyDesign?.trim() ?? '', research: { ...state.research, evidenceBundle, classificationVerified: verified, selectedInstrumentId: classification.recommendedInstrumentId?.trim() || state.research.selectedInstrumentId, ...counts } };
+  return { ...state, studyDesign: classification.studyDesign?.trim() ?? '', research: { ...state.research, evidenceBundle, classificationVerified: verified, selectedInstrumentId: classification.recommendedInstrumentId?.trim() && classification.recommendedInstrumentId !== 'UNKNOWN' ? classification.recommendedInstrumentId.trim() : state.research.selectedInstrumentId, ...counts } };
 }
 
 export function verifyResearchClassification(state: WorkflowState, reviewerId: string, approved: boolean): WorkflowState {
