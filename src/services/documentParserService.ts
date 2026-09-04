@@ -1,6 +1,7 @@
-import { CandidateEvidence, DocumentAnalysisResult } from '../types';
+import { CandidateEvidence, DocumentAnalysisResult, IMRaDAnalysisResult } from '../types';
 import { DocumentAnalysisService } from './documentAnalysisService';
 import { MetaResearchService } from './metaResearchService';
+import { IMRaDAnalysisService } from './imradAnalysisService';
 import mammoth from 'mammoth';
 
 export interface FileParseResult {
@@ -24,6 +25,7 @@ export interface FileParseResult {
     studyDesignDetected: string;
     recommendedInstrumentId: string;
   };
+  imradAnalysis: IMRaDAnalysisResult;
   sections: {
     title: string;
     content: string;
@@ -116,6 +118,8 @@ export class DocumentParserService {
     // Identify sections
     const sections = this.extractSections(extractedText);
 
+    const imradAnalysis = IMRaDAnalysisService.analyze(extractedText, file.name);
+
     // Run candidate evidence analysis
     let candidateEvidence: CandidateEvidence[] = [];
     if (extractedText.length > 50) {
@@ -140,6 +144,7 @@ export class DocumentParserService {
       estimatedPages,
       metadata,
       sections,
+      imradAnalysis,
       candidateEvidence
     };
   }

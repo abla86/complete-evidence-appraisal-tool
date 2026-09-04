@@ -86,3 +86,32 @@ export interface GradeSummaryOfFindingsItem {
   [key: string]: unknown;
 }
 export interface ArticleAppraisal { id: string; projectId?: string; isDemoData?: boolean; instrumentId?: string; instrumentVersion?: string; lifecycleStatus?: AssessmentLifecycleStatus; snapshot?: AssessmentSnapshot; documentHash?: string; parsingStatus?: 'PARSED_COMPLETE' | 'PARSED_INCOMPLETE' | 'PARSED_WITH_WARNINGS' | 'NOT_PARSED'; methodologyAlignmentStatus?: MethodologyAlignmentStatus | string; whoValidationStatus?: string; authors: string; shortCitation: string; year: number; publicationYear?: number; title: string; journal: string; volumeIssue?: string; pages?: string; abstract?: string; doi: string; doiUrl: string; sourceUrl: string; sourceName: string; studyContext: string; design: string; studyDesign?: string; methodology?: string; dataCollection?: string; participants?: string; analyticMethod?: string; epistemology?: string; reviewerName?: string; reviewerRole?: string; assessmentDate?: string; projectName?: string; summaryScore?: Partial<ScoreCalculationResult> & Pick<ScoreCalculationResult, 'ja' | 'uklart' | 'nei' | 'ikkeRelevant' | 'total'>; overallVerdict?: string; verdictNote?: string; keyStrength?: string; mainLimitation?: string; apaReference?: string; items?: JBIEvaluationItem[]; auditTrail?: AuditTrailEntry[]; }
+
+export type IMRaDSectionKey = 'introduction' | 'methods' | 'results' | 'discussion';
+export type IMRaDSectionStatus = 'DETECTED' | 'INFERRED' | 'MISSING';
+export interface IMRaDSectionAnalysis {
+  key: IMRaDSectionKey;
+  label: string;
+  detected: boolean;
+  explicitHeading: boolean;
+  confidence: number;
+  characterCount: number;
+  wordCount: number;
+  evidencePreview: string;
+  status: IMRaDSectionStatus;
+}
+export interface IMRaDAnalysisResult {
+  fileName: string;
+  standard: 'IMRaD';
+  standardDescription: string;
+  analyzedAt: string;
+  complete: boolean;
+  explicitComplete: boolean;
+  detectedSectionCount: number;
+  explicitHeadingCount: number;
+  confidence: number;
+  sections: IMRaDSectionAnalysis[];
+  missingSections: string[];
+  limitations: string[];
+  methodologicalNotice: string;
+}
