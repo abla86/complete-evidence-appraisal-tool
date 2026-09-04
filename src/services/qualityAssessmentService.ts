@@ -125,7 +125,7 @@ export function lockQualityAssessment(assessment: StoredQualityAssessment): Stor
   if (assessment.locked) return assessment;
   assertQualityContext(assessment.appraisalSessionId, assessment.evidenceId, assessment.reviewerId);
   const appraisal = getAppraisalWorkflowRecord(assessment.appraisalSessionId);
-  if (appraisal && appraisal.status !== 'completed' && appraisal.status !== 'resolved') throw new Error('Appraisal må være ferdigstilt før GRADE/CERQual kan låses.');
+  if (appraisal && appraisal.session.status !== 'completed' && appraisal.session.status !== 'resolved') throw new Error('Appraisal må være ferdigstilt før GRADE/CERQual kan låses.');
   if (!assessment.reviewerId.trim()) throw new Error('Reviewer ID er påkrevd før quality assessment kan låses.');
   const locked: StoredQualityAssessment = {
     ...assessment,
