@@ -2,7 +2,7 @@ export interface CanonicalIdentifiers { doi?: string; pmid?: string; pmcid?: str
 
 export interface CanonicalSourceLink { referenceId: string; sourceRecordId: string; evidenceId?: string; identifiers: CanonicalIdentifiers; match: 'EXPLICIT_LINK' | 'STABLE_IDENTIFIER' | 'MANUAL_REQUIRED'; reason: string; }
 
-const norm = (v?: string) => v?.trim().toLowerCase().replace(/^https?:\\/\\/doi.org\\//, '') || undefined;
+const norm = (v?: string) => v?.trim().toLowerCase().replace(/^https?:\/\/doi.org\//, '') || undefined;
 const same = (a?: string,b?: string) => Boolean(a && b && norm(a) === norm(b));
 
 export function resolveCanonicalSourceLink(input: { referenceId: string; sourceRecordId: string; explicitSourceRecordId?: string; reference: CanonicalIdentifiers; sourceRecord: CanonicalIdentifiers }): CanonicalSourceLink {
