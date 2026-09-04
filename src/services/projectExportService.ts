@@ -91,7 +91,8 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   }
   const referenceIds = new Set(pkg.references.map(r => r.id));
   for (const evidence of pkg.evidence) {
-    if (evidence.referenceId && !referenceIds.has(evidence.referenceId)) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has unknown reference.`);
+    const identifiers = evidence.sourceIdentifiers;
+    if (!identifiers || !Object.values(identifiers).some(value => typeof value === 'string' && value.trim())) throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no source identifier.`);
   }
   for (const synthesis of pkg.synthesis) {
     if (!synthesis.locked) throw new Error(`EXPORT_BLOCKED: synthesis ${synthesis.id} is not locked.`);
