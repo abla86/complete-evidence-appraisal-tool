@@ -138,8 +138,18 @@ export function validateAppraisalSession(session: AppraisalSession): AppraisalSe
   return { valid: issues.length === 0, missingItemIds, missingRationales, issues };
 }
 
+export function assertInstrumentIntegrity(session: AppraisalSession): void {
+  const instrument = getInstrumentOrNull(session.instrumentId);
+  if (!instrument) throw new Error('INSTRUMENT_INTEGRITY: instrument not found in MethodologyRegistry.');
+  if (session.instrumentVersion !== instrument.version) throw new Error(`INSTRUMENT_INTEGRITY: session version ${session.instrumentVersion} does not match registry version ${instrument.version}.`);
+  const expected = new Set((instrument.questions ?? []).map(q => normalizeId(q.id)));
+  const actual = new Set(session.responses.map(r => normalizeId(r.itemId)));
+  if (expected.size !== actual.size || [...expected].some(id => !actual.has(id))) throw new Error('INSTRUMENT_INTEGRITY: session responses do not match the selected instrument question set.');
+}
+
 export function lockAppraisalSession(session: AppraisalSession): AppraisalSession {
   if (session.locked) return session;
+  assertInstrumentIntegrity(session);
   const validation = validateAppraisalSession(session);
   if (!validation.valid) throw new Error(`Kan ikke låse vurderingen: ${validation.issues.join(' ')}`);
   return { ...session, locked: true, updatedAt: new Date().toISOString() };
