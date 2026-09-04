@@ -38,6 +38,7 @@ export class InMemoryAppraisalWorkflowStore implements AppraisalWorkflowStore {
 }
 
 export class LocalStorageAppraisalWorkflowStore extends InMemoryAppraisalWorkflowStore {
+  private readonly persisted = new Map<string, AppraisalWorkflowRecord>();
   private readonly storageKey = 'complete-evidence-appraisal-tool:appraisal-workflows:v1';
   constructor() {
     super();
@@ -46,7 +47,7 @@ export class LocalStorageAppraisalWorkflowStore extends InMemoryAppraisalWorkflo
         const raw = localStorage.getItem(this.storageKey);
         const records = raw ? JSON.parse(raw) : [];
         if (Array.isArray(records)) records.forEach(record => {
-          if (record?.session?.id && record?.researchStudyId) super.save(record);
+          if (record?.session?.id && record?.researchStudyId) { super.save(record); this.persisted.set(record.session.id, record); }
         });
       } catch {
         localStorage.removeItem(this.storageKey);
@@ -55,25 +56,19 @@ export class LocalStorageAppraisalWorkflowStore extends InMemoryAppraisalWorkflo
   }
   override save(record: AppraisalWorkflowRecord): AppraisalWorkflowRecord {
     const saved = super.save(record);
+    this.persisted.set(record.session.id, record);
     this.persist();
     return saved;
   }
   override delete(sessionId: string): boolean {
     const deleted = super.delete(sessionId);
-    if (deleted) this.persist();
+    if (deleted) { this.persisted.delete(sessionId); this.persist(); }
     return deleted;
   }
   private persist(): void {
     if (typeof localStorage !== 'undefined') localStorage.setItem(this.storageKey, JSON.stringify(this.listAll()));
   }
-  private listAll(): AppraisalWorkflowRecord[] {
-    return this.recordsForPersistence();
-  }
-  private recordsForPersistence(): AppraisalWorkflowRecord[] {
-    const result: AppraisalWorkflowRecord[] = [];
-    for (const studyId of new Set([...this.records.values()].map(item => item.researchStudyId))) result.push(...super.listByStudy(studyId));
-    return result;
-  }
+  private listAll(): AppraisalWorkflowRecord[] { return [...this.persisted.values()]; }
 }
 export const appraisalWorkflowStore: AppraisalWorkflowStore =
   typeof localStorage !== 'undefined'
