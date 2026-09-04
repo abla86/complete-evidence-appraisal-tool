@@ -2,6 +2,8 @@ import { evaluateAcademicIntegrity, type AcademicClaim, type EvidenceExtraction 
 import type { ReferenceRecord } from './referenceHubService';
 import type { AppraisalSession } from './universalAppraisalService';
 import type { StoredQualityAssessment } from './qualityAssessmentService';
+import { evaluateCitationExportGate } from './citationExportGate';
+import { canExportProject, type ProjectAccess } from './projectAccessService';
 
 export interface ProjectExportGateInput {
   claims: AcademicClaim[];
@@ -9,6 +11,7 @@ export interface ProjectExportGateInput {
   references: ReferenceRecord[];
   appraisal: AppraisalSession[];
   quality: StoredQualityAssessment[];
+  projectAccess?: ProjectAccess;
 }
 
 export interface ProjectExportGateResult {
@@ -20,6 +23,16 @@ export interface ProjectExportGateResult {
 export function evaluateProjectExportGate(input: ProjectExportGateInput): ProjectExportGateResult {
   const blockers: string[] = [];
   const warnings: string[] = [];
+
+  if (input.projectAccess && !canExportProject(input.projectAccess)) {
+    blockers.push('Brukeren har ikke EXPORT-tillatelse for prosjektet.');
+  }
+
+  const citationGate = evaluateCitationExportGate(input.claims, input.evidence, input.references);
+  blockers.push(...citationGate.blockingReasons);
+  if (!citationGate.allowed && citationGate.blockingReasons.length === 0) {
+    blockers.push('Citation/evidence-integrity gate blokkerte eksport.');
+  }
   const verifiedSourceIds = new Set(
     input.references.filter(reference => reference.verification === 'VALIDATED').map(reference => reference.id),
   );
