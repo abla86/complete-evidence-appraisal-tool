@@ -58,6 +58,9 @@ export function evaluateAcademicIntegrity(
   const issues: AcademicIntegrityIssue[] = [];
 
   for (const claim of claims) {
+    if (claim.status === 'SUPPORTED' && claim.contradictoryEvidenceIds.length > 0) {
+      issues.push({ code: 'CONTRADICTED_CLAIM', severity: 'ERROR', message: 'En SUPPORTED-påstand har registrert motstridende evidens og må vurderes før eksport.', claimId: claim.id });
+    }
     if (claim.status === 'CONTRADICTED') {
       issues.push({ code: 'CONTRADICTED_CLAIM', severity: 'ERROR', message: 'Påstanden har motstridende evidens og kan ikke eksporteres som etablert faktum.', claimId: claim.id });
       continue;
