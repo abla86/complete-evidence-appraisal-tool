@@ -149,6 +149,7 @@ export function assertInstrumentIntegrity(session: AppraisalSession): void {
 
 export function lockAppraisalSession(session: AppraisalSession): AppraisalSession {
   if (session.locked) return session;
+  if (!session.reviewerId.trim()) throw new Error('Kan ikke låse appraisal uten reviewerId.');
   assertInstrumentIntegrity(session);
   const validation = validateAppraisalSession(session);
   if (!validation.valid) throw new Error(`Kan ikke låse vurderingen: ${validation.issues.join(' ')}`);
