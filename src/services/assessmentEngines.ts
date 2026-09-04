@@ -467,39 +467,16 @@ export class CaspAssessmentEngine {
 export class GradeCerqualAssessmentEngine {
   public static evaluateFinding(input: {
     reviewFinding: string;
-    methodologicalLimitations: 'No or very minor concerns' | 'Minor concerns' | 'Moderate concerns' | 'Serious concerns';
-    coherence: 'No or very minor concerns' | 'Minor concerns' | 'Moderate concerns' | 'Serious concerns';
-    adequacyOfData: 'No or very minor concerns' | 'Minor concerns' | 'Moderate concerns' | 'Serious concerns';
-    relevance: 'No or very minor concerns' | 'Minor concerns' | 'Moderate concerns' | 'Serious concerns';
+    methodologicalLimitations: GradeCerqualComponentEvaluation['methodologicalLimitations'];
+    coherence: GradeCerqualComponentEvaluation['coherence'];
+    adequacyOfData: GradeCerqualComponentEvaluation['adequacyOfData'];
+    relevance: GradeCerqualComponentEvaluation['relevance'];
+    overallConfidence: GradeCerqualEvaluationResult['overallConfidence'];
+    confidenceExplanation: string;
+    methodologicalNote?: string;
   }): GradeCerqualEvaluationResult {
-    const concerns = [
-      input.methodologicalLimitations,
-      input.coherence,
-      input.adequacyOfData,
-      input.relevance
-    ];
-
-    const seriousCount = concerns.filter(c => c === 'Serious concerns').length;
-    const moderateCount = concerns.filter(c => c === 'Moderate concerns').length;
-    const minorCount = concerns.filter(c => c === 'Minor concerns').length;
-
-    let overallConfidence: 'High confidence' | 'Moderate confidence' | 'Low confidence' | 'Very low confidence';
-    let confidenceExplanation = '';
-
-    if (seriousCount >= 2 || (seriousCount === 1 && moderateCount >= 2)) {
-      overallConfidence = 'Very low confidence';
-      confidenceExplanation = 'Svært lav tillit: Multiple alvorlige bekymringer på tvers av CERQual-komponentene.';
-    } else if (seriousCount === 1 || moderateCount >= 2) {
-      overallConfidence = 'Low confidence';
-      confidenceExplanation = 'Lav tillit: Alvorlig eller multiple moderate bekymringer i datagrunnlag eller metodiske begrensninger.';
-    } else if (moderateCount === 1 || minorCount >= 2) {
-      overallConfidence = 'Moderate confidence';
-      confidenceExplanation = 'Moderat tillit: Mindre til moderate bekymringer i én eller to komponenter.';
-    } else {
-      overallConfidence = 'High confidence';
-      confidenceExplanation = 'Høy tillit: Ingen eller svært ubetydelige bekymringer over alle 4 CERQual-komponenter.';
-    }
-
+    if (!input.reviewFinding.trim()) throw new Error('CERQual-funn må beskrives.');
+    if (!input.confidenceExplanation.trim()) throw new Error('CERQual samlet confidence krever eksplisitt begrunnelse.');
     return {
       reviewFinding: input.reviewFinding,
       components: {
@@ -508,9 +485,9 @@ export class GradeCerqualAssessmentEngine {
         adequacyOfData: input.adequacyOfData,
         relevance: input.relevance
       },
-      overallConfidence,
-      confidenceExplanation,
-      methodologicalNote: 'GRADE-CERQual evaluerer tillit til enkeltstående kvalitative syntesefunn, ikke hele primærartikkelen som en enhet.'
+      overallConfidence: input.overallConfidence,
+      confidenceExplanation: input.confidenceExplanation,
+      methodologicalNote: input.methodologicalNote?.trim() || 'Samlet CERQual-confidence er et eksplisitt reviewer-judgment basert på de fire komponentene og skal ikke reduseres til en automatisk poengsum.'
     };
   }
 }
