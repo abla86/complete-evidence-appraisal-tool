@@ -36,8 +36,8 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     name: 'Kvalitativ metasyntese / Kunnskapsoppsummering av kvalitative studier',
     category: 'Kunnskapsoppsummering',
     description: 'Systematiske synteser av kvalitative funn (meta-etnografi, tematisk syntese, meta-aggregering).',
-    primaryInstrumentId: 'grade-cerqual',
-    alternativeInstrumentIds: ['jbi-qualitative-2017', 'casp-systematic-review'],
+    primaryInstrumentId: 'casp-systematic-review',
+    alternativeInstrumentIds: ['grade-cerqual', 'jbi-qualitative-2017'],
     isResearchDocument: true
   },
   {
@@ -45,7 +45,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     name: 'Scoping review (Kartleggingsoversikt over kunnskapsfelt)',
     category: 'Kunnskapsoppsummering',
     description: 'Bred kartlegging av begreper, evidens og kunnskapshull innen et forskningsfelt.',
-    primaryInstrumentId: 'prisma-2020',
+    primaryInstrumentId: 'prisma-scr',
     alternativeInstrumentIds: ['amstar-2'],
     isResearchDocument: true
   },
@@ -72,7 +72,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     name: 'Kasus-kontroll-studie (Case-Control)',
     category: 'Kvantitativ / Observasjonell',
     description: 'Retrospektiv sammenligning av pasienter med utfall (cases) mot kontroller.',
-    primaryInstrumentId: 'casp-cohort',
+    primaryInstrumentId: 'casp-case-control',
     alternativeInstrumentIds: ['robins-i'],
     isResearchDocument: true
   },
@@ -144,7 +144,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     name: 'Uavklart / Kan ikke klassifiseres sikkert',
     category: 'Uavklart / Ukjent',
     description: 'Dokumentet mangler tilstrekkelig metodisk informasjon eller har motstridende kjennetegn. Krever manuell forskervurdering.',
-    primaryInstrumentId: 'jbi-qualitative-2017',
+    primaryInstrumentId: '',
     alternativeInstrumentIds: [],
     isResearchDocument: null
   }
@@ -174,7 +174,7 @@ export class StudyDesignGateService {
     return {
       isCompatible: result.isCompatible,
       gateStatus: result.matchLevel === 'EXACT_RECOMMENDED' || result.matchLevel === 'ACCEPTABLE_ALTERNATIVE' ? 'COMPATIBLE' : 'INCOMPATIBLE',
-      recommendedInstrumentId: detected.primaryInstrumentId,
+      recommendedInstrumentId: detected.primaryInstrumentId || 'UNKNOWN',
       message: result.explanation
     };
   }
@@ -191,9 +191,11 @@ export class StudyDesignGateService {
     if (!design) throw new Error(`Ukjent studiedesign: ${studyDesignId}`);
     if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
 
-    const recommendedList = MASTER_INSTRUMENTS_REGISTRY.filter(
-      i => i.id === design.primaryInstrumentId || design.alternativeInstrumentIds.includes(i.id)
-    );
+    const recommendedList = design.id === 'unknown-uncertain'
+      ? []
+      : MASTER_INSTRUMENTS_REGISTRY.filter(
+        i => i.id === design.primaryInstrumentId || design.alternativeInstrumentIds.includes(i.id)
+      );
 
     // If design is unknown/uncertain, no instrument is automatically pre-cleared without researcher verification
     if (design.id === 'unknown-uncertain') {
