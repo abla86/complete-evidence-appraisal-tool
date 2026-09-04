@@ -152,7 +152,18 @@ export default function App() {
               setSelectedArticleId(newArt.id);
               setActiveTab('details');
             }} />
-            {activeTab === 'details' && (currentArticle ? <ArticleDetailView article={currentArticle} allArticles={articles} onSelectArticleId={setSelectedArticleId} onGoToOverview={() => setActiveTab('overview')} onGoToThesis={() => setActiveTab('synthesis')} onEditArticle={handleEditArticle} onNewArticle={handleNewArticle} /> : <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center"><GraduationCap className="w-6 h-6 mx-auto mb-3" /><h3 className="font-bold">Ingen artikkel valgt</h3><button type="button" onClick={handleNewArticle} className="mt-4 px-4 py-2 rounded-xl bg-teal-800 text-white text-xs font-bold"><PlusCircle className="w-4 h-4 inline mr-1" /> Opprett ny artikkel</button></div>)}
+            {activeTab === 'details' && currentArticle && (
+              <ArticleDetailView article={currentArticle} allArticles={articles} onSelectArticleId={setSelectedArticleId} onGoToOverview={() => setActiveTab('overview')} onGoToThesis={() => setActiveTab('synthesis')} onEditArticle={handleEditArticle} onNewArticle={handleNewArticle} />
+            )}
+            {activeTab === 'details' && !currentArticle && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center">
+                <GraduationCap className="w-6 h-6 mx-auto mb-3" />
+                <h3 className="font-bold">Ingen artikkel valgt</h3>
+                <button type="button" onClick={handleNewArticle} className="mt-4 px-4 py-2 rounded-xl bg-teal-800 text-white text-xs font-bold">
+                  <PlusCircle className="w-4 h-4 inline mr-1" /> Opprett ny artikkel
+                </button>
+              </div>
+            )}
             {activeTab === 'evaluate' && <JbiAssessmentForm initialArticle={editingArticle || undefined} onSaveArticle={handleSaveArticle} onCancel={() => { setEditingArticle(null); setActiveTab('overview'); }} />}
             {activeTab === 'compare' && <><UniversalDualReviewPanel studyId={selectedArticleId} instrumentId={selectedInstrumentId} actorId={actor.id} actorRole={currentUserRole} /><DualReviewView articles={articles} onSelectArticleId={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} onGoToEvaluation={handleEditArticle} /></>}
             {activeTab === 'peer_review' && <PeerReviewStudioView articles={articles} onUpdateArticles={setArticles} onNavigateToStudy={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
