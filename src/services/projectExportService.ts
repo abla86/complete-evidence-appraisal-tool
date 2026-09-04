@@ -8,6 +8,7 @@ import type { AppraisalSession } from './universalAppraisalService';
 import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
 import type { StoredQualityAssessment } from './qualityAssessmentService';
 import type { EvidencePipelineState } from './evidencePipelineService';
+import type { SynthesisRecord } from './synthesisIntegrityService';
 
 export interface ProjectExportPackage {
   projectId: string;
@@ -18,6 +19,7 @@ export interface ProjectExportPackage {
   claims: AcademicClaim[];
   evidence: EvidenceExtraction[];
   references: ReferenceRecord[];
+  synthesis: SynthesisRecord[];
   prisma: ReturnType<typeof calculatePRISMA>;
   audit: readonly AuditEntry[];
 }
@@ -31,6 +33,7 @@ export function buildProjectExportPackage(input: {
   quality?: StoredQualityAssessment[];
   references?: ReferenceRecord[];
   auditTrail?: AuditTrailService;
+  synthesis?: SynthesisRecord[];
 }): ProjectExportPackage {
   const projectId = input.projectId.trim();
   if (!projectId) throw new Error('projectId is required.');
@@ -59,6 +62,7 @@ export function buildProjectExportPackage(input: {
     claims: input.claims ?? [],
     evidence: input.evidence ?? [],
     references,
+    synthesis: input.synthesis ?? [],
     prisma: calculatePRISMA(input.prismaStages),
     audit: input.auditTrail?.list() ?? [],
   };
