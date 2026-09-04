@@ -11,6 +11,8 @@ export interface ScreeningDecision {
   studyId: string;
   decision: ScreeningDecisionValue;
   reason?: string;
+  eligibilityDecision?: 'include' | 'exclude';
+  eligibilityReason?: string;
   picoMatches: Partial<PICO>;
   reviewerId: string;
   timestamp: string;
