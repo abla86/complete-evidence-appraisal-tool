@@ -58,7 +58,7 @@ async function changeCanonicalInstrument(session: AppraisalSession, studyDesign:
   return payload.session;
 }
 
-export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = 'jbi-qualitative-2017', reviewerId, onSaved }) => {
+export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, initialInstrumentId = '', reviewerId, onSaved }) => {
   const effectiveReviewerId = reviewerId?.trim() || '';
   const cached = getLatestAppraisalSession(studyId, initialInstrumentId, effectiveReviewerId);
   const [instrumentId, setInstrumentId] = useState(cached?.instrumentId ?? initialInstrumentId);

@@ -53,7 +53,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'audit' | 'grade_sof' | 'cerqual' | 'etd' | 'registry' | 'handbook'>('audit');
   const [selectedArticleId, setSelectedArticleId] = useState<string>(articles[0]?.id || '');
-  const [selectedModelId, setSelectedModelId] = useState<string>('jbi-qualitative-2017');
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [copiedCert, setCopiedCert] = useState<boolean>(false);
 
   // GRADE Summary of Findings (SoF) State
@@ -146,8 +146,8 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
   const etdResult = WhoEtdAssessmentEngine.evaluateEtD(etdInput);
 
   const selectedArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
-  const auditReport = selectedArticle ? WhoValidationService.auditArticle(selectedArticle, selectedArticle.instrumentId || 'jbi-qualitative-2017') : null;
-  const selectedModel = INSTRUMENTS_REGISTRY.find(m => m.id === selectedModelId) || INSTRUMENTS_REGISTRY[0];
+  const auditReport = selectedArticle ? WhoValidationService.auditArticle(selectedArticle, selectedArticle.instrumentId || 'UNKNOWN') : null;
+  const selectedModel = INSTRUMENTS_REGISTRY.find(m => m.id === selectedModelId);
 
   // Overall library stats
   const libraryReports = articles.map(art => ({

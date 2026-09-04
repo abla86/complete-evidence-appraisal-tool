@@ -393,7 +393,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1">
                   <div>
                     <span className="text-slate-500 block">Instrument ID / Versjon:</span>
-                    <span className="text-white font-bold">{article.instrumentId || 'jbi-qualitative-2017'} (2017)</span>
+                    <span className="text-white font-bold">{article.instrumentId || 'UNKNOWN'} ({article.instrumentVersion || 'ukjent versjon'})</span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Immutable Lock Hash:</span>

@@ -313,8 +313,9 @@ export class JbiQualitativeValidationService {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    const instrument = INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId) || INSTRUMENTS_REGISTRY[0];
-    const totalItems = instrument.itemCount || 10;
+    const instrument = INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
+    if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
+    const totalItems = instrument.itemCount;
 
     // 1. Mandatory metadata checks
     if (!assessment.title || assessment.title.trim().length === 0) {

@@ -47,7 +47,7 @@ import { AppraisalInstrument } from '../types';
 export const MethodologyAuditView: React.FC = () => {
   const { showToast } = useToast();
   const [activeSubTab, setActiveSubTab] = useState<'audit_matrix' | 'methodological_functions' | 'registry_browser' | 'study_design_gate' | 'contract_tests' | 'full_report'>('audit_matrix');
-  const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('jbi-qualitative-2017');
+  const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [selectedDesignId, setSelectedDesignId] = useState<string>('qualitative');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | VerificationStatusType>('all');
@@ -64,7 +64,7 @@ export const MethodologyAuditView: React.FC = () => {
     return MethodologyContractTests.runAllContractTests();
   }, []);
 
-  const selectedInstrument = MethodologyRegistry.find(i => i.id === selectedInstrumentId) || MethodologyRegistry[0];
+  const selectedInstrument = MethodologyRegistry.find(i => i.id === selectedInstrumentId);
 
   const filteredAudits = useMemo(() => {
     return auditReport.instrumentAudits.filter(auditItem => {
