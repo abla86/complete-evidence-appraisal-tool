@@ -75,7 +75,7 @@ export class DocumentParserService {
     const validation = this.validateFile({
       name: file.name,
       size: file.size,
-      type: (file as any).type
+      type: 'type' in file ? file.type : undefined
     });
 
     if (!validation.valid) {
@@ -131,7 +131,7 @@ export class DocumentParserService {
       fileName: file.name,
       fileSizeBytes: file.size,
       fileType,
-      mimeType: (file as any).type || (fileType === 'pdf' ? 'application/pdf' : 'text/plain'),
+      mimeType: ('type' in file ? file.type : undefined) || (fileType === 'pdf' ? 'application/pdf' : 'text/plain'),
       isScannedOrImageOnly,
       ocrAppliedOrNeeded,
       // No synthetic OCR confidence: OCR is not performed by this parser.\n      // A scanned PDF is explicitly flagged for an OCR-capable workflow.\n      ocrConfidence: undefined,
@@ -147,7 +147,7 @@ export class DocumentParserService {
   /**
    * Plain text extraction (UTF-8)
    */
-  private static async extractPlainText(file: any): Promise<string> {
+  private static async extractPlainText(file: File | { name: string; size: number; content: ArrayBuffer | string }): Promise<string> {
     if (typeof file.text === 'function') {
       return await file.text();
     }
@@ -165,7 +165,7 @@ export class DocumentParserService {
    * PDF text extraction engine
    * Detects embedded text streams, Tj/TJ operators, and flags scanned PDFs
    */
-  private static async extractPdfText(file: any): Promise<{ text: string; isScanned: boolean; ocrNeeded: boolean }> {
+  private static async extractPdfText(file: File | { name: string; size: number; content: ArrayBuffer | string }): Promise<{ text: string; isScanned: boolean; ocrNeeded: boolean }> {
     let buffer: ArrayBuffer;
     if (typeof file.arrayBuffer === 'function') {
       buffer = await file.arrayBuffer();
@@ -223,7 +223,7 @@ export class DocumentParserService {
    * Word DOCX text extraction
    * Extracts text from <w:t> tags
    */
-  private static async extractDocxText(file: any): Promise<string> {
+  private static async extractDocxText(file: File | { name: string; size: number; content: ArrayBuffer | string }): Promise<string> {
     let buffer: ArrayBuffer;
     if (typeof file.arrayBuffer === 'function') {
       buffer = await file.arrayBuffer();

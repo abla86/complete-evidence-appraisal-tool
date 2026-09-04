@@ -847,7 +847,7 @@ export class RobinsIAssessmentEngine {
 
   public static evaluate(domainResponses: Record<string, 'Low risk' | 'Moderate risk' | 'Serious risk' | 'Critical risk' | 'No information'>): RobinsIEvaluationResult {
     const list: RobinsIDomainEvaluation[] = this.DOMAINS.map(d => ({
-      domainId: d.id as any,
+      domainId: d.id as RobinsIDomainEvaluation['domainId'],
       domainTitle: d.title,
       riskOfBias: domainResponses[d.id] || 'No information',
       signallingSummary: d.summary

@@ -1,3 +1,13 @@
+interface CrossrefUpdate { type?: string; label?: string; }
+interface CrossrefAuthor { given?: string; family?: string; }
+interface CrossrefMessage {
+  DOI?: string; title?: string[]; author?: CrossrefAuthor[]; ['container-title']?: string[];
+  issued?: { ['date-parts']?: number[][] }; publisher?: string; ['update-to']?: CrossrefUpdate[];
+}
+interface CrossrefWorkResponse { message?: CrossrefMessage; }
+interface EuropePmcResult { id?: string; source?: string; doi?: string; pmid?: string; title?: string; authorString?: string; journalTitle?: string; pubYear?: string | number; isOpenAccess?: string; isRetracted?: string; }
+interface EuropePmcResponse { hitCount?: number; resultList?: { result?: EuropePmcResult[] }; }
+
 interface ExternalPublicationRecord {
   doi?: string;
   title: string;
@@ -20,7 +30,7 @@ export interface SearchQueryRecord {
   filters: Record<string, unknown>;
   totalResults: number;
   selectedCount: number;
-  records: any[];
+  records: unknown[];
 }
 
 /**
@@ -43,15 +53,15 @@ export class EvidenceIntelligenceService {
     );
 
     if (!response.ok) return null;
-    const data = await response.json() as { message?: any };
+    const data = await response.json() as CrossrefWorkResponse;
     const item = data.message;
     if (!item) return null;
 
     const updates = Array.isArray(item['update-to']) ? item['update-to'] : [];
-    const retraction = updates.find((u: any) =>
+    const retraction = updates.find((u) =>
       String(u?.type || '').toLowerCase().includes('retraction')
     );
-    const correction = updates.find((u: any) => {
+    const correction = updates.find((u) => {
       const type = String(u?.type || '').toLowerCase();
       return type.includes('erratum') || type.includes('correction');
     });
@@ -71,7 +81,7 @@ export class EvidenceIntelligenceService {
       isPeerReviewed: 'CANNOT_VERIFY',
       isRetracted: Boolean(retraction),
       retractionDetails: retraction
-        ? String(retraction?.label || retraction?.type || 'Retraction record found')
+        ? String(retraction.label || retraction.type || 'Retraction record found')
         : undefined,
       hasCorrection: Boolean(correction),
       verificationSource: 'CROSSREF'
@@ -82,7 +92,7 @@ export class EvidenceIntelligenceService {
     query: string,
     pageSize = 25,
     page = 1
-  ): Promise<{ total: number; results: any[]; query: string; source: string }> {
+  ): Promise<{ total: number; results: Array<Record<string, string | boolean | number | undefined>>; query: string; source: string }> {
     const normalized = query.trim();
     if (!normalized) throw new Error('Søketekst mangler.');
 
@@ -97,8 +107,8 @@ export class EvidenceIntelligenceService {
       throw new Error(`Europe PMC svarte med HTTP ${response.status}.`);
     }
 
-    const data = await response.json() as any;
-    const results = (data.resultList?.result || []).map((r: any) => ({
+    const data = await response.json() as EuropePmcResponse;
+    const results = (data.resultList?.result || []).map((r) => ({
       id: r.id,
       source: r.source,
       doi: r.doi,
@@ -125,7 +135,7 @@ export class EvidenceIntelligenceService {
     filters: Record<string, unknown>,
     totalResults: number,
     selectedCount: number,
-    records: any[]
+    records: unknown[]
   ): SearchQueryRecord {
     return {
       id: `search-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
