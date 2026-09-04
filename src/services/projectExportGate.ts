@@ -2,6 +2,8 @@ import { evaluateAcademicIntegrity, type AcademicClaim, type EvidenceExtraction 
 import type { ReferenceRecord } from './referenceHubService';
 import type { AppraisalSession } from './universalAppraisalService';
 import type { StoredQualityAssessment } from './qualityAssessmentService';
+import type { SynthesisRecord } from './synthesisIntegrityService';
+import { validateSynthesis } from './synthesisIntegrityService';
 import { evaluateCitationExportGate } from './citationExportGate';
 import { canExportProject, type ProjectAccess } from './projectAccessService';
 
@@ -12,6 +14,7 @@ export interface ProjectExportGateInput {
   appraisal: AppraisalSession[];
   quality: StoredQualityAssessment[];
   projectAccess?: ProjectAccess;
+  synthesis?: SynthesisRecord[];
 }
 
 export interface ProjectExportGateResult {
@@ -33,6 +36,13 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
   if (!citationGate.allowed && citationGate.blockingReasons.length === 0) {
     blockers.push('Citation/evidence-integrity gate blokkerte eksport.');
   }
+  for (const synthesis of input.synthesis ?? []) {
+    const validation = validateSynthesis(synthesis, input.appraisal.map(item => ({ id:item.id, studyId:item.studyId, locked:item.locked })), input.evidence, input.claims);
+    blockers.push(...validation.blockers);
+    warnings.push(...validation.warnings);
+    if (!synthesis.locked) blockers.push(`Syntese ${synthesis.id} er ikke låst.`);
+  }
+
   const verifiedSourceIds = new Set(
     input.references.filter(reference => reference.verification === 'VALIDATED').map(reference => reference.id),
   );
