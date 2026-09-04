@@ -16,6 +16,17 @@ const answerOptions = (instrumentId: string, allowed: string[]) => {
 
 const hasAnswer = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== '';
 
+type Rob2Risk = 'Low risk' | 'Some concerns' | 'High risk';
+type RobinsIRisk = 'Low risk' | 'Moderate risk' | 'Serious risk' | 'Critical risk' | 'No information';
+
+function isRob2Risk(value: unknown): value is Rob2Risk {
+  return value === 'Low risk' || value === 'Some concerns' || value === 'High risk';
+}
+
+function isRobinsIRisk(value: unknown): value is RobinsIRisk {
+  return value === 'Low risk' || value === 'Moderate risk' || value === 'Serious risk' || value === 'Critical risk' || value === 'No information';
+}
+
 async function createCanonicalSession(studyId: string, reviewerId: string): Promise<AppraisalSession> {
   const response = await fetch(`/api/research-workflow/${encodeURIComponent(studyId)}/appraisal/session`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewerId }),
@@ -122,18 +133,30 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     if (instrument.id === 'rob-2') {
       const required = ['1','2','3','4','5'];
       if (!required.every(id => hasAnswer(map.get(id)?.answer))) return null;
+      const d1 = map.get('1')?.answer;
+      const d2 = map.get('2')?.answer;
+      const d3 = map.get('3')?.answer;
+      const d4 = map.get('4')?.answer;
+      const d5 = map.get('5')?.answer;
+      if (![d1, d2, d3, d4, d5].every(isRob2Risk)) return null;
       return Rob2AssessmentEngine.evaluate({
-        d1Randomisation: map.get('1')!.answer as any,
-        d2Deviations: map.get('2')!.answer as any,
-        d3MissingData: map.get('3')!.answer as any,
-        d4Measurement: map.get('4')!.answer as any,
-        d5Selection: map.get('5')!.answer as any,
+        d1Randomisation: d1,
+        d2Deviations: d2,
+        d3MissingData: d3,
+        d4Measurement: d4,
+        d5Selection: d5,
       });
     }
     if (instrument.id === 'robins-i') {
       const required = ['1','2','3','4','5','6','7'];
       if (!required.every(id => hasAnswer(map.get(id)?.answer))) return null;
-      return RobinsIAssessmentEngine.evaluate(required.map(id => String(map.get(id)!.answer)) as any);
+      const domainResponses: Record<string, RobinsIRisk> = {};
+      for (const id of required) {
+        const answer = map.get(id)?.answer;
+        if (!isRobinsIRisk(answer)) return null;
+        domainResponses[`D${id}`] = answer;
+      }
+      return RobinsIAssessmentEngine.evaluate(domainResponses);
     }
     if (instrument.id === 'jbi-qualitative-2017') {
       return JbiQualitativeAssessmentEngine.evaluate(session.responses.map(r => ({ questionId: Number(r.itemId), status: String(r.answer ?? ''), justification: r.rationale })));
@@ -209,7 +232,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
 
       <aside className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div><div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div><h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>{result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}</div>
-        {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map((d:any)=><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
+        {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map(d =><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
         <button type="button" disabled={!validation?.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
         {!validation?.valid && <div className="text-xs text-amber-800">{validation?.issues.join(' ')}</div>}
       </aside>
