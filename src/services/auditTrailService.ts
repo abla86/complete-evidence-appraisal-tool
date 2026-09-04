@@ -47,6 +47,20 @@ function createEntryId(): string {
 
 export class AuditTrailService {
   private readonly entries: AuditEntry[] = [];
+  private readonly storageKey?: string;
+
+  constructor(storageKey?: string) {
+    this.storageKey = storageKey;
+    if (storageKey && typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        const restored = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(restored)) this.entries.push(...restored);
+      } catch {
+        localStorage.removeItem(storageKey);
+      }
+    }
+  }
   private readonly listeners = new Set<AuditTrailListener>();
 
   subscribe(listener: AuditTrailListener): () => void {
@@ -72,6 +86,7 @@ export class AuditTrailService {
 
     const entry: AuditEntry = { ...base, entryHash: await hashEntry(base) };
     this.entries.push(entry);
+    if (this.storageKey && typeof localStorage !== 'undefined') localStorage.setItem(this.storageKey, JSON.stringify(this.entries));
     for (const listener of this.listeners) listener(entry);
     return entry;
   }
@@ -98,11 +113,11 @@ export class AuditTrailService {
   }
 }
 
-export function createAuditTrail(): AuditTrailService {
-  return new AuditTrailService();
+export function createAuditTrail(storageKey?: string): AuditTrailService {
+  return new AuditTrailService(storageKey);
 }
 
-const defaultAuditTrail = createAuditTrail();
+const defaultAuditTrail = createAuditTrail('complete-evidence-appraisal-tool:audit:v1');
 
 export async function appendAuditEntry(input: Parameters<AuditTrailService['append']>[0]): Promise<AuditEntry> {
   return defaultAuditTrail.append(input);
