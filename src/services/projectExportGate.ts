@@ -52,6 +52,12 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
   warnings.push(...integrity.issues.filter(issue => issue.severity === 'WARNING').map(issue => issue.message));
 
   const appraisalById = new Map(input.appraisal.map(session => [session.id, session]));
+  const appraisalStudyIds = new Set(input.appraisal.map(session => session.studyId));
+  for (const item of input.quality) {
+    const session = appraisalById.get(item.appraisalSessionId);
+    if (session && session.reviewerId !== item.reviewerId) blockers.push(`Quality-vurdering ${item.id} har annen reviewer enn appraisal-session.`);
+    if (session && !appraisalStudyIds.has(session.studyId)) blockers.push(`Quality-vurdering ${item.id} har ugyldig studieproveniens.`);
+  }
   const openAppraisals = input.appraisal.filter(item => !item.locked);
   if (openAppraisals.length > 0) blockers.push(`${openAppraisals.length} appraisal-sesjon(er) er ikke låst.`);
 
