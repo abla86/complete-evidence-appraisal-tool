@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Resolve tag
@@ -33,12 +33,12 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
-
+          node-version: 24
+          cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Test
         run: npm test
       - name: Build
@@ -50,10 +50,10 @@ jobs:
           mkdir -p release
           cp -r dist release/dist
           cp package.json release/package.json
+          cp package-lock.json release/package-lock.json
           cp README.md release/README.md
           tar -czf "evidence-tool-${{ steps.tag.outputs.tag }}.tar.gz" -C release .
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ steps.tag.outputs.tag }}"             "evidence-tool-${{ steps.tag.outputs.tag }}.tar.gz"             --generate-notes             --title "${{ steps.tag.outputs.tag }}"
+        run: gh release create "${{ steps.tag.outputs.tag }}" "evidence-tool-${{ steps.tag.outputs.tag }}.tar.gz" --generate-notes --title "${{ steps.tag.outputs.tag }}"
