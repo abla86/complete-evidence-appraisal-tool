@@ -95,6 +95,8 @@ export function resolveReviewComparison(args: {
     else consensusResponses[itemId] = null;
   }
   if (!args.resolvedBy.trim()) throw new Error('Adjudicator er påkrevd.');
+  if (!args.resolvedBy?.trim()) throw new Error('Adjudication krever resolvedBy.');
+  if (!args.appraisalId?.trim()) throw new Error('Adjudication krever appraisalId.');
   const hasAnyDisagreement = args.comparison.items.some(item => item.disagreement);
   if (hasAnyDisagreement && !args.rationale?.trim()) throw new Error('Adjudication krever begrunnelse.');
   if (args.comparison.requiresArbitration && args.method === 'autoResolve') throw new Error('autoResolve er ikke tillatt ved uenighet i appraisal.');
