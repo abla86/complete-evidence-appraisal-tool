@@ -197,11 +197,15 @@ export async function changeAppraisalInstrument(sessionId: string, instrumentId:
   return updatedRecord;
 }
 
-export async function recordAppraisalResponse(sessionId: string, response: AppraisalItemResponse): Promise<AppraisalWorkflowRecord> {
+export async function recordAppraisalResponse(sessionId: string, response: AppraisalItemResponse, reviewerId?: string): Promise<AppraisalWorkflowRecord> {
   const record = appraisalWorkflowStore.get(sessionId);
   if (!record) throw new Error(`Appraisal session not found: ${sessionId}`);
   if (record.session.locked) throw new Error('Appraisal session is locked.');
+  if (reviewerId !== undefined && reviewerId.trim() !== record.session.reviewerId) throw new Error('Reviewer stemmer ikke med appraisal-sesjonen.');
   if (!response || response.rationale === undefined) throw new Error('rationale is required.');
+  if (!response.itemId?.trim()) throw new Error('itemId is required.');
+  const instrument = getInstrumentOrNull(record.session.instrumentId);
+  if (!instrument || !instrument.items.some(item => item.id === response.itemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
   const session = upsertAppraisalResponse(record.session, { ...response, rationale: String(response.rationale).trim() });
   syncToResearchWorkflow(session);
   const saved = appraisalWorkflowStore.save({ ...record, session });
