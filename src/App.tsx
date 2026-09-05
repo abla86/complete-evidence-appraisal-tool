@@ -146,6 +146,11 @@ export default function App() {
   const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
 
   useEffect(() => {
+    const instrumentId = currentArticle?.instrumentId || ((currentArticle?.design || '').toLowerCase().includes('kvalitativ') ? 'jbi-qualitative-2017' : '');
+    if (instrumentId !== selectedInstrumentId) setSelectedInstrumentId(instrumentId);
+  }, [currentArticle?.id, currentArticle?.instrumentId, currentArticle?.design, selectedInstrumentId]);
+
+  useEffect(() => {
     setReferenceRecords(prev => {
       const byId = new Map(prev.map(record => [record.id, record]));
       for (const article of articles) if (!byId.has(article.id)) byId.set(article.id, articleToReference(article));
