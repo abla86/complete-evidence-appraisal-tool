@@ -62,9 +62,11 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
     }
   }
   for (const synthesis of pkg.synthesis) {
-    for (const input of synthesis.inputs) {
-      if (studyIds.size && !studyIds.has(input.studyId)) {
-        throw new Error(`EXPORT_BLOCKED: synthesis input ${input.id} references a study outside the project.`);
+    if (Array.isArray(synthesis.inputs)) {
+      for (const input of synthesis.inputs) {
+        if (studyIds.size && !studyIds.has(input.studyId)) {
+          throw new Error(`EXPORT_BLOCKED: synthesis input ${input.id} references a study outside the project.`);
+        }
       }
     }
   }
