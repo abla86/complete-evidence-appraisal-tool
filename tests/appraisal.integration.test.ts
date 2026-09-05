@@ -52,6 +52,8 @@ test('CERQual returns one confidence judgement for one synthesis finding', () =>
     coherence: 'No or very minor concerns',
     adequacyOfData: 'Minor concerns',
     relevance: 'No or very minor concerns',
+    overallConfidence: 'Moderate confidence',
+    confidenceExplanation: 'Eksplisitt forskerjudgment etter vurdering av de fire CERQual-komponentene.',
   });
   assert.equal(result.reviewFinding, 'Pasienter beskrev behov for kontinuitet.');
   assert.equal(result.overallConfidence, 'Moderate confidence');
