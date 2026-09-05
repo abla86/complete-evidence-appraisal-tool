@@ -8,7 +8,7 @@
  * - Adjudicator: Resolves reviewer discrepancies, enters consensus rationales
  */
 
-export type UserRole = 'admin' | 'lead_reviewer' | 'reviewer' | 'adjudicator';
+export type UserRole = 'admin' | 'researcher' | 'reviewer' | 'second_reviewer' | 'lead_reviewer' | 'adjudicator' | 'auditor' | 'read_only';
 
 export interface UserSession {
   userId: string;
@@ -34,6 +34,30 @@ export interface PermissionDefinition {
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, PermissionDefinition> = {
+  read_only: {
+    canCreateProject: false, canEditProjectConfig: false, canImportDocuments: false,
+    canClassifyStudy: false, canConductAppraisal: false, canConductDualReview: false,
+    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: false,
+    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
+  },
+  auditor: {
+    canCreateProject: false, canEditProjectConfig: false, canImportDocuments: false,
+    canClassifyStudy: false, canConductAppraisal: false, canConductDualReview: false,
+    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: true,
+    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
+  },
+  second_reviewer: {
+    canCreateProject: false, canEditProjectConfig: false, canImportDocuments: true,
+    canClassifyStudy: true, canConductAppraisal: true, canConductDualReview: true,
+    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: true,
+    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
+  },
+  researcher: {
+    canCreateProject: true, canEditProjectConfig: true, canImportDocuments: true,
+    canClassifyStudy: true, canConductAppraisal: true, canConductDualReview: false,
+    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: true,
+    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
+  },
   admin: {
     canCreateProject: true,
     canEditProjectConfig: true,
@@ -113,7 +137,10 @@ export class RbacService {
           name: 'Tredjeperson / Mekler (Arbiter)',
           description: 'Autorisert til å avgjøre dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmøte.'
         };
+      case 'researcher':
+        return { id: 'researcher', name: 'Forsker', description: 'Forsker med tilgang til prosjektarbeid og metodisk vurdering.' };
       case 'reviewer':
+      case 'second_reviewer':
       default:
         return {
           id: 'reviewer',
