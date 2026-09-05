@@ -107,9 +107,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:71ac29b19e20a1',
     applicableStudyTypes: ['Randomiserte forsøk', 'Kliniske intervensjonsstudier'],
     qualityControlGuidelines: '13 kriterier vurderes strukturert.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Scientific Committee'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-quasi-experimental',
@@ -153,9 +153,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:92cb19e88a01f',
     applicableStudyTypes: ['Før-etter studier', 'Kontrollerte kvasi-forsøk'],
     qualityControlGuidelines: '9 sjekklistepunkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-cohort',
@@ -199,9 +199,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:18cc399a19e0',
     applicableStudyTypes: ['Kohortstudier', 'Registerforskning'],
     qualityControlGuidelines: '11 kriterier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-case-control',
@@ -245,9 +245,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55aa219e88',
     applicableStudyTypes: ['Kasus-kontroll-studier'],
     qualityControlGuidelines: '10 sjekklistepunkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-cross-sectional',
@@ -294,9 +294,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55aa019011af990145ef2c1100918',
     applicableStudyTypes: ['Tverrsnittsstudier', 'Surveystudier'],
     qualityControlGuidelines: '8 kriterier for analytiske tverrsnittsstudier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Quantitative Methods Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-systematic-reviews',
@@ -340,9 +340,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:77bb19e99a',
     applicableStudyTypes: ['Systematiske oversikter', 'Synteser'],
     qualityControlGuidelines: '11 sjekklistepunkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-diagnostic-accuracy',
@@ -386,9 +386,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:66cc219e8',
     applicableStudyTypes: ['Diagnostiske studier'],
     qualityControlGuidelines: '10 punkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-prevalence',
@@ -432,9 +432,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:44aa19e8',
     applicableStudyTypes: ['Prevalensstudier', 'Surveys'],
     qualityControlGuidelines: '9 kriterier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-text-opinion',
@@ -478,9 +478,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:33bb19e8',
     applicableStudyTypes: ['Fagtekster', 'Ekspertrapporter'],
     qualityControlGuidelines: '6 kriterier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-case-reports',
@@ -524,9 +524,9 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:22cc19e8',
     applicableStudyTypes: ['Kasusrapporter'],
     qualityControlGuidelines: '8 kriterier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'jbi-scoping-reviews',
@@ -571,8 +571,8 @@ export const JBI_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:11dd19e8',
     applicableStudyTypes: ['Scoping reviews', 'Kunnskapskartlegging'],
     qualityControlGuidelines: '9 metodiske trinn.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'JBI Scoping Review Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   }
 ];
