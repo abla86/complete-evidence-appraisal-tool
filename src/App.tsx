@@ -47,6 +47,7 @@ import {
   resetToDefaults 
 } from './utils/storage';
 import { createAuditEntry } from './utils/crypto';
+import { validateStudyAppraisalLock } from './utils/appraisalLockValidator';
 import { SafeBoundary } from './components/SafeBoundary';
 import { Header } from './components/Header';
 import { EvidenceDocumentViewer } from './components/EvidenceDocumentViewer';
@@ -54,6 +55,7 @@ import { AppraisalWorkspace } from './components/AppraisalWorkspace';
 import { SourceRecordWorkflowView } from './components/SourceRecordWorkflowView';
 import { ReferenceHubView } from './components/ReferenceHubView';
 import { ArticleLibraryView } from './components/ArticleLibraryView';
+import { ModuleHubView } from './components/ModuleHubView';
 import { DocumentUploadCard } from './components/DocumentUploadCard';
 import { DualReviewerComparison } from './components/DualReviewerComparison';
 import { MultiReviewerComparison } from './components/MultiReviewerComparison';
@@ -280,8 +282,10 @@ export default function App() {
     logEvent('IMPORT_DOCUMENT', 'StudyRecord', study.id, `Referanse ${study.sourceRefId || study.id} overført til JBI-arbeidsflate`);
   };
 
-  const handleNavigateToAppraisal = (studyId: string, instrument: AppraisalInstrument = 'JBI_QUALITATIVE') => {
-    setActiveStudyId(studyId);
+  const handleNavigateToAppraisal = (studyId?: string, instrument: AppraisalInstrument = 'JBI_QUALITATIVE') => {
+    if (studyId) {
+      setActiveStudyId(studyId);
+    }
     setActiveInstrument(instrument);
     setActiveTab('appraisal');
   };
@@ -391,6 +395,17 @@ export default function App() {
   const handleLockStudy = async (studyId: string) => {
     const studyToLock = studies.find(s => s.id === studyId);
     if (!studyToLock) return;
+
+    const studyAssessments = assessments[studyId] || [];
+    const activeAss = studyAssessments.find(a => a.instrument === activeInstrument) || studyAssessments[0];
+
+    // Methodological & Cryptographic Lock Integrity Verification
+    const lockValidation = validateStudyAppraisalLock(studyToLock, activeAss);
+    if (!lockValidation.canLock) {
+      console.warn('[handleLockStudy] Låsing avvist på grunn av metodiske mangler:', lockValidation.blockers);
+      alert(`Metodisk forseglings-integritet:\n\nStudien kan ikke låses/forsegles før følgende er utbedret:\n\n• ${lockValidation.blockers.join('\n• ')}`);
+      return;
+    }
 
     const lockedAt = new Date().toISOString();
     const lockedBy = 'Dr. Sarah Lindqvist (Lead Reviewer)';
@@ -674,19 +689,6 @@ export default function App() {
 
   const handleSelectTab = (tab: ActiveTab) => {
     setActiveTab(tab);
-    if (tab === 'synthesis') {
-      setShowDataExtractionModal(true);
-    } else if (tab === 'governance_audit') {
-      setShowGovernanceGateModal(true);
-    } else if (tab === 'validation_lab') {
-      setShowTestRunnerModal(true);
-    } else if (tab === 'research_search') {
-      setShowResearchSearchModal(true);
-    } else if (tab === 'thesis_output') {
-      setShowThesisDraftModal(true);
-    } else if (tab === 'meta_research') {
-      setShowMetaResearchModal(true);
-    }
   };
 
   const handleExportEvidencePackage = () => {
@@ -803,7 +805,7 @@ export default function App() {
             onOpenUpload={() => setShowUploadModal(true)}
             onOpenCitationModal={() => setShowCitationModal(true)}
           />
-        ) : (
+        ) : activeTab === 'appraisal' ? (
           /* Main 3-Column / Split Layout for JBI Appraisal & Multidisciplinary Review */
           <div className="flex-1 flex overflow-hidden">
           
@@ -1106,6 +1108,27 @@ export default function App() {
 
           </main>
         </div>
+        ) : (
+          <ModuleHubView
+            activeTab={activeTab}
+            project={project}
+            studies={studies}
+            extractions={extractions}
+            synthesisOutcomes={synthesisOutcomes}
+            auditLog={auditLog}
+            prismaData={prismaData}
+            onNavigateToAppraisal={() => handleNavigateToAppraisal()}
+            onOpenDataExtraction={() => setShowDataExtractionModal(true)}
+            onOpenSensitivityAnalysis={() => setShowSensitivityModal(true)}
+            onOpenGovernanceGate={() => setShowGovernanceGateModal(true)}
+            onOpenAudit={() => setShowAuditModal(true)}
+            onOpenTestRunner={() => setShowTestRunnerModal(true)}
+            onOpenResearchSearch={() => setShowResearchSearchModal(true)}
+            onOpenThesisDraft={() => setShowThesisDraftModal(true)}
+            onOpenMetaResearch={() => setShowMetaResearchModal(true)}
+            onOpenPrismaModal={() => setShowPrismaModal(true)}
+            onLoadBenchmarkData={handleLoadBenchmarkData}
+          />
         )}
 
         {/* Global Professional Footer */}

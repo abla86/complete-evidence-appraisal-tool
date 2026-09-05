@@ -11,6 +11,10 @@ import {
   getFrameworkDomains 
 } from '../utils/frameworks';
 import { 
+  validateStudyAppraisalLock, 
+  AppraisalLockValidationResult 
+} from '../utils/appraisalLockValidator';
+import { 
   evaluateAmstar2OverallConfidence, 
   calculateFleissKappa,
   evaluateAgree2DomainScores 
@@ -86,6 +90,8 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
   const [filterMode, setFilterMode] = useState<'all' | 'conflicts' | 'unanswered' | 'critical'>('all');
   const [isConflictHighlighterActive, setIsConflictHighlighterActive] = useState<boolean>(true);
   const [activeConflictIndex, setActiveConflictIndex] = useState<number>(0);
+  const [lockValidationModal, setLockValidationModal] = useState<AppraisalLockValidationResult | null>(null);
+  const [showConfirmSeal, setShowConfirmSeal] = useState<boolean>(false);
 
   // Filter assessments for this active instrument and study
   const currentAssessments = assessments.filter(
@@ -341,44 +347,127 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
   return (
     <div className="bg-white flex flex-col h-full overflow-hidden">
       
-      {/* Header Bar */}
-      <div className="bg-slate-900 px-4 py-2.5 text-white flex flex-wrap items-center justify-between gap-2 flex-shrink-0 shadow-2xs">
+      {/* Unified Professional Workspace Header */}
+      <div className="bg-slate-900 px-4 py-2.5 text-white flex flex-wrap items-center justify-between gap-2.5 flex-shrink-0 border-b border-slate-800">
         
-        {/* Left: Framework & Seal Status */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-tight text-white flex items-center gap-1.5">
-            <Award className="w-3.5 h-3.5 text-blue-400" />
-            <span>Vurderingsskjema: {activeInstrument}</span>
-          </span>
-          <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
-            study.isLocked ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'
-          }`}>
-            {study.isLocked ? 'FORSEGLET' : 'AKTIV'}
-          </span>
+        {/* Left: Framework, Seal & Reviewer Tabs */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-tight text-white flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5 text-blue-400" />
+              <span>{activeInstrument}</span>
+            </span>
+            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
+              study.isLocked ? 'bg-emerald-600 text-white' : 'bg-blue-600/90 text-white'
+            }`}>
+              {study.isLocked ? 'FORSEGLET' : 'AKTIV'}
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-slate-750 hidden sm:block" />
+
+          {/* Reviewer Selector Ribbon */}
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+            {currentAssessments.map((ass, idx) => {
+              const profile = reviewers.find(r => r.id === ass.reviewerId || r.name === ass.reviewerName);
+              const isSelected = selectedReviewerIndex === idx;
+              const initials = ass.reviewerName.split(' ').map(n => n[0]).join('').substring(0, 2);
+
+              return (
+                <button
+                  key={ass.id || idx}
+                  id={`reviewer-tab-${idx}`}
+                  onClick={() => setSelectedReviewerIndex(idx)}
+                  className={`px-2 py-1 rounded text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isSelected
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'bg-slate-800/90 hover:bg-slate-750 text-slate-300 border border-slate-700/60'
+                  }`}
+                  title={`${ass.reviewerName} (${ass.reviewerRole})`}
+                >
+                  <span className={`w-3.5 h-3.5 rounded-full text-[9px] font-bold flex items-center justify-center text-white ${profile?.avatarColor || 'bg-blue-500'}`}>
+                    {initials}
+                  </span>
+                  <span className="truncate max-w-[110px]">{ass.reviewerName.replace(/\s\(.*\)/, '')}</span>
+                  {ass.isConsensus && (
+                    <span className="text-[8px] bg-emerald-950 text-emerald-300 px-1 py-0.2 rounded font-mono font-bold">
+                      KONSENSUS
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {unassignedReviewers.length > 0 && (
+              <div className="relative">
+                <button
+                  id="add-reviewer-assessment-btn"
+                  onClick={() => setShowAddReviewerDropdown(!showAddReviewerDropdown)}
+                  className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded border border-dashed border-slate-600 text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Legg til en ekstra bedømmer fra forskningspanelet (opptil 8)"
+                >
+                  <Plus className="w-3 h-3 text-emerald-400" />
+                  <span className="hidden md:inline">Legg til</span>
+                </button>
+
+                {showAddReviewerDropdown && (
+                  <div className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl z-50 p-2 text-xs">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 mb-1 border-b border-slate-800">
+                      Velg forsker for uavhengig vurdering:
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {unassignedReviewers.map(rev => (
+                        <button
+                          key={rev.id}
+                          onClick={() => handleAddReviewerAssessment(rev)}
+                          className="w-full text-left p-1.5 rounded hover:bg-slate-800 text-slate-200 flex items-center gap-2 transition-colors cursor-pointer"
+                        >
+                          <div className={`w-5 h-5 rounded-full ${rev.avatarColor || 'bg-blue-600'} text-white flex items-center justify-center text-[9px] font-bold`}>
+                            {rev.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold truncate">{rev.name}</div>
+                            <div className="text-[10px] text-slate-400 truncate">{rev.role}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {multiRaterStats && (
+            <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">
+              <span className="text-slate-400">κ:</span>
+              <span className="font-bold text-blue-400">{multiRaterStats.fleissKappa.toFixed(2)}</span>
+              <span className="text-emerald-400 font-sans text-[10px]">({multiRaterStats.unanimityPercentage}%)</span>
+            </div>
+          )}
         </div>
 
         {/* Right: Actions & Tools */}
-        <div className="flex items-center gap-2">
-          
+        <div className="flex items-center gap-1.5">
           {onRunAutoScan && (
             <button
               onClick={onRunAutoScan}
-              className="px-2.5 py-1 text-xs font-bold text-amber-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-amber-500/40 rounded transition-colors flex items-center gap-1 shadow-2xs"
+              className="px-2 py-1 text-xs font-semibold text-amber-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-amber-500/40 rounded transition-colors flex items-center gap-1 cursor-pointer"
               title="Kjør fulltekst evidens-skanning for dette skjemaet"
             >
               <Sparkles className="w-3 h-3 text-amber-400" />
-              <span>Autoskann</span>
+              <span className="hidden sm:inline">Autoskann</span>
             </button>
           )}
 
           {onOpenKnowledgeBase && (
             <button
               onClick={onOpenKnowledgeBase}
-              className="px-2.5 py-1 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded transition-colors flex items-center gap-1"
+              className="px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded transition-colors flex items-center gap-1 cursor-pointer"
               title="Åpne Metodeguide & Hjelpesenter"
             >
               <BookOpen className="w-3 h-3 text-blue-400" />
-              <span>Metodeguide</span>
+              <span className="hidden md:inline">Metode</span>
             </button>
           )}
 
@@ -386,23 +475,22 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
             <button
               onClick={onOpenCitationModal}
               title="Sitér artikkel (APA 7, Vancouver, BibTeX)"
-              className="px-2.5 py-1 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded transition-colors flex items-center gap-1"
+              className="px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded transition-colors flex items-center gap-1 cursor-pointer"
             >
               <Quote className="w-3 h-3 text-amber-400" />
-              <span>Sitér</span>
+              <span className="hidden md:inline">Sitér</span>
             </button>
           )}
 
-          {/* Inter-Rater Reliability Report Button */}
           {onOpenReliabilityReport && (
             <button
               id="workspace-reliability-btn"
               onClick={onOpenReliabilityReport}
-              className="px-2.5 py-1 text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/80 rounded transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-2 py-1 text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/80 rounded transition-colors flex items-center gap-1 cursor-pointer"
               title="Åpne prosjektets Cohen's Kappa & Inter-Rater Reliabilitetsrapport"
             >
-              <Scale className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Reliabilitet &amp; &kappa;</span>
+              <Scale className="w-3 h-3 text-indigo-400" />
+              <span className="hidden sm:inline">Reliabilitet</span>
             </button>
           )}
 
@@ -410,115 +498,27 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
           <button
             id="open-multi-consensus-matrix-btn"
             onClick={onOpenDualComparison}
-            className="px-3 py-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 rounded transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+            className="px-2.5 py-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 rounded transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
             title="Åpne Fleiss' Kappa & Fler-bedømmer konsensuspanel"
           >
             <GitCompare className="w-3.5 h-3.5" />
-            <span>Konsensuspanel</span>
-            <span className="bg-blue-950 px-1.5 py-0.2 rounded text-[10px] font-mono text-blue-300 font-bold">
-              {currentAssessments.length || 2} Vurderere
+            <span>Konsensus</span>
+            <span className="bg-blue-950 px-1 py-0.2 rounded text-[10px] font-mono text-blue-300">
+              {currentAssessments.length || 2}
             </span>
           </button>
         </div>
       </div>
 
-      {/* Multi-Reviewer Selector Tabs Ribbon */}
-      <div className="bg-slate-850 px-4 py-2 border-b border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
-        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
-            <Users2 className="w-3.5 h-3.5 text-blue-400" />
-            <span>Vurderer:</span>
-          </span>
-
-          {currentAssessments.map((ass, idx) => {
-            const profile = reviewers.find(r => r.id === ass.reviewerId || r.name === ass.reviewerName);
-            const isSelected = selectedReviewerIndex === idx;
-            const initials = ass.reviewerName.split(' ').map(n => n[0]).join('').substring(0, 2);
-
-            return (
-              <button
-                key={ass.id || idx}
-                id={`reviewer-tab-${idx}`}
-                onClick={() => setSelectedReviewerIndex(idx)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
-                  isSelected
-                    ? 'bg-blue-600 text-white font-bold shadow-xs'
-                    : 'bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700'
-                }`}
-              >
-                <span className={`w-3.5 h-3.5 rounded-full text-[9px] font-bold flex items-center justify-center text-white ${profile?.avatarColor || 'bg-blue-500'}`}>
-                  {initials}
-                </span>
-                <span className="truncate max-w-[130px]">{ass.reviewerName.replace(/\s\(.*\)/, '')}</span>
-                {ass.isConsensus && (
-                  <span className="text-[9px] bg-emerald-950 text-emerald-300 px-1 py-0.2 rounded font-mono font-bold">
-                    KONSENSUS
-                  </span>
-                )}
-              </button>
-            );
-          })}
-
-          {unassignedReviewers.length > 0 && (
-            <div className="relative">
-              <button
-                id="add-reviewer-assessment-btn"
-                onClick={() => setShowAddReviewerDropdown(!showAddReviewerDropdown)}
-                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md border border-dashed border-slate-600 text-xs flex items-center gap-1 transition-colors"
-                title="Legg til en ekstra bedømmer fra forskningspanelet (opptil 8)"
-              >
-                <Plus className="w-3 h-3 text-emerald-400" />
-                <span>Legg til vurderer</span>
-              </button>
-
-              {showAddReviewerDropdown && (
-                <div className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl z-50 p-2 text-xs">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 mb-1 border-b border-slate-800">
-                    Velg forsker for uavhengig vurdering:
-                  </div>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
-                    {unassignedReviewers.map(rev => (
-                      <button
-                        key={rev.id}
-                        onClick={() => handleAddReviewerAssessment(rev)}
-                        className="w-full text-left p-1.5 rounded hover:bg-slate-800 text-slate-200 flex items-center gap-2 transition-colors"
-                      >
-                        <div className={`w-5 h-5 rounded-full ${rev.avatarColor || 'bg-blue-600'} text-white flex items-center justify-center text-[9px] font-bold`}>
-                          {rev.name.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold truncate">{rev.name}</div>
-                          <div className="text-[10px] text-slate-400 truncate">{rev.role}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {multiRaterStats && (
-          <div className="flex items-center gap-2 text-[11px] font-mono">
-            <span className="text-slate-400">Fleiss' κ:</span>
-            <span className="font-bold text-blue-400">{multiRaterStats.fleissKappa.toFixed(2)}</span>
-            <span className="text-emerald-400 font-semibold font-sans">
-              ({multiRaterStats.unanimityPercentage}% enstemmig)
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Conflict Highlighter & Interactive Domain Navigator Toolbar */}
-      <div className="bg-slate-100/90 border-b border-slate-200 px-4 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs flex-shrink-0">
+      {/* Streamlined Filter & Domain Map Navigation Strip */}
+      <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
         
-        {/* Left: Filter Tabs */}
+        {/* Left: Filter Controls & Conflict Highlighting */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center bg-white rounded-lg p-0.5 border border-slate-200 shadow-2xs">
+          <div className="flex items-center bg-white rounded-md p-0.5 border border-slate-200 shadow-2xs">
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2 py-0.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 filterMode === 'all'
                   ? 'bg-slate-800 text-white shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -528,7 +528,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
             </button>
             <button
               onClick={() => setFilterMode('conflicts')}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+              className={`px-2 py-0.5 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                 filterMode === 'conflicts'
                   ? 'bg-rose-600 text-white shadow-2xs'
                   : conflictingDomains.length > 0
@@ -541,7 +541,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
             </button>
             <button
               onClick={() => setFilterMode('unanswered')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2 py-0.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 filterMode === 'unanswered'
                   ? 'bg-slate-800 text-white shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -551,7 +551,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
             </button>
             <button
               onClick={() => setFilterMode('critical')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2 py-0.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 filterMode === 'critical'
                   ? 'bg-amber-600 text-white shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -561,70 +561,45 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
             </button>
           </div>
 
-          {/* Conflict Highlighter Toggle Switch */}
           <button
             id="toggle-conflict-highlighter-btn"
             onClick={() => setIsConflictHighlighterActive(!isConflictHighlighterActive)}
-            className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+            className={`px-2 py-0.5 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border ${
               isConflictHighlighterActive
-                ? 'bg-rose-50 border-rose-300 text-rose-800 ring-2 ring-rose-300 shadow-2xs'
+                ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-2xs'
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
-            title="Slå av/på visuell markering av uoverensstemmelser mellom vurderere"
+            title="Slå av/på markering av uoverensstemmelser mellom vurderere"
           >
-            <Highlighter className={`w-3.5 h-3.5 ${isConflictHighlighterActive ? 'text-rose-600 animate-pulse' : 'text-slate-400'}`} />
-            <span>Fremhev konflikter</span>
-            <span className={`text-[10px] px-1 py-0.2 rounded font-mono font-bold ${
-              isConflictHighlighterActive ? 'bg-rose-200 text-rose-900' : 'bg-slate-200 text-slate-700'
-            }`}>
-              {isConflictHighlighterActive ? 'PÅ' : 'AV'}
-            </span>
+            <Highlighter className={`w-3 h-3 ${isConflictHighlighterActive ? 'text-rose-600' : 'text-slate-400'}`} />
+            <span>Konflikt-lys</span>
           </button>
-        </div>
 
-        {/* Right: Fast Jump Between Conflicts & Tooltip Help */}
-        <div className="flex items-center gap-2">
           {conflictingDomains.length > 0 && (
-            <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-slate-200 shadow-2xs">
-              <span className="text-[11px] font-bold text-rose-800 mr-1 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-rose-600" />
-                <span>Hopp:</span>
-              </span>
+            <div className="flex items-center gap-0.5 bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">
               <button
                 onClick={() => handleJumpToConflict('prev')}
-                className="p-1 hover:bg-slate-100 text-slate-700 rounded transition-colors cursor-pointer"
+                className="p-0.5 hover:bg-slate-100 text-slate-700 rounded transition-colors cursor-pointer"
                 title="Forrige uoverensstemmelse"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-3 h-3" />
               </button>
-              <span className="text-[11px] font-mono font-bold text-slate-700 px-1">
+              <span className="text-[10px] font-mono font-bold text-slate-700 px-0.5">
                 {activeConflictIndex + 1}/{conflictingDomains.length}
               </span>
               <button
                 onClick={() => handleJumpToConflict('next')}
-                className="p-1 hover:bg-slate-100 text-slate-700 rounded transition-colors cursor-pointer"
+                className="p-0.5 hover:bg-slate-100 text-slate-700 rounded transition-colors cursor-pointer"
                 title="Neste uoverensstemmelse"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3 h-3" />
               </button>
             </div>
           )}
-
-          {/* Interactive Tooltip Helper Badge */}
-          <div className="hidden xl:flex items-center gap-1 text-[11px] text-slate-500 font-medium bg-slate-50 px-2 py-1 rounded border border-slate-200">
-            <MessageSquareQuote className="w-3.5 h-3.5 text-blue-500" />
-            <span>Hold peker over et spørsmål for sitat &amp; begrunnelse</span>
-          </div>
         </div>
 
-      </div>
-
-      {/* Mini Domain Quick-Map Navigator Ribbon with Interactive Tooltips */}
-      <div className="bg-slate-50 px-4 py-1.5 border-b border-slate-200 flex items-center gap-1 overflow-x-auto flex-shrink-0 text-xs custom-scrollbar">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex-shrink-0">
-          Kart:
-        </span>
-        <div className="flex items-center gap-1">
+        {/* Right: Inline Quick-Map Indicator Chips */}
+        <div className="flex items-center gap-1 overflow-x-auto py-0.5 max-w-[420px] custom-scrollbar">
           {domains.map((dom) => {
             const conflictInfo = domainConflictMap.get(dom.id);
             const isConf = conflictInfo?.isConflict || false;
@@ -635,7 +610,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
 
             let badgeStyle = 'bg-slate-200 text-slate-700 hover:bg-slate-300 border-slate-300';
             if (isConf && isConflictHighlighterActive) {
-              badgeStyle = 'bg-rose-600 text-white font-black ring-2 ring-rose-400/80 animate-pulse border-rose-700';
+              badgeStyle = 'bg-rose-600 text-white font-bold ring-1 ring-rose-400 border-rose-700';
             } else if (isAns) {
               badgeStyle = 'bg-emerald-600 text-white font-bold border-emerald-700';
             } else if (dom.isCritical) {
@@ -655,7 +630,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
               >
                 <button
                   onClick={() => handleJumpToDomain(dom.id)}
-                  className={`w-6 h-6 rounded flex items-center justify-center font-mono text-[10px] transition-all border cursor-pointer ${badgeStyle}`}
+                  className={`w-5 h-5 rounded flex items-center justify-center font-mono text-[9px] transition-all border cursor-pointer ${badgeStyle}`}
                   title={`Q${dom.number}: ${dom.title}`}
                 >
                   {dom.number}
@@ -664,6 +639,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
             );
           })}
         </div>
+
       </div>
 
       {/* AMSTAR 2 Overall Confidence Banner */}
@@ -718,27 +694,6 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
           </div>
         </div>
       )}
-
-      {/* Active Reviewer Context Banner */}
-      <div className="bg-blue-50/80 px-4 py-1.5 border-b border-blue-100 flex items-center justify-between text-xs text-blue-950">
-        <div className="flex items-center gap-2">
-          <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-          <span>
-            Redigerer vurdering for: <strong>{activeAssessment.reviewerName}</strong> ({activeAssessment.reviewerRole})
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          {conflictingDomains.length > 0 && (
-            <span className="text-[11px] font-bold text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded flex items-center gap-1 border border-rose-200">
-              <AlertTriangle className="w-3 h-3 text-rose-600" />
-              <span>{conflictingDomains.length} uoverensstemmelser</span>
-            </span>
-          )}
-          <span className="text-[11px] text-blue-800 font-mono font-medium">
-            {completedQuestions}/{totalQuestions} besvart ({completionPercentage}%)
-          </span>
-        </div>
-      </div>
 
       {/* Domain Questions List */}
       <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4">
@@ -1056,7 +1011,14 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
           {!study.isLocked ? (
             <button
               id="lock-study-assessment-btn"
-              onClick={() => onLockStudy(study.id)}
+              onClick={() => {
+                const result = validateStudyAppraisalLock(study, activeAssessment, domains);
+                if (!result.canLock) {
+                  setLockValidationModal(result);
+                } else {
+                  setShowConfirmSeal(true);
+                }
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Lock className="w-3.5 h-3.5" />
@@ -1070,6 +1032,144 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
           )}
         </div>
       </div>
+
+      {/* Methodological Lock Validation Gate Modal */}
+      {lockValidationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+          <div className="bg-slate-900 border border-red-500/50 rounded-xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+                <span>Metodisk Integritetslås: Forsegling Avvist</span>
+              </div>
+              <button
+                onClick={() => setLockValidationModal(null)}
+                className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-slate-800"
+              >
+                Lukk
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Vurderingen kan ikke forsegles ennå fordi obligatoriske metodiske eller vitenskapelige krav ikke er oppfylt. Forsegling (Lock) er en ugjenkallelig integritetsfunksjon som krever fullført faglig grunnlag.
+            </p>
+
+            <div className="space-y-2 bg-red-950/40 border border-red-900/60 rounded-lg p-3.5">
+              <span className="text-xs font-bold text-red-300 block uppercase tracking-wider">
+                Mangler som blokkerer forsegling ({lockValidationModal.blockers.length}):
+              </span>
+              <ul className="space-y-1.5 text-xs text-red-200">
+                {lockValidationModal.blockers.map((blocker, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-red-400 font-bold">&bull;</span>
+                    <span>{blocker}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {lockValidationModal.warnings.length > 0 && (
+              <div className="space-y-1 bg-amber-950/30 border border-amber-900/40 rounded-lg p-3 text-xs text-amber-200">
+                <span className="font-bold text-amber-300 block">Advarsler:</span>
+                {lockValidationModal.warnings.map((warn, i) => (
+                  <p key={i}>&bull; {warn}</p>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-800">
+              <div className="flex items-center gap-1.5">
+                <span className={lockValidationModal.metrics.hasValidDesign ? 'text-emerald-400' : 'text-red-400'}>
+                  {lockValidationModal.metrics.hasValidDesign ? '✓' : '✗'}
+                </span>
+                <span className="text-slate-400">Validert studiedesign:</span>
+                <span className="text-white font-medium">{study.documentType || 'Mangler'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={lockValidationModal.metrics.humanVerified ? 'text-emerald-400' : 'text-red-400'}>
+                  {lockValidationModal.metrics.humanVerified ? '✓' : '✗'}
+                </span>
+                <span className="text-slate-400">Human Verification:</span>
+                <span className="text-white font-medium">{lockValidationModal.metrics.humanVerified ? 'Bekreftet' : 'Mangler'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={lockValidationModal.metrics.criticalItemsAnswered ? 'text-emerald-400' : 'text-red-400'}>
+                  {lockValidationModal.metrics.criticalItemsAnswered ? '✓' : '✗'}
+                </span>
+                <span className="text-slate-400">Kritiske domener:</span>
+                <span className="text-white font-medium">{lockValidationModal.metrics.criticalItemsAnswered ? 'Alle besvart' : 'Ufullstendig'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={lockValidationModal.metrics.provenanceValid ? 'text-emerald-400' : 'text-red-400'}>
+                  {lockValidationModal.metrics.provenanceValid ? '✓' : '✗'}
+                </span>
+                <span className="text-slate-400">Kryptografisk SHA-256:</span>
+                <span className="text-white font-mono">{study.documentHashSha256 ? 'OK' : 'Mangler'}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setLockValidationModal(null)}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors"
+              >
+                Gå tilbake og fullfør vurderingen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Seal Modal */}
+      {showConfirmSeal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+          <div className="bg-slate-900 border border-blue-500/60 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                <ShieldCheck className="w-5 h-5 text-blue-400" />
+                <span>Bekreft Kryptografisk Forsegling (SHA-256)</span>
+              </div>
+              <button
+                onClick={() => setShowConfirmSeal(false)}
+                className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-slate-800"
+              >
+                Avbryt
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Er du sikker på at du vil forsegle denne studien? Forsegling låser vurderingen og oppretter en uforanderlig revisjonslogg med SHA-256-signatur i henhold til Cochrane/WHO-standarder.
+            </p>
+
+            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-[11px] font-mono space-y-1.5">
+              <div><span className="text-slate-400">Studie:</span> <span className="text-white font-semibold">{study.title.substring(0, 50)}...</span></div>
+              <div><span className="text-slate-400">Instrument:</span> <span className="text-blue-300">{activeInstrument}</span></div>
+              <div><span className="text-slate-400">Vurderer:</span> <span className="text-emerald-300">{activeAssessment.reviewerName}</span></div>
+              <div><span className="text-slate-400">SHA-256:</span> <span className="text-slate-300 break-all">{study.documentHashSha256}</span></div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowConfirmSeal(false)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2 rounded-lg cursor-pointer"
+              >
+                Avbryt
+              </button>
+              <button
+                id="confirm-seal-btn"
+                onClick={() => {
+                  setShowConfirmSeal(false);
+                  onLockStudy(study.id);
+                }}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-lg cursor-pointer shadow-xs transition-colors flex items-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Ja, forsegl og lås studien</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

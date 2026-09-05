@@ -8,7 +8,8 @@ export type AppraisalInstrument =
   | 'KTA' 
   | 'PRISMA'
   | 'JBI'
-  | 'JBI_QUALITATIVE';
+  | 'JBI_QUALITATIVE'
+  | 'ROBINS_I';
 
 export type ActiveTab = 
   | 'appraisal'          // JBI Qualitative & multi-framework appraisal workspace
@@ -333,7 +334,21 @@ export interface StudyRecord {
   journal?: string;
   doi?: string;
   abstract?: string;
-  documentType: 'Systematic Review / Meta-Analysis' | 'Cochrane Systematic Review' | 'Randomized Controlled Trial' | 'Observational Cohort' | 'Clinical Practice Guideline' | 'Qualitative Research' | 'Qualitative Systematic Review' | 'Qualitative Empirical Study' | 'General Research Document';
+  documentType: 
+    | 'Systematic Review / Meta-Analysis' 
+    | 'Cochrane Systematic Review' 
+    | 'Randomized Controlled Trial' 
+    | 'Observational Cohort' 
+    | 'Clinical Practice Guideline' 
+    | 'Qualitative Research' 
+    | 'Qualitative Systematic Review' 
+    | 'Qualitative Empirical Study' 
+    | 'Diagnostic Accuracy Study'
+    | 'Case Report'
+    | 'Quality Improvement Study'
+    | 'Non-randomised Intervention'
+    | 'General Research Document'
+    | 'Unspecified / Unknown';
   fileName: string;
   fileSizeBytes: number;
   fileExtension: string;
@@ -349,6 +364,8 @@ export interface StudyRecord {
   findings?: DocumentAnalysisFinding[];
   extraction?: DataExtractionRecord;
   imradAnalysis?: IMRaDAnalysisResult;
+  classificationVerifiedByResearcher?: boolean;
+  evidenceVerified?: boolean;
 }
 
 export interface DocumentAnalysisFinding {
@@ -685,7 +702,8 @@ export type IMRaDSectionKey =
 export type IMRaDSectionStatus =
   | 'DETECTED'
   | 'INFERRED'
-  | 'MISSING';
+  | 'MISSING'
+  | 'OCR_REQUIRED';
 
 export interface IMRaDSectionAnalysis {
   key: IMRaDSectionKey;
@@ -717,6 +735,16 @@ export interface IMRaDAnalysisResult {
   methodologicalNotice: string;
   expectedStructureRationale?: string;
   recommendedReportingStandard?: 'CONSORT' | 'PRISMA' | 'STROBE' | 'COREQ' | 'SRQR' | 'STARD' | 'CARE' | 'SQUIRE' | 'RIGHT' | 'General';
+  isOcrRequired?: boolean;
 }
+
+export type RetractionIntegrityStatus = 
+  | 'Clean / Verified Active'
+  | 'Retracted'
+  | 'Expression of Concern'
+  | 'Correction Published'
+  | 'Updated'
+  | 'Unknown / Unverified'
+  | 'Not Found';
 
 

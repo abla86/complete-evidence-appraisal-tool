@@ -200,3 +200,38 @@ test('IMRaD Test 8: OCR-støy eller ødelagt PDF-tekst flagges i begrensninger',
   const result = analyzeIMRaDStructure(noisyOcr, 'ocr_damaged.pdf');
   assert.ok(result.limitations.some(l => l.includes('OCR/PDF')));
 });
+
+test('IMRaD Test 9: Narrativ prosa som starter med "The results were discussed..." skal IKKE gi falsk DETECTED overskrift', () => {
+  const narrativeProse = `
+    Introduction
+    The aim of this study is to examine hospital inter-departmental communication routines.
+
+    Methods
+    Data was collected via retrospective observation of morning rounds across three surgical wards.
+
+    The results were discussed in the meeting with the senior medical officers on Tuesday.
+    We noticed that several participants experienced delays.
+
+    Discussion
+    In this study, we found that inter-departmental communication requires structured handover protocols.
+  `;
+
+  const result = analyzeIMRaDStructure(narrativeProse, 'narrative_prose.txt');
+  const resultsSection = result.sections.find(s => s.key === 'results');
+
+  assert.equal(resultsSection?.explicitHeading, false, 'Narrativ setning skal IKKE flagges som explicitHeading');
+  assert.notEqual(resultsSection?.status, 'DETECTED', 'Status skal ikke være DETECTED når overskrift mangler');
+});
+
+test('IMRaD Test 10: OCR_REQUIRED payload gir isOcrRequired flagg og alle seksjoner OCR_REQUIRED status', () => {
+  const ocrPayload = '[OCR_REQUIRED: PDF-dokumentet (scanned_article.pdf) inneholder ingen uttrekkbar digital tekststrøm. Skannet bilde detektert.]';
+  const result = analyzeIMRaDStructure(ocrPayload, 'scanned_article.pdf');
+
+  assert.equal(result.isOcrRequired, true, 'isOcrRequired skal være true');
+  assert.equal(result.complete, false);
+  assert.equal(result.explicitComplete, false);
+  assert.equal(result.detectedSectionCount, 0);
+  assert.ok(result.methodologicalNotice.includes('OCR_REQUIRED'));
+  assert.ok(result.sections.every(s => s.status === 'OCR_REQUIRED'));
+});
+

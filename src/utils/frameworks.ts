@@ -1040,6 +1040,221 @@ export const JBI_QUALITATIVE_DOMAINS: AppraisalDomain[] = [
   }
 ];
 
+export const ROBINS_I_DOMAINS: AppraisalDomain[] = [
+  {
+    id: 'robins-i-d1',
+    number: 1,
+    title: 'Domene 1: Konfundering (Confounding)',
+    question: 'Bias due to confounding: Ble konfunderende variabler tilstrekkelig kontrollert for i design og analyse?',
+    description: 'Vurderer om prognostiske faktorer som påvirker både intervensjon/eksponering og utfall er håndtert (f.eks. matchet kohort, multivariabel regresjon, propensity score).',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Viktige kjente konfundere er målt og justert for',
+      'Ingen alvorlig tidsavhengig konfundering uten tilstrekkelig modellering'
+    ]
+  },
+  {
+    id: 'robins-i-d2',
+    number: 2,
+    title: 'Domene 2: Utvalgsskjevhet (Selection of Participants)',
+    question: 'Bias in selection of participants into the study: Var utvalget representativt eller oppsto skjevhet ved rekruttering?',
+    description: 'Vurderer om inklusjon var betinget av faktorer etter intervensjonsstart eller overlevelsesskjevhet (immortal time bias).',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Inklusjon og eksklusjon skjedde ved baseline uavhengig av fremtidig utfall',
+      'Start av oppfølging sammenfalt med eksponeringsstart'
+    ]
+  },
+  {
+    id: 'robins-i-d3',
+    number: 3,
+    title: 'Domene 3: Klassifisering av intervensjoner (Classification of Interventions)',
+    question: 'Bias in classification of interventions: Var intervensjonsgruppene klart definert og prospektivt registrert?',
+    description: 'Vurderer feilklassifisering av eksponering/behandling (misclassification bias).',
+    isCritical: false,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Intervensjonsstatus var entydig definert ved validerte kilder',
+      'Klassifisering var ikke påvirket av kunnskap om senere utfall'
+    ]
+  },
+  {
+    id: 'robins-i-d4',
+    number: 4,
+    title: 'Domene 4: Avvik fra planlagt intervensjon (Deviations from Intended Interventions)',
+    question: 'Bias due to deviations from intended interventions: Oppsto det systematiske avvik under oppfølging?',
+    description: 'Vurderer om tilleggsbehandlinger, kryssing mellom grupper eller protokollbrudd forvrengte effektestimatet.',
+    isCritical: false,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Eventuelle protokollavvik er dokumentert og håndtert i sensitivitetsanalyser'
+    ]
+  },
+  {
+    id: 'robins-i-d5',
+    number: 5,
+    title: 'Domene 5: Manglende data (Missing Data)',
+    question: 'Bias due to missing data: Var frafall eller ufullstendige data minimalt eller tilstrekkelig imputert?',
+    description: 'Vurderer selektivt frafall (attrition bias) og andel uobserverte utfallsmål.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Utfallsmål er tilgjengelige for nær alle inkluderte deltakere',
+      'Årsaker til manglende data er likeartede i eksponerte og ueksponerte grupper'
+    ]
+  },
+  {
+    id: 'robins-i-d6',
+    number: 6,
+    title: 'Domene 6: Utfallsmåling (Measurement of Outcomes)',
+    question: 'Bias in measurement of outcomes: Ble utfallsmålene vurdert objektivt eller blindet for eksponeringsstatus?',
+    description: 'Vurderer deteksjonsskjevhet (detection bias) ved måling av endepunkter.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Utfallsvurderere var blindet for intervensjonsstatus eller utfallet var objektivt registrert (f.eks. registerdata)'
+    ]
+  },
+  {
+    id: 'robins-i-d7',
+    number: 7,
+    title: 'Domene 7: Selektiv rapportering (Selection of Reported Result)',
+    question: 'Bias in selection of the reported result: Er alle forhåndsdefinerte analyser og utfall rapportert i sin helhet?',
+    description: 'Vurderer selektiv rapportering av positive funn (reporting bias / p-hacking).',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: [
+      'Analysen samsvarer med en forhåndsregistrert protokoll eller statistisk analyseplan',
+      'Ingen selektiv utelatelse av ufordelaktige endepunkter eller subgrupper'
+    ]
+  }
+];
+
+export const PRISMA_DOMAINS: AppraisalDomain[] = [
+  {
+    id: 'prisma-d1',
+    number: 1,
+    title: 'Tittel & Sammendrag (Title & Abstract)',
+    question: 'Er artikkelen identifisert som en systematisk oversikt og oppsummerer sammendraget bakgrunn, metoder, resultater og konklusjoner transparent?',
+    description: 'PRISMA 2020 item 1 og 2: Identifikasjon og strukturert sammendrag.',
+    isCritical: false,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Tittel angir systematisk oversikt eller meta-analyse', 'Strukturert sammendrag i henhold til PRISMA for Abstracts']
+  },
+  {
+    id: 'prisma-d2',
+    number: 2,
+    title: 'Protokoll & Registrering (Protocol & Registration)',
+    question: 'Ble en forhåndsregistrert protokoll publisert (f.eks. PROSPERO) med dokumenterte eventuelle avvik?',
+    description: 'PRISMA 2020 item 24: Protokolltilgjengelighet og registreringsnummer.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['PROSPERO, OSF eller publisert protokollreferanse angitt', 'Eventuelle endringer fra protokollen er forklart']
+  },
+  {
+    id: 'prisma-d3',
+    number: 3,
+    title: 'Kriterier for Inklusjon & Eksklusjon (Eligibility Criteria)',
+    question: 'Er inklusjons- og eksklusjonskriterier spesifisert i henhold til PICO-rammeverket?',
+    description: 'PRISMA 2020 item 5: Populasjon, intervensjon, komparator, utfall og studiedesign.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Klare eksplisitte kriterier for studiedesign og populasjon']
+  },
+  {
+    id: 'prisma-d4',
+    number: 4,
+    title: 'Søkestrategi & Datakilder (Information Sources & Search)',
+    question: 'Er alle datakilder og minst én komplett, reproduserbar søkestrategi presentert?',
+    description: 'PRISMA 2020 item 6 og 7: Databaser, søkedatoer og full søkestreng.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Minst to vitenskapelige databaser søkt', 'Komplett reproduserbar søkestreng vedlagt']
+  },
+  {
+    id: 'prisma-d5',
+    number: 5,
+    title: 'Utvelgelsesprosess (Study Selection)',
+    question: 'Ble screening og inklusjon gjennomført uavhengig av minst to forskere i par?',
+    description: 'PRISMA 2020 item 8: Dual screening og uenighetshåndtering.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Uavhengig dobbeltscreening av titler, sammendrag og fulltekster', 'Konsensusprosedyre beskrevet']
+  },
+  {
+    id: 'prisma-d6',
+    number: 6,
+    title: 'Dataekstraksjon (Data Collection Process)',
+    question: 'Ble data ekstrahert uavhengig eller med verifisering, ved hjelp av et standardisert skjema?',
+    description: 'PRISMA 2020 item 9 og 10: Ekstraksjonsprosess og variabler.',
+    isCritical: false,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Pilotert skjema for dataekstraksjon', 'Dobbeltkontroll av numeriske effektestimater']
+  },
+  {
+    id: 'prisma-d7',
+    number: 7,
+    title: 'Metodisk Kvalitetsvurdering (Risk of Bias Assessment)',
+    question: 'Ble metodisk kvalitet / risiko for skjevhet i inkluderte primærstudier vurdert med et validert instrument?',
+    description: 'PRISMA 2020 item 11: Validerte verktøy som RoB 2, ROBINS-I eller CASP.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Validerte instrumenter benyttet', 'Vurdering utført uavhengig av to reviewere']
+  },
+  {
+    id: 'prisma-d8',
+    number: 8,
+    title: 'Syntesemetoder (Synthesis Methods)',
+    question: 'Er metodene for narrativ eller statistisk metaanalyse (f.eks. fiksert/tilfeldig effektmodell, I²) redegjort for?',
+    description: 'PRISMA 2020 item 13: Syntesemetodikk og heterogenitetstesting.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Rasjonale for metaanalyse vs narrativ syntese', 'Undersøkelse av statistisk heterogenitet']
+  },
+  {
+    id: 'prisma-d9',
+    number: 9,
+    title: 'Rapporteringsskjevhet (Reporting Biases)',
+    question: 'Ble risikoen for publiseringsskjevhet eller selektiv rapportering vurdert (f.eks. traktplott / Egger-test)?',
+    description: 'PRISMA 2020 item 14: Vurdering av publiseringsskjevhet.',
+    isCritical: false,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Traktplott (funnel plot) eller metodisk begrunnelse hvis antall studier < 10']
+  },
+  {
+    id: 'prisma-d10',
+    number: 10,
+    title: 'Kunnskapsgrunnlagets Sikkerhet (Certainty Assessment / GRADE)',
+    question: 'Ble tilliten til kunnskapsgrunnlaget systematisk gradert (f.eks. GRADE eller CERQual)?',
+    description: 'PRISMA 2020 item 15: Vurdering av evidensstyrke for nøkkelutfall.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['GRADE Summary of Findings-tabell eller eksplisitt CERQual-evaluering']
+  },
+  {
+    id: 'prisma-d11',
+    number: 11,
+    title: 'Flytskjema & Studiekarakteristikker (Flow Diagram & Study Characteristics)',
+    question: 'Er et komplett PRISMA-flytskjema og tabeller over inkluderte og ekskluderte studier inkludert?',
+    description: 'PRISMA 2020 item 16, 17 og 18: Flytdiagram med eksklusjonsgrunner.',
+    isCritical: true,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Eksklusjonsårsaker på fulltekstnivå spesifisert', 'Intervensjons- og deltakerkarakteristikker oppgitt']
+  },
+  {
+    id: 'prisma-d12',
+    number: 12,
+    title: 'Finansiering & Interessekonflikter (Funding & Conflicts of Interest)',
+    question: 'Er finansieringskilder og eventuelle interessekonflikter for både oversikten og primærstudiene oppgitt?',
+    description: 'PRISMA 2020 item 25, 26 og 27: Transparens rundt støtte og bindinger.',
+    isCritical: false,
+    allowedAnswers: ['yes', 'no', 'partial', 'unclear', 'not_applicable'],
+    guidanceCriteria: ['Finansieringskildens rolle i protokoll, analyse og publisering er klarlagt', 'Forfatternes interessekonflikter deklarert']
+  }
+];
+
 export function getFrameworkDomains(instrument: AppraisalInstrument): AppraisalDomain[] {
   switch (instrument) {
     case 'AMSTAR2': return AMSTAR2_DOMAINS;
@@ -1051,6 +1266,11 @@ export function getFrameworkDomains(instrument: AppraisalInstrument): AppraisalD
     case 'KTA': return KTA_DOMAINS;
     case 'JBI': return JBI_DOMAINS;
     case 'JBI_QUALITATIVE': return JBI_QUALITATIVE_DOMAINS;
-    default: return AMSTAR2_DOMAINS;
+    case 'ROBINS_I': return ROBINS_I_DOMAINS;
+    case 'PRISMA': return PRISMA_DOMAINS;
+    default: {
+      console.warn(`[getFrameworkDomains] Uregistrert eller ukjent instrument: "${instrument}". Ingen standarddomener returneres for å forhindre metodisk feilevaluering.`);
+      return [];
+    }
   }
 }

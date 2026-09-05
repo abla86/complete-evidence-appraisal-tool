@@ -10,10 +10,35 @@ import type {
  * Structural definition for an IMRaD section including explicit heading matchers
  * and semantic content signals (Norwegian and English).
  */
+/**
+ * Negative sentence/prose indicators that disqualify a line from being an explicit section heading.
+ */
+const PROSE_SENTENCE_INDICATORS = [
+  /\b(?:were|was|are|is|have\s+been|had\s+been|has\s+been)\b/i,
+  /\b(?:showed|show|shows|indicated|indicates|suggested|suggests|demonstrated|demonstrates|revealed|reveals|reported|reports)\b/i,
+  /\b(?:found\s+that|noted\s+that|concluded\s+that|viste|viser|indikerte|antok|ble\s+funnet|ble\s+drøftet)\b/i,
+  /\b(?:in\s+the\s+meeting|in\s+this\s+cohort|of\s+the\s+study|in\s+this\s+study|from\s+the\s+study|av\s+studien|i\s+denne\s+studien)\b/i,
+  /^(?:the|this|these|our|we|denne|disse|våre|vi)\s+/i
+];
+
+function isProseSentence(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return true;
+  if (PROSE_SENTENCE_INDICATORS.some(regex => regex.test(trimmed))) {
+    return true;
+  }
+  // If line ends with a period and contains 4 or more words, it's almost certainly a narrative sentence
+  const words = (trimmed.match(/[\p{L}\p{N}_\-]+/gu) || []).length;
+  if (/\.$/.test(trimmed) && words >= 4 && !/^\d+\.\s+[A-Z]/.test(trimmed)) {
+    return true;
+  }
+  return false;
+}
+
 interface SectionMatcher {
   key: IMRaDSectionKey;
   label: string;
-  // Regexes matching explicit section headings (line-anchored or standalone)
+  // Regexes matching explicit section headings (strictly anchored to title/subheading syntax)
   headingPatterns: RegExp[];
   // Semantic signals for inferring section presence when heading is missing or subtle
   semanticSignals: RegExp[];
@@ -26,10 +51,10 @@ const IMRAD_MATCHERS: SectionMatcher[] = [
     key: 'introduction',
     label: 'Introduction (Innledning / Bakgrunn)',
     headingPatterns: [
-      /^(?:1\.?\s*)?(?:introduction|background|innledning|bakgrunn)\b/i,
-      /^(?:aim|aims|objectives?|purpose|formål|hensikt|problemstilling)\b/i,
-      /^(?:background\s+and\s+(?:aims?|purpose|rationale))\b/i,
-      /^(?:kunnskapsstatus|teoretisk\s+(?:rammeverk|bakgrunn))\b/i
+      /^(?:(?:1\.?)+\s*)?(?:introduction|background|innledning|bakgrunn)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:aim|aims|objectives?|purpose|formål|hensikt|problemstilling)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:background\s+and\s+(?:aims?|purpose|rationale))\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:kunnskapsstatus|teoretisk\s+(?:rammeverk|bakgrunn))\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i
     ],
     semanticSignals: [
       /\b(?:little\s+is\s+known|remains\s+unclear|knowledge\s+gap|kunnskapshull)\b/i,
@@ -42,11 +67,11 @@ const IMRAD_MATCHERS: SectionMatcher[] = [
     key: 'methods',
     label: 'Methods (Metode / Metodologi)',
     headingPatterns: [
-      /^(?:2\.?\s*)?(?:methods?|methodology|materials?\s+and\s+methods?|methods?\s+and\s+materials?)\b/i,
-      /^(?:metode|metodologi|studiedesign|research\s+design|study\s+design)\b/i,
-      /^(?:data\s+collection|datainnsamling|participants|deltakere|sample|utvalg)\b/i,
-      /^(?:data\s+analysis|analysemetode|statistical\s+analysis|statistiske\s+analyser)\b/i,
-      /^(?:ethics?|ethical\s+considerations?|etiske\s+vurderinger|etikk)\b/i
+      /^(?:(?:2\.?)+\s*)?(?:methods?|methodology|materials?\s+and\s+methods?|methods?\s+and\s+materials?)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:metode|metodologi|studiedesign|research\s+design|study\s+design)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:data\s+collection|datainnsamling|participants|deltakere|sample|utvalg)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:data\s+analysis|analysemetode|statistical\s+analysis|statistiske\s+analyser)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:ethics?|ethical\s+considerations?|etiske\s+vurderinger|etikk)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i
     ],
     semanticSignals: [
       /\b(?:semi-structured\s+interviews?|focus\s+groups?|halvstrukturerte\s+intervjuer|fokusgrupper)\b/i,
@@ -60,8 +85,9 @@ const IMRAD_MATCHERS: SectionMatcher[] = [
     key: 'results',
     label: 'Results (Resultater / Funn)',
     headingPatterns: [
-      /^(?:3\.?\s*)?(?:results?|findings|resultater|funn)\b/i,
-      /^(?:main\s+results?|hovedfunn|empiriske\s+funn)\b/i
+      /^(?:(?:3\.?)+\s*)?(?:results?|findings|resultater|funn)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:main\s+results?|hovedfunn|empiriske\s+funn)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:results?\s+and\s+discussion|resultater\s+og\s+diskusjon)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i
     ],
     semanticSignals: [
       /\b(?:table\s+\d+|tabell\s+\d+|figure\s+\d+|figur\s+\d+)\b/i,
@@ -75,9 +101,9 @@ const IMRAD_MATCHERS: SectionMatcher[] = [
     key: 'discussion',
     label: 'Discussion (Diskusjon / Drøfting)',
     headingPatterns: [
-      /^(?:4\.?\s*)?(?:discussion|interpretation|diskusjon|drøfting)\b/i,
-      /^(?:strengths?\s+and\s+limitations?|styrker\s+og\s+svakheter|begrensninger|limitations?)\b/i,
-      /^(?:conclusions?|konklusjon|clinical\s+implications?|implikasjoner)\b/i
+      /^(?:(?:4\.?)+\s*)?(?:discussion|interpretation|diskusjon|drøfting)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:strengths?\s+and\s+limitations?|styrker\s+og\s+svakheter|begrensninger|limitations?)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i,
+      /^(?:conclusions?|konklusjon|clinical\s+implications?|implikasjoner)\s*(?:[:—–-]\s*[A-ZÆØÅa-zæøå0-9\s]+)?$/i
     ],
     semanticSignals: [
       /\b(?:in\s+this\s+study,\s+we\s+found|denne\s+studien\s+viser\s+at|our\s+findings\s+indicate)\b/i,
@@ -108,6 +134,7 @@ function extractBlocks(text: string): ExtractedBlock[] {
   const isHeadingLine = (line: string): boolean => {
     const trimmed = line.trim();
     if (!trimmed || trimmed.length > 90) return false;
+    if (isProseSentence(trimmed)) return false;
     // Check markdown style headers (# Heading)
     if (/^#{1,4}\s+\S+/.test(trimmed)) return true;
     // Check HTML header tags (<h1..>)
@@ -195,6 +222,26 @@ export function getRecommendedReportingStandard(
         standard: 'RIGHT',
         rationale: 'RIGHT (Reporting Items for Practice Guidelines in Healthcare) / AGREE-S for faglige retningslinjer.'
       };
+    case 'Diagnostic Accuracy Study':
+      return {
+        standard: 'STARD',
+        rationale: 'STARD 2015 er standarden for transparent rapportering av diagnostiske nøyaktighetsstudier.'
+      };
+    case 'Case Report':
+      return {
+        standard: 'CARE',
+        rationale: 'CARE-retningslinjene sikrer transparent og komplett kasusrapportering.'
+      };
+    case 'Quality Improvement Study':
+      return {
+        standard: 'SQUIRE',
+        rationale: 'SQUIRE 2.0 (Standards for QUality Improvement Reporting Excellence) for systematiske kvalitetsforbedringsprosjekter.'
+      };
+    case 'Non-randomised Intervention':
+      return {
+        standard: 'STROBE',
+        rationale: 'STROBE / TREND for transparente ikke-randomiserte intervensjonsstudier.'
+      };
     default:
       return {
         standard: 'General',
@@ -220,6 +267,40 @@ export function analyzeIMRaDStructure(
   const trimmed = (text || '').trim();
   const wordCountTotal = (trimmed.match(/[\p{L}\p{N}_\-]+/gu) || []).length;
   const limitations: string[] = [];
+
+  // Guard 0: Explicit OCR_REQUIRED condition
+  if (trimmed.includes('OCR_REQUIRED') || trimmed.startsWith('[OCR_REQUIRED')) {
+    const ocrSections: IMRaDSectionAnalysis[] = IMRAD_MATCHERS.map(m => ({
+      key: m.key,
+      label: m.label,
+      detected: false,
+      explicitHeading: false,
+      confidence: 0,
+      characterCount: 0,
+      wordCount: 0,
+      evidencePreview: '',
+      status: 'OCR_REQUIRED' as IMRaDSectionStatus
+    }));
+
+    return {
+      fileName,
+      standard: 'IMRaD',
+      standardDescription: 'Klassisk vitenskapelig rapporteringsstruktur: Introduction, Methods, Results, Discussion.',
+      analyzedAt: new Date().toISOString(),
+      complete: false,
+      explicitComplete: false,
+      detectedSectionCount: 0,
+      explicitHeadingCount: 0,
+      confidence: 0,
+      sections: ocrSections,
+      missingSections: ['introduction', 'methods', 'results', 'discussion'],
+      limitations: ['Dokumentet krever OCR (ingen lesbar digital tekststrøm tilgjengelig). Optisk tegngjenkjenning må kjøres før strukturanalyse.'],
+      methodologicalNotice: 'OCR_REQUIRED: Parseren fant ingen lesbar digital tekststrøm. Dette skyldes skannet bilde/PDF eller manglende tekstlag, og er IKKE en metodisk mangel ved selve studien.',
+      expectedStructureRationale: getRecommendedReportingStandard(documentType).rationale,
+      recommendedReportingStandard: getRecommendedReportingStandard(documentType).standard,
+      isOcrRequired: true
+    };
+  }
 
   // Guard 1: Empty or whitespace-only document
   if (!trimmed) {
@@ -292,6 +373,7 @@ export function analyzeIMRaDStructure(
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (line.length > 0 && line.length < 80) {
+          if (isProseSentence(line)) continue;
           const matches = matcher.headingPatterns.some(p => p.test(line));
           if (matches) {
             explicitHeadingFound = line;

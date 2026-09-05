@@ -131,15 +131,54 @@ export const MultiReviewerComparison: React.FC<MultiReviewerComparisonProps> = (
 
   const handleLockConsensus = () => {
     const finalRatings: Record<string, DomainRating> = {};
+    let resolvedByArbiterCount = 0;
+    let unanimousCount = 0;
+    let unresolvedCount = 0;
+
     for (const domain of domains) {
       const res = resolvedRatings[domain.id];
       const row = stats.domainRows.find(r => r.domainId === domain.id);
-      const fallbackAns: RatingAnswer = res?.answer || row?.majorityAnswer || activeAssessments[0]?.ratings[domain.id]?.answer || 'yes';
+
+      let chosenAnswer: RatingAnswer;
+      let chosenRationale: string;
+      let isVerified = false;
+
+      if (res?.answer) {
+        // Explicitly adjudicated by arbiter
+        chosenAnswer = res.answer;
+        chosenRationale = res.note ? `Arbiter-beslutning (${arbiterName}): ${res.note}` : `Avgjort av arbiter (${arbiterName}) etter paneldiskusjon.`;
+        isVerified = true;
+        resolvedByArbiterCount++;
+      } else if (row?.status === 'unanimous' && row.majorityAnswer) {
+        // Unanimous agreement across all reviewers
+        chosenAnswer = row.majorityAnswer;
+        chosenRationale = 'Enstemmig enighet (100% konsensus) på tvers av samtlige uavhengige vurderere.';
+        isVerified = activeAssessments.some(a => a.ratings[domain.id]?.verifiedByResearcher === true);
+        unanimousCount++;
+      } else if (row?.majorityAnswer) {
+        // Majority decision from panel
+        chosenAnswer = row.majorityAnswer;
+        chosenRationale = `Flertallsbeslutning fra vurdererpanelet (${row.majorityPercentage}% enighet).`;
+        isVerified = activeAssessments.some(a => a.ratings[domain.id]?.verifiedByResearcher === true);
+      } else {
+        // No consensus or ratings provided
+        const anyExistingAnswer = activeAssessments.find(a => a.ratings[domain.id]?.answer)?.ratings[domain.id]?.answer;
+        if (anyExistingAnswer) {
+          chosenAnswer = anyExistingAnswer;
+          chosenRationale = 'Enkeltvurdering overført (ingen konsensus eller flertall etablert).';
+          isVerified = false;
+        } else {
+          chosenAnswer = 'unclear';
+          chosenRationale = 'Uavklart metodisk domene: Verken vurderere eller arbiter har registrert en eksplisitt vurdering.';
+          isVerified = false;
+          unresolvedCount++;
+        }
+      }
       
       finalRatings[domain.id] = {
-        answer: fallbackAns,
-        rationale: res?.note || (row?.status === 'unanimous' ? 'Unanimous panel agreement' : 'Consensus locked by panel arbiter'),
-        verifiedByResearcher: true,
+        answer: chosenAnswer,
+        rationale: chosenRationale,
+        verifiedByResearcher: isVerified,
         timestamp: new Date().toISOString()
       };
     }
@@ -154,7 +193,7 @@ export const MultiReviewerComparison: React.FC<MultiReviewerComparisonProps> = (
       ratings: finalRatings,
       updatedAt: new Date().toISOString(),
       isConsensus: true,
-      summaryNotes: `Multi-reviewer synthesis: ${activeAssessments.length} reviewers. Fleiss' Kappa κ=${stats.fleissKappa} (${stats.fleissInterpretation}), Unanimity: ${stats.unanimityPercentage}%. Discrepancies resolved.`
+      summaryNotes: `Fler-bedømmer konsensus: ${activeAssessments.length} vurderere. Fleiss' Kappa κ=${stats.fleissKappa} (${stats.fleissInterpretation}), Enstemmighet: ${stats.unanimityPercentage}%. ${unanimousCount} enstemmige, ${resolvedByArbiterCount} arbiter-besluttet, ${unresolvedCount} uavklarte.`
     };
 
     onSaveConsensus(consensusAssessment);
