@@ -1,7 +1,4 @@
-import type { AppraisalInstrument, DocumentClassificationResult } from '../types';
-import type { ResearchEngineDocument } from '../services/researchEngineGateway';
-import type { ResearchToAppraisalBundle } from '../services/researchEvidenceBridge';
-import type { EvidenceFoundation, EvidenceModule } from '../services/evidenceSystemFoundation';
+import type { AppraisalInstrument, DocumentClassificationResult, EvidenceLocation } from '../types';
 
 export type AppraisalAnswer = string | number | boolean | null;
 
@@ -60,9 +57,65 @@ export interface ScreeningRecord {
   updatedAt: string;
 }
 
+export interface ResearchDocumentContract {
+  id: string;
+  fileName: string;
+  fileType: string;
+  mimeType: string;
+  extractedText: string;
+  wordCount: number;
+  estimatedPages: number;
+  metadata: {
+    title?: string;
+    authors?: string;
+    year?: number;
+    journal?: string;
+    doi?: string;
+    abstract?: string;
+    studyDesignDetected?: string;
+    recommendedInstrumentId?: string;
+    [key: string]: unknown;
+  };
+  sections: unknown[];
+  scanned: boolean;
+  ocrNeeded: boolean;
+  candidateEvidence: unknown[];
+}
+
+export type ResearchEvidenceVerification = 'AI_CANDIDATE' | 'HUMAN_VERIFIED' | 'REJECTED' | 'MANUAL';
+
+export interface ResearchEvidenceRecord {
+  id: string;
+  studyId: string;
+  documentId: string;
+  location: EvidenceLocation;
+  quote: string;
+  source: ResearchEvidenceVerification;
+  verifiedByResearcher: boolean;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  questionId?: number;
+  suggestedStatus?: string;
+  relevanceScore: number;
+  confidenceReason: string;
+}
+
+export interface ResearchToAppraisalBundleContract {
+  contractVersion: string;
+  document: ResearchDocumentContract;
+  classification?: DocumentClassificationResult;
+  evidence: ResearchEvidenceRecord[];
+  readyForAppraisal: boolean;
+  gating: {
+    classificationRequired: true;
+    humanVerificationRequired: true;
+    instrumentRecommendation: string;
+  };
+}
+
 export interface ResearchWorkflowContext {
-  document: ResearchEngineDocument;
-  evidenceBundle: ResearchToAppraisalBundle;
+  document: ResearchDocumentContract;
+  evidenceBundle: ResearchToAppraisalBundleContract;
   analysis?: unknown;
   classificationVerified: boolean;
   selectedInstrumentId?: string;
@@ -76,24 +129,14 @@ export interface WorkflowState {
   studyDesign: string;
   screening: ScreeningRecord[];
   appraisalSessions: AppraisalSession[];
-  events: ReturnType<EvidenceFoundation['state']['events']>;
+  events: unknown[];
   research?: ResearchWorkflowContext;
 }
 
 export interface ResearchAppraisalPayload {
   studyId: string;
   instrumentId: string;
-  evidence: ReturnType<(state: WorkflowState) => AppraisalEvidenceLink[]>;
-  document: ResearchEngineDocument;
+  evidence: ResearchEvidenceRecord[];
+  document: ResearchDocumentContract;
   classification?: DocumentClassificationResult;
 }
-
-export type ResearchWorkflowHandoff = {
-  foundation: EvidenceFoundation;
-  fromModule: EvidenceModule;
-  toModule: EvidenceModule;
-  fromRole: string;
-  toRole: string;
-  studyId: string;
-  reason: string;
-};
