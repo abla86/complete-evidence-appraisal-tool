@@ -108,7 +108,7 @@ export class MethodIntegrityGate {
       criticalErrors.push(`Instrumentet «${instrumentId}» er ikke godkjent i registeret.`);
     }
 
-    const hasAuthorityLevel = ['original-source', 'peer-reviewed-publication', 'official-manual'].includes(instrument.authorityLevel);
+    const hasAuthorityLevel = ['original-source', 'peer-reviewed-publication', 'official-manual', 'gold-standard'].includes(instrument.authorityLevel);
     sourceChecks.push({
       name: 'Authority Level (Nivå 1/2 Kilde)',
       category: 'SOURCE',
