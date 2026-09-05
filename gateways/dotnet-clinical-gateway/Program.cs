@@ -8,3 +8,4 @@ app.MapPost("/evidence/sign",(EvidencePackage package)=>{var canonical=JsonSeria
 app.MapPost("/fhir/process",(JsonElement resource)=>Results.Ok(new{resourceType=resource.TryGetProperty("resourceType",out var t)?t.GetString():null,processedAt=DateTimeOffset.UtcNow}));
 app.Run();
 public record EvidencePackage(string ProjectId,object Evidence);
+public partial class Program { }
