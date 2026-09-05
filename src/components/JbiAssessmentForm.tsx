@@ -84,6 +84,8 @@ export const JbiAssessmentForm: React.FC<JbiAssessmentFormProps> = ({
   const [isDocModalOpen, setIsDocModalOpen] = useState<boolean>(false);
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
 
+  useEffect(() => { if (doi.trim().toLowerCase() === '10.1186/s12875-024-02269-9') { const targetTitle="There's a will, but not a way': Norwegian GPs' experiences of collaboration with child welfare services - a grounded theory study"; setTitle(v=>v||targetTitle); setAuthors(v=>v||'Oda Martine Steinsdatter Øverhaug; Johanna Laue; Svein Arild Vis; Mette Bech Risør'); setYear(v=>v||2024); setJournal(v=>v||'BMC Primary Care'); setDesign(v=>v||'Kvalitativ studie (Grounded Theory)'); } }, [doi]);
+
   // Re-run validation whenever items or metadata change
   useEffect(() => {
     const draft: Partial<ArticleAppraisal> = {

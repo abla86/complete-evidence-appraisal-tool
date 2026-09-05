@@ -84,6 +84,8 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
     showToast('Komplett hvelv-backup lastet ned!', 'success');
   };
 
+  const handleClearVault = () => { AutosaveService.clearArticleVault(); onRestoreArticles([]); setSnapshots([]); showToast('Lokal artikkelbuffer er tømt. Nye metadata kan nå overskrive gammel cache.', 'success'); };
+
   const handleSaveNow = () => {
     AutosaveService.saveArticles(articles, true);
     showToast('Alle artikler og vurderinger er lagret til hvelvet!', 'success');
@@ -142,7 +144,9 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
             </button>
           </div>
 
-          {/* Create Manual Snapshot */}
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3"><div><strong className="text-amber-950">Stale eller feilaktige metadata?</strong><p className="text-amber-900 mt-1">Tøm lokal buffer før ny import dersom gammel cache hindrer overskriving.</p></div><button type="button" onClick={handleClearVault} className="px-3.5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shrink-0 flex items-center gap-1.5"><Trash2 className="w-4 h-4" />Nullstill / Tøm lokal buffer</button></div>
+
+          {/* Create Manual Snapshot */
           <div className="space-y-2">
             <label className="font-bold text-slate-900 block text-xs">
               Opprett nytt manuelt gjenopprettingspunkt (Snapshot):

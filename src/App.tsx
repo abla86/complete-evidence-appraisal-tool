@@ -132,15 +132,15 @@ export default function App() {
     if (mode === 'replace') {
       const seenIds = new Set<string>();
       const sanitized = importedArticles.map(art => { let uniqueId = art.id; if (!uniqueId || seenIds.has(uniqueId)) uniqueId = generateArticleId('art'); seenIds.add(uniqueId); return { ...art, id: uniqueId }; });
-      setArticles(sanitized); if (sanitized.length) setSelectedArticleId(sanitized[0].id);
+      setArticles(sanitized); if (sanitized.length) { setSelectedArticleId(sanitized[0].id); setSelectedInstrumentId(sanitized[0].instrumentId || ''); }
     } else {
       const existingIds = new Set(articles.map(p => p.id)); const newItems: ArticleAppraisal[] = [];
       importedArticles.forEach(item => { let uniqueId = item.id; if (!uniqueId || existingIds.has(uniqueId)) uniqueId = generateArticleId('art'); existingIds.add(uniqueId); newItems.push({ ...item, id: uniqueId }); });
-      setArticles(prev => [...newItems, ...prev]); if (newItems.length) setSelectedArticleId(newItems[0].id);
+      setArticles(prev => [...newItems, ...prev]); if (newItems.length) { setSelectedArticleId(newItems[0].id); setSelectedInstrumentId(newItems[0].instrumentId || ''); }
     }
   };
   const handleSelectArticle = (id: string) => { setSelectedArticleId(id); setActiveTab('details'); };
-  const handleEditArticle = (article: ArticleAppraisal) => { setEditingArticle(article); setSelectedArticleId(article.id); setActiveTab('evaluate'); };
+  const handleEditArticle = (article: ArticleAppraisal) => { const instrumentId = article.instrumentId || ((article.design || '').toLowerCase().includes('kvalitativ') ? 'jbi-qualitative-2017' : ''); const syncedArticle = instrumentId && article.instrumentId !== instrumentId ? { ...article, instrumentId, instrumentVersion: article.instrumentVersion || '2017' } : article; if (instrumentId) setSelectedInstrumentId(instrumentId); setArticles(prev => prev.map(a => a.id === article.id ? syncedArticle : a)); setEditingArticle(syncedArticle); setSelectedArticleId(article.id); setActiveTab('evaluate'); };
   const handleNewArticle = () => { setEditingArticle(null); setActiveTab('evaluate'); };
   const handleSaveArticle = (savedArticle: ArticleAppraisal) => { setArticles(prev => { const idx = prev.findIndex(a => a.id === savedArticle.id); if (idx >= 0) { const next = [...prev]; next[idx] = savedArticle; return next; } return [savedArticle, ...prev]; }); setSelectedArticleId(savedArticle.id); setEditingArticle(null); setActiveTab('details'); };
   const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];

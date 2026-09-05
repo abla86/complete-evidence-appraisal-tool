@@ -79,7 +79,7 @@ class AutosaveManager {
           localStorage.removeItem(STORAGE_KEY_ARTICLES);
           return fallback;
         }
-        return parsed;
+        const sanitized = parsed.filter((a: ArticleAppraisal) => { const authorText=String(a?.authors||'').toLowerCase(); const titleText=String(a?.title||'').trim().toLowerCase(); return !authorText.includes('identifisert') && !titleText.startsWith('[skannet dokument'); }); if (sanitized.length !== parsed.length) { if (sanitized.length) localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(sanitized)); else localStorage.removeItem(STORAGE_KEY_ARTICLES); } return sanitized;
       }
       return fallback;
     } catch (err) {
@@ -87,6 +87,9 @@ class AutosaveManager {
       return fallback;
     }
   }
+
+  /** Clear stale local article state so a new import can replace it. */
+  public clearArticleVault(): void { try { localStorage.removeItem(STORAGE_KEY_ARTICLES); localStorage.removeItem(`${STORAGE_KEY_ARTICLES}_last_saved`); this.notify({state:'idle',lastSavedAt:null,message:'Lokal artikkelbuffer tømt'}); } catch (e) { console.warn('Could not clear article vault:',e); } }
 
   /**
    * Save articles immediately or with debounce
