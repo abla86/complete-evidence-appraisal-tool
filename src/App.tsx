@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { JBI_QUESTIONS } from './data/jbiData';
+import { MASTER_INSTRUMENTS_REGISTRY } from './data/masterRegistry';
 import { createBlankAppraisalSession, upsertAppraisalResponse } from './services/universalAppraisalService';
-import { ArticleAppraisal, AssessmentStatus, JBIEvaluationItem } from './types';
+import { ArticleAppraisal } from './types';
 import { generateArticleId, generateAuditId } from './services/idGenerator';
 import { AutosaveService } from './services/autosaveService';
 import { Header, ActiveTab } from './components/Header';
@@ -41,10 +41,6 @@ import { ImportExportService } from './services/importExportService';
 import { StudioStateProvider } from './state/StudioStateContext';
 import { ClinicalInteroperabilityPanel } from './components/ClinicalInteroperabilityPanel';
 
-function createBlankJbiItems(defaultStatus: AssessmentStatus = 'Uklart', defaultJustification = ''): JBIEvaluationItem[] {
-  return JBI_QUESTIONS.map(q => ({ questionId: q.id, status: defaultStatus, justification: defaultJustification, evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } }));
-}
-
 function articleToReference(article: ArticleAppraisal): ReferenceRecord {
   return createReferenceRecord({ id: article.id, kind: 'JOURNAL_ARTICLE', title: article.title, authors: article.authors, year: article.year, journal: article.journal, volume: article.volumeIssue?.split('(')[0]?.trim(), issue: article.volumeIssue?.match(/\((.*?)\)/)?.[1], pages: article.pages, doi: article.doi, url: article.sourceUrl, importedFrom: ['JSON'], tags: [], collections: ['Evidence Appraisal Workspace'] });
 }
@@ -55,14 +51,7 @@ export default function App() {
   const [isDocAnalysisOpen, setIsDocAnalysisOpen] = useState(false);
 
   useEffect(() => { document.title = `Complete Evidence Appraisal Suite · ${tabTitles[activeTab]}`; }, [activeTab]);
-  const createDemoArticle = (): ArticleAppraisal => ImportExportService.createDefaultArticle({
-    id: 'demo-rct-heart-failure-2025',
-    title: 'Digital Remote Telemonitoring versus Standard Care for Chronic Heart Failure',
-    authors: 'Henriksen, M.; Sunde, C.; Berg, T. G.; Rostova, E.', year: 2025, journal: 'Scandinavian Cardiovascular Journal',
-    doi: '10.1080/14017431.2025.210491', design: 'Randomisert kontrollert studie (RCT)',
-    studyContext: 'Multisenter klinisk RCT ved kronisk hjertesvikt', sourceName: 'Innebygd klinisk demonstrasjonsstudie',
-  });
-  const [articles, setArticles] = useState<ArticleAppraisal[]>(() => { const loaded = AutosaveService.loadArticles([]); return loaded.length ? loaded : [createDemoArticle()]; });
+  const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
   useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return () => window.removeEventListener('research-suite:navigate', handler); }, []);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
@@ -118,7 +107,7 @@ export default function App() {
               {activeTab === 'audittrail' && <AuditTrailView articles={articles} />}
               {activeTab === 'who_validation' && <WhoValidationHubView articles={articles} onSelectArticleForEdit={(id) => { const art = articles.find(a => a.id === id); if (art) handleEditArticle(art); }} onSelectArticleForView={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
               {activeTab === 'methodology_audit' && <MethodologyAuditView />}
-              {activeTab === 'meta_research' && <MetaResearchLabView onSelectInstrumentForAssessment={(instrumentId, prefillArticle) => { setSelectedInstrumentId(instrumentId); if (prefillArticle) { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId, instrumentVersion: 'PENDING_VERIFICATION', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny forskningsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på forskning', journal: 'Vitenskapelig tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Ukjent / Uavklart', dataCollection: 'Se fulltekst', participants: 'Se fulltekst', analyticMethod: 'Se fulltekst', summaryScore: { ja: 0, uklart: 10, nei: 0, ikkeRelevant: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Krever vurdering med valgt instrument', keyStrength: 'Ikke forhåndsvurdert', mainLimitation: 'Fulltekst må kontrolleres', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: createBlankJbiItems(), auditTrail: [] }; setArticles(prev => [...prev, newArt]); setSelectedArticleId(newArt.id); } setActiveTab('instrumentinfo'); }} onSaveToLibrary={() => setActiveTab('overview')} />}
+              {activeTab === 'meta_research' && <MetaResearchLabView onSelectInstrumentForAssessment={(instrumentId, prefillArticle) => { setSelectedInstrumentId(instrumentId); if (prefillArticle) { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId, instrumentVersion: 'PENDING_VERIFICATION', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny forskningsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på forskning', journal: 'Vitenskapelig tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Ukjent / Uavklart', dataCollection: 'Se fulltekst', participants: 'Se fulltekst', analyticMethod: 'Se fulltekst', summaryScore: { ja: 0, uklart: 10, nei: 0, ikkeRelevant: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Krever vurdering med valgt instrument', keyStrength: 'Ikke forhåndsvurdert', mainLimitation: 'Fulltekst må kontrolleres', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: (MASTER_INSTRUMENTS_REGISTRY.find(inst => inst.id === instrumentId)?.questions ?? []).map(q => ({ questionId: Number(q.id), status: 'Uklart', justification: '', evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } })), auditTrail: [] }; setArticles(prev => [...prev, newArt]); setSelectedArticleId(newArt.id); } setActiveTab('instrumentinfo'); }} onSaveToLibrary={() => setActiveTab('overview')} />}
               {activeTab === 'reference_hub' && <><ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} /><ClinicalInteroperabilityPanel /></>}
               {activeTab === 'writing_studio' && <WritingStudioView references={referenceRecords} />}
               {activeTab === 'reference_library' && <ReferenceLibraryView articles={articles} />}
