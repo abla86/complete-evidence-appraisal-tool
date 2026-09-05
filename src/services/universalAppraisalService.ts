@@ -1,4 +1,6 @@
 import type { AppraisalInstrument } from '../types';
+import type { AppraisalAnswer, AppraisalEvidenceLink, AppraisalItemResponse, AppraisalSession, AppraisalSessionValidation, AppraisalLaunchDecision } from '../types/workflow.contracts';
+export type { AppraisalAnswer, AppraisalEvidenceLink, AppraisalItemResponse, AppraisalSession, AppraisalSessionValidation, AppraisalLaunchDecision } from '../types/workflow.contracts';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 
 const randomUUID = (): string => {
@@ -14,53 +16,6 @@ const randomUUID = (): string => {
   }
   throw new Error('Secure UUID generation is unavailable in this runtime.');
 };
-
-export type AppraisalAnswer = string | number | boolean | null;
-
-export interface AppraisalEvidenceLink {
-  quote?: string;
-  page?: string;
-  section?: string;
-  table?: string;
-  figure?: string;
-  url?: string;
-  sourceId?: string;
-}
-
-export interface AppraisalItemResponse {
-  itemId: number | string;
-  answer: AppraisalAnswer;
-  rationale: string;
-  evidence?: AppraisalEvidenceLink;
-}
-
-export interface AppraisalSession {
-  id: string;
-  studyId: string;
-  instrumentId: string;
-  instrumentVersion: string;
-  reviewerId: string;
-  responses: AppraisalItemResponse[];
-  overallJudgement?: string;
-  overallRationale?: string;
-  createdAt: string;
-  updatedAt: string;
-  locked: boolean;
-}
-
-export interface AppraisalSessionValidation {
-  valid: boolean;
-  missingItemIds: string[];
-  missingRationales: string[];
-  issues: string[];
-}
-
-export interface AppraisalLaunchDecision {
-  instrument: AppraisalInstrument | null;
-  allowed: boolean;
-  warnings: string[];
-  reason: string;
-}
 
 function normalizeId(value: number | string): string { return String(value).trim(); }
 
