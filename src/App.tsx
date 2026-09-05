@@ -39,6 +39,7 @@ import type { AppraisalSession } from './services/universalAppraisalService';
 import { EvidencePipelineService, type EvidencePipelineState } from './services/evidencePipelineService';
 import { ImportExportService } from './services/importExportService';
 import { StudioStateProvider } from './state/StudioStateContext';
+import { ClinicalInteroperabilityPanel } from './components/ClinicalInteroperabilityPanel';
 
 function createBlankJbiItems(defaultStatus: AssessmentStatus = 'Uklart', defaultJustification = ''): JBIEvaluationItem[] {
   return JBI_QUESTIONS.map(q => ({ questionId: q.id, status: defaultStatus, justification: defaultJustification, evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } }));
@@ -141,7 +142,7 @@ export default function App() {
             <UniversalAppraisalView studyId={currentStudyId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />
           ) : <>
             {activeTab === 'overview' && <OverviewView articles={articles} onSelectArticle={handleSelectArticle} onEditArticle={handleEditArticle} onGoToThesis={() => setActiveTab('synthesis')} onOpenCustomEvaluator={handleNewArticle} onOpenImportExport={handleOpenImportExport} />}
-            {activeTab === 'document_studio' && <DocumentAnalysisModal isOpen={true} onClose={() => setActiveTab('overview')} />}
+            {activeTab === 'document_studio' && <><DocumentAnalysisModal isOpen={true} onClose={() => setActiveTab('overview')} /><ClinicalInteroperabilityPanel /></>}
             {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported) => {
               const newArt = ImportExportService.createDefaultArticle({
                 id: generateArticleId('art'),
@@ -177,7 +178,7 @@ export default function App() {
             {activeTab === 'who_validation' && <WhoValidationHubView articles={articles} onSelectArticleForEdit={(id) => { const art = articles.find(a => a.id === id); if (art) handleEditArticle(art); }} onSelectArticleForView={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
             {activeTab === 'methodology_audit' && <MethodologyAuditView />}
             {activeTab === 'meta_research' && <MetaResearchLabView onSelectInstrumentForAssessment={(instrumentId, prefillArticle) => { setSelectedInstrumentId(instrumentId); if (prefillArticle) { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId, instrumentVersion: 'PENDING_VERIFICATION', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny forskningsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på forskning', journal: 'Vitenskapelig tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Ukjent / Uavklart', dataCollection: 'Se fulltekst', participants: 'Se fulltekst', analyticMethod: 'Se fulltekst', summaryScore: { ja: 0, uklart: 10, nei: 0, ikkeRelevant: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Krever vurdering med valgt instrument', keyStrength: 'Ikke forhåndsvurdert', mainLimitation: 'Fulltekst må kontrolleres', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: createBlankJbiItems('Uklart', 'Opprettet for instrumentvurdering; ingen vurdering er forhåndsgitt.'), auditTrail: [] }; setArticles(prev => [...prev, newArt]); setSelectedArticleId(newArt.id); } setActiveTab('instrumentinfo'); }} onSaveToLibrary={() => setActiveTab('overview')} />}
-            {activeTab === 'reference_hub' && <ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} />}
+            {activeTab === 'reference_hub' && <><ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} /><ClinicalInteroperabilityPanel /></>}
             {activeTab === 'writing_studio' && <WritingStudioView references={referenceRecords} />}
             {activeTab === 'reference_library' && <ReferenceLibraryView articles={articles} />}
             {activeTab === 'validation_dashboard' && <ValidationDashboardView />}
