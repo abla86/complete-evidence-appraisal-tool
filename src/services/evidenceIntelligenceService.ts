@@ -8,7 +8,7 @@ interface CrossrefWorkResponse { message?: CrossrefMessage; }
 interface EuropePmcResult { id?: string; source?: string; doi?: string; pmid?: string; title?: string; authorString?: string; journalTitle?: string; pubYear?: string | number; isOpenAccess?: string; isRetracted?: string; }
 interface EuropePmcResponse { hitCount?: number; resultList?: { result?: EuropePmcResult[] }; }
 
-interface ExternalPublicationRecord {
+export interface ExternalPublicationRecord {
   doi?: string;
   title: string;
   authors: string[];
