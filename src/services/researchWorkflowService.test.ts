@@ -13,7 +13,8 @@ test('research workflow blocks appraisal until all human gates are satisfied', (
   next=updateResearchClassification(next,{...c,confidenceStatus:'HUMAN_VERIFIED',humanDecision:{status:'APPROVED',verifiedBy:'reviewer-1',verifiedAt:new Date().toISOString(),rationale:'Reviewed'}});
   next=verifyResearchClassification(next,'reviewer-1',true);
   const candidate=next.research!.evidenceBundle.evidence.find(x=>x.source==='AI_CANDIDATE');
-  if(candidate) next=verifyResearchEvidence(next,candidate.id,true,'reviewer-1');
+  assert.ok(candidate, 'Expected at least one AI candidate evidence item in gate test.');
+  next=verifyResearchEvidence(next,candidate.id,true,'reviewer-1');
   const instrument=next.research!.selectedInstrumentId;
   if(instrument) {
     next=selectResearchInstrument(next,instrument);
