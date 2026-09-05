@@ -7,6 +7,7 @@ import {
   updateResearchClassification,
   verifyResearchClassification,
   verifyResearchEvidence,
+  recordScreeningDecision,
   buildResearchAppraisalPayload,
   selectResearchInstrument,
 } from '../src/services/researchWorkflowService';
@@ -47,6 +48,7 @@ test('orchestrator creates one canonical appraisal session and preserves verifie
   let state = updateResearchClassification(workflow, classification(instrumentId, 'Kvalitativ'));
   state = verifyResearchClassification(state, 'reviewer-1', true);
   state = selectResearchInstrument(state, instrumentId);
+  state = recordScreeningDecision(state, 'reviewer-1', 'INCLUDED');
 
   const firstEvidence = state.research?.evidenceBundle.evidence[0];
   assert.ok(firstEvidence);
@@ -71,6 +73,7 @@ test('research-to-export contract rejects incomplete synthesis provenance', asyn
   let state = updateResearchClassification(createResearchWorkflowFromText('Aim: explore experiences. Methods: qualitative study.', 'study.txt', `export-1788487221175`), classification(instrumentId, 'Kvalitativ'));
   state = verifyResearchClassification(state, 'reviewer-1', true);
   state = selectResearchInstrument(state, instrumentId);
+  state = recordScreeningDecision(state, 'reviewer-1', 'INCLUDED');
   const evidence = state.research?.evidenceBundle.evidence[0];
   assert.ok(evidence);
   state = verifyResearchEvidence(state, evidence.id, true, 'reviewer-1');
