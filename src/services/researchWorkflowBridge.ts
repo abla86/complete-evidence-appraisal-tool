@@ -1,6 +1,6 @@
 import type { AppraisalSession } from '../types/workflow.contracts';
 import type { PICO, ScreeningDecision, ReviewComparison, ReviewInstance, ResolvedAppraisal, DualReviewConfig, PRISMAFlow } from '../types/researchWorkflow';
-import { AuditTrailService } from './auditTrailService';
+import { AuditTrailService } from './auditTrailService.ts';
 import type { Actor } from './sourceIntakeService';
 
 export interface AppraisalWorkflowLookup {
