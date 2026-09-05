@@ -7,7 +7,6 @@ import { AutosaveService } from './services/autosaveService';
 import { Header, ActiveTab } from './components/Header';
 import { OverviewView } from './components/OverviewView';
 import { ArticleDetailView } from './components/ArticleDetailView';
-import { JbiAssessmentForm } from './components/JbiAssessmentForm';
 import { DualReviewView } from './components/DualReviewView';
 import { UniversalDualReviewPanel } from './components/UniversalDualReviewPanel';
 import { PeerReviewStudioView } from './components/PeerReviewStudioView';
