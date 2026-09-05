@@ -41,6 +41,70 @@ async function startServer() {
     });
   });
 
+  app.get('/api/doi-lookup', async (req: Request, res: Response) => {
+    const rawDoi = String(req.query.doi || '').trim();
+    const cleanDoi = rawDoi
+      .replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '')
+      .replace(/^doi:\\s*/i, '')
+      .replace(/[<>\\s]+$/g, '')
+      .trim();
+
+    if (!cleanDoi) return res.status(400).json({ success: false, error: 'DOI er påkrevd.' });
+
+    const normalize = (message: any, source: 'Crossref' | 'OpenAlex') => {
+      if (source === 'Crossref') {
+        const year = message?.['published-print']?.['date-parts']?.[0]?.[0]
+          || message?.['published-online']?.['date-parts']?.[0]?.[0]
+          || message?.created?.['date-parts']?.[0]?.[0];
+        return {
+          title: message?.title?.[0] || '',
+          authors: Array.isArray(message?.author) ? message.author.map((a: any) => `${a.given || ''} ${a.family || ''}`.trim()).filter(Boolean).join(', ') : '',
+          year: year || undefined,
+          journal: message?.['container-title']?.[0] || '',
+          doi: cleanDoi,
+          source,
+        };
+      }
+      const year = message?.publication_year || message?.from_publication_date?.slice?.(0, 4);
+      return {
+        title: message?.title || '',
+        authors: Array.isArray(message?.authorships) ? message.authorships.map((a: any) => a?.author?.display_name || '').filter(Boolean).join(', ') : '',
+        year: year ? Number(year) : undefined,
+        journal: message?.primary_location?.source?.display_name || '',
+        doi: cleanDoi,
+        source,
+      };
+    };
+
+    try {
+      const crossref = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`, {
+        headers: { Accept: 'application/json', 'User-Agent': 'CompleteEvidenceAppraisalTool/1.0 (mailto:research@example.org)' }
+      });
+      if (crossref.ok) {
+        const json = await crossref.json();
+        const metadata = normalize(json?.message, 'Crossref');
+        if (metadata.title || metadata.authors) return res.json({ success: true, metadata });
+      }
+    } catch (_err) {
+      // Fall through to OpenAlex.
+    }
+
+    try {
+      const openAlex = await fetch(`https://api.openalex.org/works/https://doi.org/${encodeURIComponent(cleanDoi)}`, {
+        headers: { Accept: 'application/json' }
+      });
+      if (openAlex.ok) {
+        const json = await openAlex.json();
+        const metadata = normalize(json, 'OpenAlex');
+        if (metadata.title || metadata.authors) return res.json({ success: true, metadata });
+      }
+    } catch (_err) {
+      // Report a stable API error below.
+    }
+
+    return res.status(404).json({ success: false, error: 'Fant ingen metadata for DOI via Crossref eller OpenAlex.' });
+  });
+
   app.get('/api/instruments', (_req: Request, res: Response) => {
     res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY });
   });
