@@ -38,6 +38,7 @@ import { loadAppraisalSessions, upsertAppraisalSession } from './services/apprai
 import type { AppraisalSession } from './services/universalAppraisalService';
 import { EvidencePipelineService, type EvidencePipelineState } from './services/evidencePipelineService';
 import { ImportExportService } from './services/importExportService';
+import { StudioStateProvider } from './state/StudioStateContext';
 
 function createBlankJbiItems(defaultStatus: AssessmentStatus = 'Uklart', defaultJustification = ''): JBIEvaluationItem[] {
   return JBI_QUESTIONS.map(q => ({ questionId: q.id, status: defaultStatus, justification: defaultJustification, evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } }));
