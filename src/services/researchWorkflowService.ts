@@ -46,7 +46,8 @@ export function assertReadyForAppraisal(state:WorkflowState):void{
     .map(item => String(item.decision ?? item.status ?? item.screeningStatus ?? '').trim().toUpperCase())
     .filter(Boolean);
   const hasExcludedScreening = statuses.includes('EXCLUDED');
-  if (hasExcludedScreening) throw new Error('INCLUDED screening decision required before appraisal.');
+  const hasIncludedScreening = statuses.includes('INCLUDED');
+  if (!hasIncludedScreening || hasExcludedScreening) throw new Error('INCLUDED screening decision required before appraisal.');
   if (!state.research) throw new Error('Ingen research-workflow er knyttet til studien.');
   if (!state.research.classificationVerified) throw new Error('Human verification av dokumentklassifisering (classification) er påkrevd.');
   if (!state.research.selectedInstrumentId) throw new Error('Appraisal-instrument er ikke valgt.');
