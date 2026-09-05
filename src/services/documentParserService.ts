@@ -4,6 +4,10 @@ import { MetaResearchService } from './metaResearchService';
 import { IMRaDAnalysisService } from './imradAnalysisService';
 import mammoth from 'mammoth';
 
+export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
+
+export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*†‡§0-9¹²³⁴⁵⁶⁷⁸⁹]+/g, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
+
 export interface FileParseResult {
   fileName: string;
   fileSizeBytes: number;
@@ -267,7 +271,7 @@ export class DocumentParserService {
     let doi = '';
     const doiMatch = text.match(/10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+/);
     if (doiMatch) {
-      doi = doiMatch[0].replace(/[.,;)]$/, '');
+      doi = normalizeDoi(doiMatch[0]);
     }
 
     // 2. Title
@@ -288,18 +292,14 @@ export class DocumentParserService {
       title = fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
     }
 
-    // 3. Authors
+    // 3. Authors — preserve Unicode names and remove BMC footnote markers.
     let authors = '';
-    const authorsExplicit = text.match(/authors?\s*[:\-]\s*(.+)/i);
+    const authorsExplicit = text.match(/authors?\s*[:\-]\s*([^\n]+)/i);
     if (authorsExplicit && authorsExplicit[1].length > 5) {
-      authors = authorsExplicit[1].split(/\n/)[0].trim();
+      authors = parseAuthorList(authorsExplicit[1]).join('; ');
     } else {
-      const authorMatch = text.match(/([A-Z][a-zæøå]+,\s+[A-Z]\.[\s\w.,&]+(?:\(\d{4}\)|et al\.?))/);
-      if (authorMatch) {
-        authors = authorMatch[0];
-      } else {
-        authors = 'Forfattere ikke entydig identifisert';
-      }
+      const authorMatch = text.match(/(?:[A-ZÆØÅ][\p{L}'’-]+(?:\s+[\p{L}'’-]+){1,6}["¹²³⁴⁵⁶⁷⁸⁹]*\s*,?\s*){2,}(?:and\s+)?[A-ZÆØÅ][\p{L}'’-]+(?:\s+[\p{L}'’-]+){1,6}[¹²³⁴⁵⁶⁷⁸⁹]*/iu);
+      authors = authorMatch ? parseAuthorList(authorMatch[0]).join('; ') : 'Forfattere ikke entydig identifisert';
     }
 
     // 4. Year

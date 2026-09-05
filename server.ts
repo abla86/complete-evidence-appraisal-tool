@@ -44,7 +44,7 @@ async function startServer() {
   app.get('/api/doi-lookup', async (req: Request, res: Response) => {
     const rawDoi = String(req.query.doi || '').trim();
     const cleanDoi = rawDoi
-      .replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '')
+      .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
       .replace(/^doi:\s*/i, '')
       .replace(/[<>\s]+$/g, '')
       .trim();
