@@ -95,7 +95,7 @@ export class GroupCollaborationService {
           startedAt: '2026-03-01T09:00:00Z',
           completedAt: '2026-03-01T10:30:00Z',
           items: rev1Items,
-          overallVerdict: art.overallVerdict,
+          overallVerdict: art.overallVerdict as PeerReviewSubmission['overallVerdict'],
           verdictRationale: art.verdictNote || 'Metodisk solid kvalitativ studie med god forankring.',
           keyStrength: art.keyStrength,
           mainLimitation: art.mainLimitation
@@ -143,7 +143,7 @@ export class GroupCollaborationService {
         assignedReviewerIds: ['rev-1', 'rev-2'],
         arbiterId: 'rev-3',
         itemConsensus,
-        overallVerdict: art.overallVerdict,
+        overallVerdict: art.overallVerdict as PeerReviewSubmission['overallVerdict'],
         verdictRationale: 'Enstemmig konsensus oppnådd etter felles kalibrering og gjennomgang av primærkildens sitater.',
         consensusNotes: 'Konsensusmøte avholdt via digital samhandling. Ingen uoverkommelige metodiske avvik identifisert.',
         signedOffBy: ['rev-1', 'rev-2'],
