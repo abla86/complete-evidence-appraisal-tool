@@ -2,29 +2,53 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const serverEntry = path.join(projectRoot, 'server.ts');
-const viteEntry = path.join(projectRoot, 'node_modules', 'vite', 'bin', 'vite.js');
-const tsxEntry = path.join(projectRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const serverEntry = path.join(root, 'server.ts');
+const viteEntry = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
+const tsxEntry = path.join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+
+function start(command, args) {
+  return spawn(command, args, {
+    cwd: root,
+    stdio: 'inherit',
+    shell: false,
+    windowsHide: false,
+  });
+}
 
 const children = [
-  spawn(process.execPath, [tsxEntry, serverEntry], { cwd: projectRoot, stdio: 'inherit', shell: false }),
-  spawn(process.execPath, [viteEntry], { cwd: projectRoot, stdio: 'inherit', shell: false }),
+  start(process.execPath, [tsxEntry, serverEntry]),
+  start(process.execPath, [viteEntry]),
 ];
 
 let stopping = false;
-function stop(code = 0) {
+
+const stop = (code = 0) => {
   if (stopping) return;
   stopping = true;
-  for (const child of children) child.kill('SIGTERM');
+  for (const child of children) {
+    if (!child.killed) child.kill('SIGTERM');
+  }
   process.exitCode = code;
-}
+};
 
 for (const child of children) {
-  child.on('error', () => stop(1));
+  child.on('error', error => {
+    console.error(`Development process failed to start: ${error.message}`);
+    stop(1);
+  });
+
   child.on('exit', (code, signal) => {
     if (stopping) return;
-    stop(signal ? 1 : code ?? 1);
+    if (signal) {
+      console.error(`Development process exited with signal ${signal}.`);
+      stop(1);
+      return;
+    }
+    if (code !== 0) {
+      console.error(`Development process exited with code ${code ?? 1}.`);
+      stop(code ?? 1);
+    }
   });
 }
 
