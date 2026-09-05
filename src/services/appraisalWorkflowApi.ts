@@ -51,22 +51,10 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
       const attached = await createAndAttachAppraisal(payload, reviewerId, session => {
         const current = getWorkflowOrNull(req.params.studyId);
         if (!current) throw new Error('Workflow not found');
-        const now = new Date().toISOString();
-        const screening = current.screening.some(item => item.reviewerId === reviewerId)
-          ? current.screening.map(item => item.reviewerId === reviewerId
-            ? { ...item, decision: 'INCLUDED' as const, updatedAt: now }
-            : item)
-          : [...current.screening, { studyId: current.studyId, reviewerId, decision: 'INCLUDED' as const, updatedAt: now }];
-
         const appraisalSessions = current.appraisalSessions.some(item => item.id === session.id)
           ? current.appraisalSessions.map(item => item.id === session.id ? session : item)
           : [...current.appraisalSessions, session];
-
-        return researchWorkflowStore.save({
-          ...current,
-          screening,
-          appraisalSessions,
-        });
+        return researchWorkflowStore.save({ ...current, appraisalSessions });
       });
 
       const response = sessionResponse(attached.record.session.id);
