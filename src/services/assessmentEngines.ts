@@ -64,7 +64,7 @@ export class Prisma2020ReportingEngine{public static evaluateReporting(r:Record<
 export type Cfir2ConstructItemAlias=Cfir2ConstructItem;
 export type WhoEtdCriteriaInputAlias=WhoEtdCriteriaInput;
 export class WhoEtdAssessmentEngine{public static evaluateEtD(i:WhoEtdCriteriaInput):WhoEtdEvaluationResult{return{guidelineQuestion:i.guidelineQuestion,targetPopulation:i.targetPopulation,intervention:i.intervention,comparison:i.comparison,recommendationType:'Krever eksplisitt EtD-judgment',strengthRationale:'EtD-resultatet skal bygge på eksplisitt vurdering av relevante kriterier.',detailedCriteriaAudit:Object.entries(i).map(([criterion,value])=>({criterion,present:Boolean(String(value??'').trim())})),implementationConsiderations:[],monitoringAndEvaluation:[],methodologicalStandard:'WHO EtD framework'};}}
-export const IMPLEMENTED_INSTRUMENT_IDS=new Set<string>(['amstar-2','agree-ii','jbi-qualitative-2017','rob-2','robins-i','robins-e','robis','quadas-2','quips','probast','mmat-2018','grade','grade-cerqual','prisma-2020','cfir-2','kta',...Array.from(CASP_IDS)]);
+export const IMPLEMENTED_INSTRUMENT_IDS=new Set<string>(['jbi-qualitative-2017','amstar-2','agree-ii','rob-2','robins-i']);
 export function isInstrumentImplemented(inst:AppraisalInstrument){return IMPLEMENTED_INSTRUMENT_IDS.has(inst.id);}
 export class RobinsIValidationService{public static evaluate(i:Parameters<typeof RobinsIAssessmentEngine.evaluate>[0]){return RobinsIAssessmentEngine.evaluate(i);}}
 export class RobisValidationService{public static evaluate(i:Parameters<typeof RobisAssessmentEngine.evaluate>[0]){return RobisAssessmentEngine.evaluate(i);}}
