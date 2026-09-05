@@ -27,32 +27,68 @@ function findExecutableTarget() {
   const hasServerTs = fs.existsSync(serverPath);
 
   if (hasServerTs) {
-    try {
-      const tsxPath = require.resolve('tsx/dist/cli.mjs');
+    const tsxDirectPath = path.join(projectRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+    if (fs.existsSync(tsxDirectPath)) {
       return {
         bin: process.execPath,
-        args: [tsxPath, 'server.ts'],
+        args: [tsxDirectPath, 'server.ts'],
         cwd: projectRoot,
         type: 'tsx-server'
       };
+    }
+
+    try {
+      const tsxPkg = require.resolve('tsx/package.json');
+      const tsxDir = path.dirname(tsxPkg);
+      const cliPath = path.join(tsxDir, 'dist', 'cli.mjs');
+      if (fs.existsSync(cliPath)) {
+        return {
+          bin: process.execPath,
+          args: [cliPath, 'server.ts'],
+          cwd: projectRoot,
+          type: 'tsx-server'
+        };
+      }
     } catch {
-      // Fallback if tsx resolution fails
+      // Fallback if tsx package resolution fails
     }
   }
 
   // Fallback to Vite directly
-  try {
-    const vitePath = require.resolve('vite/bin/vite.js');
+  const viteDirectPath = path.join(projectRoot, 'node_modules', 'vite', 'bin', 'vite.js');
+  if (fs.existsSync(viteDirectPath)) {
     return {
       bin: process.execPath,
-      args: [vitePath, '--port=3000', '--host=0.0.0.0'],
+      args: [viteDirectPath, '--port=3000', '--host=0.0.0.0'],
       cwd: projectRoot,
       type: 'vite-direct'
     };
+  }
+
+  try {
+    const vitePkg = require.resolve('vite/package.json');
+    const viteDir = path.dirname(vitePkg);
+    const binPath = path.join(viteDir, 'bin', 'vite.js');
+    if (fs.existsSync(binPath)) {
+      return {
+        bin: process.execPath,
+        args: [binPath, '--port=3000', '--host=0.0.0.0'],
+        cwd: projectRoot,
+        type: 'vite-direct'
+      };
+    }
   } catch (err) {
     console.error('Could not locate either tsx or vite executable in node_modules', err);
     process.exit(1);
   }
+
+  // Fallback to global or PATH binaries
+  return {
+    bin: 'tsx',
+    args: ['server.ts'],
+    cwd: projectRoot,
+    type: 'tsx-path'
+  };
 }
 
 const target = findExecutableTarget();
