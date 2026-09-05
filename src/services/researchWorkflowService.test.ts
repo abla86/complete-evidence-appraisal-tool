@@ -7,8 +7,9 @@ test('research workflow blocks appraisal until all human gates are satisfied', (
   assert.throws(()=>assertReadyForAppraisal(state),/INCLUDED/);
   let next=recordScreeningDecision(state,'reviewer-1','INCLUDED');
   assert.throws(()=>assertReadyForAppraisal(next),/classification/i);
-  const c=next.research!.evidenceBundle.classification;
-  assert.ok(c);
+  const c={documentType:'QUALITATIVE_STUDY' as const,documentTypeName:'Qualitative study',studyDesign:'Kvalitativ',methodologicalApproach:'Kvalitativ' as const,methodologicalPurpose:'Levde erfaringer / Sosiale fenomener' as const,confidenceScore:95,confidenceStatus:'AI_CANDIDATE_REQUIRES_VERIFICATION' as const,statusBadgeText:'Requires verification',evidenceSignals:[],rationale:'Workflow test classification',hasMetadataContentConflict:false,recommendedInstrumentId:'jbi-qualitative-2017',recommendedInstrumentName:'JBI Critical Appraisal Checklist for Qualitative Research',recommendedInstrumentJustification:'Test',alternativeInstruments:[],methodologicalLimitations:'',instrumentSourceAndAuthority:'Test',instrumentRoleType:'CRITICAL_APPRAISAL' as const};
+  next=updateResearchClassification(next,c);
+  assert.ok(next.research!.evidenceBundle.classification);
   next=updateResearchClassification(next,{...c,confidenceStatus:'HUMAN_VERIFIED',humanDecision:{status:'APPROVED',verifiedBy:'reviewer-1',verifiedAt:new Date().toISOString(),rationale:'Reviewed'}});
   next=verifyResearchClassification(next,'reviewer-1',true);
   const candidate=next.research!.evidenceBundle.evidence.find(x=>x.source==='AI_CANDIDATE');
