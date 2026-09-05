@@ -1358,7 +1358,7 @@ export const MethodologyAuditView: React.FC = () => {
               </div>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <span className="text-[10px] font-bold text-slate-500 uppercase">Regresjonsstatus:</span>
-                <p className="font-mono text-emerald-800 font-bold text-[11px] mt-0.5">IMMUTABLE / ZERO DEFECTS</p>
+                <p className="font-mono text-emerald-800 font-bold text-[11px] mt-0.5">{auditReport.overallSystemAudit === 'PASS' ? 'AUDIT PASS' : 'AUDIT REQUIRES ATTENTION'}</p>
               </div>
             </div>
           </div>
