@@ -17,7 +17,7 @@ test('GRADE accepts only bounded typed adjustments and preserves certainty bound
     opposingConfounders: 0,
   });
   assert.equal(result.initialCertainty, 'High');
-  assert.equal(result.finalCertainty, 'Low');
+  assert.equal(result.finalCertainty, 'Very Low');
 });
 
 test('retracted publication is blocked', () => {
