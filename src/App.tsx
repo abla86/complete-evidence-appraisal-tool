@@ -134,6 +134,7 @@ export default function App() {
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
         <Header activeTab={activeTab} setActiveTab={setActiveTab} articles={articles} selectedArticleId={selectedArticleId} onSelectArticleId={setSelectedArticleId} selectedInstrumentId={selectedInstrumentId} onSelectInstrument={setSelectedInstrumentId} currentUserRole={currentUserRole} onSelectUserRole={setCurrentUserRole} onOpenPrivacyCenter={() => setIsPrivacyCenterOpen(true)} onOpenDocAnalysis={() => setIsDocAnalysisOpen(true)} onOpenImportExport={handleOpenImportExport} onOpenAutosave={() => setIsAutosaveModalOpen(true)} onNewArticle={handleNewArticle} />
+        <StudioStateProvider value={{ articles, setArticles, references: referenceRecords, setReferences: setReferenceRecords, pipelineState, setPipelineState, selectedArticleId, setSelectedArticleId }}>
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
           {activeTab === 'overview' && <PipelineDashboard projectId={pipelineProjectId || 'workspace'} actor={actor} initialState={pipelineState} onStateChange={setPipelineState} />}
           {Boolean(selectedInstrumentId) && activeTab === 'instrumentinfo' ? (
@@ -185,6 +186,7 @@ export default function App() {
             {activeTab === 'appraisal' && <UniversalAppraisalView studyId={selectedArticleId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />}
           </>}
         </main>
+        </StudioStateProvider>
 
         <DocumentAnalysisModal isOpen={isDocAnalysisOpen} onClose={() => setIsDocAnalysisOpen(false)} />
         <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} initialTab={importExportInitialTab} articles={articles} onImportArticles={handleImportArticles} />
