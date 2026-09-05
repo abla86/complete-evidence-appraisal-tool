@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {getHelpEntry} from '../../services/helpRegistryService';
-export const HelpTooltipModal:React.FC<{topic:string;onClose:()=>void;onNavigate?:()=>void}>={({topic,onClose,onNavigate})=>{
+export const HelpTooltipModal: React.FC<{ topic: string; onClose: () => void; onNavigate?: () => void }> = ({ topic, onClose, onNavigate }) => {
 const entry=getHelpEntry(topic);const [step,setStep]=useState(0);useEffect(()=>setStep(0),[topic]);
 return <div className='fixed inset-0 z-50 bg-slate-950/70 flex items-center justify-center p-4' role='dialog' aria-modal='true' aria-labelledby='help-title'><div className='w-full max-w-3xl max-h-[90vh] overflow-auto bg-white rounded-2xl shadow-2xl border border-slate-200'>
 <div className='p-5 border-b flex items-center justify-between'><div><p className='text-xs uppercase tracking-wider text-teal-700 font-bold'>Research Copilot</p><h2 id='help-title' className='text-xl font-bold'>{entry.title}</h2></div><button type='button' onClick={onClose} className='px-3 py-2 rounded-lg border text-sm'>Lukk</button></div>
