@@ -1,5 +1,5 @@
 import { DocumentAnalysisFinding, IMRaDAnalysisResult, StudyRecord } from '../types';
-import { calculateSha256 } from './crypto';
+import { calculateSha256, generateSecureId } from './crypto';
 import { analyzeIMRaDStructure } from '../services/imradAnalysisService';
 import { CsvParser } from './csvParser';
 
@@ -103,7 +103,7 @@ export async function parseAndAnalyzeDocument(
   const imradAnalysis = analyzeIMRaDStructure(rawContent, file.name, characteristics.studyType);
 
   const study: StudyRecord = {
-    id: `study-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+    id: generateSecureId('study'),
     title: metadata.title || file.name.replace(/\.[^/.]+$/, ''),
     authors: metadata.authors || 'Authors Not Specified',
     year: metadata.year || new Date().getFullYear().toString(),
@@ -158,7 +158,7 @@ export async function parseMultiRecordDocument(
       const r = risRecords[i];
       const char = identifyArticleCharacteristics(r.rawContent, r.title);
       studies.push({
-        id: `study-ris-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
+        id: generateSecureId(`study-ris-${i}`),
         title: r.title || `Imported Record #${i + 1}`,
         authors: r.authors || 'Unknown Authors',
         year: r.year || new Date().getFullYear().toString(),
@@ -182,7 +182,7 @@ export async function parseMultiRecordDocument(
       const b = bibRecords[i];
       const char = identifyArticleCharacteristics(b.rawContent, b.title);
       studies.push({
-        id: `study-bib-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
+        id: generateSecureId(`study-bib-${i}`),
         title: b.title || `BibTeX Entry #${i + 1}`,
         authors: b.authors || 'Unknown Authors',
         year: b.year || new Date().getFullYear().toString(),
@@ -206,7 +206,7 @@ export async function parseMultiRecordDocument(
       const c = csvRecords[i];
       const char = identifyArticleCharacteristics(c.rawContent || c.abstract || '', c.title || '');
       studies.push({
-        id: `study-csv-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
+        id: generateSecureId(`study-csv-${i}`),
         title: c.title || `CSV Record #${i + 1}`,
         authors: c.authors || 'Unknown Authors',
         year: c.year || new Date().getFullYear().toString(),
@@ -230,7 +230,7 @@ export async function parseMultiRecordDocument(
       const j = jsonRecords[i];
       const char = identifyArticleCharacteristics(j.rawContent || j.abstract || j.title || '', j.title || '');
       studies.push({
-        id: j.id || `study-json-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
+        id: j.id || generateSecureId(`study-json-${i}`),
         title: j.title || `JSON Record #${i + 1}`,
         authors: j.authors || 'Unknown Authors',
         year: j.year || new Date().getFullYear().toString(),

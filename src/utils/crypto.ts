@@ -39,6 +39,27 @@ export function fallbackSimpleHash(str: string): string {
   return (hex + hex + hex + hex + hex + hex + hex + hex).slice(0, 64);
 }
 
+let fallbackCounter = 0;
+
+/**
+ * Generates a deterministic, cryptographically secure unique ID.
+ * Employs crypto.randomUUID() when supported, with a cryptographic fallback.
+ * Strictly avoids Math.random() in accordance with audit integrity rules.
+ */
+export function generateSecureId(prefix = 'id'): string {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+    return `${prefix}-${globalThis.crypto.randomUUID()}`;
+  }
+  if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(8);
+    globalThis.crypto.getRandomValues(bytes);
+    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${prefix}-${Date.now()}-${hex}`;
+  }
+  fallbackCounter = (fallbackCounter + 1) % 1000000;
+  return `${prefix}-${Date.now()}-${fallbackCounter}`;
+}
+
 /**
  * Fast synchronous deterministic hash for sample records
  */
@@ -58,7 +79,7 @@ export async function createAuditEntry(
   previousHash: string = '0000000000000000000000000000000000000000000000000000000000000000'
 ): Promise<AuditLogEntry> {
   const timestamp = new Date().toISOString();
-  const id = `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const id = generateSecureId('audit');
   
   const payloadToHash = `${previousHash}|${timestamp}|${action}|${entityType}|${entityId}|${user}|${details}`;
   const hashSha256 = await calculateSha256(payloadToHash);

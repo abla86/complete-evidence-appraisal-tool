@@ -18,6 +18,8 @@ import type {
   ScreeningEvent 
 } from '../types/index.ts';
 import { StudyDesignGateService } from './studyDesignGateService.ts';
+import { MasterInstrumentRegistryService } from './masterInstrumentRegistry.ts';
+import { generateSecureId } from '../utils/crypto.ts';
 
 export type ScreeningDecisionType = 'INCLUDED' | 'EXCLUDED' | 'MAYBE' | 'PENDING';
 
@@ -72,7 +74,7 @@ export class ScreeningGateService {
     }
 
     const record: ScreeningRecord = {
-      id: `scr-dec-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: generateSecureId('scr-dec'),
       studyId,
       reviewerId,
       decision,
@@ -161,10 +163,14 @@ export class ScreeningGateService {
       this.syncExternalScreeningEvents(options.screeningEvents);
     }
 
-    // 1. Research document check
+    // 1. Research document and identity check
+    const hasIdentity = Boolean(study && typeof study.id === 'string' && study.id.trim().length > 0);
+    if (!hasIdentity) {
+      blockers.push('Study identity is missing.');
+    }
+
     const hasDocument = Boolean(
-      study && 
-      study.id && 
+      hasIdentity && 
       (study.title?.trim() || study.rawContent?.trim() || study.fileName?.trim())
     );
     if (!hasDocument) {
@@ -192,10 +198,15 @@ export class ScreeningGateService {
       blockers.push('Human verification of study design classification is required.');
     }
 
-    // 4. Instrument selected check
+    // 4. Instrument selected check & implementation check
     const hasInstrument = Boolean(instrumentId && String(instrumentId).trim().length > 0);
     if (!hasInstrument) {
       blockers.push('No appraisal instrument selected.');
+    } else {
+      const regEntry = MasterInstrumentRegistryService.getByCode(String(instrumentId));
+      if (regEntry && regEntry.implementationStatus === 'REGISTERED') {
+        blockers.push(`Selected instrument "${regEntry.name}" is only REGISTERED and not implemented for active appraisal.`);
+      }
     }
 
     // 5. Instrument compatibility with study design check

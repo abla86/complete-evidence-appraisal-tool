@@ -18,12 +18,15 @@ import type {
   AuditLogEntry 
 } from '../types/index.ts';
 import { RbacService } from './rbacService.ts';
-import { calculateSha256Sync } from '../utils/crypto.ts';
+import { calculateSha256Sync, generateSecureId } from '../utils/crypto.ts';
 import type { AppraisalLockValidationResult } from '../utils/appraisalLockValidator.ts';
 
 export interface CanonicalAppraisalSession {
   sessionId: string;
   studyId: string;
+  documentId?: string;
+  studyDesign?: string;
+  screeningDecision?: string;
   instrumentId: AppraisalInstrument;
   instrumentVersion: string;
   reviewerId: string;
@@ -31,6 +34,9 @@ export interface CanonicalAppraisalSession {
   reviewerRole: string;
   responses: Record<string, DomainRating>;
   evidenceIds: string[];
+  provenance?: string[];
+  result?: unknown;
+  lifecycleState: 'DRAFT' | 'IN_PROGRESS' | 'LOCKED_FINALIZED' | 'REOPENED';
   isLocked: boolean;
   createdAt: string;
   updatedAt: string;
@@ -46,6 +52,12 @@ export interface CanonicalAppraisalSession {
 export interface CanonicalAppraisalExport {
   sessionId: string;
   studyId: string;
+  documentId?: string;
+  studyDesign?: string;
+  screeningDecision?: string;
+  provenance?: string[];
+  result?: unknown;
+  lifecycleState: 'DRAFT' | 'IN_PROGRESS' | 'LOCKED_FINALIZED' | 'REOPENED';
   instrumentId: AppraisalInstrument;
   instrumentVersion: string;
   reviewer: {
@@ -85,7 +97,14 @@ export class CanonicalAppraisalService {
     studyId: string,
     instrumentId: AppraisalInstrument,
     reviewer: ReviewerProfile,
-    initialResponses?: Record<string, DomainRating>
+    initialResponses?: Record<string, DomainRating>,
+    metadata?: {
+      documentId?: string;
+      studyDesign?: string;
+      screeningDecision?: string;
+      provenance?: string[];
+      result?: unknown;
+    }
   ): CanonicalAppraisalSession {
     if (!studyId) {
       throw new Error('Valid studyId is required to access an appraisal session.');
@@ -99,9 +118,13 @@ export class CanonicalAppraisalService {
 
     if (!session) {
       const now = new Date().toISOString();
+      const hasInitialResponses = Boolean(initialResponses && Object.keys(initialResponses).length > 0);
       session = {
-        sessionId: `sess-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        sessionId: generateSecureId('sess'),
         studyId,
+        documentId: metadata?.documentId,
+        studyDesign: metadata?.studyDesign,
+        screeningDecision: metadata?.screeningDecision,
         instrumentId,
         instrumentVersion: this.getInstrumentStandardVersion(instrumentId),
         reviewerId: reviewer.id,
@@ -109,12 +132,15 @@ export class CanonicalAppraisalService {
         reviewerRole: reviewer.role,
         responses: initialResponses ? { ...initialResponses } : {},
         evidenceIds: [],
+        provenance: metadata?.provenance || [],
+        result: metadata?.result,
+        lifecycleState: hasInitialResponses ? 'IN_PROGRESS' : 'DRAFT',
         isLocked: false,
         createdAt: now,
         updatedAt: now,
         auditTrail: [
           {
-            id: `audit-init-${Date.now()}`,
+            id: generateSecureId('audit-init'),
             timestamp: now,
             action: 'PERFORM_APPRAISAL',
             entityType: 'AppraisalAssessment',
@@ -175,6 +201,9 @@ export class CanonicalAppraisalService {
     session.responses[domainId] = {
       ...rating
     };
+    if (session.lifecycleState === 'DRAFT') {
+      session.lifecycleState = 'IN_PROGRESS';
+    }
     session.updatedAt = new Date().toISOString();
 
     return {
@@ -226,13 +255,14 @@ export class CanonicalAppraisalService {
     const prevHash = session.auditTrail[session.auditTrail.length - 1]?.hashSha256 || 'PREV_SEAL';
 
     session.isLocked = true;
+    session.lifecycleState = 'LOCKED_FINALIZED';
     session.finalizedAt = now;
     session.finalizedBy = `${reviewer.name} (${reviewer.role})`;
     session.sealedSha256 = sealedHash;
     session.updatedAt = now;
 
     session.auditTrail.push({
-      id: `audit-lock-${Date.now()}`,
+      id: generateSecureId('audit-lock'),
       timestamp: now,
       action: 'LOCK_STUDY',
       entityType: 'AppraisalAssessment',
@@ -296,13 +326,14 @@ export class CanonicalAppraisalService {
     const reopenHash = calculateSha256Sync(`REOPEN:${studyId}:${now}:${justification}`);
 
     session.isLocked = false;
+    session.lifecycleState = 'REOPENED';
     session.reopenedAt = now;
     session.reopenedBy = `${reviewer.name} (${reviewer.role})`;
     session.reopenJustification = justification.trim();
     session.updatedAt = now;
 
     session.auditTrail.push({
-      id: `audit-reopen-${Date.now()}`,
+      id: generateSecureId('audit-reopen'),
       timestamp: now,
       action: 'PERFORM_APPRAISAL',
       entityType: 'AppraisalAssessment',
@@ -332,6 +363,12 @@ export class CanonicalAppraisalService {
     return {
       sessionId: session.sessionId,
       studyId: session.studyId,
+      documentId: session.documentId,
+      studyDesign: session.studyDesign,
+      screeningDecision: session.screeningDecision,
+      provenance: session.provenance,
+      result: session.result,
+      lifecycleState: session.lifecycleState,
       instrumentId: session.instrumentId,
       instrumentVersion: session.instrumentVersion,
       reviewer: {

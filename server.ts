@@ -79,6 +79,39 @@ async function startServer() {
     }
   });
 
+  // 4b. Screening Decision Recording
+  app.post('/api/screening/decision', (req, res) => {
+    try {
+      const { studyId, decision, reviewerId, rationale } = req.body;
+      const authHeaderRole = req.headers['x-user-role'] as string | undefined;
+      const effectiveRole = authHeaderRole || 'Independent Reviewer';
+      const auth = RbacService.verifyServerAuthorization(effectiveRole, 'SCREEN_STUDY');
+      if (!auth.authorized) {
+        return res.status(403).json({ error: auth.reason });
+      }
+
+      if (!studyId || !decision) {
+        return res.status(400).json({ error: 'Både studyId og decision er påkrevd for å registrere screening-beslutning.' });
+      }
+
+      const validDecisions = ['INCLUDED', 'EXCLUDED', 'MAYBE', 'PENDING'];
+      if (!validDecisions.includes(decision)) {
+        return res.status(400).json({ error: `Ugyldig screening-beslutning: "${decision}". Tillatte verdier: ${validDecisions.join(', ')}` });
+      }
+
+      const record = ScreeningGateService.recordDecision(
+        studyId,
+        decision,
+        reviewerId || 'lead-reviewer',
+        rationale || ''
+      );
+
+      return res.json({ success: true, record });
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Registrering av screening-beslutning feilet', details: err.message });
+    }
+  });
+
   // 5. Canonical Appraisal Sessions
   app.get('/api/appraisal/session', (req, res) => {
     const studyId = req.query.studyId as string;
@@ -103,9 +136,14 @@ async function startServer() {
     }
 
     const latestDecision = ScreeningGateService.getLatestDecision(studyId);
-    if (latestDecision?.decision === 'EXCLUDED') {
+    if (!latestDecision) {
       return res.status(403).json({
-        error: 'Studien er markert som EXCLUDED i screening. Appraisal kan ikke opprettes.'
+        error: 'Screening decision mangler. Studien må ha eksplisitt INCLUDED-beslutning i screening før appraisal kan opprettes.'
+      });
+    }
+    if (latestDecision.decision !== 'INCLUDED') {
+      return res.status(403).json({
+        error: `Studien har screening-status "${latestDecision.decision}". Kun studier med eksplisitt INCLUDED-beslutning kan gå til appraisal.`
       });
     }
 
@@ -130,9 +168,9 @@ async function startServer() {
     }
 
     const latestDecision = ScreeningGateService.getLatestDecision(studyId);
-    if (latestDecision?.decision === 'EXCLUDED') {
+    if (!latestDecision || latestDecision.decision !== 'INCLUDED') {
       return res.status(403).json({
-        error: 'Studien er markert som EXCLUDED i screening. Appraisal kan ikke modifiseres.'
+        error: 'Studien mangler gyldig INCLUDED-beslutning i screening. Appraisal kan ikke modifiseres.'
       });
     }
 
@@ -162,9 +200,9 @@ async function startServer() {
     }
 
     const latestDecision = ScreeningGateService.getLatestDecision(studyId);
-    if (latestDecision?.decision === 'EXCLUDED') {
+    if (!latestDecision || latestDecision.decision !== 'INCLUDED') {
       return res.status(403).json({
-        error: 'Studien er markert som EXCLUDED i screening. Appraisal kan ikke forsegles.'
+        error: 'Studien mangler gyldig INCLUDED-beslutning i screening. Appraisal kan ikke forsegles.'
       });
     }
 
@@ -204,6 +242,22 @@ async function startServer() {
     }
 
     return res.json({ session: result.session });
+  });
+
+  app.get('/api/appraisal/export', (req, res) => {
+    const studyId = req.query.studyId as string;
+    const instrumentId = req.query.instrumentId as AppraisalInstrument;
+
+    if (!studyId || !instrumentId) {
+      return res.status(400).json({ error: 'Både studyId og instrumentId kreves for eksport.' });
+    }
+
+    const exported = CanonicalAppraisalService.exportSession(studyId, instrumentId);
+    if (!exported) {
+      return res.status(404).json({ error: 'Ingen appraisal-sesjon funnet for eksport.' });
+    }
+
+    return res.json({ export: exported });
   });
 
   // 6. Evidence Quote Traceability & Verification
