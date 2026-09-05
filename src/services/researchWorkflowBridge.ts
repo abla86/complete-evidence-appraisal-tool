@@ -1,6 +1,7 @@
 import type { AppraisalSession } from '../types/workflow.contracts';
 import type { PICO, ScreeningDecision, ReviewComparison, ReviewInstance, ResolvedAppraisal, DualReviewConfig, PRISMAFlow } from '../types/researchWorkflow';
 import { AuditTrailService } from './auditTrailService.ts';
+import { calculateDisagreement, resolveAppraisal } from './dualReviewService';
 import type { Actor } from './sourceIntakeService';
 
 export interface AppraisalWorkflowLookup {
@@ -17,7 +18,30 @@ export function createScreeningDecision(input:Omit<ScreeningDecision,'timestamp'
 export function assertEligibleForAppraisal(args:{studyId:string;screening:{studyId:string;decision:string};reviewerId:string}):void{if(args.screening.studyId!==args.studyId)throw new Error('Screening og studie-ID samsvarer ikke.');if(args.screening.decision!=='include'&&args.screening.decision!=='INCLUDED')throw new Error('Kun inkluderte studier kan sendes til appraisal.');if(!args.reviewerId.trim())throw new Error('Reviewer ID er påkrevd.');}
 export async function triggerAppraisalForIncludedStudy(args:{studyId:string;studyDesign:string;screening:ScreeningDecision;reviewerId:string;appraisalStore:AppraisalWorkflowLookup;instrumentResolver:AppraisalInstrumentResolver;audit?:AuditTrailService;actor?:Actor;}):Promise<ScreeningToAppraisalResult>{assertEligibleForAppraisal({studyId:args.studyId,screening:args.screening,reviewerId:args.reviewerId});const instrumentId=inferInstrumentId(args.studyDesign);const instrument=args.instrumentResolver.getInstrumentOrNull(instrumentId);if(!instrument)throw new Error(`Ingen appraisal-instrument funnet for design: ${args.studyDesign}`);const existing=args.appraisalStore.listByStudy(args.studyId).find(item=>item.instrumentId===instrumentId&&item.session.reviewerId===args.reviewerId&&!item.session.locked);if(existing)return{studyId:args.studyId,decision:args.screening,appraisalSession:existing.session,instrumentId};throw new Error('Studien må sendes gjennom canonical research-to-appraisal workflow før appraisal-session kan opprettes.');}
 export function compareReviewInstances(first:ReviewInstance,second:ReviewInstance,threshold=0.3):ReviewComparison{if(first.studyId!==second.studyId||first.instrumentId!==second.instrumentId)throw new Error('Reviewerinstansene må gjelde samme studie og instrument.');if(first.reviewerId===second.reviewerId)throw new Error('Dual review krever to forskjellige reviewere.');if(!Number.isFinite(threshold)||threshold<0||threshold>1)throw new Error('Disagreement threshold må være mellom 0 og 1.');if(first.status!=='completed'||second.status!=='completed')throw new Error('Begge reviewerinstanser må være completed før sammenligning.');const itemIds=[...new Set([...Object.keys(first.responses),...Object.keys(second.responses)])];const items=itemIds.map(itemId=>({itemId,reviewer1Score:first.responses[itemId]??null,reviewer2Score:second.responses[itemId]??null,disagreement:first.responses[itemId]!==second.responses[itemId]}));const disagreements=items.filter(i=>i.disagreement).length;const overallDisagreement=itemIds.length?disagreements/itemIds.length:0;return{overallDisagreement,items,requiresArbitration:overallDisagreement>=threshold};}
-export function resolveReviewComparison(args:{appraisalId:string;comparison:ReviewComparison;method:DualReviewConfig['arbitrationMethod'];resolvedBy:string;first:ReviewInstance;second:ReviewInstance;rationale?:string;}):ResolvedAppraisal{const consensusResponses:Record<string,string|number|boolean|null>={};const itemIds=[...new Set([...Object.keys(args.first.responses),...Object.keys(args.second.responses)])];for(const id of itemIds){const a=args.first.responses[id]??null,b=args.second.responses[id]??null;consensusResponses[id]=a===b?a:null;}if(!args.resolvedBy.trim())throw new Error('Adjudicator er påkrevd.');if(!args.appraisalId.trim())throw new Error('Adjudication krever appraisalId.');const disagreement=args.comparison.items.some(i=>i.disagreement);if(disagreement&&!args.rationale?.trim())throw new Error('Adjudication krever begrunnelse.');if((args.comparison.requiresArbitration||disagreement)&&args.method==='autoResolve')throw new Error('autoResolve er ikke tillatt ved appraisal-uenighet.');if(disagreement&&itemIds.some(id=>consensusResponses[id]===null))throw new Error('Alle konfliktitems må ha eksplisitt consensus-respons.');return{appraisalId:args.appraisalId,status:'resolved',resolutionMethod:args.method,resolvedBy:args.resolvedBy,resolvedAt:new Date().toISOString(),disagreements:args.comparison.items,consensusResponses,proposedResponses:{...consensusResponses}};}
+export function resolveReviewComparison(args:{
+  appraisalId:string;
+  comparison:ReviewComparison;
+  method:DualReviewConfig['arbitrationMethod'];
+  resolvedBy:string;
+  first:ReviewInstance;
+  second:ReviewInstance;
+  consensusResponses?:Record<string,string|number|boolean|null>;
+  rationale?:string;
+}):ResolvedAppraisal{
+  const canonicalComparison=calculateDisagreement([args.first,args.second]);
+  if(canonicalComparison.items.length!==args.comparison.items.length){
+    throw new Error('Review comparison er ikke konsistent med reviewerinstansene.');
+  }
+  return resolveAppraisal(
+    args.appraisalId,
+    args.resolvedBy,
+    canonicalComparison.items,
+    args.method,
+    args.consensusResponses ?? {},
+    args.rationale ?? '',
+  );
+}
+
 export interface DeduplicationCandidate{studyId:string;matchedStudyId:string;key:'doi'|'pmid'|'title';value:string;}
 export function findDuplicateStudies(records:Array<{studyId:string;doi?:string;pmid?:string;title?:string}>):DeduplicationCandidate[]{const seen=new Map<string,{studyId:string;key:'doi'|'pmid'|'title';value:string}>(),duplicates:DeduplicationCandidate[]=[];for(const r of records){const keys:Array<{key:'doi'|'pmid'|'title';value:string}>=[];if(r.doi?.trim())keys.push({key:'doi',value:r.doi.trim().toLowerCase()});if(r.pmid?.trim())keys.push({key:'pmid',value:r.pmid.trim()});if(r.title?.trim())keys.push({key:'title',value:r.title.trim().toLowerCase().replace(/\s+/g,' ')});for(const c of keys){const k=`${c.key}:${c.value}`,prev=seen.get(k);if(prev&&prev.studyId!==r.studyId)duplicates.push({studyId:r.studyId,matchedStudyId:prev.studyId,key:c.key,value:c.value});else seen.set(k,{studyId:r.studyId,...c});}}return duplicates;}
 export interface DeduplicationDecision{recordId:string;canonicalStudyId:string;duplicateOfRecordId?:string;reason:'doi'|'pmid'|'title';reviewerId:string;timestamp:string;}
