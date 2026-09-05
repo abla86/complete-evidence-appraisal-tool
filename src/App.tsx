@@ -89,9 +89,12 @@ export default function App() {
     instrumentinfo: 'Instrument Information',
     writing_studio: 'Writing Studio',
   };
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [isDocAnalysisOpen, setIsDocAnalysisOpen] = useState(false);
+
   useEffect(() => {
     document.title = `Complete Evidence Appraisal Suite · ${tabTitles[activeTab]}`;
-  }, [activeTab]);
+  }, [activeTab, tabTitles]);
   const createDemoArticle = (): ArticleAppraisal => ImportExportService.createDefaultArticle({
     id: 'demo-rct-heart-failure-2025',
     title: 'Digital Remote Telemonitoring versus Standard Care for Chronic Heart Failure',
@@ -107,7 +110,6 @@ export default function App() {
     const loaded = AutosaveService.loadArticles([]);
     return loaded.length ? loaded : [createDemoArticle()];
   });
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
   useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return () => window.removeEventListener('research-suite:navigate', handler); }, []);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
@@ -115,7 +117,6 @@ export default function App() {
   const [editingArticle, setEditingArticle] = useState<ArticleAppraisal | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>('lead_reviewer');
   const [isPrivacyCenterOpen, setIsPrivacyCenterOpen] = useState(false);
-  const [isDocAnalysisOpen, setIsDocAnalysisOpen] = useState(false);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [isAutosaveModalOpen, setIsAutosaveModalOpen] = useState(false);
   const [importExportInitialTab, setImportExportInitialTab] = useState<'import' | 'export'>('export');
