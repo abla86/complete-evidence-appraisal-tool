@@ -233,8 +233,8 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       <aside className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div><div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div><h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>{result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}</div>
         {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map(d =><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
-        <button type="button" disabled={!validation?.valid || session.locked || questions.length===0} onClick={finalize} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
-        {!validation?.valid && <div className="text-xs text-amber-800">{validation?.issues.join(' ')}</div>}
+        <button type="button" disabled={!validation?.valid || session.locked || questions.length===0} onClick={finalize} title={!validation?.valid ? (validation?.issues.join(' ') || 'Fyll ut alle nødvendige vurderingspunkter før lagring.') : undefined} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
+        {!validation?.valid && <div role="status" className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{validation?.issues.join(' ') || 'Fyll ut alle nødvendige vurderingspunkter før lagring.'}</div>}
       </aside>
 
       {session.locked && instrument.id !== 'jbi-qualitative-2017' && session.responses.length > 0 && (

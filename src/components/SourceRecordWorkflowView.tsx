@@ -141,7 +141,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="space-y-1"><span className="text-xs font-semibold capitalize">population</span><input value={pico.population} onChange={e=>setPico(v=>({...v,population:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">intervention</span><input value={pico.intervention} onChange={e=>setPico(v=>({...v,intervention:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">comparison</span><input value={pico.comparison} onChange={e=>setPico(v=>({...v,comparison:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">outcome</span><input value={pico.outcome} onChange={e=>setPico(v=>({...v,outcome:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label>
           </div>
-          <div className="flex flex-wrap gap-2">{Object.entries(pico).filter(([,v])=>v.trim()).map(([k,v])=><span key={k} className="text-[10px] px-2 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">{k}: {v}</span>)}</div>
+          <div className="flex flex-wrap gap-2">{Object.entries(pico).filter(([,v])=>v.trim()).map(([k,v])=><span key={k} className={`text-[10px] px-2 py-1 rounded-full font-bold border ${k==='population'?'bg-blue-50 text-blue-900 border-blue-300':k==='intervention'?'bg-indigo-50 text-indigo-900 border-indigo-300':k==='comparison'?'bg-amber-50 text-amber-900 border-amber-300':'bg-emerald-50 text-emerald-900 border-emerald-300'}`}>{k}: {v}</span>)}</div>
         </article>
         <article className="bg-slate-900 text-white rounded-2xl p-5 space-y-4">
           <div><h3 className="font-bold">Hurtigscreening</h3><p className="text-xs text-slate-300">Valgt studie: {selected?.title || 'Ingen studie valgt'}</p></div>
@@ -151,6 +151,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
             <button type="button" onClick={()=>applyDecision('Vurder videre')} className="px-4 py-2 rounded-xl bg-amber-300 text-slate-950 font-bold text-sm">Uavklart (U)</button>
           </div>
           <div className="text-xs text-slate-300">Bruk I/E/U i screeningarbeidet. Valget lagres i felles prosjekt-state.</div>
+          {!selected && <div role="status" className="rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">Velg eller importer en studie før screening kan registreres.</div>}
         </article>
       </div>
       <header>
@@ -174,7 +175,8 @@ export const SourceRecordWorkflowView: React.FC = () => {
             <div>Record ID: <strong>{record?.recordId ?? '—'}</strong></div>
           </div>
           <input value={batchId} onChange={e => setBatchId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="Screening-batch" />
-          <button onClick={() => void link()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
+          <button onClick={() => void link()} disabled={!record} title={!record ? 'Importer en SourceRecord først.' : 'Koble valgt SourceRecord til screening-batch.'} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
+          {!record && <p className="text-[11px] text-slate-300">Importer en SourceRecord først for å aktivere workflow-handlingene.</p>}
           <button onClick={() => void review()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">2. Marker reviewed</button>
           <input value={picoId} onChange={e => setPicoId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="PICO/PECO-id" />
           <button onClick={() => void attach()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
