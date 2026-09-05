@@ -45,8 +45,8 @@ async function startServer() {
     const rawDoi = String(req.query.doi || '').trim();
     const cleanDoi = rawDoi
       .replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '')
-      .replace(/^doi:\\s*/i, '')
-      .replace(/[<>\\s]+$/g, '')
+      .replace(/^doi:\s*/i, '')
+      .replace(/[<>\s]+$/g, '')
       .trim();
 
     if (!cleanDoi) return res.status(400).json({ success: false, error: 'DOI er påkrevd.' });
