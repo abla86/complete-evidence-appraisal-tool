@@ -43,7 +43,7 @@ export function runCitationAudit(
 
     if (!linkedEvidence.length) reasons.push('Ingen evidens er lenket til påstanden.');
     if (linkedReferences.length === 0 && linkedEvidence.length) reasons.push('Minst én evidenskilde mangler referansepost i Reference Hub.');
-    if (linkedReferences.some(reference => reference.verification !== 'VALIDATED')) reasons.push('Minst én referanse er ikke bibliografisk verifisert.');
+    if (linkedReferences.some(reference => reference.verification !== 'VALIDATED')) reasons.push('ikke bibliografisk verifisert');
     if (linkedReferences.some(reference => reference.verification === 'RETRACTED' || reference.retraction?.detected)) reasons.push('Minst én lenket referanse er trukket tilbake eller har uttrykt bekymring.');
     if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.researcherVerified)) reasons.push('Minst én evidensuttrekking er ikke kontrollert av forsker.');
     if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.location?.page && !item.location?.section && !item.location?.table && !item.location?.figure)) reasons.push('Minst én evidensenhet mangler lokasjon.');
