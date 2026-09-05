@@ -10,7 +10,7 @@ import { AutosaveService, AutosaveStatus } from '../services/autosaveService';
 import { UserRole, RbacService } from '../services/rbacService';
 
 export type ActiveTab =
-  | 'overview' | 'search' | 'evaluate' | 'details' | 'compare' | 'peer_review'
+  | 'overview' | 'document_studio' | 'search' | 'evaluate' | 'details' | 'compare' | 'peer_review'
   | 'synthesis' | 'audittrail' | 'who_validation' | 'methodology_audit' | 'meta_research'
   | 'reference_library' | 'reference_hub' | 'validation_dashboard' | 'help_examples'
   | 'instrumentinfo' | 'source_workflow' | 'appraisal' | 'writing_studio';
@@ -40,33 +40,21 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   useEffect(() => setIsMenuOpen(false), [activeTab]);
 
-  const tabs: Array<{ id: ActiveTab; label: string; icon: React.ReactNode }> = [
-    { id: 'overview', label: 'Research Intelligence Hub', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'search', label: 'Research Search & PICO', icon: <FileSearch className="w-4 h-4" /> },
-    { id: 'evaluate', label: 'Legacy JBI Entry', icon: <CheckSquare className="w-4 h-4" /> },
-    { id: 'details', label: 'Detaljer', icon: <FileText className="w-4 h-4" /> },
-    { id: 'compare', label: 'Sammenlign', icon: <GitCompare className="w-4 h-4" /> },
-    { id: 'peer_review', label: 'Peer Review & Consensus', icon: <Users className="w-4 h-4" /> },
-    { id: 'synthesis', label: 'Evidence Synthesis & Export Gate', icon: <Layers className="w-4 h-4" /> },
-    { id: 'audittrail', label: 'Audit Trail & Hash Chain', icon: <History className="w-4 h-4" /> },
-    { id: 'who_validation', label: 'WHO', icon: <ShieldCheck className="w-4 h-4" /> },
-    { id: 'methodology_audit', label: 'Metode', icon: <ClipboardCheck className="w-4 h-4" /> },
-    { id: 'meta_research', label: 'Meta-Research & PRISMA 2020', icon: <Sparkles className="w-4 h-4" /> },
-    { id: 'reference_library', label: 'Bibliotek', icon: <LibraryBig className="w-4 h-4" /> },
-    { id: 'reference_hub', label: 'Unified Reference & Citation Engine', icon: <LibraryBig className="w-4 h-4" /> },
-    { id: 'validation_dashboard', label: 'Validering', icon: <ShieldCheck className="w-4 h-4" /> },
-    { id: 'help_examples', label: 'Hjelp', icon: <GraduationCap className="w-4 h-4" /> },
-    { id: 'instrumentinfo', label: 'Selected Instrument', icon: <ClipboardCheck className="w-4 h-4" /> },
-    { id: 'source_workflow', label: 'Source Record & Screening', icon: <FileText className="w-4 h-4" /> },
-    { id: 'appraisal', label: 'Universal Appraisal Hub', icon: <CheckSquare className="w-4 h-4" /> },
-    { id: 'writing_studio', label: 'Skriveverksted', icon: <FileText className="w-4 h-4" /> },
+  const tabs: Array<{ id: ActiveTab; label: string; subtitle: string; icon: React.ReactNode }> = [
+    { id: 'document_studio', label: 'Document Studio', subtitle: 'IMRaD parsing, fulltekstanalyse & PDF-inspeksjon', icon: <FileText className="w-4 h-4" /> },
+    { id: 'source_workflow', label: 'Screening & PICO', subtitle: 'Tittel/sammendrag, inklusjon/eksklusjon & PICO-tagging', icon: <FileSearch className="w-4 h-4" /> },
+    { id: 'appraisal', label: 'Universal Appraisal', subtitle: 'JBI, RoB 2, AMSTAR 2, AGREE II, GRADE, CERQual, RE-AIM & KTA', icon: <CheckSquare className="w-4 h-4" /> },
+    { id: 'reference_hub', label: 'Reference & Citation Hub', subtitle: 'RIS/BibTeX/Medline, APA 7, norsk juridisk metode & duplikatkontroll', icon: <LibraryBig className="w-4 h-4" /> },
+    { id: 'meta_research', label: 'Meta-Research & PRISMA', subtitle: 'Interaktivt PRISMA 2020-flytskjema & flytstatistikk', icon: <Sparkles className="w-4 h-4" /> },
+    { id: 'peer_review', label: 'Peer Review & Consensus', subtitle: 'Dual-review blinding, Cohen’s Kappa & uavhengig sammenligning', icon: <Users className="w-4 h-4" /> },
+    { id: 'synthesis', label: 'Synthesis & Export Gate', subtitle: 'Evidenssyntese, kryptografisk audit trail & integritetssperre', icon: <Layers className="w-4 h-4" /> },
   ];
 
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 gap-3">
         <div className="flex items-center gap-3">
-          <button type="button" className="font-black text-slate-900 text-left" onClick={() => setActiveTab('overview')}>Complete Evidence Appraisal Suite<span className="block text-[10px] font-semibold text-slate-500">Research Intelligence Platform</span></button>
+          <button type="button" className="font-black text-slate-900 text-left" onClick={() => setActiveTab('overview')}>Evidence Appraisal Suite & Meta-Research Platform<span className="block text-[10px] font-semibold text-slate-500">Research Intelligence Platform</span></button>
           <span className="text-xs text-slate-500">{articles.length} studier</span>
         </div>
         <div className="flex items-center gap-2">
@@ -80,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
         <nav className="px-4 pb-3 flex flex-wrap gap-2">
           {tabs.map(tab => (
             <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${activeTab === tab.id ? 'bg-teal-800 text-white' : 'bg-slate-100 text-slate-700'}`}>
-              {tab.icon}{tab.label}
+              {tab.icon}<span><span className="block">{tab.label}</span><span className="block text-[9px] font-normal opacity-70">{tab.subtitle}</span></span>
             </button>
           ))}
         </nav>
