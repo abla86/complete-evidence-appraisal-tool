@@ -27,13 +27,15 @@ function isRobinsIRisk(value: unknown): value is RobinsIRisk {
   return value === 'Low risk' || value === 'Moderate risk' || value === 'Serious risk' || value === 'Critical risk' || value === 'No information';
 }
 
-async function createCanonicalSession(studyId: string, reviewerId: string): Promise<AppraisalSession> {
-  const response = await fetch(`/api/research-workflow/${encodeURIComponent(studyId)}/appraisal/session`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewerId }),
+async function createCanonicalSession(studyId: string, reviewerId: string, instrumentId: string): Promise<AppraisalSession> {
+  const response = await fetch(`/api/research-workflows/${encodeURIComponent(studyId)}/appraisal/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewerId, instrumentId: instrumentId || undefined }),
   });
-  const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null;
-  if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke opprette canonical appraisal-session.');
-  return payload.session;
+  const payload = await response.json().catch(() => null) as { appraisal?: AppraisalSession; error?: string } | null;
+  if (!response.ok || !payload?.appraisal) throw new Error(payload?.error || 'Kunne ikke opprette canonical appraisal-session.');
+  return payload.appraisal;
 }
 
 async function saveCanonicalSession(session: AppraisalSession): Promise<AppraisalSession> {
@@ -73,7 +75,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
     if (!effectiveReviewerId || session || starting) return;
     let cancelled = false;
     setStarting(true);
-    void createCanonicalSession(studyId, effectiveReviewerId)
+    void createCanonicalSession(studyId, effectiveReviewerId, initialInstrumentId)
       .then(next => { if (!cancelled) { setInstrumentId(next.instrumentId); setSession(next); } })
       .catch(error => { if (!cancelled) setNotice(error instanceof Error ? error.message : 'Appraisal-session kunne ikke opprettes.'); })
       .finally(() => { if (!cancelled) setStarting(false); });
