@@ -62,9 +62,9 @@ export function saveProject(project: ResearchProject): boolean {
 export function loadSavedStudies(): StudyRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.STUDIES);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         memoryStudiesCache = parsed;
         return parsed;
       }
@@ -90,7 +90,7 @@ export function saveStudies(studies: StudyRecord[]): boolean {
 export function loadSavedAssessments(): Record<string, AppraisalAssessment[]> {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.ASSESSMENTS);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
       if (typeof parsed === 'object' && parsed !== null) {
         memoryAssessmentsCache = parsed;

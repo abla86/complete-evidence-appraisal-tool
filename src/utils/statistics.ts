@@ -27,6 +27,7 @@ export function calculateCohensKappa(
 ): InterRaterComparison {
   const discrepancies = [];
   let agreedCount = 0;
+  let totalEvaluatedDomains = 0;
   const totalDomains = domains.length;
 
   // Track rating distribution for chance agreement calculation
@@ -35,15 +36,31 @@ export function calculateCohensKappa(
   const allCategories = new Set<string>();
 
   for (const domain of domains) {
-    const ratingA = reviewerA.ratings[domain.id]?.answer || 'unclear';
-    const ratingB = reviewerB.ratings[domain.id]?.answer || 'unclear';
+    const rawA = reviewerA.ratings?.[domain.id]?.answer;
+    const rawB = reviewerB.ratings?.[domain.id]?.answer;
+
+    const hasA = Boolean(rawA && rawA !== 'unclear');
+    const hasB = Boolean(rawB && rawB !== 'unclear');
+
+    // Default missing to 'unclear' for discrepancy reporting, but only count agreement if actually rated
+    const ratingA = (rawA || 'unclear') as RatingAnswer;
+    const ratingB = (rawB || 'unclear') as RatingAnswer;
 
     allCategories.add(ratingA);
     allCategories.add(ratingB);
     countsA[ratingA] = (countsA[ratingA] || 0) + 1;
     countsB[ratingB] = (countsB[ratingB] || 0) + 1;
 
-    const isAgreed = ratingA === ratingB;
+    if (hasA || hasB) {
+      totalEvaluatedDomains++;
+    }
+
+    // Both must have actually rated or explicitly chosen the same answer
+    // If neither reviewer has entered any valid rating for a domain (or both left it unclear/unrated),
+    // it does NOT count as positive agreement!
+    const isBothUnrated = (!rawA || rawA === 'unclear') && (!rawB || rawB === 'unclear');
+    const isAgreed = !isBothUnrated && ratingA === ratingB;
+
     if (isAgreed) {
       agreedCount++;
     }
@@ -52,15 +69,29 @@ export function calculateCohensKappa(
       domainId: domain.id,
       domainName: domain.title,
       isCritical: domain.isCritical,
-      reviewerAAnswer: ratingA as RatingAnswer,
-      reviewerBAnswer: ratingB as RatingAnswer,
+      reviewerAAnswer: ratingA,
+      reviewerBAnswer: ratingB,
       isResolved: isAgreed,
-      resolvedAnswer: isAgreed ? (ratingA as RatingAnswer) : undefined
+      resolvedAnswer: isAgreed ? ratingA : undefined
     });
   }
 
+  // If no items have been rated by either reviewer, agreement is 0% and kappa is 0.0
+  if (totalDomains === 0 || totalEvaluatedDomains === 0) {
+    return {
+      reviewerA,
+      reviewerB,
+      totalDomains,
+      agreedDomains: 0,
+      agreementPercentage: 0,
+      cohensKappa: 0,
+      kappaInterpretation: 'Poor',
+      discrepancies
+    };
+  }
+
   // Observed agreement Po
-  const Po = totalDomains > 0 ? agreedCount / totalDomains : 1.0;
+  const Po = totalDomains > 0 ? agreedCount / totalDomains : 0;
 
   // Expected chance agreement Pe
   let Pe = 0;
@@ -72,10 +103,13 @@ export function calculateCohensKappa(
     }
   }
 
-  // Cohen's Kappa κ
-  let kappa = 1.0;
+  // Cohen's Kappa κ = (Po - Pe) / (1 - Pe)
+  let kappa = 0.0;
   if (Pe < 1.0) {
     kappa = (Po - Pe) / (1.0 - Pe);
+  } else if (Po === 1.0 && Pe === 1.0) {
+    // Kappa paradox / Homogeneous marginals: Perfect observed agreement with identical single category
+    kappa = 1.0;
   }
 
   // Clamp between -1.0 and 1.0
@@ -533,16 +567,20 @@ export function evaluateAgree2DomainScores(
   });
 
   const overallQualityRaw = ratings['agree2-overall-quality']?.answer;
-  const overallQualityScore = parseInt(overallQualityRaw as string, 10) || 6;
+  const overallQualityScore = overallQualityRaw ? parseInt(overallQualityRaw as string, 10) || 0 : 0;
 
-  const overallRecRaw = ratings['agree2-overall-recommend']?.answer || 'ja';
-  let overallRecommendation = 'Ja';
-  if (overallRecRaw === 'delvis' || overallRecRaw === 'partial') {
+  const overallRecRaw = ratings['agree2-overall-recommend']?.answer;
+  let overallRecommendation = 'Ikke vurdert';
+  if (overallRecRaw === 'ja' || overallRecRaw === 'yes') {
+    overallRecommendation = 'Ja';
+  } else if (overallRecRaw === 'delvis' || overallRecRaw === 'partial') {
     overallRecommendation = 'Delvis / med modifikasjoner';
   } else if (overallRecRaw === 'nei' || overallRecRaw === 'no') {
     overallRecommendation = 'Nei';
   }
 
+  // NOTE: AGREE II methodology (Brouwers et al.) explicitly forbids aggregating domain scores
+  // into a single composite quality score. Each domain score is independent.
   const overallStandardizedPercentage = totalMaxAll > totalMinAll
     ? Math.round(((totalObtainedAll - totalMinAll) / (totalMaxAll - totalMinAll)) * 100)
     : 0;

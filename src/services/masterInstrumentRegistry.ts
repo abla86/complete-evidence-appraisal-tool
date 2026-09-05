@@ -290,6 +290,42 @@ export const MASTER_INSTRUMENTS_REGISTRY: MasterInstrumentEntry[] = [
     scoringModel: 'QUALITATIVE_JUDGEMENT',
     scoringModelDescription: 'Delt inn etter kvalitative, kvantitative og miksede komponenter.',
     methodologicalCaveat: 'Ikke i aktiv kjøretid.'
+  },
+  {
+    id: 'grade-cerqual-2018',
+    code: 'CERQUAL',
+    name: 'GRADE-CERQual: Confidence in the Evidence from Reviews of Qualitative Research',
+    version: '2018',
+    year: 2018,
+    publisher: 'Lewin et al., PLOS Medicine',
+    sourceUrl: 'https://www.cerqual.org/',
+    targetStudyDesign: 'Qualitative Evidence Synthesis Findings',
+    itemCount: 4,
+    allowedAnswers: ['no_concerns', 'minor_concerns', 'moderate_concerns', 'serious_concerns'],
+    implementationStatus: 'REGISTERED',
+    statusLabel: 'Registrert / Ikke i aktiv kjøretid',
+    hasOfficialNumericalCutoff: false,
+    scoringModel: 'EVIDENCE_CERTAINTY',
+    scoringModelDescription: '4 kjernekomponenter: Metodiske begrensninger, Relevans, Koherens og Tilstrekkelighet av data. Gir samlet tillitsvurdering (Høy, Moderat, Lav, Svært lav).',
+    methodologicalCaveat: 'Ikke i aktiv kjøretid. Bruk GRADE for kvantitative utfall eller JBI Qualitative for primærstudier inntil full CERQual-motor er aktivert.'
+  },
+  {
+    id: 'probast-2019',
+    code: 'PROBAST',
+    name: 'PROBAST: Prediction model Risk Of Bias ASsessment Tool',
+    version: '2019',
+    year: 2019,
+    publisher: 'Wolff et al., Ann Intern Med',
+    sourceUrl: 'https://www.probast.org/',
+    targetStudyDesign: 'Diagnostic and Prognostic Prediction Model Studies',
+    itemCount: 20,
+    allowedAnswers: ['yes', 'probably_yes', 'probably_no', 'no', 'no_information'],
+    implementationStatus: 'REGISTERED',
+    statusLabel: 'Registrert / Ikke i aktiv kjøretid',
+    hasOfficialNumericalCutoff: false,
+    scoringModel: 'DOMAIN_RISK_OF_BIAS',
+    scoringModelDescription: '4 domener: Deltakere, Prediktorer, Utfall og Analyse.',
+    methodologicalCaveat: 'Ikke i aktiv kjøretid. Bruk QUIPS for prognostiske faktorer.'
   }
 ];
 

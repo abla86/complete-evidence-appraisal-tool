@@ -26,6 +26,7 @@ import {
   SynthesisOutcome 
 } from '../types';
 import { formatReferenceInStyle } from '../utils/referenceEngine';
+import { generateDocxBlob } from '../utils/docxExporter';
 
 interface ThesisDraftModalProps {
   isOpen: boolean;
@@ -160,55 +161,85 @@ Styrker:
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadWordHtml = () => {
-    const fullDocument = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${project.title} - Metode og Utkast</title>
-        <style>
-          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; color: #111; max-width: 800px; margin: 40px auto; }
-          h1 { font-size: 18pt; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 6px; }
-          h2 { font-size: 14pt; font-weight: bold; margin-top: 24px; color: #222; }
-          p { margin-bottom: 12px; }
-          table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 10pt; }
-          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-          th { background: #f0f0f0; }
-        </style>
-      </head>
-      <body>
-        <h1>${project.title}</h1>
-        <p><strong>Kortkode:</strong> ${project.shortCode || 'SR-2026'} &bull; <strong>Prosjektleder:</strong> ${project.leadInvestigator || 'Forsker'} &bull; <strong>Dato:</strong> ${new Date().toLocaleDateString('no-NO')}</p>
-        
-        <h2>1. Metodekapittel</h2>
-        <p>${methodsText.replace(/\n/g, '<br>')}</p>
-        
-        <h2>2. Søkestrategi</h2>
-        <p>${searchStrategyText.replace(/\n/g, '<br>')}</p>
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
 
-        <h2>3. Inklusjons- og Eksklusjonskriterier</h2>
-        <p>${criteriaText.replace(/\n/g, '<br>')}</p>
+  const handleDownloadDocx = async () => {
+    setIsExportingDocx(true);
+    try {
+      const sections = [
+        { title: '1. Metodekapittel', content: methodsText },
+        { title: '2. Søkestrategi', content: searchStrategyText },
+        { title: '3. Inklusjons- og Eksklusjonskriterier', content: criteriaText },
+        { title: '4. Kritisk Vurdering (JBI 2017 & Standardiserte Verktøy)', content: appraisalText },
+        { title: '5. Resultater og Evidenssyntese', content: resultsSynthesisText },
+        { title: '6. Metodiske Begrensninger og Styrker', content: limitationsText },
+        { title: `7. Referanseliste (${citationStyle})`, content: formattedReferences }
+      ];
 
-        <h2>4. Kritisk Vurdering (JBI 2017)</h2>
-        <p>${appraisalText.replace(/\n/g, '<br>')}</p>
+      const blob = await generateDocxBlob({
+        title: project.title,
+        subtitle: `Kortkode: ${project.shortCode || 'SR-2026'} | Prosjektleder: ${project.leadInvestigator || 'Forsker'} | Dato: ${new Date().toLocaleDateString('no-NO')}`,
+        sections
+      });
 
-        <h2>5. Resultater og Syntese</h2>
-        <p>${resultsSynthesisText.replace(/\n/g, '<br>')}</p>
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.shortCode || 'Metodeutkast'}_Oppgavekapittel_${citationStyle}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to generate DOCX file:', err);
+    } finally {
+      setIsExportingDocx(false);
+    }
+  };
 
-        <h2>6. Begrensninger</h2>
-        <p>${limitationsText.replace(/\n/g, '<br>')}</p>
+  const handleDownloadMarkdown = () => {
+    const fullMarkdown = `# ${project.title}
+**Kortkode:** ${project.shortCode || 'SR-2026'} | **Prosjektleder:** ${project.leadInvestigator || 'Forsker'} | **Dato:** ${new Date().toLocaleDateString('no-NO')}
 
-        <h2>7. Referanseliste (${citationStyle})</h2>
-        <p>${formattedReferences.replace(/\n\n/g, '<br><br>')}</p>
-      </body>
-      </html>
-    `;
-    const blob = new Blob([fullDocument], { type: 'application/msword;charset=utf-8' });
+---
+
+## 1. Metodekapittel
+${methodsText}
+
+---
+
+## 2. Søkestrategi
+${searchStrategyText}
+
+---
+
+## 3. Inklusjons- og Eksklusjonskriterier
+${criteriaText}
+
+---
+
+## 4. Kritisk Vurdering (JBI 2017)
+${appraisalText}
+
+---
+
+## 5. Resultater og Syntese
+${resultsSynthesisText}
+
+---
+
+## 6. Begrensninger og Styrker
+${limitationsText}
+
+---
+
+## 7. Referanseliste (${citationStyle})
+${formattedReferences}
+`;
+
+    const blob = new Blob([fullMarkdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${project.shortCode || 'Metodeutkast'}_Oppgavekapittel_${citationStyle}.doc`;
+    a.download = `${project.shortCode || 'Metodeutkast'}_Oppgavekapittel_${citationStyle}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -303,17 +334,27 @@ Styrker:
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyCurrent}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Kopiert!' : 'Kopier Tekst'}</span>
               </button>
               <button
-                onClick={handleDownloadWordHtml}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-bold transition-colors"
+                onClick={handleDownloadMarkdown}
+                title="Last ned rent Markdown-dokument (.md)"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-300" />
+                <span>Markdown (.md)</span>
+              </button>
+              <button
+                onClick={handleDownloadDocx}
+                disabled={isExportingDocx}
+                title="Generer autentisk Microsoft Word OpenXML (.docx) dokument"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900 text-white rounded text-xs font-bold transition-colors cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Last ned Word-dokument (.doc)</span>
+                <span>{isExportingDocx ? 'Genererer DOCX...' : 'Word (.docx)'}</span>
               </button>
             </div>
           </div>

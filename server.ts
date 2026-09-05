@@ -5,6 +5,7 @@ import { RbacService } from './src/services/rbacService.ts';
 import { CanonicalAppraisalService } from './src/services/canonicalAppraisalService.ts';
 import { ScreeningGateService } from './src/services/screeningGateService.ts';
 import { MasterInstrumentRegistryService } from './src/services/masterInstrumentRegistry.ts';
+import { EvidenceTraceabilityService } from './src/services/evidenceTraceabilityService.ts';
 import type { AppraisalInstrument, ReviewerProfile } from './src/types/index.ts';
 
 async function startServer() {
@@ -182,6 +183,35 @@ async function startServer() {
     }
 
     return res.json({ session: result.session });
+  });
+
+  // 6. Evidence Quote Traceability & Verification
+  app.post('/api/evidence/verify-quote', (req, res) => {
+    try {
+      const { documentText, quote, claimedLocation } = req.body;
+      if (!documentText || !quote) {
+        return res.status(400).json({
+          error: 'documentText og quote er påkrevde parametere for sitatverifisering.'
+        });
+      }
+
+      const result = EvidenceTraceabilityService.verifyQuote(documentText, quote, claimedLocation);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({
+        error: 'Sitatverifisering feilet på serveren.',
+        diagnostic: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
+  });
+
+  // Global Error Handler (Sanitizes stack traces to prevent info leaks in production)
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error('Server Internal Error:', err);
+    res.status(500).json({
+      error: 'En uventet intern serverfeil oppstod.',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   });
 
   // Vite middleware in dev / Static files in production

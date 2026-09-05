@@ -19,6 +19,8 @@ import {
   calculateFleissKappa,
   evaluateAgree2DomainScores 
 } from '../utils/statistics';
+import { ScreeningGateService } from '../services/screeningGateService';
+import { EvidenceTraceabilityService } from '../services/evidenceTraceabilityService';
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -109,6 +111,13 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
     ratings: {},
     updatedAt: new Date().toISOString()
   };
+
+  // Validate Screening Gate for canonical appraisal workflow
+  const gateResult = React.useMemo(() => {
+    return ScreeningGateService.validateScreeningGate(study, activeInstrument, {
+      reviewerId: activeAssessment.reviewerId
+    });
+  }, [study, activeInstrument, activeAssessment.reviewerId]);
 
   // Calculate live statistics for Multi-Rater panel
   const multiRaterStats = currentAssessments.length >= 2
@@ -509,6 +518,22 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Screening Gate Advisory Banner */}
+      {!gateResult.canAppraise && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between gap-3 text-xs text-amber-900 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <div>
+              <span className="font-bold">Metodisk Forhåndskontroll (Screening Gate): </span>
+              <span>{gateResult.blockers.join('. ')}</span>
+            </div>
+          </div>
+          <span className="bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0">
+            Krav før publisering
+          </span>
+        </div>
+      )}
 
       {/* Streamlined Filter & Domain Map Navigation Strip */}
       <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
@@ -964,6 +989,41 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
                       className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-hidden focus:ring-1 focus:ring-blue-600 italic text-slate-800"
                     />
                   </div>
+
+                  {/* Evidence Traceability Quote Verification Indicator */}
+                  {rating?.rationale && rating.rationale.trim().length >= 6 && study.rawContent && (() => {
+                    const quoteVer = EvidenceTraceabilityService.verifyQuote(study.rawContent, rating.rationale);
+                    return (
+                      <div className={`p-1.5 rounded text-[11px] flex items-center justify-between gap-1.5 border ${
+                        quoteVer.matchType === 'EXACT_MATCH'
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                          : quoteVer.matchType === 'NORMALIZED_MATCH'
+                          ? 'bg-blue-50 border-blue-200 text-blue-900'
+                          : quoteVer.matchType === 'FUZZY_MATCH'
+                          ? 'bg-amber-50 border-amber-200 text-amber-900'
+                          : 'bg-rose-50 border-rose-200 text-rose-900'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          {quoteVer.isVerified ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                          ) : (
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                          )}
+                          <span className="font-semibold">
+                            {quoteVer.matchType === 'EXACT_MATCH' && 'Eksakt sitat verifisert i artikkel'}
+                            {quoteVer.matchType === 'NORMALIZED_MATCH' && 'Sitat verifisert (normalisert)'}
+                            {quoteVer.matchType === 'FUZZY_MATCH' && `Sitat delvis funnet (${Math.round(quoteVer.confidence * 100)}% tekstsamsvar)`}
+                            {quoteVer.matchType === 'NOT_FOUND' && 'Sitatet ble ikke gjenfunnet i kildeteksten'}
+                          </span>
+                        </div>
+                        {quoteVer.detectedPage && (
+                          <span className="font-mono text-[10px] opacity-75">
+                            ca. side {quoteVer.detectedPage} av {quoteVer.totalEstimatedPages}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex items-center justify-between pt-0.5 text-xs">
                     <label className="flex items-center gap-1.5 text-slate-700 cursor-pointer select-none">

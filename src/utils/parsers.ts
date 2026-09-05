@@ -1,6 +1,7 @@
 import { DocumentAnalysisFinding, IMRaDAnalysisResult, StudyRecord } from '../types';
 import { calculateSha256 } from './crypto';
 import { analyzeIMRaDStructure } from '../services/imradAnalysisService';
+import { CsvParser } from './csvParser';
 
 export interface ParsedDocumentResult {
   study: StudyRecord;
@@ -387,7 +388,7 @@ export function parseRisString(text: string): Array<{
 }
 
 /**
- * Parses structured CSV table into study metadata
+ * Parses structured CSV / TSV table into study metadata using RFC 4180 standards
  */
 export function parseCsvString(text: string): Array<{
   title: string;
@@ -399,11 +400,14 @@ export function parseCsvString(text: string): Array<{
   documentType?: StudyRecord['documentType'];
   rawContent?: string;
 }> {
-  const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
-  if (lines.length <= 1) return [];
+  const parseResult = CsvParser.parse<Record<string, string>>(text, {
+    hasHeader: true,
+    trimValues: true,
+    skipEmptyLines: true
+  });
 
-  const delimiter = lines[0].includes(';') ? ';' : ',';
-  const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
+  const headers = parseResult.headers.map(h => h.toLowerCase().replace(/^["']|["']$/g, ''));
+  if (headers.length === 0 || parseResult.rows.length === 0) return [];
 
   const titleIdx = headers.findIndex(h => h.includes('title') || h === 'tittel');
   const authIdx = headers.findIndex(h => h.includes('author') || h.includes('forfatter'));
@@ -413,38 +417,30 @@ export function parseCsvString(text: string): Array<{
   const absIdx = headers.findIndex(h => h.includes('abstract') || h.includes('sammendrag'));
   const typeIdx = headers.findIndex(h => h.includes('type') || h.includes('design') || h.includes('instrument'));
 
-  const results = [];
-  for (let i = 1; i < lines.length; i++) {
-    const rawLine = lines[i];
-    // Simple CSV parser respecting basic quotes
-    const cells: string[] = [];
-    let inQuotes = false;
-    let curr = '';
-    for (let j = 0; j < rawLine.length; j++) {
-      const ch = rawLine[j];
-      if (ch === '"') {
-        inQuotes = !inQuotes;
-      } else if (ch === delimiter && !inQuotes) {
-        cells.push(curr.trim().replace(/^"|"$/g, ''));
-        curr = '';
-      } else {
-        curr += ch;
-      }
-    }
-    cells.push(curr.trim().replace(/^"|"$/g, ''));
+  const titleKey = titleIdx !== -1 ? parseResult.headers[titleIdx] : parseResult.headers[0];
+  const authKey = authIdx !== -1 ? parseResult.headers[authIdx] : undefined;
+  const yearKey = yearIdx !== -1 ? parseResult.headers[yearIdx] : undefined;
+  const journalKey = journalIdx !== -1 ? parseResult.headers[journalIdx] : undefined;
+  const doiKey = doiIdx !== -1 ? parseResult.headers[doiIdx] : undefined;
+  const absKey = absIdx !== -1 ? parseResult.headers[absIdx] : undefined;
+  const typeKey = typeIdx !== -1 ? parseResult.headers[typeIdx] : undefined;
 
-    const title = titleIdx !== -1 ? cells[titleIdx] : cells[0];
+  const results = [];
+  for (let i = 0; i < parseResult.rows.length; i++) {
+    const row = parseResult.rows[i];
+    const rawCells = parseResult.rawRows[i] || [];
+    const title = row[titleKey] || (rawCells[0] ? rawCells[0].trim() : '');
     if (!title) continue;
 
     results.push({
-      title: title || `Study Entry #${i}`,
-      authors: authIdx !== -1 ? cells[authIdx] : 'Authors Not Specified',
-      year: yearIdx !== -1 ? cells[yearIdx] : new Date().getFullYear().toString(),
-      journal: journalIdx !== -1 ? cells[journalIdx] : 'Research Archive',
-      doi: doiIdx !== -1 ? cells[doiIdx] : undefined,
-      abstract: absIdx !== -1 ? cells[absIdx] : undefined,
-      documentType: (typeIdx !== -1 ? cells[typeIdx] as StudyRecord['documentType'] : undefined),
-      rawContent: rawLine
+      title: title || `Study Entry #${i + 1}`,
+      authors: authKey && row[authKey] ? row[authKey] : 'Authors Not Specified',
+      year: yearKey && row[yearKey] ? row[yearKey] : new Date().getFullYear().toString(),
+      journal: journalKey && row[journalKey] ? row[journalKey] : 'Research Archive',
+      doi: doiKey && row[doiKey] ? row[doiKey] : undefined,
+      abstract: absKey && row[absKey] ? row[absKey] : undefined,
+      documentType: (typeKey && row[typeKey] ? row[typeKey] as StudyRecord['documentType'] : undefined),
+      rawContent: rawCells.join(parseResult.delimiterUsed)
     });
   }
 
