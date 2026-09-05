@@ -43,7 +43,7 @@ export class JbiQualitativeValidationService {
    * Deterministic mathematical score calculator for JBI Appraisal records.
    * Eliminates calculation discrepancies and guarantees consistent percentages.
    */
-  public static computeScore(
+  public static summarizeResponses(
     items: JBIEvaluationItem[] = [], 
     totalExpectedItems: number = 10
   ): ScoreCalculationResult {
@@ -66,13 +66,6 @@ export class JbiQualitativeValidationService {
       ? Math.round((answered / totalExpectedItems) * 100) 
       : 0;
 
-    const jaScorePercent = totalExpectedItems > 0 
-      ? Math.round((ja / totalExpectedItems) * 100) 
-      : 0;
-
-    const applicableTotal = Math.max(1, totalExpectedItems - ikkeRelevant);
-    const applicableJaPercent = Math.round((ja / applicableTotal) * 100);
-
     return {
       ja,
       nei,
@@ -81,10 +74,7 @@ export class JbiQualitativeValidationService {
       total: totalExpectedItems,
       answered,
       unanswered,
-      completenessPercent,
-      jaScorePercent,
-      applicableTotal,
-      applicableJaPercent
+      completenessPercent
     };
   }
 
@@ -96,7 +86,7 @@ export class JbiQualitativeValidationService {
     items: JBIEvaluationItem[] = [],
     metadata?: Partial<ArticleAppraisal>
   ): VerdictRecommendation {
-    const score = this.computeScore(items, 10);
+    const profile = this.summarizeResponses(items, 10);
     const criticalFlaws: string[] = [];
     const identifiedWeaknesses: string[] = [];
 
@@ -123,11 +113,11 @@ export class JbiQualitativeValidationService {
       criticalFlaws.push('Epistemologisk kausalitetsfeil: Kvalitativ studie omtales som kausal effektprøving.');
     }
 
-    if (score.unanswered > 0) {
+    if (profile.unanswered > 0) {
       return {
         verdict: 'Ufullstendig',
         riskOfBias: 'Uavklart',
-        rationale: `Vurderingen er ufullstendig (${score.unanswered} av 10 spørsmål gjenstår). Alle 10 kriterier må vurderes med begrunnelse.`,
+        rationale: `Vurderingen er ufullstendig (${profile.unanswered} av 10 spørsmål gjenstår). Alle 10 kriterier må vurderes med begrunnelse.`,
         criticalFlaws: [...criticalFlaws, ...identifiedWeaknesses],
         suggestedAction: 'Fullfør de ubesvarte kriteriene før endelig inklusjonsvedtak fattes.'
       };
@@ -145,7 +135,7 @@ export class JbiQualitativeValidationService {
       };
     }
 
-    if (score.nei === 0 && score.uklart === 0) {
+    if (profile.nei === 0 && profile.uklart === 0) {
       return {
         verdict: 'Inkluder',
         riskOfBias: 'Lav',
@@ -155,15 +145,16 @@ export class JbiQualitativeValidationService {
       };
     }
 
-    if (score.nei > 0 || score.uklart > 0) {
-      const hasManyUnclear = score.uklart >= 3;
-      const suggestedVerdict = hasManyUnclear ? 'Søk mer informasjon' : (score.ja >= 7 ? 'Inkluder' : 'Vurder videre');
-      const biasLevel = score.nei >= 3 ? 'Høy' : (score.nei >= 1 || score.uklart >= 2 ? 'Moderat' : 'Lav');
+    if (profile.nei > 0 || profile.uklart > 0) {
+      const hasUnresolvedJudgments = profile.uklart > 0;
+      const hasMethodologicalWeakness = profile.nei > 0;
+      const suggestedVerdict = hasUnresolvedJudgments ? 'Søk mer informasjon' : hasMethodologicalWeakness ? 'Vurder videre' : 'Inkluder';
+      const biasLevel = hasUnresolvedJudgments || hasMethodologicalWeakness ? 'Uavklart' : 'Lav';
 
       return {
         verdict: suggestedVerdict,
         riskOfBias: biasLevel,
-        rationale: `JBI Metodisk profil: ${score.ja} Ja, ${score.nei} Nei, ${score.uklart} Uklart, ${score.ikkeRelevant} Ikke relevant. Identifiserte punkter: ${identifiedWeaknesses.join(' ')} (JBI foreskriver ikke en rigid cut-off score; vurderingen er veiledende beslutningsstøtte).`,
+        rationale: `JBI-profil: ${profile.ja} Ja, ${profile.nei} Nei, ${profile.uklart} Uklart, ${profile.ikkeRelevant} Ikke relevant. Identifiserte punkter: ${identifiedWeaknesses.join(' ')}. Endelig vurdering er kvalitativ og krever forskerens metodiske skjønn.`,
         criticalFlaws: identifiedWeaknesses,
         suggestedAction: hasManyUnclear 
           ? 'Kontakt forfattere eller søk supplerende metodisk dokumentasjon for uavklarte punkter.' 
@@ -174,7 +165,7 @@ export class JbiQualitativeValidationService {
     return {
       verdict: 'Vurder videre',
       riskOfBias: 'Moderat',
-      rationale: `Metodisk profil: ${score.ja}/10 Ja. JBI krever helhetlig faglig forskerskjønn for inklusjonsbeslutning.`,
+      rationale: `Metodisk profil: ${profile.ja}/10 Ja. JBI krever helhetlig faglig forskerskjønn for inklusjonsbeslutning.`,
       criticalFlaws: identifiedWeaknesses,
       suggestedAction: 'Vurder studiens samlede metodiske troverdighet i oppgavens diskusjonskapittel.'
     };
@@ -332,7 +323,7 @@ export class JbiQualitativeValidationService {
     }
 
     const items = assessment.items || [];
-    const scoreCalculation = this.computeScore(items, totalItems);
+    const scoreCalculation = this.summarizeResponses(items, totalItems);
 
     // 2. Individual Item Checks
     for (let qId = 1; qId <= totalItems; qId++) {
