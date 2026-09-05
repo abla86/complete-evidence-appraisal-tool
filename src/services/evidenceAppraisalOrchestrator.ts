@@ -28,15 +28,15 @@ export class EvidenceAppraisalOrchestrator {
     const normalizedReviewerId = reviewerId.trim();
     if (!normalizedReviewerId) throw new Error('reviewerId is required.');
 
-    const payload = buildResearchAppraisalPayload(workflow);
-
     // The orchestrator is also a supported programmatic entry point. Ensure
-    // the supplied workflow is visible to the canonical store before the
-    // canonical appraisal bridge tries to attach the session.
+    // the supplied workflow is visible to the canonical store before payload
+    // validation and appraisal attachment.
     const canonicalWorkflow = researchWorkflowStore.get(workflow.studyId);
     if (!canonicalWorkflow) {
       researchWorkflowStore.save(workflow);
     }
+
+    const payload = buildResearchAppraisalPayload(workflow);
 
     const attached = await createAndAttachAppraisal(
       payload,
