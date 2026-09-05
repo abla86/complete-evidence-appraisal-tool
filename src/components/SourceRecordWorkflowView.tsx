@@ -41,6 +41,20 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const unresolved = Math.max(0, articles.length - included - excluded);
   const selected = articles.find(a => a.id === record?.recordId) || articles[0];
 
+  React.useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
+      const key = event.key.toLowerCase();
+      if (key === 'i') applyDecision('Inkluder');
+      if (key === 'e') applyDecision('Ekskluder');
+      if (key === 'u') applyDecision('Vurder videre');
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
+
   const applyDecision = (decision: 'Inkluder' | 'Ekskluder' | 'Vurder videre') => {
     if (!selected) return;
     setArticles(current => current.map(article => article.id === selected.id ? { ...article, overallVerdict: decision, verdictNote: decision === 'Ekskluder' ? 'Ekskludert i screening; begrunnelse dokumenteres i audit trail.' : article.verdictNote } : article));
