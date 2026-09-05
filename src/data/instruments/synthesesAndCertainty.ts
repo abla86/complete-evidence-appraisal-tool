@@ -105,9 +105,9 @@ export const SYNTHESIS_AND_CERTAINTY_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:77ff199014ba',
     applicableStudyTypes: ['Systematiske oversikter'],
     qualityControlGuidelines: 'Full sjekkliste + flytskjema.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'PRISMA Executive'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'prisma-scr',
@@ -152,9 +152,9 @@ export const SYNTHESIS_AND_CERTAINTY_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:66ee19a0',
     applicableStudyTypes: ['Scoping reviews'],
     qualityControlGuidelines: '20 rapporteringspunkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'PRISMA Executive'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'entreq',
@@ -199,9 +199,9 @@ export const SYNTHESIS_AND_CERTAINTY_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55cc19e0',
     applicableStudyTypes: ['Kvalitative synteser'],
     qualityControlGuidelines: '21 punkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'EQUATOR Network'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'moose',
@@ -246,9 +246,9 @@ export const SYNTHESIS_AND_CERTAINTY_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:44bb19e0',
     applicableStudyTypes: ['Observasjonelle metaanalyser'],
     qualityControlGuidelines: '6 seksjoner.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'MOOSE Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'grade',
@@ -297,9 +297,9 @@ export const SYNTHESIS_AND_CERTAINTY_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:88ee99114bca',
     applicableStudyTypes: ['Utfallsmål i kunnskapssynteser'],
     qualityControlGuidelines: 'Eksplisitte fotnoter for alle endringer.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'GRADE Working Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'grade-cerqual',
@@ -347,8 +347,8 @@ export const SYNTHESIS_AND_CERTAINTY_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:33ee1199a01',
     applicableStudyTypes: ['Kvalitative syntesefunn'],
     qualityControlGuidelines: 'CERQual Qualitative Evidence Profile utarbeides for alle nøkkelfunn.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CERQual Steering Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   }
 ];
