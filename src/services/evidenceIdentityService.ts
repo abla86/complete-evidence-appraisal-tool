@@ -25,7 +25,7 @@ function fields(source: SourceIdentityLike) {
 export function resolveReferenceForSource(source: SourceIdentityLike, references: ReferenceRecord[]): ReferenceRecord | null {
   const ids = fields(source);
   const explicit = references.find(reference =>
-    reference.id === source.recordId || reference.sourceRecordIds?.includes(source.recordId)
+    reference.sourceRecordIds?.includes(source.recordId)
   );
   if (explicit) return explicit;
   return references.find(reference =>
