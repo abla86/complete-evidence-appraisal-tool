@@ -36,7 +36,10 @@ export function runCitationAudit(
         identifiers: item.sourceIdentifiers,
         metadata: item.sourceMetadata,
         referenceDraft: item.referenceDraft,
-      }, references))
+      }, references) ?? references.find(reference =>
+        item.referenceId?.trim() === reference.id ||
+        item.sourceRecordId?.trim() === reference.id
+      ) ?? null)
       .filter((reference): reference is ReferenceRecord => Boolean(reference))
       .filter((reference, index, all) => all.findIndex(r => r.id === reference.id) === index);
     const reasons: string[] = [];
