@@ -9,7 +9,6 @@ export {
   updateResearchClassification,
   verifyResearchClassification,
   verifyResearchEvidence,
-  verifyAllCandidateEvidence,
   selectResearchInstrument,
   assertReadyForAppraisal,
   buildResearchAppraisalPayload,
