@@ -41,24 +41,24 @@ export const Header: React.FC<HeaderProps> = ({
   useEffect(() => setIsMenuOpen(false), [activeTab]);
 
   const tabs: Array<{ id: ActiveTab; label: string; icon: React.ReactNode }> = [
-    { id: 'overview', label: 'Oversikt', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'search', label: 'Forskning', icon: <FileSearch className="w-4 h-4" /> },
-    { id: 'evaluate', label: 'Vurder', icon: <CheckSquare className="w-4 h-4" /> },
+    { id: 'overview', label: 'Research Intelligence Hub', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'search', label: 'Research Search & PICO', icon: <FileSearch className="w-4 h-4" /> },
+    { id: 'evaluate', label: 'Legacy JBI Entry', icon: <CheckSquare className="w-4 h-4" /> },
     { id: 'details', label: 'Detaljer', icon: <FileText className="w-4 h-4" /> },
     { id: 'compare', label: 'Sammenlign', icon: <GitCompare className="w-4 h-4" /> },
-    { id: 'peer_review', label: 'Fagfelle', icon: <Users className="w-4 h-4" /> },
-    { id: 'synthesis', label: 'Syntese', icon: <Layers className="w-4 h-4" /> },
-    { id: 'audittrail', label: 'Revisjon', icon: <History className="w-4 h-4" /> },
+    { id: 'peer_review', label: 'Peer Review & Consensus', icon: <Users className="w-4 h-4" /> },
+    { id: 'synthesis', label: 'Evidence Synthesis & Export Gate', icon: <Layers className="w-4 h-4" /> },
+    { id: 'audittrail', label: 'Audit Trail & Hash Chain', icon: <History className="w-4 h-4" /> },
     { id: 'who_validation', label: 'WHO', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'methodology_audit', label: 'Metode', icon: <ClipboardCheck className="w-4 h-4" /> },
-    { id: 'meta_research', label: 'Meta', icon: <Sparkles className="w-4 h-4" /> },
+    { id: 'meta_research', label: 'Meta-Research & PRISMA 2020', icon: <Sparkles className="w-4 h-4" /> },
     { id: 'reference_library', label: 'Bibliotek', icon: <LibraryBig className="w-4 h-4" /> },
-    { id: 'reference_hub', label: 'Referanser', icon: <LibraryBig className="w-4 h-4" /> },
+    { id: 'reference_hub', label: 'Unified Reference & Citation Engine', icon: <LibraryBig className="w-4 h-4" /> },
     { id: 'validation_dashboard', label: 'Validering', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'help_examples', label: 'Hjelp', icon: <GraduationCap className="w-4 h-4" /> },
-    { id: 'instrumentinfo', label: 'Instrument', icon: <ClipboardCheck className="w-4 h-4" /> },
-    { id: 'source_workflow', label: 'Kilde', icon: <FileText className="w-4 h-4" /> },
-    { id: 'appraisal', label: 'Appraisal', icon: <CheckSquare className="w-4 h-4" /> },
+    { id: 'instrumentinfo', label: 'Selected Instrument', icon: <ClipboardCheck className="w-4 h-4" /> },
+    { id: 'source_workflow', label: 'Source Record & Screening', icon: <FileText className="w-4 h-4" /> },
+    { id: 'appraisal', label: 'Universal Appraisal Hub', icon: <CheckSquare className="w-4 h-4" /> },
     { id: 'writing_studio', label: 'Skriveverksted', icon: <FileText className="w-4 h-4" /> },
   ];
 
@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="border-b border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 gap-3">
         <div className="flex items-center gap-3">
-          <button type="button" className="font-black text-slate-900" onClick={() => setActiveTab('overview')}>Evidence Appraisal</button>
+          <button type="button" className="font-black text-slate-900 text-left" onClick={() => setActiveTab('overview')}>Complete Evidence Appraisal Suite<span className="block text-[10px] font-semibold text-slate-500">Research Intelligence Platform</span></button>
           <span className="text-xs text-slate-500">{articles.length} studier</span>
         </div>
         <div className="flex items-center gap-2">
