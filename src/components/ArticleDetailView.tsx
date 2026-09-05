@@ -70,7 +70,23 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   }, [article]);
 
   const gateResult: MethodIntegrityGateResult = useMemo(() => {
-    return MethodIntegrityGate.validateAppraisal(article);
+    const instrumentId = article.instrumentId?.trim();
+    if (!instrumentId || instrumentId === 'mangler') {
+      return {
+        isValid: false,
+        errors: ['Velg et vurderingsinstrument'],
+        isReady: false,
+      } as MethodIntegrityGateResult;
+    }
+    try {
+      return MethodIntegrityGate.validateAppraisal(article);
+    } catch (error) {
+      return {
+        isValid: false,
+        errors: [error instanceof Error ? error.message : 'Kunne ikke validere vurderingsinstrumentet'],
+        isReady: false,
+      } as MethodIntegrityGateResult;
+    }
   }, [article]);
 
   const currentLifecycle: AssessmentLifecycleStatus = article.lifecycleStatus || 'FINALIZED';
