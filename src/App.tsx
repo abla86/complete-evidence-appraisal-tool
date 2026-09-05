@@ -67,7 +67,7 @@ function articleToReference(article: ArticleAppraisal): ReferenceRecord {
 export default function App() {
   const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
-  useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(true); }, [activeTab]);
+  useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [selectedArticleId, setSelectedArticleId] = useState<string>(() => { const loaded = AutosaveService.loadArticles([]); return loaded[0]?.id || ''; });
   const [editingArticle, setEditingArticle] = useState<ArticleAppraisal | null>(null);
@@ -138,7 +138,7 @@ export default function App() {
             <UniversalAppraisalView studyId={currentStudyId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />
           ) : <>
             {activeTab === 'overview' && <OverviewView articles={articles} onSelectArticle={handleSelectArticle} onEditArticle={handleEditArticle} onGoToThesis={() => setActiveTab('synthesis')} onOpenCustomEvaluator={handleNewArticle} onOpenImportExport={handleOpenImportExport} />}
-            {activeTab === 'document_studio' && <div className="bg-white border border-slate-200 rounded-2xl p-8 space-y-4"><div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">DOCUMENT STUDIO</div><h1 className="text-3xl font-serif font-bold">Document & IMRaD Parsing Studio</h1><p className="text-sm text-slate-600 max-w-3xl">Analyser fulltekst, identifiser IMRaD-seksjoner og inspiser PDF-innhold før screening og metodisk vurdering.</p><button type="button" onClick={() => setIsDocAnalysisOpen(true)} className="px-4 py-2 rounded-xl bg-teal-800 text-white text-sm font-bold">Åpne dokumentanalyse</button></div>}
+            {activeTab === 'document_studio' && <DocumentAnalysisModal isOpen={true} onClose={() => setActiveTab('overview')} />}
             {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported) => {
               const newArt = ImportExportService.createDefaultArticle({
                 id: generateArticleId('art'),
@@ -169,7 +169,7 @@ export default function App() {
             {activeTab === 'evaluate' && <JbiAssessmentForm initialArticle={editingArticle || undefined} onSaveArticle={handleSaveArticle} onCancel={() => { setEditingArticle(null); setActiveTab('overview'); }} />}
             {activeTab === 'compare' && <><UniversalDualReviewPanel studyId={selectedArticleId} instrumentId={selectedInstrumentId} actorId={actor.id} actorRole={currentUserRole} /><DualReviewView articles={articles} onSelectArticleId={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} onGoToEvaluation={handleEditArticle} /></>}
             {activeTab === 'peer_review' && <PeerReviewStudioView articles={articles} onUpdateArticles={setArticles} onNavigateToStudy={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
-            {activeTab === 'synthesis' && <ThesisReadyView articles={articles} onOpenImportExport={handleOpenImportExport} />}
+            {activeTab === 'synthesis' && <div className="space-y-6"><ThesisReadyView articles={articles} onOpenImportExport={handleOpenImportExport} /><AuditTrailView articles={articles} /></div>}
             {activeTab === 'audittrail' && <AuditTrailView articles={articles} />}
             {activeTab === 'who_validation' && <WhoValidationHubView articles={articles} onSelectArticleForEdit={(id) => { const art = articles.find(a => a.id === id); if (art) handleEditArticle(art); }} onSelectArticleForView={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
             {activeTab === 'methodology_audit' && <MethodologyAuditView />}
