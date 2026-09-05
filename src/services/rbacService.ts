@@ -141,11 +141,16 @@ export class RbacService {
         };
       case 'researcher':
         return { id: 'researcher', name: 'Forsker', description: 'Forsker med tilgang til prosjektarbeid og metodisk vurdering.' };
+      case 'auditor':
+        return { id: 'auditor', name: 'Revisor', description: 'Lesetilgang til auditspor og eksportert revisjonsinformasjon.' };
+      case 'read_only':
+        return { id: 'read_only', name: 'Lesetilgang', description: 'Kun lesetilgang uten endringshandlinger.' };
       case 'reviewer':
       case 'second_reviewer':
       default:
         return {
-          id: 'reviewer',
+          id: role,
+          name: role === 'second_reviewer' ? 'Reviewer 2' : 'Uavhengig gransker (Reviewer)',
           name: 'Uavhengig gransker (Reviewer)',
           description: 'Gjennomfører blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
         };
