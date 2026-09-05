@@ -3,11 +3,11 @@ name: Evidence Tool Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing release tag, e.g. v1.0.0"
+        description: 'Existing release tag, e.g. v1.0.0'
         required: true
         type: string
 
@@ -17,10 +17,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Resolve tag
@@ -33,27 +33,39 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: npm
-      - name: Install dependencies
+      - name: Install build dependencies
         run: npm ci
+      - name: Typecheck
+        run: npm run lint
       - name: Test
         run: npm test
-      - name: Build
+      - name: Build production bundle
         run: npm run build
-      - name: Package release
+      - name: Install production runtime dependencies
+        run: npm ci --omit=dev
+      - name: Assemble portable package
         shell: bash
         run: |
           rm -rf release
-          mkdir -p release
-          cp -r dist release/dist
-          cp package.json release/package.json
-          cp package-lock.json release/package-lock.json
-          cp README.md release/README.md
-          tar -czf "evidence-tool-${{ steps.tag.outputs.tag }}.tar.gz" -C release .
-      - name: Create GitHub Release
+          mkdir -p release/evidence-tool
+          cp -R dist release/evidence-tool/dist
+          cp package.json package-lock.json start.bat README.md release/evidence-tool/
+          cp -R node_modules release/evidence-tool/node_modules
+          cd release
+          zip -qr evidence-tool-production.zip evidence-tool
+      - name: Upload portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-tool-production
+          path: release/evidence-tool-production.zip
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "${{ steps.tag.outputs.tag }}" "evidence-tool-${{ steps.tag.outputs.tag }}.tar.gz" --generate-notes --title "${{ steps.tag.outputs.tag }}"
+        run: gh release create "${{ steps.tag.outputs.tag }}" release/evidence-tool-production.zip --generate-notes --title "${{ steps.tag.outputs.tag }}"
