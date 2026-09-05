@@ -4,6 +4,8 @@ export type EvidenceKind = 'QUOTE' | 'TABLE' | 'FIGURE' | 'STATISTIC' | 'CONCEPT
 export interface EvidenceExtraction {
   id: string;
   sourceRecordId: string;
+  referenceId?: string;
+  aiReviewRequired?: boolean;
   sourceIdentifiers?: { doi?: string; pmid?: string; pmcid?: string; isbn?: string; issn?: string };
   excerpt: string;
   location?: { page?: string; section?: string; table?: string; figure?: string };
