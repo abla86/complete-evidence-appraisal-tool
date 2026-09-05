@@ -336,14 +336,14 @@ export const MethodologyAuditView: React.FC = () => {
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 <span>{auditReport.verifiedCount} / {auditReport.totalInstruments} VERIFIED</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">100% kilde- og regeloppfyllelse</p>
+              <p className="text-[11px] text-slate-500 mt-1">Status beregnes fra faktisk auditresultat.</p>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
               <span className="text-[11px] text-slate-500 font-bold uppercase">Kildeopprinnelse</span>
               <div className="text-lg font-bold text-teal-800 flex items-center gap-1.5 mt-1">
                 <Award className="w-5 h-5 text-teal-600" />
-                <span>{auditReport.auditsSummary.sourceAudit === 'PASS' ? '100% PASS' : 'ISSUES'}</span>
+                <span>{auditReport.auditsSummary.sourceAudit}</span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1">Nivå 1 & 2 Primærkilder</p>
             </div>
@@ -352,7 +352,7 @@ export const MethodologyAuditView: React.FC = () => {
               <span className="text-[11px] text-slate-500 font-bold uppercase">Gjeldende Versjonslås</span>
               <div className="text-lg font-bold text-teal-800 flex items-center gap-1.5 mt-1">
                 <Lock className="w-5 h-5 text-teal-600" />
-                <span>{auditReport.auditsSummary.versionAudit === 'PASS' ? '100% PASS' : 'ISSUES'}</span>
+                <span>{auditReport.auditsSummary.versionAudit}</span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1">Ingen versjonsblanding</p>
             </div>
@@ -361,7 +361,7 @@ export const MethodologyAuditView: React.FC = () => {
               <span className="text-[11px] text-slate-500 font-bold uppercase">Scoring Integrity</span>
               <div className="text-lg font-bold text-teal-800 flex items-center gap-1.5 mt-1">
                 <CheckCircle2 className="w-5 h-5 text-teal-600" />
-                <span>{auditReport.auditsSummary.scoringAudit === 'PASS' ? '100% PASS' : 'ISSUES'}</span>
+                <span>{auditReport.auditsSummary.scoringAudit}</span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1">Anti-Score Integritet</p>
             </div>
@@ -728,7 +728,7 @@ export const MethodologyAuditView: React.FC = () => {
           <div className="flex border-b border-slate-200 gap-1.5 overflow-x-auto pb-1 text-xs">
             {MethodologyRegistry.map(inst => {
               const audit = auditReport.instrumentAudits.find(a => a.instrumentId === inst.id);
-              const status = audit?.overallStatus || 'VERIFIED';
+              const status = audit?.overallStatus || 'UNVERIFIED';
               return (
                 <button
                   key={inst.id}
@@ -741,7 +741,7 @@ export const MethodologyAuditView: React.FC = () => {
                 >
                   <span className="font-mono text-[11px]">{inst.shortName}</span>
                   <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${
-                    status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : status === 'PARTIALLY_VERIFIED' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                   }`}>
                     {status}
                   </span>
