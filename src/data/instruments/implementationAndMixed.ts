@@ -53,9 +53,9 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:5a9101ff2a01490123cb',
     applicableStudyTypes: ['Implementeringsstudier', 'Prosess-evalueringer'],
     qualityControlGuidelines: 'Kartlegging over alle 5 domener med definerte konstrukter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CFIR Working Group Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'kta',
@@ -112,9 +112,9 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:2f88cc1091bca7',
     applicableStudyTypes: ['Implementeringsløp', 'KBP-prosjekter'],
     qualityControlGuidelines: '7-trinns handlingssyklus dokumenteres.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CIHR Knowledge Translation Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 're-aim',
@@ -165,9 +165,9 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:44aa55bb66cc',
     applicableStudyTypes: ['Evalueringsstudier', 'Folkehelsetiltak'],
     qualityControlGuidelines: '5 dimensjoner.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'RE-AIM Working Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'proctor-outcomes',
@@ -221,9 +221,9 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:88aa77bb',
     applicableStudyTypes: ['Implementeringsforskning'],
     qualityControlGuidelines: '8 utfallskriterier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'Proctor Working Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'mmat-2018',
@@ -278,9 +278,9 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:77bb1190014a',
     applicableStudyTypes: ['Alle forskningsdesign i blandede oversikter'],
     qualityControlGuidelines: '2 silingsspørsmål + 5 metodiske kriterier.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'MMAT Committee Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'gramms',
@@ -325,8 +325,8 @@ export const IMPLEMENTATION_AND_MIXED_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:99bb88aa',
     applicableStudyTypes: ['Mixed methods-artikler'],
     qualityControlGuidelines: '6 rapporteringspunkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'GRAMMS Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   }
 ];
