@@ -111,7 +111,12 @@ export default function App() {
     return loaded.length ? loaded : [createDemoArticle()];
   });
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
-  useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return () => window.removeEventListener('research-suite:navigate', handler); }, []);
+  useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return (
+    <div className="min-h-screen">
+      <div className="flex flex-wrap items-center gap-2 p-3 border-b">
+        <button type="button" onClick={loadOverhaugDemo} className="px-4 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700">⚡ Hurtigstart: Last inn Øverhaug et al. (2024)</button>
+        <button type="button" onClick={hardResetApp} className="px-4 py-2 rounded-lg bg-red-700 text-white font-bold hover:bg-red-800">Tøm alt &amp; Nullstill applikasjon</button>
+      </div>) => window.removeEventListener('research-suite:navigate', handler); }, []);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [selectedArticleId, setSelectedArticleId] = useState<string>(() => { const loaded = AutosaveService.loadArticles([]); return loaded[0]?.id || ''; });
   const [editingArticle, setEditingArticle] = useState<ArticleAppraisal | null>(null);
@@ -143,7 +148,21 @@ export default function App() {
   const handleEditArticle = (article: ArticleAppraisal) => { const instrumentId = article.instrumentId || ((article.design || '').toLowerCase().includes('kvalitativ') ? 'jbi-qualitative-2017' : ''); const syncedArticle = instrumentId && article.instrumentId !== instrumentId ? { ...article, instrumentId, instrumentVersion: article.instrumentVersion || '2017' } : article; if (instrumentId) setSelectedInstrumentId(instrumentId); setArticles(prev => prev.map(a => a.id === article.id ? syncedArticle : a)); setEditingArticle(syncedArticle); setSelectedArticleId(article.id); setActiveTab('evaluate'); };
   const handleNewArticle = () => { setEditingArticle(null); setActiveTab('evaluate'); };
   const handleSaveArticle = (savedArticle: ArticleAppraisal) => { setArticles(prev => { const idx = prev.findIndex(a => a.id === savedArticle.id); if (idx >= 0) { const next = [...prev]; next[idx] = savedArticle; return next; } return [savedArticle, ...prev]; }); setSelectedArticleId(savedArticle.id); setEditingArticle(null); setActiveTab('details'); };
-  const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
+  const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];\n  const loadOverhaugDemo = () => {
+    const demo = ImportExportService.createDefaultArticle({
+      id: 'overhaug-2024', title: "There's a will, but not a way': Norwegian GPs' experiences of collaboration with child welfare services - a grounded theory study",
+      authors: 'Oda Martine Steinsdatter Øverhaug; Johanna Laue; Svein Arild Vis; Mette Bech Risør', year: 2024, journal: 'BMC Primary Care',
+      doi: '10.1186/s12875-024-02269-9', design: 'Kvalitativ studie (Grounded Theory)', studyContext: '10 semi-strukturerte intervjuer med fastleger i Norge; 10 fastleger (7 kvinner, 3 menn)', sourceName: 'Øverhaug et al. (2024)'
+    });
+    const next = { ...demo, instrumentId: 'jbi-qualitative-2017', instrumentVersion: '2017' };
+    setArticles(prev => [next, ...prev.filter(x => x.id !== next.id)]);
+    setSelectedArticleId(next.id); setSelectedInstrumentId(next.instrumentId);
+    setEditingArticle(next);
+  };
+
+  const hardResetApp = () => { localStorage.clear(); sessionStorage.clear(); window.location.reload(); };
+
+
 
   useEffect(() => {
     const instrumentId = currentArticle?.instrumentId || ((currentArticle?.design || '').toLowerCase().includes('kvalitativ') ? 'jbi-qualitative-2017' : '');
