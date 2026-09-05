@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useStudioState } from '../state/StudioStateContext';
 import type { SourceRecord } from '../domain/sourceRecord';
 import { validateSourceRecord } from '../services/validateSourceRecord';
 import { validateReference } from '../services/referenceIntegrityService';
@@ -27,7 +28,7 @@ class TrailWriter implements AuditWriter {
   }
 }
 
-export const SourceRecordWorkflowView: React.FC = () => {
+export const SourceRecordWorkflowView: React.FC = () => {\n  const { articles, setArticles } = useStudioState();\n  const [pico, setPico] = useState({ population: '', intervention: '', comparison: '', outcome: '' });\n  const included = articles.filter(a => a.lifecycleStatus === 'APPROVED' || a.overallVerdict === 'Inkluder').length;\n  const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;\n  const unresolved = Math.max(0, articles.length - included - excluded);\n  const selected = articles.find(a => a.id === record?.recordId) || articles[0];\n\n  const applyDecision = (decision: 'Inkluder' | 'Ekskluder' | 'Vurder videre') => {\n    if (!selected) return;\n    setArticles(current => current.map(article => article.id === selected.id ? { ...article, overallVerdict: decision, verdictNote: decision === 'Ekskluder' ? 'Ekskludert i screening; begrunnelse dokumenteres i audit trail.' : article.verdictNote } : article));\n    setMessage(`Screeningbeslutning registrert: ${decision}.`);\n  };
   const [json, setJson] = useState('');
   const [record, setRecord] = useState<SourceRecord | null>(null);
   const [message, setMessage] = useState('');
@@ -99,6 +100,34 @@ export const SourceRecordWorkflowView: React.FC = () => {
 
   return (
     <section className="space-y-6">
+      <header className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div><h2 className="text-2xl font-bold text-slate-900">Screening & PICO Studio</h2><p className="mt-1 text-sm text-slate-600">Levende screening av studiene i prosjekt-state. Beslutninger brukes videre i PRISMA- og synteseflyten.</p></div>
+          <div className="grid grid-cols-3 gap-2 min-w-[20rem]">
+            <Metric label="Screenet" value={articles.length - unresolved} />
+            <Metric label="Inkludert" value={included} />
+            <Metric label="Ekskludert" value={excluded} />
+          </div>
+        </div>
+      </header>
+      <div className="grid xl:grid-cols-2 gap-5">
+        <article className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+          <div><h3 className="font-bold">PICO-tagging</h3><p className="text-xs text-slate-500">Tagg problemstillingen eksplisitt før metodisk vurdering.</p></div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="space-y-1"><span className="text-xs font-semibold capitalize">population</span><input value={pico.population} onChange={e=>setPico(v=>({...v,population:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">intervention</span><input value={pico.intervention} onChange={e=>setPico(v=>({...v,intervention:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">comparison</span><input value={pico.comparison} onChange={e=>setPico(v=>({...v,comparison:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">outcome</span><input value={pico.outcome} onChange={e=>setPico(v=>({...v,outcome:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label>
+          </div>
+          <div className="flex flex-wrap gap-2">{Object.entries(pico).filter(([,v])=>v.trim()).map(([k,v])=><span key={k} className="text-[10px] px-2 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">{k}: {v}</span>)}</div>
+        </article>
+        <article className="bg-slate-900 text-white rounded-2xl p-5 space-y-4">
+          <div><h3 className="font-bold">Hurtigscreening</h3><p className="text-xs text-slate-300">Valgt studie: {selected?.title || 'Ingen studie valgt'}</p></div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={()=>applyDecision('Inkluder')} className="px-4 py-2 rounded-xl bg-emerald-400 text-slate-950 font-bold text-sm">Inkluder (I)</button>
+            <button type="button" onClick={()=>applyDecision('Ekskluder')} className="px-4 py-2 rounded-xl bg-rose-400 text-slate-950 font-bold text-sm">Ekskluder (E)</button>
+            <button type="button" onClick={()=>applyDecision('Vurder videre')} className="px-4 py-2 rounded-xl bg-amber-300 text-slate-950 font-bold text-sm">Uavklart (U)</button>
+          </div>
+          <div className="text-xs text-slate-300">Bruk I/E/U i screeningarbeidet. Valget lagres i felles prosjekt-state.</div>
+        </article>
+      </div>
       <header>
         <h2 className="text-2xl font-bold text-slate-900">SourceRecord → Screening → PICO</h2>
         <p className="mt-1 text-sm text-slate-600">Eksplisitt testflyt. Hver handling er separat og spores i canonical audit trail.</p>
@@ -133,3 +162,5 @@ export const SourceRecordWorkflowView: React.FC = () => {
     </section>
   );
 };
+
+function Metric({ label, value }: { label: string; value: number }) { return <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] uppercase tracking-wide text-slate-400">{label}</div><div className="text-xl font-bold">{value}</div></div>; }
