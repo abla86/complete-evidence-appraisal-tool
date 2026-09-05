@@ -67,6 +67,7 @@ function articleToReference(article: ArticleAppraisal): ReferenceRecord {
 }
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const tabTitles: Record<ActiveTab, string> = {
     overview: 'Research Intelligence Platform',
     document_studio: 'Document Studio',
@@ -89,12 +90,11 @@ export default function App() {
     instrumentinfo: 'Instrument Information',
     writing_studio: 'Writing Studio',
   };
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [isDocAnalysisOpen, setIsDocAnalysisOpen] = useState(false);
 
   useEffect(() => {
     document.title = `Complete Evidence Appraisal Suite · ${tabTitles[activeTab]}`;
-  }, [activeTab, tabTitles]);
+  }, [activeTab]);
   const createDemoArticle = (): ArticleAppraisal => ImportExportService.createDefaultArticle({
     id: 'demo-rct-heart-failure-2025',
     title: 'Digital Remote Telemonitoring versus Standard Care for Chronic Heart Failure',
