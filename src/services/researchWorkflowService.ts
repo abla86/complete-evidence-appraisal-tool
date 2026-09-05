@@ -261,22 +261,6 @@ export function verifyResearchEvidence(
   };
 }
 
-export function verifyAllCandidateEvidence(
-  state: WorkflowState,
-  reviewerId: string,
-): WorkflowState {
-  const id = normalizeReviewerId(reviewerId);
-  if (!state.research) throw new Error('Research document is not attached.');
-
-  let next = state;
-  for (const item of state.research.evidenceBundle.evidence) {
-    if (item.source === 'AI_CANDIDATE') {
-      next = verifyResearchEvidence(next, item.id, true, id);
-    }
-  }
-  return next;
-}
-
 export function selectResearchInstrument(
   state: WorkflowState,
   instrumentId: string,
