@@ -1,4 +1,4 @@
-import { 
+import type { 
   ArticleAppraisal, 
   MethodologyControlReport, 
   MethodologyRuleEvaluation,
@@ -153,6 +153,7 @@ export class WhoValidationService {
     const passedCount = rules.filter(r => r.passed).length;
     const totalCount = rules.length;
     const completionPercent = totalCount === 0 ? 0 : Math.round((passedCount / totalCount) * 100);
+    const complianceScore = completionPercent;
 
     let summaryVerdict: 'INTERN_METODISK_KONTROLLERT' | 'KREVER_KOMPLETTERING' | 'IKKE_GODKJENT' = 'INTERN_METODISK_KONTROLLERT';
     if (!allCriticalPassed) {
