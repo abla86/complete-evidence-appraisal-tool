@@ -7,6 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -25,8 +29,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run tests with V8 coverage
-        env:
-          NODE_V8_COVERAGE: coverage
         run: npm run test:coverage
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
