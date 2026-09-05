@@ -149,9 +149,9 @@ export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:77ee119a00',
     applicableStudyTypes: ['Eksponeringsstudier', 'Miljøepidemiologi'],
     qualityControlGuidelines: 'Definer forhåndskonfundere.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'ROBINS-E Steering Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'quadas-2',
@@ -196,9 +196,9 @@ export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:22aa990145ef',
     applicableStudyTypes: ['Diagnostiske nøyaktighetsstudier'],
     qualityControlGuidelines: 'Tilpass signalspørsmål til den kliniske konteksten.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'QUADAS Steering Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'robis',
@@ -243,9 +243,9 @@ export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55dd19e8',
     applicableStudyTypes: ['Systematiske oversikter'],
     qualityControlGuidelines: '3 faser gjennomføres systematisk.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'ROBIS Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'probast',
@@ -290,8 +290,8 @@ export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:88ff19a0',
     applicableStudyTypes: ['Prediksjonsmodeller', 'Prognoseforskning'],
     qualityControlGuidelines: '20 signalspørsmål over 4 domener.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'PROBAST Steering Committee'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   }
 ];
