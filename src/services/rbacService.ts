@@ -146,11 +146,8 @@ export class RbacService {
       case 'read_only':
         return { id: 'read_only', name: 'Lesetilgang', description: 'Kun lesetilgang uten endringshandlinger.' };
       case 'reviewer':
-      case 'second_reviewer':
-      default:
         return {
-          id: role,
-          name: role === 'second_reviewer' ? 'Reviewer 2' : 'Uavhengig gransker (Reviewer)',
+          id: 'reviewer',
           name: 'Uavhengig gransker (Reviewer)',
           description: 'Gjennomfører blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
         };
@@ -158,7 +155,7 @@ export class RbacService {
   }
 
   public static getAvailableRoles() {
-    return (['lead_reviewer', 'reviewer', 'adjudicator', 'admin'] as UserRole[]).map(this.getRoleDefinition);
+    return (['researcher', 'reviewer', 'second_reviewer', 'lead_reviewer', 'adjudicator', 'auditor', 'read_only', 'admin'] as UserRole[]).map(role => this.getRoleDefinition(role));
   }
 
   public static checkPermission(role: UserRole, permission: keyof PermissionDefinition): boolean {
