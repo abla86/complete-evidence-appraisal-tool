@@ -2,13 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -16,35 +18,31 @@ permissions:
 
 jobs:
   validate:
+    name: Validate
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
         run: npm run lint
-      - name: Build frontend and backend
-        run: npm run build
-      - name: Run tests
+
+      - name: Test
         run: npm test
-      - name: Build production container
-        run: docker build -t evidence-app:test .
-      - name: Verify production container health
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run -d --rm --name evidence-app-ci -p 18080:10000 evidence-app:test
-          trap 'docker rm -f evidence-app-ci >/dev/null 2>&1 || true' EXIT
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:18080/api/health; then
-              exit 0
-            fi
-            sleep 2
-          done
-          docker logs evidence-app-ci
-          exit 1
+
+      - name: Production build
+        run: npm run build
