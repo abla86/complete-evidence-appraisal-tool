@@ -39,11 +39,11 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
     text += `De kvalitative studiene (${articles.map(a => a.shortCitation).join(', ')}) ble vurdert ved hjelp av Joanna Briggs Institutes (JBI) Critical Appraisal Checklist for Qualitative Research (Joanna Briggs Institute, 2017). Sjekklisten består av ti standardiserte metodiske kriterier som evaluerer samsvar mellom ontologisk/filosofisk perspektiv, forskningsmetodologi, problemstilling, datainnsamling, dataanalyse og fortolkning, samt forskerens posisjon (refleksivitet), representasjon av informantenes stemmer, forskningsetikk og sammenheng mellom empirisk materiale og konklusjoner.\n\n`;
 
     articles.forEach(art => {
-      const artScore = JbiQualitativeValidationService.computeScore(art.items, 10);
+      const artScore = JbiQualitativeValidationService.summarizeResponses(art.items, 10);
       text += `**${art.shortCitation}** oppnådde ${artScore.ja} «Ja»`;
       if (artScore.uklart > 0) text += `, ${artScore.uklart} «Uklart»`;
       if (artScore.nei > 0) text += ` og ${artScore.nei} «Nei»`;
-      text += ` av 10 JBI-kriterier (${artScore.jaScorePercent}% oppfyllelse). `;
+      text += ` av 10 JBI-kriterier. JBI-resultatet fortolkes kvalitativt og ikke som en numerisk kvalitetsskår. `;
       text += `Studien benyttet ${art.design.toLowerCase()} med ${art.dataCollection.toLowerCase()} blant ${art.participants.toLowerCase()}. `;
       text += `${art.verdictNote || 'Studien demonstrerer god metodisk konsistens og transparent analyse.'} `;
       if (art.keyStrength) text += `En sentral metodisk styrke er ${art.keyStrength.toLowerCase()}. `;
