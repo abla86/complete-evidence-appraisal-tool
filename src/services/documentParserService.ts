@@ -396,11 +396,9 @@ export class DocumentParserService {
       discussion: 'Discussion / Limitations',
     };
     const sections = imrad.sections
-      .filter(section => section.detected && section.evidencePreview)
-      .map(section => {
-        const content = this.extractImradContent(text, section.key);
-        return { title: labels[section.key], content, characterCount: content.length };
-      });
+      .map(section => ({ key: section.key, content: this.extractImradContent(text, section.key) }))
+      .filter(section => section.content.trim())
+      .map(section => ({ title: labels[section.key], content: section.content, characterCount: section.content.length }));
     return sections.length ? sections : [{
       title: 'Hovedtekst – manuell gjennomgang',
       content: text.trim(),
