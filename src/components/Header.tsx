@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <InstrumentSelector selectedInstrumentId={selectedInstrumentId} onSelectInstrument={onSelectInstrument} />
-          <button type="button" className="px-3 py-2 rounded-lg border text-xs" onClick={onOpenAutosave}>Autosave</button>
+          <button type="button" className="px-3 py-2 rounded-lg border text-xs" onClick={onOpenDocAnalysis}>Dokumentanalyse</button><button type="button" className="px-3 py-2 rounded-lg border text-xs" onClick={() => onOpenImportExport?.('import')}>Importer</button><button type="button" className="px-3 py-2 rounded-lg border text-xs" onClick={() => onOpenImportExport?.('export')}>Eksporter</button><button type="button" className="px-3 py-2 rounded-lg border text-xs" onClick={onOpenAutosave}>Autosave</button>
           <button type="button" className="px-3 py-2 rounded-lg border text-xs" onClick={onOpenPrivacyCenter}><Shield className="inline w-3.5 h-3.5 mr-1"/>Personvern</button>
           <button type="button" className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs" onClick={() => setIsMenuOpen(v => !v)}>Meny</button>
         </div>
