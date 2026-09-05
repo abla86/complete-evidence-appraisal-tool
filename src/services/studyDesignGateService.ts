@@ -187,8 +187,22 @@ export class StudyDesignGateService {
     instrumentId: string
   ): CompatibilityCheckResult {
     const design = SUPPORTED_STUDY_DESIGNS.find(d => d.id === studyDesignId);
-    const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
     if (!design) throw new Error(`Ukjent studiedesign: ${studyDesignId}`);
+
+    // Empty instrument selection is a valid initial UI state; it is not an unknown instrument.
+    if (!instrumentId) {
+      return {
+        isCompatible: false,
+        matchLevel: 'CRITICAL_ERROR',
+        headline: 'Ingen appraisal-instrument valgt',
+        explanation: 'Velg et appraisal-instrument før metodisk kompatibilitet kan vurderes.',
+        recommendedInstruments: [],
+        incompatibleReasons: ['Ingen instrument valgt'],
+        requiresExplicitOverrideConfirmation: false
+      };
+    }
+
+    const instrument = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
     if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${instrumentId}`);
 
     const recommendedList = design.id === 'unknown-uncertain'
