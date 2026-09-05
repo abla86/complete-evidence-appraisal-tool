@@ -234,7 +234,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             ← Bibliotek
           </button>
 
-          {allArticles.length > 0 && onSelectArticleId && (
+          {(allArticles?.length ?? 0) > 0 && onSelectArticleId && (
             <div className="flex items-center gap-2 flex-1 max-w-md">
               <label htmlFor="article-select" className="text-xs font-semibold text-slate-500 shrink-0">
                 Velg artikkel:
@@ -600,7 +600,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             </div>
           </div>
           <span className="text-xs font-mono font-bold bg-teal-50 text-teal-900 border border-teal-200 px-3 py-1 rounded-full">
-            {article.items.filter(i => i.evidenceText || i.sourceQuoteOrRef).length} av {article.items.length} sitater lokalisert
+            {(article.items ?? []).filter(i => i.evidenceText || i.sourceQuoteOrRef).length} av {(article.items ?? []).length} sitater lokalisert
           </span>
         </div>
 
@@ -623,7 +623,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               { border: 'border-slate-300', bg: 'bg-slate-50/70', badge: 'bg-slate-700 text-white', text: 'text-slate-950', quoteBorder: 'border-slate-600' },
               { border: 'border-emerald-300', bg: 'bg-emerald-50/70', badge: 'bg-emerald-700 text-white', text: 'text-emerald-950', quoteBorder: 'border-emerald-600' },
             ];
-            const color = colorPalettes[idx % colorPalettes.length];
+            const color = colorPalettes[idx % (colorPalettes?.length ?? 1)];
 
             return (
               <div 
