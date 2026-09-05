@@ -206,7 +206,7 @@ export async function recordAppraisalResponse(sessionId: string, response: Appra
   const normalizedItemId = String(response.itemId ?? '').trim();
   if (!normalizedItemId) throw new Error('itemId is required.');
   const instrument = getInstrumentOrNull(record.session.instrumentId);
-  if (!instrument || !(instrument.questions ?? instrument.items ?? []).some(item => String(item.id).trim() === normalizedItemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
+  if (!instrument || !(instrument.questions ?? []).some(item => String(item.id).trim() === normalizedItemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
   const session = upsertAppraisalResponse(record.session, { ...response, itemId: normalizedItemId, rationale: String(response.rationale).trim() });
   syncToResearchWorkflow(session);
   const saved = appraisalWorkflowStore.save({ ...record, session });

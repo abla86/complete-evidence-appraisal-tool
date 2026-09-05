@@ -1,4 +1,4 @@
-import { CandidateEvidence, DocumentAnalysisResult, IMRaDAnalysisResult } from '../types';
+import type { CandidateEvidence, DocumentAnalysisResult, IMRaDAnalysisResult } from '../types';
 import { DocumentAnalysisService } from './documentAnalysisService';
 import { MetaResearchService } from './metaResearchService';
 import { IMRaDAnalysisService } from './imradAnalysisService';
