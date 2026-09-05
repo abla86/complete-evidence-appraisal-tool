@@ -158,7 +158,7 @@ export default function App() {
     hasPasscode: false,
     passcodeHint: '',
     activeRole: 'Lead Reviewer',
-    activeUserName: 'Dr. Sarah Lindqvist',
+    activeUserName: project.leadInvestigator || 'Researcher',
     projectSecretToken: '',
     allowedCollaboratorEmails: [],
     sharingMode: 'private_repo',
