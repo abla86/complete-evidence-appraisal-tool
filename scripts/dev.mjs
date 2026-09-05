@@ -2,24 +2,23 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const root = path.dirname(fileURLToPath(import.meta.url));
-const serverEntry = path.resolve(root, '..', 'server.ts');
-const viteEntry = path.resolve(root, '..', 'node_modules', 'vite', 'bin', 'vite.js');
-const tsxEntry = path.resolve(root, '..', 'node_modules', 'tsx', 'dist', 'cli.mjs');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const serverEntry = path.join(root, 'server.ts');
+const viteEntry = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
+const tsxEntry = path.join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+
+function start(command, args) {
+  return spawn(command, args, {
+    cwd: root,
+    stdio: 'inherit',
+    shell: false,
+    windowsHide: false,
+  });
+}
 
 const children = [
-  spawn(process.execPath, [tsxEntry, serverEntry], {
-    cwd: path.resolve(root, '..'),
-    stdio: 'inherit',
-    shell: false,
-    windowsHide: false,
-  }),
-  spawn(process.execPath, [viteEntry], {
-    cwd: path.resolve(root, '..'),
-    stdio: 'inherit',
-    shell: false,
-    windowsHide: false,
-  }),
+  start(process.execPath, [tsxEntry, serverEntry]),
+  start(process.execPath, [viteEntry]),
 ];
 
 let stopping = false;
@@ -27,16 +26,14 @@ let stopping = false;
 const stop = (code = 0) => {
   if (stopping) return;
   stopping = true;
-
   for (const child of children) {
     if (!child.killed) child.kill('SIGTERM');
   }
-
   process.exitCode = code;
 };
 
 for (const child of children) {
-  child.on('error', (error) => {
+  child.on('error', error => {
     console.error(`Development process failed to start: ${error.message}`);
     stop(1);
   });
@@ -49,7 +46,7 @@ for (const child of children) {
       return;
     }
     if (code !== 0) {
-      console.error(`Development process exited with code ${code ?? 'unknown'}.`);
+      console.error(`Development process exited with code ${code ?? 1}.`);
       stop(code ?? 1);
     }
   });
