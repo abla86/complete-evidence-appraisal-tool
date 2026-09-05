@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="border-b border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 gap-3">
         <div className="flex items-center gap-3">
-          <button type="button" className="font-black text-slate-900 text-left" onClick={() => setActiveTab('overview')}>Evidence Appraisal Suite & Meta-Research Platform<span className="block text-[10px] font-semibold text-slate-500">Research Intelligence Platform</span></button>
+          <button type="button" className="font-black text-slate-900 text-left" onClick={() => setActiveTab('overview')}>Complete Evidence Appraisal Suite & Meta-Research Platform<span className="block text-[10px] font-semibold text-slate-500">Research Intelligence Platform</span></button>
           <span className="text-xs text-slate-500">{articles.length} studier</span>
         </div>
         <div className="flex items-center gap-2">
