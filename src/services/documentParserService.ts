@@ -298,8 +298,18 @@ export class DocumentParserService {
     if (authorsExplicit && authorsExplicit[1].length > 5) {
       authors = parseAuthorList(authorsExplicit[1]).join('; ');
     } else {
-      const authorMatch = text.match(/(?:[A-ZÆØÅ][\p{L}'’-]+(?:\s+[\p{L}'’-]+){1,6}["¹²³⁴⁵⁶⁷⁸⁹]*\s*,?\s*){2,}(?:and\s+)?[A-ZÆØÅ][\p{L}'’-]+(?:\s+[\p{L}'’-]+){1,6}[¹²³⁴⁵⁶⁷⁸⁹]*/iu);
-      authors = authorMatch ? parseAuthorList(authorMatch[0]).join('; ') : 'Forfattere ikke entydig identifisert';
+      const candidateLines = lines.slice(1, 10).filter(line =>
+        line.length > 8 &&
+        !/^https?:\/\//i.test(line) &&
+        !/^doi\s*:/i.test(line) &&
+        !/^(?:BMC Primary Care|BMJ|The Lancet)$/i.test(line)
+      );
+      const authorLine = candidateLines.find(line =>
+        (/,/.test(line) || /\band\b/i.test(line)) &&
+        /[A-ZÆØÅ][\p{L}'’-]+/u.test(line) &&
+        !/:/.test(line)
+      );
+      authors = authorLine ? parseAuthorList(authorLine).join('; ') : 'Forfattere ikke entydig identifisert';
     }
 
     // 4. Year
