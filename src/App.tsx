@@ -160,7 +160,7 @@ export default function App() {
     const next = { ...demo, instrumentId: 'jbi-qualitative-2017', instrumentVersion: '2017' };
     setArticles(prev => [next, ...prev.filter(x => x.id !== next.id)]);
     setSelectedArticleId(next.id); setSelectedInstrumentId(next.instrumentId);
-    setEditingArticle(next);
+    setEditingArticle(next); setActiveTab('evaluate');
   };
 
   const hardResetApp = () => { localStorage.clear(); sessionStorage.clear(); window.location.reload(); };
