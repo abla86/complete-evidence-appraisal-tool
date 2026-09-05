@@ -31,6 +31,7 @@ export interface AppraisalSession {
   createdAt: string;
   updatedAt: string;
   locked: boolean;
+  status?: string;
 }
 
 export interface AppraisalSessionValidation {
