@@ -65,7 +65,7 @@ function articleToReference(article: ArticleAppraisal): ReferenceRecord {
   });
 }
 
-export default function App() {
+export default function App() {\n  useEffect(() => { document.title = 'Complete Evidence Appraisal Suite & Meta-Research Platform'; }, []);
   const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
