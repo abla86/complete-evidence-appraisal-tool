@@ -131,6 +131,8 @@ export class RbacService {
           name: 'Hovedgransker / Prosjektleder',
           description: 'Ansvarlig for protokoll, kvalitetskontroll, konsensus og godkjenning av syntese.'
         };
+      case 'second_reviewer':
+        return { id: 'second_reviewer', name: 'Reviewer 2', description: 'Uavhengig sekundærgransker.' };
       case 'adjudicator':
         return {
           id: 'adjudicator',
