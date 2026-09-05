@@ -111,12 +111,15 @@ export default function App() {
     return loaded.length ? loaded : [createDemoArticle()];
   });
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
-  useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return (
-    <div className="min-h-screen">
-      <div className="flex flex-wrap items-center gap-2 p-3 border-b">
-        <button type="button" onClick={loadOverhaugDemo} className="px-4 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700">⚡ Hurtigstart: Last inn Øverhaug et al. (2024)</button>
-        <button type="button" onClick={hardResetApp} className="px-4 py-2 rounded-lg bg-red-700 text-white font-bold hover:bg-red-800">Tøm alt &amp; Nullstill applikasjon</button>
-      </div>) => window.removeEventListener('research-suite:navigate', handler); }, []);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const target = (event as CustomEvent<string>).detail;
+      if (typeof target === 'string') setActiveTab(target as ActiveTab);
+    };
+    window.addEventListener('research-suite:navigate', handler);
+    return () => window.removeEventListener('research-suite:navigate', handler);
+  }, []);
+
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [selectedArticleId, setSelectedArticleId] = useState<string>(() => { const loaded = AutosaveService.loadArticles([]); return loaded[0]?.id || ''; });
   const [editingArticle, setEditingArticle] = useState<ArticleAppraisal | null>(null);
