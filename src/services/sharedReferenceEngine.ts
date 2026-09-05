@@ -23,7 +23,7 @@ export type SharedReferenceKind =
   | 'OTHER';
 
 export interface SharedReferenceInput {
-  kind: SharedReferenceKind;
+  kind?: SharedReferenceKind;
   authors?: string;
   year?: number | string;
   title?: string;
@@ -49,7 +49,7 @@ export interface SharedReferenceInput {
 }
 
 export function createReference(input: SharedReferenceInput) {
-  const result = validateReference(input);
+  const result = validateReference({ ...input, kind: input.kind ?? 'JOURNAL_ARTICLE' });
   return {
     ...result,
     verified: result.status === 'VALIDATED' && result.canUseAsVerifiedReference,
