@@ -1,15 +1,2 @@
-export type ConsensusDecision='INCLUDE'|'EXCLUDE'|'UNCLEAR';
-export interface ReviewerDecision{reviewerId:string;itemId:string;decision:ConsensusDecision;rationale?:string;}
-export interface LockedConsensus{itemId:string;decision:ConsensusDecision;rationale:string;arbiterId:string;lockedAt:string;}
-export interface ConsensusResult{total:number;agreements:number;disagreements:number;percentAgreement:number;cohensKappa:number;conflicts:string[];}
-export function calculateConsensus(a:ReviewerDecision[],b:ReviewerDecision[]):ConsensusResult{
-  const A=new Map(a.map(x=>[x.itemId,x.decision])),B=new Map(b.map(x=>[x.itemId,x.decision]));
-  const ids=[...new Set([...A.keys(),...B.keys()])];const pairs=ids.map(id=>[A.get(id),B.get(id)] as const).filter((p):p is [ConsensusDecision,ConsensusDecision]=>Boolean(p[0]&&p[1]));
-  const agreements=pairs.filter(([x,y])=>x===y).length,total=pairs.length,po=total?agreements/total:0;
-  const cats:ConsensusDecision[]=['INCLUDE','EXCLUDE','UNCLEAR'];const pe=cats.reduce((s,c)=>s+(pairs.filter(([x])=>x===c).length/Math.max(total,1))*(pairs.filter(([,y])=>y===c).length/Math.max(total,1)),0);
-  return{total,agreements,disagreements:total-agreements,percentAgreement:po*100,cohensKappa:1-pe===0?1:(po-pe)/(1-pe),conflicts:ids.filter(id=>A.get(id)!==B.get(id))};
-}
-export function lockConsensus(itemId:string,decision:ConsensusDecision,rationale:string,arbiterId:string):LockedConsensus{
-  if(!itemId.trim()||!rationale.trim()||!arbiterId.trim())throw new Error('Konsensus krever item, beslutning, begrunnelse og arbiter.');
-  return{itemId,decision,rationale:rationale.trim(),arbiterId:arbiterId.trim(),lockedAt:new Date().toISOString()};
-}
+export type ConsensusDecision='INCLUDED'|'EXCLUDED'|'UNCERTAIN';export interface ConsensusItem{id:string;a?:ConsensusDecision;b?:ConsensusDecision;arbiter?:ConsensusDecision;reason?:string;locked?:boolean;}export interface ConsensusResult{agreement:number;kappa:number;conflicts:ConsensusItem[];resolved:number;}
+export function calculateConsensus(items:ConsensusItem[]):ConsensusResult{const j=items.filter(x=>x.a&&x.b),n=j.length;if(!n)return{agreement:0,kappa:0,conflicts:[],resolved:0};const cats=['INCLUDED','EXCLUDED','UNCERTAIN'] as const,po=j.filter(x=>x.a===x.b).length/n,pa=cats.map(c=>j.filter(x=>x.a===c).length/n),pb=cats.map(c=>j.filter(x=>x.b===c).length/n),pe=pa.reduce((a,p,i)=>a+p*pb[i],0);return{agreement:po*100,kappa:pe===1?1:(po-pe)/(1-pe),conflicts:j.filter(x=>x.a!==x.b),resolved:items.filter(x=>x.locked&&x.arbiter).length};}export function lockArbitration(i:ConsensusItem,d:ConsensusDecision,reason:string):ConsensusItem{if(!reason.trim())throw new Error('Arbitration requires a rationale.');return{...i,arbiter:d,reason:reason.trim(),locked:true};}
