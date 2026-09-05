@@ -189,3 +189,12 @@ complete-evidence-appraisal-tool/
 
 ## 📄 Lisens & Faglig Opphav
 Utviklet for forskningsformål iht. **JBI Manual for Evidence Synthesis**, **PRISMA 2020 statement**, **Cochrane Handbook** og **APA 7th Edition Publication Manual**.
+
+---
+
+## 🔍 Honest stack notes
+
+- **`@google/genai` dependency**: Present in `package.json` as a platform requirement of the Google AI Studio runtime environment. The core methodological appraisal logic, statistical calculations, and screening workflows run entirely locally in the browser/node environment without mandatory external cloud calls.
+- **`firebase-applet-config.json`**: Present as a platform credential and runtime configuration file required by the container environment.
+- **Local-First Data Guarantees**: All appraisal data, extracted study records, screening events, and cryptographic audit chains remain strictly within browser `localStorage` (and in-memory caches). No research data is transmitted to external servers or remote endpoints unless the researcher explicitly triggers a manual export (e.g. DOCX, RIS, JSON, BibTeX).
+

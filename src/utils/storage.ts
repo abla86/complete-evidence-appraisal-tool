@@ -1,4 +1,4 @@
-import { 
+import type { 
   AppraisalAssessment, 
   AuditLogEntry, 
   DataExtractionRecord, 
@@ -9,8 +9,8 @@ import {
   SourceRecord,
   StudyRecord, 
   SynthesisOutcome 
-} from '../types';
-import { calculateSha256, calculateSha256Sync } from './crypto';
+} from '../types/index.ts';
+import { calculateSha256, calculateSha256Sync } from './crypto.ts';
 
 const STORAGE_KEYS = {
   PROJECT: 'evidence_appraisal_project_v3',

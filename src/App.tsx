@@ -48,6 +48,7 @@ import {
 } from './utils/storage';
 import { createAuditEntry } from './utils/crypto';
 import { validateStudyAppraisalLock } from './utils/appraisalLockValidator';
+import { ScreeningGateService } from './services/screeningGateService';
 import { SafeBoundary } from './components/SafeBoundary';
 import { Header } from './components/Header';
 import { EvidenceDocumentViewer } from './components/EvidenceDocumentViewer';
@@ -187,6 +188,7 @@ export default function App() {
 
   useEffect(() => {
     saveScreeningEvents(screeningEvents);
+    ScreeningGateService.syncExternalScreeningEvents(screeningEvents);
   }, [screeningEvents]);
 
   useEffect(() => {
@@ -674,6 +676,7 @@ export default function App() {
     { id: 'AMSTAR2', label: 'AMSTAR 2', desc: 'Systematiske oversikter' },
     { id: 'ROB2', label: 'Cochrane RoB 2', desc: 'Randomiserte forsøk (RCT)' },
     { id: 'AGREE2', label: 'AGREE II', desc: 'Kliniske retningslinjer' },
+    { id: 'ROBINS_I', label: 'ROBINS-I', desc: 'Ikke-randomiserte intervensjonsstudier (7 domener)' },
     { id: 'CASP', label: 'CASP', desc: 'Kvalitativ forskning' },
     { id: 'GRADE', label: 'GRADE', desc: 'Evidensgradering' },
     { id: 'PRISMA', label: 'PRISMA 2020', desc: 'Flytdiagram & screening' },
@@ -1007,7 +1010,14 @@ export default function App() {
                         }`}
                       >
                         <div>
-                          <div className="font-semibold leading-tight">{inst.label}</div>
+                          <div className="flex items-center gap-1.5 font-semibold leading-tight">
+                            <span>{inst.label}</span>
+                            {inst.id === 'ROB2' && (
+                              <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                                Delvis
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[10px] font-normal text-slate-400">{inst.desc}</div>
                         </div>
                         {isActive && (

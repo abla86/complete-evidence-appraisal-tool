@@ -204,7 +204,7 @@ export async function parseMultiRecordDocument(
     const csvRecords = parseCsvString(content);
     for (let i = 0; i < csvRecords.length; i++) {
       const c = csvRecords[i];
-      const char = identifyArticleCharacteristics(c.rawContent || c.abstract, c.title);
+      const char = identifyArticleCharacteristics(c.rawContent || c.abstract || '', c.title || '');
       studies.push({
         id: `study-csv-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
         title: c.title || `CSV Record #${i + 1}`,
@@ -228,7 +228,7 @@ export async function parseMultiRecordDocument(
     const jsonRecords = parseJsonString(content);
     for (let i = 0; i < jsonRecords.length; i++) {
       const j = jsonRecords[i];
-      const char = identifyArticleCharacteristics(j.rawContent || j.abstract || j.title, j.title);
+      const char = identifyArticleCharacteristics(j.rawContent || j.abstract || j.title || '', j.title || '');
       studies.push({
         id: j.id || `study-json-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
         title: j.title || `JSON Record #${i + 1}`,

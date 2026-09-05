@@ -183,7 +183,7 @@ export function formatReferenceInStyle(ref: ReferenceItem, style: CitationStyle,
   if (style === 'NorwegianLaw' || ref.itemType === 'statute' || ref.itemType === 'regulation') {
     const parsed = parseNorwegianLaw(ref.title);
     if (parsed.ok) {
-      const cited = formatCitation(parsed, { paragraph: ref.pages });
+      const cited = formatCitation(parsed, { paragraph: ref.pages } as any);
       if (cited) return cited;
     }
   }
@@ -274,7 +274,7 @@ export function formatReferenceInStyle(ref: ReferenceItem, style: CitationStyle,
 
     case 'NorwegianLaw': {
       const parsed = parseNorwegianLaw(ref.title);
-      return formatCitation(parsed, { paragraph: ref.pages }) || `${title} (${year})`;
+      return formatCitation(parsed, { paragraph: ref.pages } as any) || `${title} (${year})`;
     }
 
     default:

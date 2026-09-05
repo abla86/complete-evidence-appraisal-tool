@@ -102,6 +102,13 @@ async function startServer() {
       return res.status(400).json({ error: 'studyId, instrumentId og reviewer er obligatoriske.' });
     }
 
+    const latestDecision = ScreeningGateService.getLatestDecision(studyId);
+    if (latestDecision?.decision === 'EXCLUDED') {
+      return res.status(403).json({
+        error: 'Studien er markert som EXCLUDED i screening. Appraisal kan ikke opprettes.'
+      });
+    }
+
     const session = CanonicalAppraisalService.getOrCreateSession(
       studyId,
       instrumentId,
@@ -120,6 +127,13 @@ async function startServer() {
     const auth = RbacService.verifyServerAuthorization(effectiveRole, 'EDIT_APPRAISAL');
     if (!auth.authorized) {
       return res.status(403).json({ error: auth.reason });
+    }
+
+    const latestDecision = ScreeningGateService.getLatestDecision(studyId);
+    if (latestDecision?.decision === 'EXCLUDED') {
+      return res.status(403).json({
+        error: 'Studien er markert som EXCLUDED i screening. Appraisal kan ikke modifiseres.'
+      });
     }
 
     const result = CanonicalAppraisalService.saveResponse(
@@ -145,6 +159,13 @@ async function startServer() {
     const auth = RbacService.verifyServerAuthorization(effectiveRole, 'LOCK_APPRAISAL');
     if (!auth.authorized) {
       return res.status(403).json({ error: auth.reason });
+    }
+
+    const latestDecision = ScreeningGateService.getLatestDecision(studyId);
+    if (latestDecision?.decision === 'EXCLUDED') {
+      return res.status(403).json({
+        error: 'Studien er markert som EXCLUDED i screening. Appraisal kan ikke forsegles.'
+      });
     }
 
     const result = CanonicalAppraisalService.finalizeAndLockSession(

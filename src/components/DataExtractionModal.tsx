@@ -82,7 +82,7 @@ export const DataExtractionModal: React.FC<DataExtractionModalProps> = ({
       projectId: activeStudy.projectId || 'PROJ-2026-SR-01',
       studyId: activeStudy.id,
       studyTitle: activeStudy.title,
-      sampleSize,
+      sampleSize: sampleSize ?? 0,
       populationCharacteristics,
       interventionDetails,
       comparatorDetails,

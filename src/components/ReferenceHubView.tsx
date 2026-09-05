@@ -233,7 +233,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({
     const newQuote: ReferenceDirectQuote = {
       id: `quote-${Date.now().toString(36)}`,
       text: quoteText.trim(),
-      page: quotePage.trim() || undefined,
+      page: quotePage.trim(),
       tags: quoteTags.split(',').map(t => t.trim()).filter(Boolean),
       createdAt: new Date().toISOString()
     };

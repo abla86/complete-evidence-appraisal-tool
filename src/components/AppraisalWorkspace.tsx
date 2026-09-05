@@ -20,6 +20,7 @@ import {
   evaluateAgree2DomainScores 
 } from '../utils/statistics';
 import { ScreeningGateService } from '../services/screeningGateService';
+import { MasterInstrumentRegistryService } from '../services/masterInstrumentRegistry';
 import { EvidenceTraceabilityService } from '../services/evidenceTraceabilityService';
 import { 
   CheckCircle2, 
@@ -118,6 +119,9 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
       reviewerId: activeAssessment.reviewerId
     });
   }, [study, activeInstrument, activeAssessment.reviewerId]);
+
+  const instrumentEntry = MasterInstrumentRegistryService.getByCode(activeInstrument);
+  const isPartiallyImplemented = instrumentEntry?.implementationStatus === 'PARTIALLY_IMPLEMENTED';
 
   // Calculate live statistics for Multi-Rater panel
   const multiRaterStats = currentAssessments.length >= 2
@@ -236,7 +240,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
   };
 
   const handleRatingChange = (domainId: string, answer: RatingAnswer) => {
-    if (study.isLocked) return;
+    if (study.isLocked || !gateResult.canAppraise) return;
 
     const existingRating = activeAssessment.ratings[domainId] || {
       answer: 'unclear',
@@ -265,7 +269,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
   };
 
   const handleRationaleChange = (domainId: string, rationale: string) => {
-    if (study.isLocked) return;
+    if (study.isLocked || !gateResult.canAppraise) return;
 
     const existingRating = activeAssessment.ratings[domainId] || {
       answer: 'unclear',
@@ -293,7 +297,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
   };
 
   const handleToggleVerified = (domainId: string) => {
-    if (study.isLocked) return;
+    if (study.isLocked || !gateResult.canAppraise) return;
 
     const existingRating = activeAssessment.ratings[domainId] || {
       answer: 'unclear',
@@ -519,18 +523,34 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
         </div>
       </div>
 
-      {/* Screening Gate Advisory Banner */}
-      {!gateResult.canAppraise && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between gap-3 text-xs text-amber-900 flex-shrink-0">
+      {/* Partially Implemented Notice Banner */}
+      {isPartiallyImplemented && (
+        <div className="bg-amber-50 border-b border-amber-300 px-4 py-2 flex items-center justify-between gap-3 text-xs text-amber-900 flex-shrink-0">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <div>
-              <span className="font-bold">Metodisk Forhåndskontroll (Screening Gate): </span>
+              <span className="font-bold">Delvis implementert instrument (PARTIALLY_IMPLEMENTED): </span>
+              <span>{instrumentEntry?.methodologicalCaveat}</span>
+            </div>
+          </div>
+          <span className="bg-amber-200 border border-amber-300 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0">
+            Delvis Implementert
+          </span>
+        </div>
+      )}
+
+      {/* Screening Gate Advisory / Blocking Banner */}
+      {!gateResult.canAppraise && (
+        <div className="bg-rose-50 border-b border-rose-300 px-4 py-2 flex items-center justify-between gap-3 text-xs text-rose-900 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <div>
+              <span className="font-bold">Metodisk Forhåndskontroll (Screening Gate Blokkert): </span>
               <span>{gateResult.blockers.join('. ')}</span>
             </div>
           </div>
-          <span className="bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0">
-            Krav før publisering
+          <span className="bg-rose-200 border border-rose-300 text-rose-900 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0">
+            Vurdering Blokkert
           </span>
         </div>
       )}
@@ -956,7 +976,7 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
                         key={ans}
                         id={`rating-btn-${domain.id}-${ans}`}
                         type="button"
-                        disabled={study.isLocked}
+                        disabled={study.isLocked || !gateResult.canAppraise}
                         onClick={() => handleRatingChange(domain.id, ans)}
                         className={`px-3 py-1.5 text-xs font-bold rounded transition-all disabled:opacity-50 cursor-pointer ${
                           isSelected
@@ -982,11 +1002,11 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
                     <input
                       type="text"
                       id={`rationale-input-${domain.id}`}
-                      disabled={study.isLocked}
+                      disabled={study.isLocked || !gateResult.canAppraise}
                       value={rating?.rationale || ''}
                       onChange={(e) => handleRationaleChange(domain.id, e.target.value)}
                       placeholder="Metodisk begrunnelse, sitat fra artikkel eller sidetall..."
-                      className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-hidden focus:ring-1 focus:ring-blue-600 italic text-slate-800"
+                      className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-hidden focus:ring-1 focus:ring-blue-600 italic text-slate-800 disabled:opacity-50"
                     />
                   </div>
 
@@ -1025,15 +1045,15 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
                     );
                   })()}
 
-                  <div className="flex items-center justify-between pt-0.5 text-xs">
+                    <div className="flex items-center justify-between pt-0.5 text-xs">
                     <label className="flex items-center gap-1.5 text-slate-700 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         id={`verify-checkbox-${domain.id}`}
-                        disabled={study.isLocked}
+                        disabled={study.isLocked || !gateResult.canAppraise}
                         checked={rating?.verifiedByResearcher || false}
                         onChange={() => handleToggleVerified(domain.id)}
-                        className="rounded text-blue-600 focus:ring-blue-500"
+                        className="rounded text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                       />
                       <span className="font-semibold">Verifisert mot kildetekst</span>
                     </label>
@@ -1071,7 +1091,9 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
           {!study.isLocked ? (
             <button
               id="lock-study-assessment-btn"
+              disabled={study.isLocked || !gateResult.canAppraise || isPartiallyImplemented}
               onClick={() => {
+                if (!gateResult.canAppraise || isPartiallyImplemented) return;
                 const result = validateStudyAppraisalLock(study, activeAssessment, domains);
                 if (!result.canLock) {
                   setLockValidationModal(result);
@@ -1079,7 +1101,18 @@ export const AppraisalWorkspace: React.FC<AppraisalWorkspaceProps> = ({
                   setShowConfirmSeal(true);
                 }
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              title={
+                isPartiallyImplemented
+                  ? 'Forsegling er blokkert: Instrumentet er PARTIALLY_IMPLEMENTED'
+                  : !gateResult.canAppraise
+                  ? `Forsegling er blokkert av Screening Gate: ${gateResult.blockers.join('; ')}`
+                  : 'Forsegl og lås vurdering med SHA-256'
+              }
+              className={`font-bold text-xs py-2 px-4 rounded-lg shadow-xs transition-colors flex items-center gap-1.5 ${
+                !gateResult.canAppraise || isPartiallyImplemented
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+              }`}
             >
               <Lock className="w-3.5 h-3.5" />
               <span>Forsegl Vurdering (SHA-256)</span>

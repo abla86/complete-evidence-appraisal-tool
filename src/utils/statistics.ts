@@ -1,4 +1,4 @@
-import { 
+import type { 
   AppraisalAssessment, 
   AppraisalDomain, 
   AppraisalInstrument,
@@ -12,8 +12,8 @@ import {
   ReviewerProfile,
   StudyRecord,
   StudyReliabilityRecord
-} from '../types';
-import { getFrameworkDomains } from './frameworks';
+} from '../types/index.ts';
+import { getFrameworkDomains } from './frameworks.ts';
 
 /**
  * Calculates mathematical Cohen's Kappa coefficient (κ) between two reviewers.
@@ -857,7 +857,7 @@ export function calculateProjectReliabilityReport(
       multiReviewerStudies.push({
         studyId: study.id,
         studyTitle: study.title,
-        studyYear: study.year,
+        studyYear: study.year || 'N/A',
         studyAuthors: study.authors,
         instrument,
         totalReviewers: individualAssessments.length,

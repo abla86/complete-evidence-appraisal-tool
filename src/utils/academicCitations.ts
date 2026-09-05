@@ -61,7 +61,7 @@ export function parseLaw(text: string): NorwegianLawResult {
 }
 
 export function formatLawCitation(parsed: NorwegianLawResult, options?: { paragraph?: string }): string | null {
-  return formatCitation(parsed, options);
+  return formatCitation(parsed, options as any);
 }
 
 export { formatAuthors, yearFromCitationDate };
