@@ -23,7 +23,7 @@ test('computeScore is deterministic for a complete JBI assessment', () => {
     justification: 'Dokumentert i studien.',
   }));
 
-  const result = JbiQualitativeValidationService.computeScore(items, 10);
+  const result = JbiQualitativeValidationService.summarizeResponses(items, 10);
 
   assert.deepEqual(result, {
     ja: 10,
@@ -34,9 +34,7 @@ test('computeScore is deterministic for a complete JBI assessment', () => {
     answered: 10,
     unanswered: 0,
     completenessPercent: 100,
-    jaScorePercent: 100,
-    applicableTotal: 10,
-    applicableJaPercent: 100
+    
   });
 });
 
