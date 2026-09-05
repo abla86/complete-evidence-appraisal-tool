@@ -1,0 +1,42 @@
+name: Gateway Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "gateways/**"
+      - ".github/workflows/gateway-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "gateways/**"
+      - ".github/workflows/gateway-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dotnet:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateways/dotnet-clinical-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet test tests/ClinicalGateway.Tests.csproj --configuration Release
+
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateways/python-meta-pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt pytest
+      - run: pytest -q
