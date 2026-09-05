@@ -14,20 +14,25 @@ export interface InstrumentCoverage {
   note: string;
 }
 
-const ENGINE_IDS = new Set([
-  'jbi-qualitative-2017', 'amstar-2', 'agree-ii', 'rob-2', 'casp-qualitative',
-  'grade', 'grade-cerqual', 'who-etd', 'cfir-2', 'kta', 'robins-i', 'robis',
-  'quadas-2', 'quips', 'probast', 'mmat'
+const RUNTIME_ENGINE_IDS = new Set([
+  'jbi-qualitative-2017', 'amstar-2', 'agree-ii', 'rob-2', 'robins-i',
+]);
+
+const ENGINE_ONLY_IDS = new Set([
+  'casp-qualitative', 'grade', 'grade-cerqual', 'who-etd', 'cfir-2', 'kta',
+  'robis', 'quadas-2', 'quips', 'probast', 'mmat'
 ]);
 
 export function getInstrumentCoverage(): InstrumentCoverage[] {
   return MASTER_INSTRUMENTS_REGISTRY.map((instrument: AppraisalInstrument) => {
     const hasQuestions = Boolean(instrument.questions?.length);
-    const implementationLevel: ImplementationLevel = ENGINE_IDS.has(instrument.id)
+    const implementationLevel: ImplementationLevel = RUNTIME_ENGINE_IDS.has(instrument.id)
       ? 'FULL'
-      : hasQuestions
-        ? 'WORKSPACE'
-        : 'REGISTRY_ONLY';
+      : ENGINE_ONLY_IDS.has(instrument.id)
+        ? 'ENGINE'
+        : hasQuestions
+          ? 'WORKSPACE'
+          : 'REGISTRY_ONLY';
 
     return {
       instrumentId: instrument.id,
@@ -36,12 +41,14 @@ export function getInstrumentCoverage(): InstrumentCoverage[] {
       itemCount: instrument.itemCount,
       hasQuestions,
       implementationLevel,
-      readyForAssessment: implementationLevel !== 'REGISTRY_ONLY',
+      readyForAssessment: implementationLevel === 'FULL',
       note: implementationLevel === 'FULL'
-        ? 'Arbeidsflate og instrumentspesifikk resultatmotor er koblet.'
-        : implementationLevel === 'WORKSPACE'
-          ? 'Felles vurderingsflate finnes; egen beregnings-/tolkningsmotor må kobles før vitenskapelig resultat kan kalles instrumentspesifikt.'
-          : 'Instrumentet finnes som metoderegisteroppføring, men har ikke egen vurderingsflate ennå.'
+        ? 'Kanonisk arbeidsflate og instrumentspesifikk resultatmotor er koblet.'
+        : implementationLevel === 'ENGINE'
+          ? 'Det finnes en instrumentspesifikk motor, men den er ikke koblet til den kanoniske arbeidsflaten ennå.'
+          : implementationLevel === 'WORKSPACE'
+            ? 'Felles vurderingsflate finnes; instrumentspesifikk resultatmotor er ikke koblet.'
+            : 'Instrumentet finnes som metoderegisteroppføring, men er ikke aktivt kjørbart i appraisal-arbeidsflaten.'
     };
   });
 }
