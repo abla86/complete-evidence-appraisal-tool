@@ -151,7 +151,7 @@ export default function App() {
               setArticles(prev => [newArt, ...prev]);
               setSelectedArticleId(newArt.id);
               setActiveTab('details');
-            }} />
+            }} />}
             {activeTab === 'details' && currentArticle && (
               <ArticleDetailView article={currentArticle} allArticles={articles} onSelectArticleId={setSelectedArticleId} onGoToOverview={() => setActiveTab('overview')} onGoToThesis={() => setActiveTab('synthesis')} onEditArticle={handleEditArticle} onNewArticle={handleNewArticle} />
             )}
