@@ -109,13 +109,12 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         case 'year-asc':
           return (a.year || 0) - (b.year || 0);
         case 'jbi-desc': {
-          const scoreB = b.summaryScore?.ja ?? JbiQualitativeValidationService.computeScore(b.items || [], 10).ja;
-          const scoreA = a.summaryScore?.ja ?? JbiQualitativeValidationService.computeScore(a.items || [], 10).ja;
-          return scoreB - scoreA;
+          const rank: Record<string, number> = { 'Inkluder': 4, 'Vurder videre': 3, 'Søk mer informasjon': 2, 'Ufullstendig': 1 };
+          return (rank[b.overallVerdict || 'Ufullstendig'] ?? 0) - (rank[a.overallVerdict || 'Ufullstendig'] ?? 0);
         }
         case 'jbi-asc': {
-          const scoreB = b.summaryScore?.ja ?? JbiQualitativeValidationService.computeScore(b.items || [], 10).ja;
-          const scoreA = a.summaryScore?.ja ?? JbiQualitativeValidationService.computeScore(a.items || [], 10).ja;
+          const scoreB = b.summaryScore?.ja ?? JbiQualitativeValidationService.summarizeResponses(b.items || [], 10).ja;
+          const scoreA = a.summaryScore?.ja ?? JbiQualitativeValidationService.summarizeResponses(a.items || [], 10).ja;
           return scoreA - scoreB;
         }
         case 'author-asc':
