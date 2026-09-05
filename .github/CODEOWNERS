@@ -1,2 +1,7 @@
 * @abla86
 .github/ @abla86
+/src/services/researchWorkflowService.ts @abla86
+/src/services/evidenceAppraisalOrchestrator.ts @abla86
+/src/services/gradeMatrixService.ts @abla86
+/src/services/grade* @abla86
+/.github/workflows/ @abla86
