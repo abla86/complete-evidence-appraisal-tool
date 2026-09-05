@@ -67,8 +67,46 @@ function articleToReference(article: ArticleAppraisal): ReferenceRecord {
 }
 
 export default function App() {
-  useEffect(() => { document.title = 'Complete Evidence Appraisal Suite & Meta-Research Platform'; }, []);
-  const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
+  const tabTitles: Record<ActiveTab, string> = {
+    overview: 'Research Intelligence Platform',
+    document_studio: 'Document Studio',
+    source_workflow: 'Screening & PICO',
+    appraisal: 'Universal Appraisal',
+    reference_hub: 'Reference & Citation Hub',
+    meta_research: 'Meta-Research & PRISMA',
+    peer_review: 'Peer Review & Consensus',
+    synthesis: 'Synthesis & Export Gate',
+    search: 'Research Search',
+    evaluate: 'Article Evaluation',
+    details: 'Study Details',
+    compare: 'Dual Review',
+    audittrail: 'Audit Trail',
+    who_validation: 'WHO Validation',
+    methodology_audit: 'Methodology Audit',
+    reference_library: 'Reference Library',
+    validation_dashboard: 'Validation Dashboard',
+    help_examples: 'Help & Examples',
+    instrumentinfo: 'Instrument Information',
+    writing_studio: 'Writing Studio',
+  };
+  useEffect(() => {
+    document.title = `Complete Evidence Appraisal Suite · ${tabTitles[activeTab]}`;
+  }, [activeTab]);
+  const createDemoArticle = (): ArticleAppraisal => ImportExportService.createDefaultArticle({
+    id: 'demo-rct-heart-failure-2025',
+    title: 'Digital Remote Telemonitoring versus Standard Care for Chronic Heart Failure',
+    authors: 'Henriksen, M.; Sunde, C.; Berg, T. G.; Rostova, E.',
+    year: 2025,
+    journal: 'Scandinavian Cardiovascular Journal',
+    doi: '10.1080/14017431.2025.210491',
+    design: 'Randomisert kontrollert studie (RCT)',
+    studyContext: 'Multisenter klinisk RCT ved kronisk hjertesvikt',
+    sourceName: 'Innebygd klinisk demonstrasjonsstudie',
+  });
+  const [articles, setArticles] = useState<ArticleAppraisal[]>(() => {
+    const loaded = AutosaveService.loadArticles([]);
+    return loaded.length ? loaded : [createDemoArticle()];
+  });
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
