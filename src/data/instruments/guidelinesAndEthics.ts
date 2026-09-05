@@ -1,4 +1,4 @@
-import { AppraisalInstrument } from '../../types';
+import type { AppraisalInstrument } from '../../types';
 
 export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
   {

@@ -1,4 +1,4 @@
-import { AppraisalInstrument } from '../../types';
+import type { AppraisalInstrument } from '../../types';
 
 export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
   {

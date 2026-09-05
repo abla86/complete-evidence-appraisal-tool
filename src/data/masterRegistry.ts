@@ -1,4 +1,4 @@
-import { AppraisalInstrument, InstrumentCategory } from '../types';
+import type { AppraisalInstrument, InstrumentCategory } from '../types';
 import { JBI_INSTRUMENTS } from './instruments/jbiSuite';
 import { CASP_INSTRUMENTS } from './instruments/caspSuite';
 import { RISK_OF_BIAS_INSTRUMENTS } from './instruments/riskOfBiasSuite';

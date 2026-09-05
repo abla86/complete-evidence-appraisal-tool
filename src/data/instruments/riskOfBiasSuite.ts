@@ -1,4 +1,4 @@
-import { AppraisalInstrument } from '../../types';
+import type { AppraisalInstrument } from '../../types';
 
 export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
   {

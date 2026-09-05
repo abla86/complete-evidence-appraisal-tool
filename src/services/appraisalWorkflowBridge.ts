@@ -9,7 +9,7 @@ import {
   type AppraisalSessionValidation,
 } from './universalAppraisalService';
 import { decideAppraisalLaunch } from './universalAppraisalService';
-import type { ResearchAppraisalPayload, WorkflowState } from './researchWorkflowService';
+import type { ResearchAppraisalPayload, WorkflowState } from '../types/workflow.contracts';
 import { researchWorkflowStore } from './researchWorkflowStore';
 import { evidenceEventBus } from './evidenceEventBus';
 import { appendAuditEntry } from './auditTrailService';
