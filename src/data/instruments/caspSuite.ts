@@ -47,9 +47,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:77ba33c19e01',
     applicableStudyTypes: ['Kvalitative studier', 'Intervjuer', 'Fokusgrupper'],
     qualityControlGuidelines: 'Alle 10 punkter vurderes med tekstlig begrunnelse.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK Committee',
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified',
     questions: [
       { id: 1, shortTitle: '1. Klar problemstilling', questionText: 'Var det en klar redegjørelse for forskningens formål og problemstilling?', questionTextEn: 'Was there a clear statement of the aims of the research?', domain: 'Del A: Er resultatene gyldige?', isCritical: true },
       { id: 2, shortTitle: '2. Kvalitativ metodologi passende', questionText: 'Er en kvalitativ metodologi hensiktsmessig for å belyse problemstillingen?', questionTextEn: 'Is a qualitative methodology appropriate?', domain: 'Del A: Er resultatene gyldige?', isCritical: true },
@@ -105,9 +105,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:88bb22a19e',
     applicableStudyTypes: ['Randomiserte forsøk'],
     qualityControlGuidelines: '11 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'casp-systematic-review',
@@ -151,9 +151,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:66aa11c19e',
     applicableStudyTypes: ['Systematiske oversikter'],
     qualityControlGuidelines: '10 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'casp-cohort',
@@ -197,9 +197,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:99bb33c19e',
     applicableStudyTypes: ['Kohortstudier'],
     qualityControlGuidelines: '12 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'casp-case-control',
@@ -243,9 +243,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55bb11c19e',
     applicableStudyTypes: ['Kasus-kontroll-studier'],
     qualityControlGuidelines: '11 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'casp-diagnostic',
@@ -289,9 +289,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:44bb11c19e',
     applicableStudyTypes: ['Diagnostiske studier'],
     qualityControlGuidelines: '12 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'casp-clinical-prediction-rule',
@@ -335,9 +335,9 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:33bb11c19e',
     applicableStudyTypes: ['Prediksjonsmodeller'],
     qualityControlGuidelines: '11 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'casp-economic-evaluation',
@@ -381,8 +381,8 @@ export const CASP_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:22bb11c19e',
     applicableStudyTypes: ['Helseøkonomiske analyser'],
     qualityControlGuidelines: '12 spørsmål.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CASP UK'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   }
 ];
