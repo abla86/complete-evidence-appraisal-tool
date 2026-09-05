@@ -16,36 +16,23 @@ export interface ProjectExportPackage{projectId:string;studyIds?:string[];export
 export function buildProjectExportPackage(input:{projectId:string;pipeline?:EvidencePipelineState;prismaStages:PRISMAStages;claims?:AcademicClaim[];evidence?:EvidenceExtraction[];quality?:StoredQualityAssessment[];references?:ReferenceRecord[];auditTrail?:AuditTrailService;synthesis?:SynthesisRecord[];projectAccess?:ProjectAccess;project?:ResearchProject}):ProjectExportPackage{const projectId=input.projectId.trim();if(!projectId)throw new Error('projectId is required.');if(input.projectAccess)requireProjectScope({projectId,actor:input.projectAccess},'EXPORT');const studyIds=[...new Set(input.project?.studyIds??[])];if(input.project&&input.project.id!==projectId)throw new Error('EXPORT_BLOCKED: project identity mismatch.');const references=input.references??loadReferenceLibrary([]);const appraisal=loadAppraisalSessions().filter(s=>studyIds.includes(s.studyId));const appraisalIds=new Set(appraisal.map(s=>s.id));const storedQuality=loadQualityAssessments().filter(q=>appraisalIds.has(q.appraisalSessionId));const quality=(input.quality??storedQuality).filter(q=>appraisalIds.has(q.appraisalSessionId));const pkg:ProjectExportPackage={projectId,studyIds,exportedAt:new Date().toISOString(),pipeline:input.pipeline,appraisal,quality,claims:input.claims??[],evidence:input.evidence??[],references,synthesis:input.synthesis??[],prisma:calculatePRISMA(input.prismaStages),audit:input.auditTrail?.list()??[]};assertProjectExportIntegrity(pkg);return pkg;}
 export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   if (!pkg.projectId.trim()) throw new Error('EXPORT_BLOCKED: projectId is required.');
-
-  const appraisalIds = new Set(pkg.appraisal.map(a => a.id));
-  if (pkg.appraisal.some(a => !a.locked)) {
-    throw new Error('EXPORT_BLOCKED: all appraisal sessions must be locked.');
-  }
-  if (pkg.quality.some(q => !q.locked)) {
-    throw new Error('EXPORT_BLOCKED: all quality assessments must be locked.');
-  }
+  if (pkg.appraisal.some(a => !a.locked)) throw new Error('EXPORT_BLOCKED: all appraisal sessions must be locked.');
+  if (pkg.quality.some(q => !q.locked)) throw new Error('EXPORT_BLOCKED: all quality assessments must be locked.');
+  if (pkg.synthesis.some(s => !s.locked)) throw new Error('EXPORT_BLOCKED: synthesis must be locked.');
 
   const evidenceIds = new Set(pkg.evidence.map(e => e.id));
-  const referenceIds = new Set(pkg.references.map(r => r.id));
+  const referenceIds = new Set((pkg.references || []).map(r => r.id));
 
   for (const evidence of pkg.evidence) {
     if (evidence.researcherVerified !== true) {
       throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} is not researcher verified.`);
     }
-
-    const directReferenceId = evidence.referenceId?.trim() || evidence.sourceRecordId?.trim();
-    const hasDirectReference = Boolean(directReferenceId);
-    const hasReferenceMatch = Boolean(directReferenceId && referenceIds.has(directReferenceId));
+    const linked = evidence.sourceRecordId?.trim() || evidence.referenceId?.trim() || (referenceIds.has(evidence.id) ? evidence.id : '');
     const hasSourceIdentifiers = Boolean(
       evidence.sourceIdentifiers &&
       Object.values(evidence.sourceIdentifiers).some(value => typeof value === 'string' && value.trim())
     );
-
-    if (!hasDirectReference && !hasSourceIdentifiers) {
-      throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no source identifier.`);
-    }
-
-    if (hasDirectReference && !hasReferenceMatch && !hasSourceIdentifiers) {
+    if (!linked && !hasSourceIdentifiers) {
       throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no source identifier.`);
     }
   }
@@ -53,6 +40,9 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   for (const claim of pkg.claims) {
     if (claim.supportingEvidenceIds.some(id => !evidenceIds.has(id))) {
       throw new Error(`EXPORT_BLOCKED: claim ${claim.id} contains a missing evidence link.`);
+    }
+    if (claim.status === 'SUPPORTED' && claim.supportingEvidenceIds.length === 0) {
+      throw new Error(`EXPORT_BLOCKED: supported claim ${claim.id} has no evidence.`);
     }
   }
 
@@ -65,23 +55,13 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
     }
   }
 
-  for (const claim of pkg.claims) {
-    if (claim.status === 'SUPPORTED' && claim.supportingEvidenceIds.length === 0) {
-      throw new Error(`EXPORT_BLOCKED: supported claim ${claim.id} has no evidence.`);
-    }
-  }
-
   const studyIds = new Set(pkg.studyIds ?? []);
   for (const appraisal of pkg.appraisal) {
     if (studyIds.size && !studyIds.has(appraisal.studyId)) {
       throw new Error(`EXPORT_BLOCKED: appraisal ${appraisal.id} references a study outside the project.`);
     }
   }
-
   for (const synthesis of pkg.synthesis) {
-    if (!synthesis.locked) {
-      throw new Error(`EXPORT_BLOCKED: synthesis ${synthesis.id} is not locked.`);
-    }
     for (const input of synthesis.inputs) {
       if (studyIds.size && !studyIds.has(input.studyId)) {
         throw new Error(`EXPORT_BLOCKED: synthesis input ${input.id} references a study outside the project.`);
