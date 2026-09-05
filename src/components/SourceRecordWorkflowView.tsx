@@ -28,13 +28,24 @@ class TrailWriter implements AuditWriter {
   }
 }
 
-export const SourceRecordWorkflowView: React.FC = () => {\n  const { articles, setArticles } = useStudioState();\n  const [pico, setPico] = useState({ population: '', intervention: '', comparison: '', outcome: '' });\n  const included = articles.filter(a => a.lifecycleStatus === 'APPROVED' || a.overallVerdict === 'Inkluder').length;\n  const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;\n  const unresolved = Math.max(0, articles.length - included - excluded);\n  const selected = articles.find(a => a.id === record?.recordId) || articles[0];\n\n  const applyDecision = (decision: 'Inkluder' | 'Ekskluder' | 'Vurder videre') => {\n    if (!selected) return;\n    setArticles(current => current.map(article => article.id === selected.id ? { ...article, overallVerdict: decision, verdictNote: decision === 'Ekskluder' ? 'Ekskludert i screening; begrunnelse dokumenteres i audit trail.' : article.verdictNote } : article));\n    setMessage(`Screeningbeslutning registrert: ${decision}.`);\n  };
+export const SourceRecordWorkflowView: React.FC = () => {
+  const { articles, setArticles } = useStudioState();
+  const [pico, setPico] = useState({ population: '', intervention: '', comparison: '', outcome: '' });
   const [json, setJson] = useState('');
   const [record, setRecord] = useState<SourceRecord | null>(null);
   const [message, setMessage] = useState('');
   const [batchId, setBatchId] = useState('screening-batch-1');
   const [picoId, setPicoId] = useState('pico-1');
+  const included = articles.filter(a => a.lifecycleStatus === 'APPROVED' || a.overallVerdict === 'Inkluder').length;
+  const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;
+  const unresolved = Math.max(0, articles.length - included - excluded);
+  const selected = articles.find(a => a.id === record?.recordId) || articles[0];
 
+  const applyDecision = (decision: 'Inkluder' | 'Ekskluder' | 'Vurder videre') => {
+    if (!selected) return;
+    setArticles(current => current.map(article => article.id === selected.id ? { ...article, overallVerdict: decision, verdictNote: decision === 'Ekskluder' ? 'Ekskludert i screening; begrunnelse dokumenteres i audit trail.' : article.verdictNote } : article));
+    setMessage('Screeningbeslutning registrert: ' + decision + '.');
+  };
   const store = useMemo(() => new MemoryStore(), []);
   const auditWriter = useMemo(() => new TrailWriter(), []);
 
