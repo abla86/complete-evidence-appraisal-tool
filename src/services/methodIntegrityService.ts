@@ -232,21 +232,9 @@ export class MethodIntegrityService {
     const engineKnownIds = [
       'jbi-qualitative-2017',
       'amstar-2',
-      'casp-qualitative',
-      'casp-rct',
-      'casp-systematic-review',
-      'casp-cohort',
       'agree-ii',
       'rob-2',
-      'robins-i',
-      'grade',
-      'grade-cerqual',
-      'mmat-2018',
-      'quadas-2',
-      'jbi-cross-sectional',
-      'prisma-2020',
-      'cfir-2',
-      'kta'
+      'robins-i'
     ];
     const isEngineImplemented = engineKnownIds.includes(inst.id);
     const engineCheckStatus: 'MET' | 'PARTIAL' | 'UNMET' = isEngineImplemented ? 'MET' : 'PARTIAL';
