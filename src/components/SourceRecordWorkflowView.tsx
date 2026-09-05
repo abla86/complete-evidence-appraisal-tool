@@ -36,7 +36,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const [message, setMessage] = useState('');
   const [batchId, setBatchId] = useState('screening-batch-1');
   const [picoId, setPicoId] = useState('pico-1');
-  const included = articles.filter(a => a.lifecycleStatus === 'APPROVED' || a.overallVerdict === 'Inkluder').length;
+  const included = articles.filter(a => a.lifecycleStatus === 'FINALIZED' || a.overallVerdict === 'Inkluder').length;
   const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;
   const unresolved = Math.max(0, articles.length - included - excluded);
   const selected = articles.find(a => a.id === record?.recordId) || articles[0];
