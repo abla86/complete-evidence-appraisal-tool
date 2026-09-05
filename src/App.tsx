@@ -240,7 +240,7 @@ export default function App() {
     setSourceRecords(prev => prev.map(r => r.id === record.id ? record : r));
   };
 
-  const handlePromoteToStudy = (sourceRecord: SourceRecord, targetInstrument: AppraisalInstrument = 'JBI_QUALITATIVE') => {
+  const handlePromoteToStudy = (sourceRecord: SourceRecord, targetInstrument?: AppraisalInstrument) => {
     const newStudyId = `study-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newStudy: StudyRecord = {
       id: newStudyId,
@@ -251,7 +251,7 @@ export default function App() {
       journal: sourceRecord.journal,
       doi: sourceRecord.doi,
       abstract: sourceRecord.abstract,
-      documentType: 'Qualitative Empirical Study',
+      documentType: 'Unspecified / Unknown',
       fileName: `${sourceRecord.title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.txt`,
       fileSizeBytes: (sourceRecord.abstract?.length || 500) * 2,
       fileExtension: 'txt',
@@ -259,16 +259,15 @@ export default function App() {
       documentHashSha256: sourceRecord.provenanceHashSha256,
       importedAt: new Date().toISOString(),
       isLocked: false,
-      tags: sourceRecord.tags || ['Kvalitativ', 'JBI 2017']
+      tags: sourceRecord.tags || []
     };
 
     setStudies(prev => [newStudy, ...prev]);
     setActiveStudyId(newStudyId);
-    setActiveInstrument(targetInstrument);
+    if (targetInstrument) setActiveInstrument(targetInstrument);
 
     const updatedSource: SourceRecord = {
       ...sourceRecord,
-      screeningStatus: 'ELIGIBLE_INCLUDED',
       linkedStudyId: newStudyId
     };
     handleUpdateSourceRecord(updatedSource);
@@ -279,7 +278,6 @@ export default function App() {
   const handlePromoteReferenceToStudy = (study: StudyRecord) => {
     setStudies(prev => [study, ...prev]);
     setActiveStudyId(study.id);
-    setActiveInstrument('JBI_QUALITATIVE');
     setActiveTab('appraisal');
     logEvent('IMPORT_DOCUMENT', 'StudyRecord', study.id, `Referanse ${study.sourceRefId || study.id} overført til JBI-arbeidsflate`);
   };
