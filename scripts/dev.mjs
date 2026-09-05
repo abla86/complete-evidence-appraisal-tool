@@ -7,19 +7,27 @@ const serverEntry = path.join(root, 'server.ts');
 const viteEntry = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const tsxEntry = path.join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
+const useShell = process.platform === 'win32';
+const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+
 function start(command, args) {
   return spawn(command, args, {
     cwd: root,
     stdio: 'inherit',
-    shell: false,
+    shell: useShell,
     windowsHide: false,
   });
 }
 
-const children = [
-  start(process.execPath, [tsxEntry, serverEntry]),
-  start(process.execPath, [viteEntry]),
-];
+const children = useShell
+  ? [
+      start(npmCommand, ['exec', '--', 'tsx', serverEntry]),
+      start(npmCommand, ['exec', '--', 'vite']),
+    ]
+  : [
+      start(process.execPath, [tsxEntry, serverEntry]),
+      start(process.execPath, [viteEntry]),
+    ];
 
 let stopping = false;
 
