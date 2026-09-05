@@ -151,7 +151,8 @@ export default function App() {
   const handleEditArticle = (article: ArticleAppraisal) => { const instrumentId = article.instrumentId || ((article.design || '').toLowerCase().includes('kvalitativ') ? 'jbi-qualitative-2017' : ''); const syncedArticle = instrumentId && article.instrumentId !== instrumentId ? { ...article, instrumentId, instrumentVersion: article.instrumentVersion || '2017' } : article; if (instrumentId) setSelectedInstrumentId(instrumentId); setArticles(prev => prev.map(a => a.id === article.id ? syncedArticle : a)); setEditingArticle(syncedArticle); setSelectedArticleId(article.id); setActiveTab('evaluate'); };
   const handleNewArticle = () => { setEditingArticle(null); setActiveTab('evaluate'); };
   const handleSaveArticle = (savedArticle: ArticleAppraisal) => { setArticles(prev => { const idx = prev.findIndex(a => a.id === savedArticle.id); if (idx >= 0) { const next = [...prev]; next[idx] = savedArticle; return next; } return [savedArticle, ...prev]; }); setSelectedArticleId(savedArticle.id); setEditingArticle(null); setActiveTab('details'); };
-  const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];\n  const loadOverhaugDemo = () => {
+  const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
+  const loadOverhaugDemo = () => {
     const demo = ImportExportService.createDefaultArticle({
       id: 'overhaug-2024', title: "There's a will, but not a way': Norwegian GPs' experiences of collaboration with child welfare services - a grounded theory study",
       authors: 'Oda Martine Steinsdatter Øverhaug; Johanna Laue; Svein Arild Vis; Mette Bech Risør', year: 2024, journal: 'BMC Primary Care',
