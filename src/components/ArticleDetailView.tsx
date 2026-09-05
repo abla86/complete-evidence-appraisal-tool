@@ -62,7 +62,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   const [showSnapshotDetails, setShowSnapshotDetails] = useState<boolean>(false);
 
   const calculatedScore = useMemo(() => {
-    return JbiQualitativeValidationService.computeScore(article.items, 10);
+    return JbiQualitativeValidationService.summarizeResponses(article.items, 10);
   }, [article.items]);
 
   const validationReport = useMemo(() => {
@@ -469,10 +469,10 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               </span>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold text-slate-900 font-serif">
-                  {calculatedScore.ja}
+                  {calculatedScore.ja} Ja · {calculatedScore.nei} Nei · {calculatedScore.uklart} Uklart
                 </span>
                 <span className="text-slate-500 font-medium text-sm">
-                  av {calculatedScore.total} Kriterier Ja ({calculatedScore.jaScorePercent}%)
+                  av {calculatedScore.total} kriterier. Kvalitativ JBI-profil
                 </span>
               </div>
 
