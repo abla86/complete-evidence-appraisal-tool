@@ -109,6 +109,7 @@ export default function App() {
   });
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
+  useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return () => window.removeEventListener('research-suite:navigate', handler); }, []);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [selectedArticleId, setSelectedArticleId] = useState<string>(() => { const loaded = AutosaveService.loadArticles([]); return loaded[0]?.id || ''; });
   const [editingArticle, setEditingArticle] = useState<ArticleAppraisal | null>(null);

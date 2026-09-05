@@ -71,6 +71,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   const [selectedMethodologyFilter, setSelectedMethodologyFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('year-desc');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Filter and sort articles dynamically
   const processedArticles = useMemo(() => {
