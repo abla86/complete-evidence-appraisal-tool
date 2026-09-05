@@ -101,9 +101,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:66dd1990',
     applicableStudyTypes: ['Kliniske anbefalinger'],
     qualityControlGuidelines: '9 ledd.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'AGREE Enterprise'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'right-statement',
@@ -148,9 +148,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55cc1990',
     applicableStudyTypes: ['Retningslinjer'],
     qualityControlGuidelines: '22 punkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'RIGHT Working Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'nesh-ethics-2021',
@@ -206,9 +206,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:99ff11a0014bca8',
     applicableStudyTypes: ['Alle samfunnsvitenskapelige og humanistiske studier'],
     qualityControlGuidelines: 'Strukturert etisk protokollvurdering før og under prosjektgjennomføring.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'NESH Komitégodkjenning'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'helsinki-declaration-2024',
@@ -264,9 +264,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:33bb88119e0',
     applicableStudyTypes: ['Alle medisinske og helsefaglige studier'],
     qualityControlGuidelines: 'Obligatorisk etisk protokollgjennomgang.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'WMA General Assembly Audit'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'coreq-32',
@@ -318,9 +318,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:11bb22cc33',
     applicableStudyTypes: ['Kvalitative artikler'],
     qualityControlGuidelines: '32 ledd.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'EQUATOR Network'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'strobe-statement',
@@ -365,9 +365,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:44aa33cc',
     applicableStudyTypes: ['Observasjonsstudier'],
     qualityControlGuidelines: '22 punkter tilpasset studiedesign.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'STROBE Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'consort-2010',
@@ -415,9 +415,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:55bb44dd',
     applicableStudyTypes: ['Randomiserte forsøk'],
     qualityControlGuidelines: 'Full 25-punkts sjekkliste + flytskjema.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'CONSORT Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'squire-2',
@@ -462,9 +462,9 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:66cc55ee',
     applicableStudyTypes: ['Kvalitetsforbedringsprosjekter'],
     qualityControlGuidelines: '18 punkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'SQUIRE Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   },
   {
     id: 'tidier-checklist',
@@ -509,8 +509,8 @@ export const GUIDELINES_AND_ETHICS_INSTRUMENTS: AppraisalInstrument[] = [
     validationChecksum: 'SHA256:77dd66ff',
     applicableStudyTypes: ['Intervensjonsstudier'],
     qualityControlGuidelines: '12 punkter.',
-    verificationStatus: 'VERIFIED',
-    verifiedAt: '2024-11-15',
-    verifiedBy: 'TIDieR Group'
+    verificationStatus: 'PROTOTYPE',
+    verifiedAt: '',
+    verifiedBy: 'Not runtime-verified'
   }
 ];
