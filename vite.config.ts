@@ -17,7 +17,6 @@ export default defineConfig(() => ({
           if (id.includes('node_modules')) {
             if (id.includes('pdfjs-dist') || id.includes('pdf')) return 'vendor-pdf';
             if (id.includes('lucide-react')) return 'vendor-icons';
-            if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
             return 'vendor';
           }
         },
