@@ -212,6 +212,7 @@ export class GroupCollaborationService {
       return fresh;
     }
 
+    if (!LOCAL_RESEARCH_PERSISTENCE_ENABLED || typeof localStorage === 'undefined') return this.workspaceCache;
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
