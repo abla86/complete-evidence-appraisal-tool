@@ -36,10 +36,22 @@ function result<T>(
   return output;
 }
 
-function requireProjectId(context: EvidenceAgentContext): string {
-  const projectId = context.projectId.trim();
-  if (!projectId) throw new Error('projectId is required.');
-  return projectId;
+function requireProjectId(context: EvidenceAgentContext): void {
+  if (!context.projectId.trim()) throw new Error('projectId is required.');
+}
+
+function assertCandidateBelongsToContext(
+  candidate: EvidenceClaimCandidate,
+  context: EvidenceAgentContext,
+): void {
+  const allowed = new Set(context.sourceIds);
+  for (const provenance of candidate.provenance) {
+    if (!allowed.has(provenance.sourceId)) {
+      throw new Error(
+        `Evidence candidate ${candidate.id} references source ${provenance.sourceId} outside the active project context.`,
+      );
+    }
+  }
 }
 
 export class EvidenceAgentOrchestrator {
@@ -67,6 +79,7 @@ export class EvidenceAgentOrchestrator {
 
   async retrieve(context: EvidenceAgentContext, candidates: EvidenceClaimCandidate[]): Promise<EvidenceAgentResult<EvidenceClaimCandidate[]>> {
     requireProjectId(context);
+    candidates.forEach(candidate => assertCandidateBelongsToContext(candidate, context));
     return result(
       'evidence-retrieval',
       context,
