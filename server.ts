@@ -11,6 +11,7 @@ import { EvidenceIntelligenceService } from './src/services/evidenceIntelligence
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
+import { authorizationStateCookieHeader, clearAuthorizationStateCookie, clearSessionCookie, createAuthorizationRequest, createSessionCookie, googleOAuthConfigured, readAuthorizationStateCookie, readSessionCookie, sessionCookieHeader, exchangeCode } from './src/services/googleOAuthService';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -23,8 +24,53 @@ function getGeminiClient(): GoogleGenAI | null {
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 10000);
+  const isProduction = process.env.NODE_ENV === 'production';
+  const requireAuth = process.env.REQUIRE_AUTH === 'true' || (isProduction && process.env.REQUIRE_AUTH !== 'false');
+  app.set('trust proxy', 1);
 
   app.use(express.json({ limit: '30mb' }));
+
+  const secureCookie = isProduction;
+
+  app.get('/auth/google', (_req: Request, res: Response) => {
+    if (!googleOAuthConfigured()) return res.status(503).send('Google OAuth is not configured.');
+    const { url, state } = createAuthorizationRequest();
+    res.setHeader('Set-Cookie', authorizationStateCookieHeader(state, secureCookie));
+    res.redirect(url);
+  });
+
+  app.get('/auth/google/callback', async (req: Request, res: Response) => {
+    const code = String(req.query.code || '');
+    const state = String(req.query.state || '');
+    const expectedState = readAuthorizationStateCookie(req.headers.cookie);
+    res.setHeader('Set-Cookie', clearAuthorizationStateCookie(secureCookie));
+    try {
+      if (!code || !state || !expectedState) return res.status(400).send('OAuth authorization response is incomplete.');
+      const user = await exchangeCode(code, state, expectedState);
+      res.setHeader('Set-Cookie', sessionCookieHeader(createSessionCookie(user), secureCookie));
+      res.redirect('/');
+    } catch (_error) {
+      res.status(401).send('Google authentication failed.');
+    }
+  });
+
+  app.post('/auth/logout', (_req: Request, res: Response) => {
+    res.setHeader('Set-Cookie', clearSessionCookie(secureCookie));
+    res.status(204).end();
+  });
+
+  app.get('/api/auth/me', (req: Request, res: Response) => {
+    const user = readSessionCookie(req.headers.cookie);
+    res.json({ authenticated: Boolean(user), user: user ? { sub: user.sub, email: user.email, name: user.name, picture: user.picture } : null });
+  });
+
+  if (requireAuth) {
+    app.use((req: Request, res: Response, next) => {
+      if (req.path.startsWith('/auth/google') || req.path === '/auth/logout' || req.path === '/api/auth/me' || req.path === '/api/health') return next();
+      if (readSessionCookie(req.headers.cookie)) return next();
+      return res.status(401).json({ success: false, error: 'Authentication required.' });
+    });
+  }
 
   registerResearchEngineIntegration(app);
   registerResearchWorkflowApi(app);
