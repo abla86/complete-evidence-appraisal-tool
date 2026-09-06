@@ -33,7 +33,7 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
     }
 
     const annotation: PdfAnnotation = {
-      id: globalThis.crypto?.randomUUID?.() ?? generateId(),
+      id: generateId('annotation'),
       attachmentId: referenceId,
       page,
       type: 'HIGHLIGHT',
