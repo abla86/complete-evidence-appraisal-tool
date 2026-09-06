@@ -19,7 +19,7 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,5 +39,13 @@ jobs:
       - name: Tests
         run: npm test
 
+      - name: Coverage
+        run: npm run test:coverage
+
       - name: Production build
         run: npm run build
+
+      - name: Verify production bundle
+        run: |
+          test -f dist/index.html
+          test -f dist/server.cjs
