@@ -13,6 +13,10 @@ export interface EvidenceAgentAdapter {
   run<T>(context: EvidenceAgentContext, input: unknown): Promise<EvidenceAgentResult<T>>;
 }
 
+function createRunId(agentId: EvidenceAgentId): string {
+  return `${agentId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function result<T>(
   agentId: EvidenceAgentId,
   context: EvidenceAgentContext,
@@ -21,7 +25,7 @@ function result<T>(
 ): EvidenceAgentResult<T> {
   const output: EvidenceAgentResult<T> = {
     agentId,
-    runId: `${agentId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    runId: createRunId(agentId),
     createdAt: new Date().toISOString(),
     context,
     result: value,
@@ -32,14 +36,18 @@ function result<T>(
   return output;
 }
 
-/**
- * Deterministic provider-neutral orchestration boundary.
- * Model providers can be attached later without changing workflow contracts.
- */
+function requireProjectId(context: EvidenceAgentContext): string {
+  const projectId = context.projectId.trim();
+  if (!projectId) throw new Error('projectId is required.');
+  return projectId;
+}
+
 export class EvidenceAgentOrchestrator {
   async plan(context: EvidenceAgentContext, researchQuestion: string): Promise<EvidenceAgentResult<ResearchPlan>> {
+    requireProjectId(context);
     const question = researchQuestion.trim();
     if (!question) throw new Error('researchQuestion is required.');
+
     return result('research-planner', context, {
       researchQuestion: question,
       objectives: [],
@@ -58,13 +66,19 @@ export class EvidenceAgentOrchestrator {
   }
 
   async retrieve(context: EvidenceAgentContext, candidates: EvidenceClaimCandidate[]): Promise<EvidenceAgentResult<EvidenceClaimCandidate[]>> {
-    return result('evidence-retrieval', context, candidates.map(candidate => ({
-      ...candidate,
-      verificationState: 'UNVERIFIED',
-    })));
+    requireProjectId(context);
+    return result(
+      'evidence-retrieval',
+      context,
+      candidates.map(candidate => ({
+        ...candidate,
+        verificationState: 'UNVERIFIED' as const,
+      })),
+    );
   }
 
   async verify(context: EvidenceAgentContext, decisions: VerificationDecision[]): Promise<EvidenceAgentResult<VerificationDecision[]>> {
+    requireProjectId(context);
     return result('verification', context, decisions);
   }
 }
