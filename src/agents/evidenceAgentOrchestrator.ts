@@ -37,13 +37,9 @@ function result<T>(
  * Model providers can be attached later without changing workflow contracts.
  */
 export class EvidenceAgentOrchestrator {
-  async plan(
-    context: EvidenceAgentContext,
-    researchQuestion: string,
-  ): Promise<EvidenceAgentResult<ResearchPlan>> {
+  async plan(context: EvidenceAgentContext, researchQuestion: string): Promise<EvidenceAgentResult<ResearchPlan>> {
     const question = researchQuestion.trim();
     if (!question) throw new Error('researchQuestion is required.');
-
     return result('research-planner', context, {
       researchQuestion: question,
       objectives: [],
@@ -61,20 +57,14 @@ export class EvidenceAgentOrchestrator {
     });
   }
 
-  async retrieve(
-    context: EvidenceAgentContext,
-    candidates: EvidenceClaimCandidate[],
-  ): Promise<EvidenceAgentResult<EvidenceClaimCandidate[]>> {
+  async retrieve(context: EvidenceAgentContext, candidates: EvidenceClaimCandidate[]): Promise<EvidenceAgentResult<EvidenceClaimCandidate[]>> {
     return result('evidence-retrieval', context, candidates.map(candidate => ({
       ...candidate,
       verificationState: 'UNVERIFIED',
     })));
   }
 
-  async verify(
-    context: EvidenceAgentContext,
-    decisions: VerificationDecision[],
-  ): Promise<EvidenceAgentResult<VerificationDecision[]>> {
+  async verify(context: EvidenceAgentContext, decisions: VerificationDecision[]): Promise<EvidenceAgentResult<VerificationDecision[]>> {
     return result('verification', context, decisions);
   }
 }
