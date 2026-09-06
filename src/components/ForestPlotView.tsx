@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { createForestPlotSvg, metaAnalyze, type MetaStudy } from '../services/metaAnalysisEngine';
 
 interface ForestPlotViewProps {
@@ -23,7 +24,7 @@ export default function ForestPlotView({ studies }: ForestPlotViewProps) {
       <div
         className="forest-plot-svg"
         aria-label="Forest plot"
-        dangerouslySetInnerHTML={{ __html: createForestPlotSvg(result, studies) }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(createForestPlotSvg(result, studies), { USE_PROFILES: { svg: true } }) }}
       />
       <p>I²: {result.i2.toFixed(1)}%</p>
     </section>
