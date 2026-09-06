@@ -12,6 +12,9 @@ import { JBI_QUESTIONS } from '../data/jbiData';
 import { generateArticleId } from './idGenerator';
 
 const STORAGE_KEY = 'jbi_research_group_workspace_v1';
+const LOCAL_RESEARCH_PERSISTENCE_ENABLED =
+  typeof import.meta !== 'undefined' &&
+  import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
 
 export const DEFAULT_MEMBERS: ReviewerProfile[] = [
   {
@@ -203,6 +206,12 @@ export class GroupCollaborationService {
       return this.workspaceCache;
     }
 
+    if (!LOCAL_RESEARCH_PERSISTENCE_ENABLED || typeof localStorage === 'undefined') {
+      const fresh = this.getInitialWorkspace(articles);
+      this.workspaceCache = fresh;
+      return fresh;
+    }
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -220,6 +229,11 @@ export class GroupCollaborationService {
   }
 
   public static saveWorkspace(workspace: ResearchGroupWorkspace): void {
+    if (!LOCAL_RESEARCH_PERSISTENCE_ENABLED || typeof localStorage === 'undefined') {
+      this.workspaceCache = { ...workspace, updatedAt: new Date().toISOString() };
+      return;
+    }
+
     try {
       const updated = {
         ...workspace,
