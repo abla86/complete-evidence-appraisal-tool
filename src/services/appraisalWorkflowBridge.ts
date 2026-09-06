@@ -1,4 +1,5 @@
-const LOCAL_RESEARCH_PERSISTENCE_ENABLED = typeof import.meta !== 'undefined' && import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';\n﻿import {
+const LOCAL_RESEARCH_PERSISTENCE_ENABLED = typeof import.meta !== 'undefined' && import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
+import {
   createBlankAppraisalSession,
   getInstrumentOrNull,
   lockAppraisalSession,
