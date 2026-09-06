@@ -25,7 +25,7 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 10000);
   const isProduction = process.env.NODE_ENV === 'production';
-  const requireAuth = process.env.REQUIRE_AUTH === 'true' || (isProduction && process.env.REQUIRE_AUTH !== 'false');
+  const requireAuth = isProduction || process.env.REQUIRE_AUTH === 'true';
   app.set('trust proxy', 1);
 
   app.use(express.json({ limit: '30mb' }));
