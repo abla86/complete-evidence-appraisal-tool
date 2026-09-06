@@ -1,6 +1,93 @@
-﻿export type MetaModel='FIXED_IV'|'FIXED_MH'|'RANDOM_DL';export interface MetaStudy{id:string;label:string;effect:number;variance:number;}export interface MetaResult{model:MetaModel;pooledEffect:number;se:number;ciLow:number;ciHigh:number;Q:number;df:number;i2:number;tau2:number;weights:Record<string,number>;}
-const sum=(a:number[])=>a.reduce((x,y)=>x+y,0);
-export function metaAnalyze(s:MetaStudy[],model:MetaModel='RANDOM_DL'):MetaResult{if(s.length<2)throw new Error('Minst to studier kreves.');if(s.some(x=>x.variance<=0))throw new Error('Varians mÃ¥ vÃ¦re positiv.');const wi=s.map(x=>1/x.variance),fixed=sum(s.map((x,i)=>x.effect*wi[i]))/sum(wi),Q=sum(s.map((x,i)=>wi[i]*(x.effect-fixed)**2)),df=s.length-1,c=sum(wi)-sum(wi.map(x=>x*x))/sum(wi),tau2=model==='RANDOM_DL'?Math.max(0,(Q-df)/Math.max(c,Number.EPSILON)):0,wr=s.map(x=>1/(x.variance+tau2)),pooled=sum(s.map((x,i)=>x.effect*wr[i]))/sum(wr),se=Math.sqrt(1/sum(wr)),z=1.96;return{model,pooledEffect:pooled,se,ciLow:pooled-z*se,ciHigh:pooled+z*se,Q,df,i2:Q>0?Math.max(0,(Q-df)/Q*100):0,tau2,weights:Object.fromEntries(s.map((x,i)=>[x.id,wr[i]/sum(wr)]))};}
-export function createForestPlotSvg(r:MetaResult,s:MetaStudy[]):string{const lo=Math.min(...s.map(x=>x.effect-1.96*Math.sqrt(x.variance)),r.ciLow),hi=Math.max(...s.map(x=>x.effect+1.96*Math.sqrt(x.variance)),r.ciHigh),x=(e:number)=>40+(e-lo)/(hi-lo||1)*520;return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="${80+s.length*36}"><line x1="${x(0)}" x2="${x(0)}" y1="10" y2="${60+s.length*36}" stroke="black"/>${s.map((a,i)=>{const y=30+i*36,l=x(a.effect-1.96*Math.sqrt(a.variance)),h=x(a.effect+1.96*Math.sqrt(a.variance)),w=r.weights[a.id]??0;return `<text x="0" y="${y+4}">${a.label}</text><line x1="${l}" x2="${h}" y1="${y}" y2="${y}" stroke="black"/><rect x="${x(a.effect)-4-w*8}" y="${y-4-w*8}" width="${8+w*16}" height="${8+w*16}" fill="black"/>`;}).join('')}<polygon points="${x(r.ciLow)},${70+s.length*36} ${x(r.pooledEffect)},${62+s.length*36} ${x(r.ciHigh)},${70+s.length*36} ${x(r.pooledEffect)},${78+s.length*36}" fill="black"/></svg>`;}
+export type MetaModel = 'FIXED_IV' | 'FIXED_MH' | 'RANDOM_DL';
 
+export interface MetaStudy {
+  id: string;
+  label: string;
+  effect: number;
+  variance: number;
+}
 
+export interface MetaResult {
+  model: MetaModel;
+  pooledEffect: number;
+  se: number;
+  ciLow: number;
+  ciHigh: number;
+  Q: number;
+  df: number;
+  i2: number;
+  tau2: number;
+  weights: Record<string, number>;
+}
+
+const sum = (values: number[]): number => values.reduce((total, value) => total + value, 0);
+
+const escapeXml = (value: string): string =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+export function metaAnalyze(studies: MetaStudy[], model: MetaModel = 'RANDOM_DL'): MetaResult {
+  if (studies.length < 2) throw new Error('Minst to studier kreves.');
+  if (studies.some(study => !Number.isFinite(study.variance) || study.variance <= 0)) {
+    throw new Error('Varians må være positiv.');
+  }
+  if (studies.some(study => !Number.isFinite(study.effect))) {
+    throw new Error('Effektstørrelser må være numeriske.');
+  }
+
+  const fixedWeights = studies.map(study => 1 / study.variance);
+  const fixedEffect = sum(studies.map((study, index) => study.effect * fixedWeights[index])) / sum(fixedWeights);
+  const Q = sum(studies.map((study, index) => fixedWeights[index] * (study.effect - fixedEffect) ** 2));
+  const df = studies.length - 1;
+  const weightSum = sum(fixedWeights);
+  const c = weightSum - sum(fixedWeights.map(weight => weight * weight)) / weightSum;
+  const tau2 = model === 'RANDOM_DL' ? Math.max(0, (Q - df) / Math.max(c, Number.EPSILON)) : 0;
+  const randomWeights = studies.map(study => 1 / (study.variance + tau2));
+  const randomWeightSum = sum(randomWeights);
+  const pooledEffect = sum(studies.map((study, index) => study.effect * randomWeights[index])) / randomWeightSum;
+  const se = Math.sqrt(1 / randomWeightSum);
+  const z = 1.96;
+
+  return {
+    model,
+    pooledEffect,
+    se,
+    ciLow: pooledEffect - z * se,
+    ciHigh: pooledEffect + z * se,
+    Q,
+    df,
+    i2: Q > 0 ? Math.max(0, ((Q - df) / Q) * 100) : 0,
+    tau2,
+    weights: Object.fromEntries(
+      studies.map((study, index) => [study.id, randomWeights[index] / randomWeightSum]),
+    ),
+  };
+}
+
+export function createForestPlotSvg(result: MetaResult, studies: MetaStudy[]): string {
+  const low = Math.min(
+    ...studies.map(study => study.effect - 1.96 * Math.sqrt(study.variance)),
+    result.ciLow,
+  );
+  const high = Math.max(
+    ...studies.map(study => study.effect + 1.96 * Math.sqrt(study.variance)),
+    result.ciHigh,
+  );
+  const x = (effect: number): number => 40 + ((effect - low) / (high - low || 1)) * 520;
+
+  const rows = studies.map((study, index) => {
+    const y = 30 + index * 36;
+    const studyLow = x(study.effect - 1.96 * Math.sqrt(study.variance));
+    const studyHigh = x(study.effect + 1.96 * Math.sqrt(study.variance));
+    const weight = result.weights[study.id] ?? 0;
+    const size = 8 + weight * 16;
+
+    return \`<text x="0" y="\${y + 4}">\${escapeXml(study.label)}</text><line x1="\${studyLow}" x2="\${studyHigh}" y1="\${y}" y2="\${y}" stroke="black"/><rect x="\${x(study.effect) - size / 2}" y="\${y - size / 2}" width="\${size}" height="\${size}" fill="black"/>\`;
+  }).join('');
+
+  return \`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="\${80 + studies.length * 36}" role="img" aria-label="Forest plot"><line x1="\${x(0)}" x2="\${x(0)}" y1="10" y2="\${60 + studies.length * 36}" stroke="black"/>\${rows}<polygon points="\${x(result.ciLow)},\${70 + studies.length * 36} \${x(result.pooledEffect)},\${62 + studies.length * 36} \${x(result.ciHigh)},\${70 + studies.length * 36} \${x(result.pooledEffect)},\${78 + studies.length * 36}" fill="black"/></svg>\`;
+}
