@@ -6,6 +6,7 @@
 } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { SnapshotService } from './snapshotService';
+import { createId } from '../utils/id';
 
 export interface GateCheckItem {
   name: string;
@@ -501,7 +502,7 @@ export class MethodIntegrityGate {
     const snapshot = SnapshotService.createSnapshot(appraisal, verifiedBy);
     const updatedAuditTrail = [
       {
-        id: `AUD-VERIFY-${Date.now()}`,
+        id: createId('AUD-VERIFY'),
         studyId: appraisal.id,
         reviewer: verifiedBy,
         instrumentId: check.gateResult.instrumentId,
