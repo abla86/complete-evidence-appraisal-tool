@@ -1,2 +1,13 @@
 import { generateId } from '../utils/id';
-export const idGenerator = { next: (prefix?: string): string => generateId(prefix) };
+
+export function generateUniqueId(prefix = 'id'): string {
+  return generateId(prefix);
+}
+
+export function generateArticleId(prefix = 'art'): string {
+  return generateId(prefix);
+}
+
+export function generateAuditId(prefix = 'audit'): string {
+  return generateId(prefix);
+}
