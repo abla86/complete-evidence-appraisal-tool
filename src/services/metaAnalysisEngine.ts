@@ -32,6 +32,8 @@ const escapeXml = (value: string): string =>
 
 export function metaAnalyze(studies: MetaStudy[], model: MetaModel = 'RANDOM_DL'): MetaResult {
   if (studies.length < 2) throw new Error('Minst to studier kreves.');
+  const ids = studies.map(study => study.id.trim());
+  if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('Studier må ha unike, ikke-tomme ID-er.');
   if (studies.some(study => !Number.isFinite(study.variance) || study.variance <= 0)) {
     throw new Error('Varians må være positiv.');
   }
