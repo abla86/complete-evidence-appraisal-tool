@@ -80,7 +80,7 @@ export class LocalStorageResearchWorkflowStore extends InMemoryResearchWorkflowS
   }
 
   private restore(): void {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
     const raw = localStorage.getItem(this.storageKey);
     if (!raw) return;
     try {
