@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { ArticleAppraisal, AssessmentStatus, JBIEvaluationItem } from '../types';
+import { createId } from '../utils/id';
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { StatusBadge } from './StatusBadge';
 import { 
@@ -74,7 +75,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
     }
 
     const newArticle: ArticleAppraisal = {
-      id: `custom-${Date.now()}`,
+      id: createId('custom'),
       authors,
       shortCitation,
       year,
