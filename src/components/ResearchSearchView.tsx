@@ -23,18 +23,27 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
   const [filterOpenAccessOnly, setFilterOpenAccessOnly] = useState<boolean>(false);
   const [verificationByDoi, setVerificationByDoi] = useState<Record<string, any>>({});
   const [verifyingDoi, setVerifyingDoi] = useState<string | null>(null);
-  const [history, setHistory] = useState<SearchHistoryEntry[]>(() => {
-    const saved = localStorage.getItem('evidence_appraisal_search_history_v2');
-    if (saved) { try { return JSON.parse(saved); } catch { return []; } }
-    return [];
-  });
+  const [history, setHistory] = useState<SearchHistoryEntry[]>([]);
+  const LOCAL_SEARCH_HISTORY_ENABLED =
+    typeof import.meta !== 'undefined' &&
+    import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
+
+  useEffect(() => {
+    if (!LOCAL_SEARCH_HISTORY_ENABLED || typeof localStorage === 'undefined') return;
+    try {
+      const saved = localStorage.getItem('evidence_appraisal_search_history_v2');
+      if (saved) setHistory(JSON.parse(saved) as SearchHistoryEntry[]);
+    } catch {
+      setHistory([]);
+    }
+  }, []);
   const [importedIds, setImportedIds] = useState<Set<string>>(() => {
     const set = new Set<string>();
     existingArticles.forEach(a => { if (a.doi) set.add(a.doi.toLowerCase().trim()); if (a.title) set.add(a.title.toLowerCase().trim()); });
     return set;
   });
 
-  useEffect(() => { localStorage.setItem('evidence_appraisal_search_history_v2', JSON.stringify(history)); }, [history]);
+  useEffect(() => { if (LOCAL_SEARCH_HISTORY_ENABLED && typeof localStorage !== 'undefined') localStorage.setItem('evidence_appraisal_search_history_v2', JSON.stringify(history)); }, [history]);
 
   const handleSearch = async (overrideQuery?: string, overrideDb?: string) => {
     const q = (overrideQuery !== undefined ? overrideQuery : query).trim();
