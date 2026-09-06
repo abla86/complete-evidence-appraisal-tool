@@ -9,6 +9,9 @@ export function calculateAmstar2Confidence(
   const criticalFlaws = CRITICAL_ITEMS.filter(id => answers[id] === 'NO').length;
   const nonCriticalFlaws = NON_CRITICAL_ITEMS.filter(id => answers[id] === 'NO').length;
 
+  // AMSTAR 2 does not use a summed quality score. Overall confidence is
+  // determined by weaknesses in the seven critical domains and non-critical
+  // weaknesses, following Shea et al. (2017).
   if (criticalFlaws === 0 && nonCriticalFlaws <= 1) return 'HIGH';
   if (criticalFlaws === 0) return 'MODERATE';
   if (criticalFlaws === 1) return 'LOW';
