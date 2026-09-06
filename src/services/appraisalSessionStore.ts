@@ -10,7 +10,6 @@ const LOCAL_RESEARCH_PERSISTENCE_ENABLED =
 
 function read(): AppraisalSession[] {
   if (typeof window === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return [];
-  if (!LOCAL_RESEARCH_PERSISTENCE_ENABLED || typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
