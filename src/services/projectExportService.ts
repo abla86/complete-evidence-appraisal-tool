@@ -1,4 +1,4 @@
-﻿import { loadAppraisalSessions, loadQualityAssessments } from './appraisalSessionStore';
+import { loadAppraisalSessions, loadQualityAssessments } from './appraisalSessionStore';
 import { loadReferenceLibrary } from './referenceLibraryStore';
 import { calculatePRISMA, type PRISMAStages } from './prismaCalculator';
 import { AuditTrailService, type AuditEntry } from './auditTrailService';
@@ -12,8 +12,70 @@ import { requireProjectScope } from './projectScopeService';
 import type { ProjectAccess } from './projectAccessService';
 import type { ResearchProject } from '../domain/researchProject';
 
-export interface ProjectExportPackage{projectId:string;studyIds?:string[];exportedAt:string;pipeline?:EvidencePipelineState;appraisal:AppraisalSession[];quality:StoredQualityAssessment[];claims:AcademicClaim[];evidence:EvidenceExtraction[];references:ReferenceRecord[];synthesis:SynthesisRecord[];prisma:ReturnType<typeof calculatePRISMA>;audit:readonly AuditEntry[];}
-export function buildProjectExportPackage(input:{projectId:string;pipeline?:EvidencePipelineState;prismaStages:PRISMAStages;claims?:AcademicClaim[];evidence?:EvidenceExtraction[];quality?:StoredQualityAssessment[];references?:ReferenceRecord[];auditTrail?:AuditTrailService;synthesis?:SynthesisRecord[];projectAccess?:ProjectAccess;project?:ResearchProject}):ProjectExportPackage{const projectId=input.projectId.trim();if(!projectId)throw new Error('projectId is required.');if(input.projectAccess)requireProjectScope({projectId,actor:input.projectAccess},'EXPORT');const studyIds=[...new Set(input.project?.studyIds??[])];if(input.project&&input.project.id!==projectId)throw new Error('EXPORT_BLOCKED: project identity mismatch.');const references=input.references??loadReferenceLibrary([]);const appraisal=loadAppraisalSessions().filter(s=>studyIds.includes(s.studyId));const appraisalIds=new Set(appraisal.map(s=>s.id));const storedQuality=loadQualityAssessments().filter(q=>appraisalIds.has(q.appraisalSessionId));const quality=(input.quality??storedQuality).filter(q=>appraisalIds.has(q.appraisalSessionId));const pkg:ProjectExportPackage={projectId,studyIds,exportedAt:new Date().toISOString(),pipeline:input.pipeline,appraisal,quality,claims:input.claims??[],evidence:input.evidence??[],references,synthesis:input.synthesis??[],prisma:calculatePRISMA(input.prismaStages),audit:input.auditTrail?.list()??[]};assertProjectExportIntegrity(pkg);return pkg;}
+export interface ProjectExportPackage {
+  projectId: string;
+  studyIds?: string[];
+  exportedAt: string;
+  pipeline?: EvidencePipelineState;
+  appraisal: AppraisalSession[];
+  quality: StoredQualityAssessment[];
+  claims: AcademicClaim[];
+  evidence: EvidenceExtraction[];
+  references: ReferenceRecord[];
+  synthesis: SynthesisRecord[];
+  prisma: ReturnType<typeof calculatePRISMA>;
+  audit: readonly AuditEntry[];
+}
+
+type ProjectExportInput = {
+  projectId: string;
+  pipeline?: EvidencePipelineState;
+  prismaStages: PRISMAStages;
+  claims?: AcademicClaim[];
+  evidence?: EvidenceExtraction[];
+  quality?: StoredQualityAssessment[];
+  references?: ReferenceRecord[];
+  auditTrail?: AuditTrailService;
+  synthesis?: SynthesisRecord[];
+  projectAccess?: ProjectAccess;
+  project?: ResearchProject;
+};
+
+export function buildProjectExportPackage(input: ProjectExportInput): ProjectExportPackage {
+  const projectId = input.projectId.trim();
+  if (!projectId) throw new Error('projectId is required.');
+  if (input.projectAccess) requireProjectScope({ projectId, actor: input.projectAccess }, 'EXPORT');
+
+  const studyIds = [...new Set(input.project?.studyIds ?? [])];
+  if (input.project && input.project.id !== projectId) {
+    throw new Error('EXPORT_BLOCKED: project identity mismatch.');
+  }
+
+  const references = input.references ?? loadReferenceLibrary([]);
+  const appraisal = loadAppraisalSessions().filter(s => studyIds.includes(s.studyId));
+  const appraisalIds = new Set(appraisal.map(s => s.id));
+  const storedQuality = loadQualityAssessments().filter(q => appraisalIds.has(q.appraisalSessionId));
+  const quality = (input.quality ?? storedQuality).filter(q => appraisalIds.has(q.appraisalSessionId));
+
+  const pkg: ProjectExportPackage = {
+    projectId,
+    studyIds,
+    exportedAt: new Date().toISOString(),
+    pipeline: input.pipeline,
+    appraisal,
+    quality,
+    claims: input.claims ?? [],
+    evidence: input.evidence ?? [],
+    references,
+    synthesis: input.synthesis ?? [],
+    prisma: calculatePRISMA(input.prismaStages),
+    audit: input.auditTrail?.list() ?? [],
+  };
+
+  assertProjectExportIntegrity(pkg);
+  return pkg;
+}
+
 export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   if (!pkg.projectId.trim()) throw new Error('EXPORT_BLOCKED: projectId is required.');
   if (pkg.appraisal.some(a => !a.locked)) throw new Error('EXPORT_BLOCKED: all appraisal sessions must be locked.');
@@ -21,7 +83,7 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   if (pkg.synthesis.some(s => !s.locked)) throw new Error('EXPORT_BLOCKED: synthesis must be locked.');
 
   const evidenceIds = new Set(pkg.evidence.map(e => e.id));
-  const referenceIds = new Set((pkg.references || []).map(r => r.id));
+  const referenceIds = new Set(pkg.references.map(r => r.id));
 
   for (const evidence of pkg.evidence) {
     if (evidence.researcherVerified !== true) {
@@ -30,7 +92,7 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
     const linked = evidence.sourceRecordId?.trim() || evidence.referenceId?.trim() || (referenceIds.has(evidence.id) ? evidence.id : '');
     const hasSourceIdentifiers = Boolean(
       evidence.sourceIdentifiers &&
-      Object.values(evidence.sourceIdentifiers).some(value => typeof value === 'string' && value.trim())
+      Object.values(evidence.sourceIdentifiers).some(value => typeof value === 'string' && value.trim()),
     );
     if (!linked && !hasSourceIdentifiers) {
       throw new Error(`EXPORT_BLOCKED: evidence ${evidence.id} has no source identifier.`);
@@ -61,6 +123,18 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
       throw new Error(`EXPORT_BLOCKED: appraisal ${appraisal.id} references a study outside the project.`);
     }
   }
+
+  for (const quality of pkg.quality) {
+    const session = pkg.appraisal.find(session => session.id === quality.appraisalSessionId);
+    if (!session) throw new Error(`EXPORT_BLOCKED: quality ${quality.id} references a missing appraisal session.`);
+    if (session.reviewerId !== quality.reviewerId) {
+      throw new Error(`EXPORT_BLOCKED: quality ${quality.id} reviewer does not match appraisal reviewer.`);
+    }
+    if (studyIds.size && !studyIds.has(session.studyId)) {
+      throw new Error(`EXPORT_BLOCKED: quality ${quality.id} references a study outside the project.`);
+    }
+  }
+
   for (const synthesis of pkg.synthesis) {
     if (Array.isArray(synthesis.inputs)) {
       for (const input of synthesis.inputs) {
@@ -71,6 +145,21 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
     }
   }
 }
-export function serializeProjectExport(packageData:ProjectExportPackage,format:'json'|'csv'='json'):string{assertProjectExportIntegrity(packageData);if(format==='json')return JSON.stringify(packageData,null,2);const rows=[['type','id','label','status'],...packageData.appraisal.map(i=>['appraisal',i.id,i.instrumentId,i.locked?'locked':'open']),...packageData.quality.map(i=>['quality',i.id,i.kind,i.locked?'locked':'open']),...packageData.references.map(i=>['reference',i.id,i.title,i.verification]),...packageData.claims.map(i=>['claim',i.id,i.text,i.status]),...packageData.evidence.map(i=>['evidence',i.id,i.excerpt,i.researcherVerified?'verified':'unverified'])];return'\uFEFF'+rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');}
 
+export function serializeProjectExport(
+  packageData: ProjectExportPackage,
+  format: 'json' | 'csv' = 'json',
+): string {
+  assertProjectExportIntegrity(packageData);
+  if (format === 'json') return JSON.stringify(packageData, null, 2);
 
+  const rows = [
+    ['type', 'id', 'label', 'status'],
+    ...packageData.appraisal.map(i => ['appraisal', i.id, i.instrumentId, i.locked ? 'locked' : 'open']),
+    ...packageData.quality.map(i => ['quality', i.id, i.kind, i.locked ? 'locked' : 'open']),
+    ...packageData.references.map(i => ['reference', i.id, i.title, i.verification ?? '']),
+    ...packageData.claims.map(i => ['claim', i.id, i.text, i.status]),
+    ...packageData.evidence.map(i => ['evidence', i.id, i.excerpt, i.researcherVerified ? 'verified' : 'unverified']),
+  ];
+  return '\uFEFF' + rows.map(row => row.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+}
