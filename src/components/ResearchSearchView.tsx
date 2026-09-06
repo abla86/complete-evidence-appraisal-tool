@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React
+import { createId } from '../utils/id';, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, Database, ExternalLink, Plus, Check, Clock, BookOpen, Filter, AlertCircle,
   Download, RefreshCw, Sparkles, FileText, BookmarkPlus, Globe2, Lock, Unlock,
@@ -53,7 +54,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
       else if (db === 'doaj') fetched = await OpenResearchApiService.searchDOAJ(q, 15);
       else if (db === 'preprints') fetched = await OpenResearchApiService.searchEuropePmc(`${q} AND (SRC:PPR OR HAS_BOOK:N)`, 15);
       setResults(fetched);
-      const histItem: SearchHistoryEntry = { id: `hist-${Date.now()}`, query: q, source: dbConfig.name, timestamp: new Date().toISOString(), resultsCount: fetched.length };
+      const histItem: SearchHistoryEntry = { id: createId('hist'), query: q, source: dbConfig.name, timestamp: new Date().toISOString(), resultsCount: fetched.length };
       setHistory(prev => [histItem, ...prev.filter(h => h.query !== q).slice(0, 19)]);
       showToast(fetched.length === 0 ? `Ingen Ã¥pne artikler funnet i ${dbConfig.name} for "${q}"` : `Fant ${fetched.length} treff i ${dbConfig.name}. Treffene er ikke automatisk klassifisert som fagfellevurderte.`, fetched.length === 0 ? 'info' : 'success');
     } catch (err: unknown) { console.error('Search error:', err); showToast(`SÃ¸kefeil: ${err.message || 'Kunne ikke kontakte databasen'}`, 'error'); }
