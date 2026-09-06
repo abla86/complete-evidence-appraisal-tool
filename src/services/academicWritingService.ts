@@ -1,4 +1,5 @@
 ﻿import type { ReferenceRecord } from './referenceHubService.ts';
+import { createId } from '../utils/id';
 
 export type AcademicLevel = 'MASTER' | 'PHD' | 'ARTICLE' | 'REVIEW' | 'PROTOCOL' | 'REPORT';
 export type WritingMode =
@@ -129,7 +130,7 @@ export function createAcademicWritingProject(
   input: Partial<AcademicWritingProject> & Pick<AcademicWritingProject, 'title'>,
 ): AcademicWritingProject {
   return {
-    id: input.id ?? `writing-${Date.now()}`,
+    id: input.id ?? createId('writing'),
     title: input.title,
     academicLevel: input.academicLevel ?? 'MASTER',
     writingMode: input.writingMode ?? 'WRITE_FROM_SOURCES',
