@@ -31,6 +31,7 @@ export function saveReferenceLibrary(records: ReferenceRecord[]): void {
     updatedAt: new Date().toISOString(),
     records,
   };
+  if (!LOCAL_RESEARCH_PERSISTENCE_ENABLED || typeof localStorage === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
 }
 
