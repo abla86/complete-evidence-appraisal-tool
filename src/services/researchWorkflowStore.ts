@@ -75,7 +75,7 @@ export class LocalStorageResearchWorkflowStore extends InMemoryResearchWorkflowS
   }
 
   private persist(): void {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
     localStorage.setItem(this.storageKey, JSON.stringify(this.list()));
   }
 
