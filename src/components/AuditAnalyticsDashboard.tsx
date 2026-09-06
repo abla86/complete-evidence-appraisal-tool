@@ -64,3 +64,4 @@ function Row({ label, value, total }: { label: string; value: number; total: num
   return <div className="py-2"><div className="flex justify-between gap-3 text-xs"><span className="truncate">{label}</span><strong>{value}</strong></div><div className="mt-1 h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-teal-700" style={{ width: `${width}%` }} /></div></div>;
 }
 
+

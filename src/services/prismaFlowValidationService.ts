@@ -18,3 +18,4 @@ export function validatePRISMAFlow(flow: PRISMAFlow): PRISMAValidation {
   return { valid: errors.length===0, errors, warnings, totals:{identified,screened:s.recordsScreened,eligible:e.fullTextsAssessed,included:i.studiesFinalSynthesis} };
 }
 
+

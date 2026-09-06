@@ -230,3 +230,4 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
   );
 };
 
+

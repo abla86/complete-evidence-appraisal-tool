@@ -53,3 +53,4 @@ test('pipeline audit chain verifies after transitions', async () => {
   assert.ok(audit[1].previousEntryHash);
 });
 
+

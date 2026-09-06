@@ -125,3 +125,4 @@ export function decideAppraisalLaunch(studyDesign: string, instrumentId: string,
   return { instrument, allowed: false, warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'], reason: 'Bytt instrument eller Ã¥pne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.' };
 }
 
+

@@ -69,3 +69,4 @@ export function createNorwegianRegulationReference(input: Omit<SharedReferenceIn
   return createReference({ ...input, kind: 'REGULATION' });
 }
 
+

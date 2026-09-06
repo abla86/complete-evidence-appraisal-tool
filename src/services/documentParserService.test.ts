@@ -40,3 +40,4 @@ test('file validation rejects unsupported extensions', () => {
   assert.equal(result.valid, false);
 });
 
+

@@ -192,3 +192,4 @@ export const SourceRecordWorkflowView: React.FC = () => {
 
 function Metric({ label, value }: { label: string; value: number }) { return <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] uppercase tracking-wide text-slate-400">{label}</div><div className="text-xl font-bold">{value}</div></div>; }
 
+

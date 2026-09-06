@@ -25,3 +25,4 @@ export class MetaResearchService {
   private mapToInstrument(d: StudyDesign): string | null { const m: unknown = { 'RCT': 'casp-rct', 'SYSTEMATIC_REVIEW': 'casp-systematic-review', 'QUALITATIVE': 'casp-qualitative', 'OBSERVATIONAL': 'casp-cohort' }; return m[d] || null; }
 }
 
+

@@ -9,3 +9,4 @@ export async function appendAuditEvent(events:AuditEvent[],action:string,actor:s
 export async function verifyAuditChain(events:AuditEvent[]):Promise<boolean>{let previous='GENESIS';for(const event of events){const expected=await sha256([previous,event.timestamp,event.action,event.actor,event.payloadHash].join('|'));if(event.previousHash!==previous||event.eventHash!==expected)return false;previous=event.eventHash;}return true;}
 export function protocolToCsv(protocol:ProtocolRecord):string{return Object.values(protocol).map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');}
 
+

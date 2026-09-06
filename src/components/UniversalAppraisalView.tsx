@@ -248,3 +248,4 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
 
 function Info({ label, value }: { label: string; value: string }) { return <div className="bg-white border border-slate-200 rounded-xl p-3"><div className="text-[10px] uppercase tracking-wide text-slate-400">{label}</div><div className="text-sm font-bold mt-1">{value}</div></div>; }
 
+

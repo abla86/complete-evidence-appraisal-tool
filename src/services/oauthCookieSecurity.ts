@@ -4,3 +4,4 @@
   return /^https:\/\//i.test(appUrl);
 }
 
+

@@ -8,3 +8,4 @@ export function evaluateReportingAssessment(guidelineId:string, version:string, 
   return { guidelineId, version, checks, completionPercent:required.length?Math.round(complete/required.length*100):0, ready:required.length>0&&complete===required.length };
 }
 
+

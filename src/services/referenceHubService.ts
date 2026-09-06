@@ -270,3 +270,4 @@ export const SUPPORTED_REFERENCE_KINDS: SharedReferenceKind[] = [
   'NOU', 'PROPOSITION', 'TREATY', 'GUIDELINE', 'THESIS', 'OTHER'
 ];
 
+

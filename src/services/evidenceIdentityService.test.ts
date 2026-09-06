@@ -18,3 +18,4 @@ test('DOI remains a stable identity match', () => {
   assert.equal(resolveReferenceForSource({ recordId: 'source-10', identifiers: { doi: 'https://doi.org/10.1234/example' } }, [reference])?.id, 'reference-2');
 });
 
+

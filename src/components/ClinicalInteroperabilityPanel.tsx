@@ -20,3 +20,4 @@ export const ClinicalInteroperabilityPanel:React.FC=()=>{
   <div className="bg-white border rounded-2xl p-4 space-y-3"><h3 className="font-bold">Nordisk terminologi</h3><div className="flex gap-2"><select className="border rounded-lg p-2 text-xs" value={system} onChange={e=>setSystem(e.target.value as TerminologySystem)}>{getSupportedTerminologySystems().map(s=><option key={s}>{s}</option>)}</select><input className="flex-1 border rounded-lg p-2 text-xs" value={term} onChange={e=>setTerm(e.target.value)}/></div><button type="button" onClick={()=>setResults(lookupTerminology(term,system))} className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs">SlÃ¥ opp kode</button>{results.map(r=><div key={r.system+r.code} className="text-xs bg-slate-50 p-2 rounded-lg"><b>{r.code}</b> Â· {r.display}</div>)}</div>
  </section>;
 };
+

@@ -32,3 +32,4 @@ export async function checkDoiStatus(doi: string): Promise<RetractionCheckResult
   return { doi: clean, signal: 'NONE', source: 'CROSSREF', checkedAt: new Date().toISOString() };
 }
 
+

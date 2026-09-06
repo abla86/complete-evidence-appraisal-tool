@@ -105,3 +105,4 @@ export function lockSynthesis(synthesis:SynthesisRecord, validation:SynthesisVal
   return {...synthesis,locked:true};
 }
 
+

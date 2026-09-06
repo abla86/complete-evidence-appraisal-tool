@@ -74,3 +74,4 @@ export class ProbastValidationService{public static evaluate(i:Parameters<typeof
 export class MmatValidationService{public static evaluate(i:Parameters<typeof MmatAssessmentEngine.evaluate>[0]){return MmatAssessmentEngine.evaluate(i);}}
 export class Prisma2020ValidationService{public static evaluateReporting(i:Record<number,'Yes'|'Partial'|'No'|'Not applicable'>){return Prisma2020ReportingEngine.evaluateReporting(i);}}
 
+

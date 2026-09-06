@@ -403,3 +403,4 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
   );
 };
 
+

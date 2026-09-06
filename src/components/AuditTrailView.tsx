@@ -236,3 +236,4 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
   );
 };
 
+

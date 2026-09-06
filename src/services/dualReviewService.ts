@@ -102,3 +102,4 @@ export function resolveConflict(
   return resolveAppraisal(appraisalId, reviewer, comparison.items, method, proposedResponses, rationale);
 }
 
+

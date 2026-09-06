@@ -8,3 +8,4 @@ function buildMetadata(meta:ResearchMetadataRecord):SourceRecord['metadata']{con
 function buildLegalReference(lawText:string|null):SourceRecord['legalReference']{const text=lawText?.trim();return text?{type:/forskrift/i.test(text)?'forskrift':'lov',officialId:'UNVERIFIED',shortTitle:'',paragraph:null,citation:text}:null;}
 export function buildSourceRecord(input:BuildSourceRecordInput):SourceRecord{const capturedAt=input.capturedAt??new Date().toISOString();return{schemaVersion:SOURCE_RECORD_SCHEMA_VERSION,recordId:input.recordId??createRecordId(),source:{url:input.meta.sourceUrl,capturedAt},metadata:buildMetadata(input.meta),identifiers:{doi:buildDoi(input.meta)},referenceDraft:buildReferenceDraft(input.meta),legalReference:buildLegalReference(input.lawText),privacy:{...input.privacyResult,localOnly:true},provenance:{tool:'source-record-gateway',toolVersion:input.toolVersion,collectedLocally:true,externalRequestsMade:false,collectedAt:capturedAt}};}
 
+

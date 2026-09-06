@@ -13,3 +13,4 @@ export function resolveCanonicalSourceLink(input: { referenceId: string; sourceR
   return { referenceId: input.referenceId, sourceRecordId: input.sourceRecordId, identifiers: input.reference, match: 'MANUAL_REQUIRED', reason: 'Ingen stabil identifikator samsvarer; manuell kobling kreves.' };
 }
 
+

@@ -18,3 +18,4 @@ export function assessPublicationUsability(record: ExternalPublicationRecord | n
   return { usability, reasons, checkedAt:new Date().toISOString() };
 }
 
+

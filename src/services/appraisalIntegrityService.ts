@@ -28,3 +28,4 @@ export function validateAppraisalIntegrity(session: AppraisalSession): Appraisal
   return { valid: blockingIssues.length === 0, blockingIssues, warnings };
 }
 
+

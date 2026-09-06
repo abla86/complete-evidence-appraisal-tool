@@ -15,3 +15,4 @@ export async function deIdentifyHealthcareText(text:string,options:DeIdentificat
  const [inputDigest,outputDigest]=await Promise.all([sha256(text),sha256(output)]);
  return{deIdentifiedText:output,replacements,audit:{timestamp:new Date().toISOString(),algorithm:'SHA-256',inputDigest,outputDigest,replacements,clientOnly:true}};
 }
+

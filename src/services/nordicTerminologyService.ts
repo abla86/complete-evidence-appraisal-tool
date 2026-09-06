@@ -10,3 +10,4 @@ export function mapTerminology(system:TerminologySystem,code:string,targetSystem
 export function getSupportedTerminologySystems():TerminologySystem[]{return['SNOMED_CT','ICD10','ICD11','ATC','FEST'];}
 export function terminologyNotice():string{return'Kryssmappingene er demonstrasjons-/arbeidsflytdata og erstatter ikke autoritative SNOMED CT-, ICD-, ATC- eller FEST-kilder.';}
 
+

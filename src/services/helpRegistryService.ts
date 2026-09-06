@@ -9,3 +9,4 @@ export const HELP_REGISTRY:Record<string,HelpEntry>={
 };
 export function getHelpEntry(id:string):HelpEntry{return HELP_REGISTRY[id]??{id,title:id,definition:'Ingen standardtekst er registrert.',ruleOfThumb:'Kontroller definisjonen mot primÃ¦rkilden.',reference:'PrimÃ¦rkilde mÃ¥ oppgis.',steps:[]};}
 
+

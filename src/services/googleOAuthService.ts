@@ -93,3 +93,4 @@ export function sessionCookieHeader(value: string, secure: boolean): string { re
 export function clearSessionCookie(secure: boolean): string { return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
 export function publicAuthConfig() { return { configured: googleOAuthConfigured(), clientId: CLIENT_ID || null, redirectUri: GOOGLE_REDIRECT_URI, scopes: scopes() }; }
 
+

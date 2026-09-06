@@ -368,3 +368,4 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
   );
 };
 
+

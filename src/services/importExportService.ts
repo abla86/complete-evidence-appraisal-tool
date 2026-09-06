@@ -41,3 +41,4 @@ export class ImportExportService{
 export function createCsvExport(rows:Record<string,unknown>[],columns:string[]):string{return[columns.map(csvEscape).join(','),...rows.map(row=>columns.map(c=>csvEscape(row[c])).join(','))].join('\n');}
 export async function createZipBundle(files:Record<string,string>):Promise<Blob>{const zip=new JSZip();for(const [name,content] of Object.entries(files))zip.file(name,content);return zip.generateAsync({type:'blob'});}
 
+

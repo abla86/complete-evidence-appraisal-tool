@@ -159,3 +159,4 @@ function Detail({ label, value }: { label: string; value: string }) {
   return <div className="rounded-lg bg-slate-50 p-2"><div className="text-[10px] text-slate-400">{label}</div><div className="text-xs font-medium text-slate-800 break-words mt-0.5">{value}</div></div>;
 }
 
+

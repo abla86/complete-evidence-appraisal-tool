@@ -40,3 +40,4 @@ test('excluded studies cannot pass appraisal readiness', () => {
   assert.throws(()=>assertReadyForAppraisal(next),/INCLUDED/);
 });
 
+
