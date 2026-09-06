@@ -2,7 +2,6 @@ name: Evidence Tool Release
 
 on:
   push:
-    branches: [main]
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -31,7 +30,7 @@ jobs:
           if [ -n "${{ github.event.inputs.tag }}" ]; then
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=build-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -66,7 +65,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release create "${{ steps.tag.outputs.tag }}" release/evidence-tool-production.zip --generate-notes --title "Evidence Appraisal Tool ${{ steps.tag.outputs.tag }}" --prerelease
