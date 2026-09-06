@@ -95,8 +95,12 @@ export class LocalStorageResearchWorkflowStore extends InMemoryResearchWorkflowS
   }
 }
 
+const LOCAL_RESEARCH_PERSISTENCE_ENABLED =
+  typeof import.meta !== 'undefined' &&
+  import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
+
 export const researchWorkflowStore: ResearchWorkflowStore =
-  typeof localStorage !== 'undefined'
+  LOCAL_RESEARCH_PERSISTENCE_ENABLED && typeof localStorage !== 'undefined'
     ? new LocalStorageResearchWorkflowStore()
     : new InMemoryResearchWorkflowStore();
 
