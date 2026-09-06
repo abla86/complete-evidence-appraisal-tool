@@ -240,7 +240,7 @@ export class GroupCollaborationService {
         updatedAt: new Date().toISOString()
       };
       this.workspaceCache = updated;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      if (LOCAL_RESEARCH_PERSISTENCE_ENABLED && typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {
       console.error('Failed to save group workspace to localStorage', e);
     }
