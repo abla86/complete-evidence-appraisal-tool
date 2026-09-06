@@ -1,4 +1,4 @@
-import {
+﻿import {
   ReferenceValidationArticle,
   GoldStandardDiffResult,
   GoldStandardDiffItem,
@@ -108,7 +108,7 @@ export class ReferenceValidationService {
       : matchStatus === 'PARTIAL_MATCH'
         ? `Delvis metodisk overensstemmelse (${matchPercentage}% - ${matchingItemsCount}/${totalItems} items). Ingen kritiske domeneavvik.`
         : matchStatus === 'UNABLE_TO_COMPARE'
-          ? 'Sammenligning kunne ikke utføres fordi gullstandarden mangler vurderingspunkter.'
+          ? 'Sammenligning kunne ikke utfÃ¸res fordi gullstandarden mangler vurderingspunkter.'
           : `Metodisk avvik registrert (${matchingItemsCount}/${totalItems} items samsvarer, ${criticalMismatches} kritiske avvik).`;
 
     return {
@@ -128,7 +128,7 @@ export class ReferenceValidationService {
       lowMismatchesCount: lowMismatches,
       itemDiffs,
       summaryMessage,
-      scientificValidityNotice: 'AKADEMISK INTEGRITETSERKLÆRING: En bestått algoritmetest eller diff-sjekk verifiserer programvarens deterministiske beregningsevne, men erstatter aldri uavhengig fagfellevurdert forskerbedømmelse.'
+      scientificValidityNotice: 'AKADEMISK INTEGRITETSERKLÃ†RING: En bestÃ¥tt algoritmetest eller diff-sjekk verifiserer programvarens deterministiske beregningsevne, men erstatter aldri uavhengig fagfellevurdert forskerbedÃ¸mmelse.'
     };
   }
 
@@ -194,7 +194,7 @@ export class ReferenceValidationService {
         calculatedVerdict = evalRes.overallRecommendation;
         isPass = calculatedVerdict === art.expectedOverallScoreOrVerdict;
       } else if (art.instrumentId === 'rob-2') {
-        const domainMap: any = {
+        const domainMap: unknown = {
           d1Randomisation: 'Low risk',
           d2Deviations: 'Low risk',
           d3MissingData: 'Low risk',
@@ -244,7 +244,7 @@ export class ReferenceValidationService {
     const s = (str || '').toLowerCase().trim();
     if (['ja', 'yes', 'low risk', 'high', '7', '6'].includes(s)) return 'positive';
     if (['nei', 'no', 'high risk', 'critically low', '1', '2'].includes(s)) return 'negative';
-    if (['partial yes', 'some concerns', 'moderate', 'uklart', 'unclear', 'can’t tell', "can't tell", '3', '4', '5'].includes(s)) return 'neutral';
+    if (['partial yes', 'some concerns', 'moderate', 'uklart', 'unclear', 'canâ€™t tell', "can't tell", '3', '4', '5'].includes(s)) return 'neutral';
     if (['no meta-analysis conducted', 'ikke relevant', 'not applicable'].includes(s)) return 'na';
     return s;
   }
@@ -256,3 +256,4 @@ export class ReferenceValidationService {
       (nb === 'neutral' && (na === 'positive' || na === 'negative'));
   }
 }
+

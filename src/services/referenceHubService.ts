@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Unified Reference Hub
  *
  * One internal canonical reference boundary. External managers (EndNote,
@@ -269,3 +269,4 @@ export const SUPPORTED_REFERENCE_KINDS: SharedReferenceKind[] = [
   'JOURNAL_ARTICLE', 'BOOK', 'REPORT', 'WEBPAGE', 'LAW', 'REGULATION',
   'NOU', 'PROPOSITION', 'TREATY', 'GUIDELINE', 'THESIS', 'OTHER'
 ];
+

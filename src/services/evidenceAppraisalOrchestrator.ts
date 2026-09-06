@@ -1,4 +1,4 @@
-import {
+﻿import {
   buildResearchAppraisalPayload,
   type WorkflowState,
 } from './researchWorkflowService';
@@ -122,3 +122,4 @@ export class EvidenceAppraisalOrchestrator {
 
 export const evidenceAppraisalOrchestrator =
   new EvidenceAppraisalOrchestrator();
+

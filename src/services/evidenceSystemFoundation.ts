@@ -1,4 +1,4 @@
-import { AuditTrailService, type AuditEntry } from './auditTrailService';
+﻿import { AuditTrailService, type AuditEntry } from './auditTrailService';
 import { RbacService, type UserRole } from './rbacService';
 import { createId as sharedCreateId } from '../utils/id';
 
@@ -73,7 +73,7 @@ export class EvidenceStateService {
   }
 
   set<T>(key: string, value: T, actor: string, reason: string, module: EvidenceModule): EvidenceEvent {
-    if (!actor.trim()) throw new Error('State-endring krever aktør.');
+    if (!actor.trim()) throw new Error('State-endring krever aktÃ¸r.');
     if (!reason.trim()) throw new Error('State-endring krever begrunnelse.');
 
     this.data.set(key, value);
@@ -171,3 +171,4 @@ export class EvidenceFoundation {
 }
 
 export type { AuditEntry };
+

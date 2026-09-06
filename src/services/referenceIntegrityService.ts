@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Reference Integrity Gateway
  *
  * Deterministic local formatting/validation only. A syntactically valid
@@ -94,21 +94,21 @@ function requireFields(input: ReferenceInput): string[] {
   switch (input.kind) {
     case 'JOURNAL_ARTICLE':
       required('authors', 'forfatter(e)');
-      required('year', 'år');
+      required('year', 'Ã¥r');
       required('title', 'tittel');
       required('journal', 'tidsskrift');
       if (!clean(input.doi) && !clean(input.url)) missing.push('DOI eller URL');
       break;
     case 'BOOK':
       required('authors', 'forfatter(e)');
-      required('year', 'år');
+      required('year', 'Ã¥r');
       required('title', 'tittel');
       required('publisher', 'utgiver');
       break;
     case 'LAW':
     case 'REGULATION':
       required('shortTitle', input.kind === 'LAW' ? 'lovens korttittel' : 'forskriftens korttittel');
-      required('year', 'år');
+      required('year', 'Ã¥r');
       required('officialTitle', input.kind === 'LAW' ? 'lovens fullstendige tittel' : 'forskriftens fullstendige tittel');
       required('dateCode', 'datokode');
       required('websiteName', 'nettsted');
@@ -116,12 +116,12 @@ function requireFields(input: ReferenceInput): string[] {
       break;
     case 'TREATY':
       required('shortTitle', 'korttittel eller organisasjon');
-      required('year', 'år');
+      required('year', 'Ã¥r');
       required('officialTitle', 'fullstendig tittel');
       required('url', 'URL');
       break;
     default:
-      required('year', 'år');
+      required('year', 'Ã¥r');
       required('title', 'tittel');
       if (!clean(input.authors || input.shortTitle)) missing.push('forfatter/ansvarlig institusjon');
       break;
@@ -167,13 +167,13 @@ export function validateReference(input: ReferenceInput): ReferenceValidationRes
   const doi = cleanDoi(input.doi);
   const url = cleanUrl(input.url);
 
-  if (!year || !YEAR_RE.test(year)) errors.push('År må være et firesifret publikasjonsår.');
+  if (!year || !YEAR_RE.test(year)) errors.push('Ã…r mÃ¥ vÃ¦re et firesifret publikasjonsÃ¥r.');
   if (doi && !DOI_RE.test(doi)) errors.push('DOI-formatet er ugyldig.');
   if (url && !/^https?:\/\/[^\s]+$/i.test(url)) errors.push('URL-formatet er ugyldig.');
   if (missingFields.length) errors.push(`Mangler obligatoriske opplysninger: ${missingFields.join(', ')}.`);
 
   if ((input.kind === 'LAW' || input.kind === 'REGULATION') && url && !/lovdata\.no/i.test(url)) {
-    warnings.push('Norsk lov/forskrift må kontrolleres mot korrekt autoritativ kilde.');
+    warnings.push('Norsk lov/forskrift mÃ¥ kontrolleres mot korrekt autoritativ kilde.');
   }
   if (input.kind === 'JOURNAL_ARTICLE' && !doi && !url) {
     warnings.push('Ingen DOI/URL: digital sporbarhet er ikke etablert.');
@@ -187,9 +187,9 @@ export function validateReference(input: ReferenceInput): ReferenceValidationRes
   const author = input.kind === 'LAW' || input.kind === 'REGULATION'
     ? clean(input.shortTitle)
     : firstAuthorSurname(input.authors);
-  const section = clean(input.section).replace(/^§\s*/i, '');
-  const inTextParenthetical = author && year ? `(${author}, ${year}${section ? `, § ${section}` : ''})` : '';
-  const inTextNarrative = author && year ? `${author} (${year}${section ? `, § ${section}` : ''})` : '';
+  const section = clean(input.section).replace(/^Â§\s*/i, '');
+  const inTextParenthetical = author && year ? `(${author}, ${year}${section ? `, Â§ ${section}` : ''})` : '';
+  const inTextNarrative = author && year ? `${author} (${year}${section ? `, Â§ ${section}` : ''})` : '';
 
   return {
     status,
@@ -203,3 +203,4 @@ export function validateReference(input: ReferenceInput): ReferenceValidationRes
     sourceKind: input.kind
   };
 }
+

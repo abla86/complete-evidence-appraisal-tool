@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Server and Client Side Role-Based Access Control (RBAC) Service
  * 
  * Enforces explicit role permissions:
@@ -111,14 +111,14 @@ export class RbacService {
         return {
           id: 'adjudicator',
           name: 'Tredjeperson / Mekler (Arbiter)',
-          description: 'Autorisert til å avgjøre dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmøte.'
+          description: 'Autorisert til Ã¥ avgjÃ¸re dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmÃ¸te.'
         };
       case 'reviewer':
       default:
         return {
           id: 'reviewer',
           name: 'Uavhengig gransker (Reviewer)',
-          description: 'Gjennomfører blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
+          description: 'GjennomfÃ¸rer blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
         };
     }
   }
@@ -137,3 +137,4 @@ export class RbacService {
     return session.authorizedProjectIds.includes(targetProjectId);
   }
 }
+

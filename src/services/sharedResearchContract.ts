@@ -1,4 +1,4 @@
-export type ResearchSource = {
+﻿export type ResearchSource = {
   id: string;
   fileName: string;
   sourceType: string;
@@ -32,3 +32,4 @@ export function createResearchHandoff(input: ResearchHandoff): ResearchHandoff {
     claims: [...input.claims]
   };
 }
+

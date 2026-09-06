@@ -1,4 +1,4 @@
-import type { AppraisalSession } from './universalAppraisalService';
+﻿import type { AppraisalSession } from './universalAppraisalService';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { getQualityAssessmentsForSession, type StoredQualityAssessment } from './qualityAssessmentService';
 
@@ -62,3 +62,4 @@ export function getAppraisalSessionView(session: AppraisalSession): AppraisalSes
 export function getSessionViews(sessions: AppraisalSession[]): AppraisalSessionView[] {
   return sessions.map(getAppraisalSessionView);
 }
+

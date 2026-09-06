@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Lightweight local accessibility signal inspector.
  * These checks are heuristic signals, not WCAG conformance certification.
  */
@@ -43,3 +43,4 @@ export function inspectAccessibility({
     checksAreSignals: true,
   };
 }
+

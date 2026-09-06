@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { 
   BookOpen, 
   HelpCircle, 
@@ -82,7 +82,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
       const qTitle = c.criterionTitle.replace(/\|/g, '\\|');
       const st = `${c.status} ${c.pageComment}`;
       const why = c.whyAssessedAsSuch.replace(/\|/g, '\\|');
-      const ev = `«${c.evidenceQuote}»`.replace(/\|/g, '\\|');
+      const ev = `Â«${c.evidenceQuote}Â»`.replace(/\|/g, '\\|');
       md += `| **${qTitle}** | **${st}** | ${why} | ${ev} |\n`;
     });
 
@@ -121,18 +121,18 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
       summaryScore: {
         ja: currentExample.criteria.filter(c => c.status === 'Ja' || c.status === 'Lav risiko' || c.status === 'Tilfredsstilt').length,
         uklart: currentExample.criteria.filter(c => c.status === 'Uklart' || c.status === 'Noe bekymring').length,
-        nei: currentExample.criteria.filter(c => c.status === 'Nei' || c.status === 'Høy risiko').length,
+        nei: currentExample.criteria.filter(c => c.status === 'Nei' || c.status === 'HÃ¸y risiko').length,
         ikkeRelevant: 0,
         total: currentExample.criteria.length
       },
-      overallVerdict: currentExample.overallVerdict.includes('Inkluder') || currentExample.overallVerdict.includes('Lav risiko') || currentExample.overallVerdict.includes('Høy') ? 'Inkluder' : 'Vurder videre',
+      overallVerdict: currentExample.overallVerdict.includes('Inkluder') || currentExample.overallVerdict.includes('Lav risiko') || currentExample.overallVerdict.includes('HÃ¸y') ? 'Inkluder' : 'Vurder videre',
       verdictNote: currentExample.overallVerdictNote,
       keyStrength: currentExample.keyStrengths.join('; '),
       mainLimitation: currentExample.keyLimitations.join('; '),
       apaReference: `${currentExample.article.authors} (${currentExample.article.year}). ${currentExample.article.title}. ${currentExample.article.journal}. https://doi.org/${currentExample.article.doi}`,
       items: currentExample.criteria.map((c, idx) => ({
         questionId: typeof c.id === 'number' ? c.id : (idx + 1),
-        status: (c.status === 'Ja' || c.status === 'Lav risiko' || c.status === 'Tilfredsstilt') ? 'Ja' : (c.status === 'Nei' || c.status === 'Høy risiko') ? 'Nei' : 'Uklart',
+        status: (c.status === 'Ja' || c.status === 'Lav risiko' || c.status === 'Tilfredsstilt') ? 'Ja' : (c.status === 'Nei' || c.status === 'HÃ¸y risiko') ? 'Nei' : 'Uklart',
         justification: `${c.whyAssessedAsSuch} (Sidetall i artikkel: ${c.pageLocation})`,
         evidenceText: c.evidenceQuote,
         location: {
@@ -154,7 +154,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
           previousAnswer: 'NONE',
           newAnswer: 'VERIFIED',
           previousRationale: '',
-          newRationale: 'Gullstandard-eksempel lastet inn i arbeidsområdet fra hjelpesiden.',
+          newRationale: 'Gullstandard-eksempel lastet inn i arbeidsomrÃ¥det fra hjelpesiden.',
           changedBy: 'Forsker',
           timestamp: new Date().toISOString(),
           comment: 'Lastet inn fra Eksempelbibliotek'
@@ -164,7 +164,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
 
     if (onLoadExampleToWorkspace) {
       onLoadExampleToWorkspace(newArticle);
-      showToast(`Eksempelstudien «${currentExample.article.shortCitation}» er lagt til i ditt artikkelbibliotek!`, 'success');
+      showToast(`Eksempelstudien Â«${currentExample.article.shortCitation}Â» er lagt til i ditt artikkelbibliotek!`, 'success');
     }
   };
 
@@ -251,7 +251,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Her finner du referanseartikler som dekker alle sentrale forskningsmetoder (Kvalitativ, RCT, Systematisk oversikt, Kohort, Retningslinjer og Mixed Methods). 
-              Hvert eksempel forklarer studiens empiriske funn, viser nøyaktig hva i teksten som begrunner vurderingen, og inneholder <strong>fargekodede tekstutdrag</strong> med <strong>sidetall</strong> bak hvert svar for enkel visuell verifisering.
+              Hvert eksempel forklarer studiens empiriske funn, viser nÃ¸yaktig hva i teksten som begrunner vurderingen, og inneholder <strong>fargekodede tekstutdrag</strong> med <strong>sidetall</strong> bak hvert svar for enkel visuell verifisering.
             </p>
           </div>
 
@@ -302,14 +302,14 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-teal-700" />
-                <span>Velg forskningsmetode for å inspisere gullstandard:</span>
+                <span>Velg forskningsmetode for Ã¥ inspisere gullstandard:</span>
               </span>
 
               <div className="relative w-full sm:w-64">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Søk i metodologier..."
+                  placeholder="SÃ¸k i metodologier..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-teal-700 font-medium"
@@ -364,10 +364,10 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                     type="button"
                     onClick={handleImportToWorkspace}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-teal-800 hover:bg-teal-900 rounded-xl shadow-2xs transition-colors"
-                    title="Last dette eksempelet inn i ditt arbeidsområde for testing og redigering"
+                    title="Last dette eksempelet inn i ditt arbeidsomrÃ¥de for testing og redigering"
                   >
                     <PlusCircle className="w-3.5 h-3.5 text-teal-200" />
-                    <span>Last inn i mitt arbeidsområde</span>
+                    <span>Last inn i mitt arbeidsomrÃ¥de</span>
                   </button>
                 </div>
 
@@ -379,7 +379,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                     {currentExample.article.authors} ({currentExample.article.year})
                   </p>
                   <p className="text-xs text-slate-500">
-                    {currentExample.article.journal} • {currentExample.article.volumeIssue} • DOI: {currentExample.article.doi}
+                    {currentExample.article.journal} â€¢ {currentExample.article.volumeIssue} â€¢ DOI: {currentExample.article.doi}
                   </p>
                 </div>
 
@@ -442,7 +442,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
 
                 <p className="text-xs text-slate-500">
                   Tekstpassasjene under viser de autentiske utdragene fra artikkelen. 
-                  Fargene og sidetallsetikettene <span className="font-mono font-bold">[s. X]</span> korresponderer direkte med vurderingskriteriene til høyre.
+                  Fargene og sidetallsetikettene <span className="font-mono font-bold">[s. X]</span> korresponderer direkte med vurderingskriteriene til hÃ¸yre.
                 </p>
 
                 <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin">
@@ -518,7 +518,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                           {/* Status Badge + Page Number Comment */}
                           <div className="flex flex-col items-end shrink-0">
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
-                              criterion.status === 'Ja' || criterion.status === 'Lav risiko' || criterion.status === 'Tilfredsstilt' || criterion.status === 'Høy kvalitet'
+                              criterion.status === 'Ja' || criterion.status === 'Lav risiko' || criterion.status === 'Tilfredsstilt' || criterion.status === 'HÃ¸y kvalitet'
                                 ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
                                 : criterion.status === 'Uklart' || criterion.status === 'Noe bekymring'
                                   ? 'bg-amber-100 text-amber-950 border border-amber-300'
@@ -556,7 +556,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                               </span>
                             </div>
                             <p className="italic leading-relaxed">
-                              «{criterion.evidenceQuote}»
+                              Â«{criterion.evidenceQuote}Â»
                             </p>
                           </div>
                         </div>
@@ -589,7 +589,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                 <span>1. Skille mellom Evidens og Rationale</span>
               </div>
               <p className="text-slate-700 leading-relaxed">
-                En gyldig metodisk vurdering krever at forskeren aldri blander sammen det som <em>faktisk står i artikkelen</em> (tekstsitat og sidetall) med <em>forskerens faglige dom</em> (om designet er tilstrekkelig).
+                En gyldig metodisk vurdering krever at forskeren aldri blander sammen det som <em>faktisk stÃ¥r i artikkelen</em> (tekstsitat og sidetall) med <em>forskerens faglige dom</em> (om designet er tilstrekkelig).
               </p>
             </div>
 
@@ -599,7 +599,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                 <span>2. Presis Sidetallsangivelse [s. X]</span>
               </div>
               <p className="text-slate-700 leading-relaxed">
-                For å sikre etterprøvbarhet for sensorer, veiledere og fagfeller, skal alle vurderinger dokumentere sidetallet der funnet ble gjort bak svaret, f.eks. <code>Ja [s. 3]</code>.
+                For Ã¥ sikre etterprÃ¸vbarhet for sensorer, veiledere og fagfeller, skal alle vurderinger dokumentere sidetallet der funnet ble gjort bak svaret, f.eks. <code>Ja [s. 3]</code>.
               </p>
             </div>
 
@@ -618,3 +618,4 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
     </div>
   );
 };
+

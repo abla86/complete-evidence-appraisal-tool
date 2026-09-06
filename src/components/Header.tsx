@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   BookOpen, FileText, Layers, GitCompare, CheckSquare, GraduationCap, Sparkles,
   Download, Printer, Users, History, ShieldCheck, PlusCircle, FileSearch,
@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'appraisal', label: 'Universal Appraisal', subtitle: 'JBI, RoB 2, AMSTAR 2, AGREE II, GRADE, CERQual, RE-AIM & KTA', icon: <CheckSquare className="w-4 h-4" /> },
     { id: 'reference_hub', label: 'Reference & Citation Hub', subtitle: 'RIS/BibTeX/Medline, APA 7, norsk juridisk metode & duplikatkontroll', icon: <LibraryBig className="w-4 h-4" /> },
     { id: 'meta_research', label: 'Meta-Research & PRISMA', subtitle: 'Interaktivt PRISMA 2020-flytskjema & flytstatistikk', icon: <Sparkles className="w-4 h-4" /> },
-    { id: 'peer_review', label: 'Peer Review & Consensus', subtitle: 'Dual-review blinding, Cohen’s Kappa & uavhengig sammenligning', icon: <Users className="w-4 h-4" /> },
+    { id: 'peer_review', label: 'Peer Review & Consensus', subtitle: 'Dual-review blinding, Cohenâ€™s Kappa & uavhengig sammenligning', icon: <Users className="w-4 h-4" /> },
     { id: 'synthesis', label: 'Synthesis & Export Gate', subtitle: 'Evidenssyntese, kryptografisk audit trail & integritetssperre', icon: <Layers className="w-4 h-4" /> },
   ];
 

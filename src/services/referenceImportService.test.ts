@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+﻿import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { importReferences } from './referenceImportService.ts';
 
@@ -20,3 +20,4 @@ describe('reference import boundary', () => {
     assert.match(result.errors[0], /krever metadataoppslag|manuell registrering/i);
   });
 });
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { AppraisalInstrument } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY, INSTRUMENT_CATEGORIES } from '../data/masterRegistry';
 import { 
@@ -85,7 +85,7 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Søk i alle 36+ instrumenter..."
+                      placeholder="SÃ¸k i alle 36+ instrumenter..."
                       className="w-full pl-8 pr-7 py-1.5 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-900 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-teal-700"
                     />
                     {searchQuery && (
@@ -129,7 +129,7 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
                   <div className="overflow-y-auto space-y-1 flex-1 max-h-72 pr-1">
                     {filteredInstruments.length === 0 ? (
                       <div className="p-4 text-center text-slate-500 text-xs">
-                        Ingen verktøy matcher søket.
+                        Ingen verktÃ¸y matcher sÃ¸ket.
                       </div>
                     ) : (
                       filteredInstruments.map(inst => {
@@ -177,10 +177,10 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
                       className="text-[11px] font-bold text-teal-800 hover:text-teal-950 flex items-center gap-1"
                     >
                       <GraduationCap className="w-3.5 h-3.5" />
-                      <span>Åpne fullt metodebibliotek</span>
+                      <span>Ã…pne fullt metodebibliotek</span>
                     </button>
                     <span className="text-[10px] text-slate-400">
-                      {MASTER_INSTRUMENTS_REGISTRY.length} verktøy
+                      {MASTER_INSTRUMENTS_REGISTRY.length} verktÃ¸y
                     </span>
                   </div>
                 </div>
@@ -189,7 +189,7 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
 
             <span className="text-slate-400 hidden lg:inline">|</span>
             <span className="text-slate-600 hidden lg:inline line-clamp-1 max-w-md">
-              Formål: <strong className="text-slate-800">{currentInstrument?.purpose ?? 'Ingen instrumentinformasjon tilgjengelig'}</strong>
+              FormÃ¥l: <strong className="text-slate-800">{currentInstrument?.purpose ?? 'Ingen instrumentinformasjon tilgjengelig'}</strong>
             </span>
           </div>
 
@@ -219,3 +219,4 @@ export const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
     </>
   );
 };
+

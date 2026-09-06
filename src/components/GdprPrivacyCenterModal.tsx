@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Shield, Lock, Trash2, Download, AlertTriangle, CheckCircle, FileText, X } from 'lucide-react';
 import { PrivacyAndSecurityService, PiiDetectionResult } from '../services/privacyAndSecurityService';
 import { ArticleAppraisal } from '../types';
@@ -38,7 +38,7 @@ export const GdprPrivacyCenterModal: React.FC<GdprPrivacyCenterModalProps> = ({
     a.download = `gdpr-data-portability-export-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('GDPR dataportabilitet-eksport fullført (Artikkel 20).', 'success');
+    showToast('GDPR dataportabilitet-eksport fullfÃ¸rt (Artikkel 20).', 'success');
   };
 
   const handlePurgeAll = () => {
@@ -83,7 +83,7 @@ export const GdprPrivacyCenterModal: React.FC<GdprPrivacyCenterModalProps> = ({
               Lokal Databehandling & Sikkerhetsarkitektur
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Plattformen kjører med <strong>lokal-først klientlagring</strong> og sender aldri råtekster til tredjepart uten eksplisitt brukerforespørsel. 
+              Plattformen kjÃ¸rer med <strong>lokal-fÃ¸rst klientlagring</strong> og sender aldri rÃ¥tekster til tredjepart uten eksplisitt brukerforespÃ¸rsel. 
               All vurderingshistorikk er kryptografisk lenket i en uforanderlig revisjonskjede (SHA-256).
             </p>
             <div className="mt-3 flex gap-2">
@@ -103,7 +103,7 @@ export const GdprPrivacyCenterModal: React.FC<GdprPrivacyCenterModalProps> = ({
               Dataminimering & AI-Saniterer (Sanitize for AI)
             </h3>
             <p className="text-xs text-slate-600 mb-3">
-              Test hvordan personidentifiserende opplysninger (fødselsnummer, e-post, telefon) filtreres ut før maskinell analyse.
+              Test hvordan personidentifiserende opplysninger (fÃ¸dselsnummer, e-post, telefon) filtreres ut fÃ¸r maskinell analyse.
             </p>
             <textarea
               value={testText}
@@ -115,7 +115,7 @@ export const GdprPrivacyCenterModal: React.FC<GdprPrivacyCenterModalProps> = ({
               onClick={handleTestSanitize}
               className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded shadow-sm transition"
             >
-              Kjør saniteringskontroll
+              KjÃ¸r saniteringskontroll
             </button>
 
             {sanitizationResult && (
@@ -178,7 +178,7 @@ export const GdprPrivacyCenterModal: React.FC<GdprPrivacyCenterModalProps> = ({
                       : 'bg-white border border-rose-300 text-rose-700 hover:bg-rose-100'
                   }`}
                 >
-                  {confirmPurge ? 'Bekreft permanent sletting nå' : 'Slett alle lokale data'}
+                  {confirmPurge ? 'Bekreft permanent sletting nÃ¥' : 'Slett alle lokale data'}
                 </button>
               </div>
             </div>
@@ -197,3 +197,4 @@ export const GdprPrivacyCenterModal: React.FC<GdprPrivacyCenterModalProps> = ({
     </div>
   );
 };
+

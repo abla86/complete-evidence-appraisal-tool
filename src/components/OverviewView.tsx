@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { ArticleAppraisal } from '../types';
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { JbiQualitativeValidationService } from '../services/jbiValidationService';
@@ -147,14 +147,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     : '0';
 
   const sortLabelMap: Record<SortOption, string> = {
-    'year-desc': 'Dato (Nyeste først)',
-    'year-asc': 'Dato (Eldste først)',
-    'jbi-desc': 'JBI-vurdering (mest positiv → minst positiv)',
-    'jbi-asc': 'JBI-vurdering (minst positiv → mest positiv)',
-    'author-asc': 'Forfatter (A → Å)',
-    'author-desc': 'Forfatter (Å → A)',
-    'title-asc': 'Tittel (A → Å)',
-    'title-desc': 'Tittel (Å → A)'
+    'year-desc': 'Dato (Nyeste fÃ¸rst)',
+    'year-asc': 'Dato (Eldste fÃ¸rst)',
+    'jbi-desc': 'JBI-vurdering (mest positiv â†’ minst positiv)',
+    'jbi-asc': 'JBI-vurdering (minst positiv â†’ mest positiv)',
+    'author-asc': 'Forfatter (A â†’ Ã…)',
+    'author-desc': 'Forfatter (Ã… â†’ A)',
+    'title-asc': 'Tittel (A â†’ Ã…)',
+    'title-desc': 'Tittel (Ã… â†’ A)'
   };
 
   return (
@@ -171,7 +171,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               Artikkelbibliotek & Kritisk Vurdering
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Strukturert vurderingsverktøy for kritisk lesing, metodisk validitet, søk, sortering og syntese av kvalitative forskningsartikler.
+              Strukturert vurderingsverktÃ¸y for kritisk lesing, metodisk validitet, sÃ¸k, sortering og syntese av kvalitative forskningsartikler.
             </p>
           </div>
 
@@ -206,8 +206,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <input
               type="text"
               id="article-search-input"
-              aria-label="Søk i artikler"
-              placeholder="Søk etter forfatter, tittel, metode, design, kontekst..."
+              aria-label="SÃ¸k i artikler"
+              placeholder="SÃ¸k etter forfatter, tittel, metode, design, kontekst..."
               value={articleSearchQuery}
               onChange={(e) => setArticleSearchQuery(e.target.value)}
               className="w-full pl-10 pr-9 py-2.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-teal-700 text-slate-800 transition-colors shadow-2xs font-medium placeholder:text-slate-400"
@@ -218,7 +218,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 id="btn-clear-search"
                 onClick={() => setArticleSearchQuery('')}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-100 transition-colors"
-                title="Tøm søk"
+                title="TÃ¸m sÃ¸k"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -258,18 +258,18 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 className="w-full text-xs bg-slate-50 hover:bg-white border border-slate-300 rounded-xl py-2.5 pl-9 pr-8 text-slate-800 font-bold focus:outline-hidden focus:ring-2 focus:ring-teal-700 cursor-pointer shadow-2xs appearance-none transition-colors"
               >
                 <optgroup label="Dato / Publisering">
-                  <option value="year-desc">Dato: Nyeste først (2026 → 2000)</option>
-                  <option value="year-asc">Dato: Eldste først (2000 → 2026)</option>
+                  <option value="year-desc">Dato: Nyeste fÃ¸rst (2026 â†’ 2000)</option>
+                  <option value="year-asc">Dato: Eldste fÃ¸rst (2000 â†’ 2026)</option>
                 </optgroup>
                 <optgroup label="JBI Kvalitetsscore">
-                  <option value="jbi-desc">JBI-score: Høyest score (10 → 0 Ja)</option>
-                  <option value="jbi-asc">JBI-score: Lavest score (0 → 10 Ja)</option>
+                  <option value="jbi-desc">JBI-score: HÃ¸yest score (10 â†’ 0 Ja)</option>
+                  <option value="jbi-asc">JBI-score: Lavest score (0 â†’ 10 Ja)</option>
                 </optgroup>
                 <optgroup label="Forfatter & Tittel">
-                  <option value="author-asc">Forfatternavn: A – Å</option>
-                  <option value="author-desc">Forfatternavn: Å – A</option>
-                  <option value="title-asc">Artikkeltittel: A – Å</option>
-                  <option value="title-desc">Artikkeltittel: Å – A</option>
+                  <option value="author-asc">Forfatternavn: A â€“ Ã…</option>
+                  <option value="author-desc">Forfatternavn: Ã… â€“ A</option>
+                  <option value="title-asc">Artikkeltittel: A â€“ Ã…</option>
+                  <option value="title-desc">Artikkeltittel: Ã… â€“ A</option>
                 </optgroup>
               </select>
               <ArrowDownUp className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-teal-700 pointer-events-none" />
@@ -434,12 +434,12 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               Aktiv sortering: <strong className="text-slate-900">{sortLabelMap[sortBy]}</strong>
             </span>
             {articleSearchQuery && (
-              <span className="flex items-center gap-1 text-slate-600 before:content-['•'] before:text-slate-300 before:mr-1">
-                Søkeord: <span className="px-1.5 py-0.2 bg-teal-100/80 text-teal-900 font-bold rounded">«{articleSearchQuery}»</span>
+              <span className="flex items-center gap-1 text-slate-600 before:content-['â€¢'] before:text-slate-300 before:mr-1">
+                SÃ¸keord: <span className="px-1.5 py-0.2 bg-teal-100/80 text-teal-900 font-bold rounded">Â«{articleSearchQuery}Â»</span>
               </span>
             )}
             {selectedMethodologyFilter !== 'all' && (
-              <span className="flex items-center gap-1 text-slate-600 before:content-['•'] before:text-slate-300 before:mr-1">
+              <span className="flex items-center gap-1 text-slate-600 before:content-['â€¢'] before:text-slate-300 before:mr-1">
                 Metodefilter: <span className="font-semibold text-slate-800">{selectedMethodologyFilter}</span>
               </span>
             )}
@@ -462,7 +462,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               Ditt prosjektbibliotek er tomt
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Du har ingen aktive artikler under vurdering ennå. Opprett en ny kritisk vurdering, importer artikler fra fil (RIS, BibTeX, PDF, Excel), eller søk i åpne databaser. Ferdige eksempler og metodiske referanser finnes tilgjengelig i <strong>Eksempel-biblioteket</strong>.
+              Du har ingen aktive artikler under vurdering ennÃ¥. Opprett en ny kritisk vurdering, importer artikler fra fil (RIS, BibTeX, PDF, Excel), eller sÃ¸k i Ã¥pne databaser. Ferdige eksempler og metodiske referanser finnes tilgjengelig i <strong>Eksempel-biblioteket</strong>.
             </p>
           </div>
           
@@ -498,10 +498,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <Search className="w-6 h-6" />
           </div>
           <p className="text-base font-semibold text-slate-800">
-            Ingen artikler matchet søket {articleSearchQuery ? `«${articleSearchQuery}»` : 'og de valgte filtrene'}.
+            Ingen artikler matchet sÃ¸ket {articleSearchQuery ? `Â«${articleSearchQuery}Â»` : 'og de valgte filtrene'}.
           </p>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Prøv å endre søkeordet, velg «Alle metodologier», eller nullstill sorteringen for å se hele biblioteket.
+            PrÃ¸v Ã¥ endre sÃ¸keordet, velg Â«Alle metodologierÂ», eller nullstill sorteringen for Ã¥ se hele biblioteket.
           </p>
           <button
             type="button"
@@ -601,7 +601,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
                   <th className="py-3.5 px-4">Studie / Sitering</th>
-                  <th className="py-3.5 px-4">År</th>
+                  <th className="py-3.5 px-4">Ã…r</th>
                   <th className="py-3.5 px-4">Design & Metode</th>
                   <th className="py-3.5 px-4">Utvalg / Kontekst</th>
                   <th className="py-3.5 px-4 text-center">JBI-vurdering</th>
@@ -664,7 +664,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                         }}
                         className="text-xs font-semibold text-teal-800 hover:text-teal-950 inline-flex items-center gap-1 group-hover:underline"
                       >
-                        <span>Åpne</span>
+                        <span>Ã…pne</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </td>
@@ -684,12 +684,12 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mt-3">
           <div className="bg-white p-3 rounded-xl border border-slate-200">
-            <span className="font-bold text-slate-900 block mb-1">1–5: Samsvar</span>
+            <span className="font-bold text-slate-900 block mb-1">1â€“5: Samsvar</span>
             <p className="text-[11px] text-slate-500">Filosofisk perspektiv, metodologi, problemstilling, datainnsamling og analyse.</p>
           </div>
           <div className="bg-white p-3 rounded-xl border border-slate-200">
-            <span className="font-bold text-slate-900 block mb-1">6–7: Forskerrolle</span>
-            <p className="text-[11px] text-slate-500">Kulturell/teoretisk posisjonering og forskerens refleksivitet/påvirkning.</p>
+            <span className="font-bold text-slate-900 block mb-1">6â€“7: Forskerrolle</span>
+            <p className="text-[11px] text-slate-500">Kulturell/teoretisk posisjonering og forskerens refleksivitet/pÃ¥virkning.</p>
           </div>
           <div className="bg-white p-3 rounded-xl border border-slate-200">
             <span className="font-bold text-slate-900 block mb-1">8: Representasjon</span>
@@ -708,4 +708,5 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     </div>
   );
 };
+
 

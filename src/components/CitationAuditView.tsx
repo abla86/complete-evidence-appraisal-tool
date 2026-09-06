@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import type { ReferenceRecord } from '../services/referenceHubService';
 import type { CitationStyle } from '../services/academicCitationService';
 import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
@@ -27,7 +27,7 @@ export const CitationAuditView: React.FC<{
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 text-xs">
-          <div className="rounded-xl bg-slate-50 p-3">Påstander <strong>{claims.length}</strong></div>
+          <div className="rounded-xl bg-slate-50 p-3">PÃ¥stander <strong>{claims.length}</strong></div>
           <div className="rounded-xl bg-slate-50 p-3">Godkjent <strong>{report.results.filter(r => r.ok).length}</strong></div>
           <div className="rounded-xl bg-slate-50 p-3">Feil <strong>{report.blockingIssues}</strong></div>
           <div className="rounded-xl bg-slate-50 p-3">Ubrukte referanser <strong>{unusedReferences.length}</strong></div>
@@ -39,7 +39,7 @@ export const CitationAuditView: React.FC<{
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="text-left p-3">Påstand</th>
+                <th className="text-left p-3">PÃ¥stand</th>
                 <th className="text-left p-3">Evidens</th>
                 <th className="text-left p-3">Kilder</th>
                 <th className="text-left p-3">Sitat</th>
@@ -52,11 +52,11 @@ export const CitationAuditView: React.FC<{
                   <td className="p-3 max-w-md">{result.claimText}</td>
                   <td className="p-3">{result.linkedEvidence.length}</td>
                   <td className="p-3">{result.linkedReferences.length}</td>
-                  <td className="p-3 min-w-[260px]">{result.citation || '—'}</td>
-                  <td className="p-3"><span className={`text-[10px] font-bold px-2 py-1 rounded-full ${result.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>{result.ok ? 'OK' : 'FEIL'}</span>{result.reasons.length > 0 && <div className="mt-2 space-y-1 text-xs text-rose-800">{result.reasons.map((reason, i) => <div key={i}>• {reason}</div>)}</div>}</td>
+                  <td className="p-3 min-w-[260px]">{result.citation || 'â€”'}</td>
+                  <td className="p-3"><span className={`text-[10px] font-bold px-2 py-1 rounded-full ${result.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>{result.ok ? 'OK' : 'FEIL'}</span>{result.reasons.length > 0 && <div className="mt-2 space-y-1 text-xs text-rose-800">{result.reasons.map((reason, i) => <div key={i}>â€¢ {reason}</div>)}</div>}</td>
                 </tr>
               ))}
-              {report.results.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500">Ingen påstander å kontrollere.</td></tr>}
+              {report.results.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500">Ingen pÃ¥stander Ã¥ kontrollere.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -71,3 +71,4 @@ export const CitationAuditView: React.FC<{
     </section>
   );
 };
+

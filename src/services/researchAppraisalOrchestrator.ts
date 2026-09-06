@@ -1,4 +1,4 @@
-import { evidenceEventBus, type EvidenceEventMap } from './evidenceEventBus';
+﻿import { evidenceEventBus, type EvidenceEventMap } from './evidenceEventBus';
 
 export interface ModuleHandlerMap {
   onResearchDocumentAttached?: (event: EvidenceEventMap['research.document.attached']) => void | Promise<void>;
@@ -51,3 +51,4 @@ export class ResearchAppraisalOrchestrator {
 }
 
 export const researchAppraisalOrchestrator = new ResearchAppraisalOrchestrator();
+

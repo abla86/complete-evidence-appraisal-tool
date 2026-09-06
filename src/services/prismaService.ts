@@ -1,4 +1,4 @@
-export interface PrismaCounts {
+﻿export interface PrismaCounts {
   identified: number;
   screened: number;
   eligible: number;
@@ -18,3 +18,4 @@ export function calculatePrismaCounts(data?: unknown): PrismaCounts {
     included: typeof value.included === 'number' ? value.included : 0,
   };
 }
+

@@ -1,4 +1,4 @@
-import { loadAppraisalSessions, loadQualityAssessments } from './appraisalSessionStore';
+﻿import { loadAppraisalSessions, loadQualityAssessments } from './appraisalSessionStore';
 import { loadReferenceLibrary } from './referenceLibraryStore';
 import { calculatePRISMA, type PRISMAStages } from './prismaCalculator';
 import { AuditTrailService, type AuditEntry } from './auditTrailService';
@@ -72,3 +72,4 @@ export function assertProjectExportIntegrity(pkg: ProjectExportPackage): void {
   }
 }
 export function serializeProjectExport(packageData:ProjectExportPackage,format:'json'|'csv'='json'):string{assertProjectExportIntegrity(packageData);if(format==='json')return JSON.stringify(packageData,null,2);const rows=[['type','id','label','status'],...packageData.appraisal.map(i=>['appraisal',i.id,i.instrumentId,i.locked?'locked':'open']),...packageData.quality.map(i=>['quality',i.id,i.kind,i.locked?'locked':'open']),...packageData.references.map(i=>['reference',i.id,i.title,i.verification]),...packageData.claims.map(i=>['claim',i.id,i.text,i.status]),...packageData.evidence.map(i=>['evidence',i.id,i.excerpt,i.researcherVerified?'verified':'unverified'])];return'\uFEFF'+rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');}
+

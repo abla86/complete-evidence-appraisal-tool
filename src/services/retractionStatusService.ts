@@ -1,4 +1,4 @@
-export interface RetractionStatus {
+﻿export interface RetractionStatus {
   checkedAt: string;
   status: 'NOT_CHECKED' | 'NO_KNOWN_RETRACTION' | 'RETRACTION_SIGNAL' | 'CORRECTION_SIGNAL' | 'CHECK_FAILED';
   source: 'CROSSREF' | 'PUBMED' | 'MANUAL';
@@ -27,3 +27,4 @@ export async function checkRetractionByDoi(doi: string): Promise<RetractionStatu
     return { checkedAt, status: 'CHECK_FAILED', source: 'CROSSREF', details: error instanceof Error ? error.message : 'Ukjent feil.' };
   }
 }
+

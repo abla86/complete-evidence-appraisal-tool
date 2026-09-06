@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import crypto from 'node:crypto';
 import { OAuth2Client } from 'google-auth-library';
 
@@ -92,3 +92,4 @@ export function readSessionCookie(cookieHeader?: string): GoogleUser | null {
 export function sessionCookieHeader(value: string, secure: boolean): string { return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure ? '; Secure' : ''}`; }
 export function clearSessionCookie(secure: boolean): string { return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
 export function publicAuthConfig() { return { configured: googleOAuthConfigured(), clientId: CLIENT_ID || null, redirectUri: GOOGLE_REDIRECT_URI, scopes: scopes() }; }
+

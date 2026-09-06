@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import ResearchEngineGateway from './researchEngineGateway';
 
 export function registerResearchEngineIntegration(app: { get: Function; post: Function }): void {
@@ -39,3 +39,4 @@ export function registerResearchEngineIntegration(app: { get: Function; post: Fu
     });
   });
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GDPR & Privacy Center Service
  * 
  * Provides:
@@ -99,3 +99,4 @@ export class PrivacyAndSecurityService {
     }
   }
 }
+

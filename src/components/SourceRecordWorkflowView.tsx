@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { useStudioState } from '../state/StudioStateContext';
 import type { SourceRecord } from '../domain/sourceRecord';
 import { validateSourceRecord } from '../services/validateSourceRecord';
@@ -93,7 +93,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
 
   const review = async () => {
     if (!record) return;
-    const result = await transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Testgruppe-screening fullført');
+    const result = await transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Testgruppe-screening fullfÃ¸rt');
     setRecord(result.transitioned ? result.record : record);
     setMessage(result.transitioned ? 'Screeningstatus: reviewed.' : `Screening avvist: ${result.reason}`);
   };
@@ -137,7 +137,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
       </header>
       <div className="grid xl:grid-cols-2 gap-5">
         <article className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <div><h3 className="font-bold">PICO-tagging</h3><p className="text-xs text-slate-500">Tagg problemstillingen eksplisitt før metodisk vurdering.</p></div>
+          <div><h3 className="font-bold">PICO-tagging</h3><p className="text-xs text-slate-500">Tagg problemstillingen eksplisitt fÃ¸r metodisk vurdering.</p></div>
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="space-y-1"><span className="text-xs font-semibold capitalize">population</span><input value={pico.population} onChange={e=>setPico(v=>({...v,population:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">intervention</span><input value={pico.intervention} onChange={e=>setPico(v=>({...v,intervention:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">comparison</span><input value={pico.comparison} onChange={e=>setPico(v=>({...v,comparison:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label><label className="space-y-1"><span className="text-xs font-semibold capitalize">outcome</span><input value={pico.outcome} onChange={e=>setPico(v=>({...v,outcome:e.target.value}))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Legg til tag..." /></label>
           </div>
@@ -151,11 +151,11 @@ export const SourceRecordWorkflowView: React.FC = () => {
             <button type="button" onClick={()=>applyDecision('Vurder videre')} className="px-4 py-2 rounded-xl bg-amber-300 text-slate-950 font-bold text-sm">Uavklart (U)</button>
           </div>
           <div className="text-xs text-slate-300">Bruk I/E/U i screeningarbeidet. Valget lagres i felles prosjekt-state.</div>
-          {!selected && <div role="status" className="rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">Velg eller importer en studie før screening kan registreres.</div>}
+          {!selected && <div role="status" className="rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">Velg eller importer en studie fÃ¸r screening kan registreres.</div>}
         </article>
       </div>
       <header>
-        <h2 className="text-2xl font-bold text-slate-900">SourceRecord → Screening → PICO</h2>
+        <h2 className="text-2xl font-bold text-slate-900">SourceRecord â†’ Screening â†’ PICO</h2>
         <p className="mt-1 text-sm text-slate-600">Eksplisitt testflyt. Hver handling er separat og spores i canonical audit trail.</p>
       </header>
       <div className="grid xl:grid-cols-3 gap-5">
@@ -170,13 +170,13 @@ export const SourceRecordWorkflowView: React.FC = () => {
         <article className="bg-slate-900 text-white rounded-2xl p-5 space-y-4">
           <h3 className="font-bold">Workflow</h3>
           <div className="text-xs space-y-2">
-            <div>Reference: <strong>{record?.referenceDraft.status ?? '—'}</strong></div>
-            <div>Screening: <strong>{record?.intake.screeningState ?? '—'}</strong></div>
-            <div>Record ID: <strong>{record?.recordId ?? '—'}</strong></div>
+            <div>Reference: <strong>{record?.referenceDraft.status ?? 'â€”'}</strong></div>
+            <div>Screening: <strong>{record?.intake.screeningState ?? 'â€”'}</strong></div>
+            <div>Record ID: <strong>{record?.recordId ?? 'â€”'}</strong></div>
           </div>
           <input value={batchId} onChange={e => setBatchId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="Screening-batch" />
-          <button onClick={() => void link()} disabled={!record} title={!record ? 'Importer en SourceRecord først.' : 'Koble valgt SourceRecord til screening-batch.'} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
-          {!record && <p className="text-[11px] text-slate-300">Importer en SourceRecord først for å aktivere workflow-handlingene.</p>}
+          <button onClick={() => void link()} disabled={!record} title={!record ? 'Importer en SourceRecord fÃ¸rst.' : 'Koble valgt SourceRecord til screening-batch.'} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
+          {!record && <p className="text-[11px] text-slate-300">Importer en SourceRecord fÃ¸rst for Ã¥ aktivere workflow-handlingene.</p>}
           <button onClick={() => void review()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">2. Marker reviewed</button>
           <input value={picoId} onChange={e => setPicoId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="PICO/PECO-id" />
           <button onClick={() => void attach()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
@@ -184,10 +184,11 @@ export const SourceRecordWorkflowView: React.FC = () => {
       </div>
       {message && <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">{message}</div>}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950">
-        <strong>Verifikasjonsregel:</strong> metadata-kompletthet eller lokal syntakskontroll oppgraderer ikke en kilde til <code>VALIDATED</code>. Egen, eksplisitt verifisering må fortsatt skje.
+        <strong>Verifikasjonsregel:</strong> metadata-kompletthet eller lokal syntakskontroll oppgraderer ikke en kilde til <code>VALIDATED</code>. Egen, eksplisitt verifisering mÃ¥ fortsatt skje.
       </div>
     </section>
   );
 };
 
 function Metric({ label, value }: { label: string; value: number }) { return <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] uppercase tracking-wide text-slate-400">{label}</div><div className="text-xl font-bold">{value}</div></div>; }
+

@@ -1,4 +1,4 @@
-import type { CandidateEvidence, DocumentAnalysisResult } from '../types';
+﻿import type { CandidateEvidence, DocumentAnalysisResult } from '../types';
 import { DocumentAnalysisService } from './documentAnalysisService';
 import { DocumentParserService, type FileParseResult } from './documentParserService';
 
@@ -72,7 +72,7 @@ export class ResearchEngineGateway {
   }
 
   public static analyzeText(text: string, fileName = 'document.txt'): DocumentAnalysisResult {
-    if (!text?.trim()) throw new Error('Dokumenttekst kan ikke være tom.');
+    if (!text?.trim()) throw new Error('Dokumenttekst kan ikke vÃ¦re tom.');
     return DocumentAnalysisService.analyzeText(text, fileName);
   }
 
@@ -131,3 +131,4 @@ export class ResearchEngineGateway {
 }
 
 export default ResearchEngineGateway;
+

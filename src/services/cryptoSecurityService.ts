@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SHA-256 Cryptographic Hash & Tamper-Evident Audit Chain Service
  * 
  * Provides verifiable, deterministic SHA-256 hashing for:
@@ -143,7 +143,7 @@ export class CryptoSecurityService {
         isValid: true,
         totalEntries: 0,
         verifiedEntriesCount: 0,
-        message: 'Ingen revisjonsoppføringer registrert ennå.'
+        message: 'Ingen revisjonsoppfÃ¸ringer registrert ennÃ¥.'
       };
     }
 
@@ -168,7 +168,7 @@ export class CryptoSecurityService {
           brokenEntryId: entry.id,
           calculatedHash: prevHash,
           expectedHash: entry.previousHash,
-          message: `Brudd i revisjonskjeden ved oppføring #${i + 1} (${entry.id}). Forrige blokkhash stemmer ikke.`
+          message: `Brudd i revisjonskjeden ved oppfÃ¸ring #${i + 1} (${entry.id}). Forrige blokkhash stemmer ikke.`
         };
       }
 
@@ -183,7 +183,7 @@ export class CryptoSecurityService {
           brokenEntryId: entry.id,
           calculatedHash: calculated,
           expectedHash: entry.entryHash,
-          message: `Ugyldig blokkintegritet for oppføring #${i + 1} (${entry.id}). Innholdet er modifisert etter signering.`
+          message: `Ugyldig blokkintegritet for oppfÃ¸ring #${i + 1} (${entry.id}). Innholdet er modifisert etter signering.`
         };
       }
 
@@ -200,3 +200,4 @@ export class CryptoSecurityService {
     };
   }
 }
+

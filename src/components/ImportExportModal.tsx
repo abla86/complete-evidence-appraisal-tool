@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { ArticleAppraisal } from '../types';
 import { 
   ImportExportService, 
@@ -87,7 +87,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
 
       const result = await ImportExportService.parseImport(content, file.name, articles);
       setImportResult(result);
-      showToast(`Analyserte ${file.name}: Fant ${result.totalParsed} oppføringer.`);
+      showToast(`Analyserte ${file.name}: Fant ${result.totalParsed} oppfÃ¸ringer.`);
     } catch (err: unknown) {
       showToast(`Feil under filimport: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     } finally {
@@ -98,7 +98,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
   // Handle Text Paste Analysis
   const handleAnalyzePastedText = async () => {
     if (!pastedContent.trim()) {
-      showToast('Vennligst lim inn innhold før import.', 'warning');
+      showToast('Vennligst lim inn innhold fÃ¸r import.', 'warning');
       return;
     }
 
@@ -106,7 +106,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
     try {
       const result = await ImportExportService.parseImport(pastedContent, 'utklippstavle-tekst.txt', articles);
       setImportResult(result);
-      showToast(`Fant ${result.totalParsed} oppføringer i teksten (${result.formatName}).`);
+      showToast(`Fant ${result.totalParsed} oppfÃ¸ringer i teksten (${result.formatName}).`);
     } catch (err: unknown) {
       showToast(`Feil under parsing: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     } finally {
@@ -117,7 +117,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
   // Confirm Import
   const handleConfirmImport = () => {
     if (!importResult || importResult.newArticles.length === 0) {
-      showToast('Ingen artikler å importere.', 'warning');
+      showToast('Ingen artikler Ã¥ importere.', 'warning');
       return;
     }
 
@@ -183,7 +183,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
   const handleCopyToClipboard = () => {
     try {
       if (selectedExportFormat === 'zip') {
-        showToast('ZIP-arkiv kan kun lastes ned som binærfil.', 'info');
+        showToast('ZIP-arkiv kan kun lastes ned som binÃ¦rfil.', 'info');
         return;
       }
       const data = getExportData();
@@ -200,12 +200,12 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
 
   const formatList: { id: SupportedExportFormat; label: string; ext: string; desc: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'zip', label: 'ZIP Fullpakke Arkiv', ext: '.zip', desc: 'Pakket arkiv med JSON, Word, CSV, BibTeX, RIS, Markdown og Audit Trail', icon: Layers },
-    { id: 'excel', label: 'Excel (CSV med UTF-8)', ext: '.csv', desc: 'Åpnes direkte i Microsoft Excel og SPSS med alle JBI-skårer', icon: Table },
+    { id: 'excel', label: 'Excel (CSV med UTF-8)', ext: '.csv', desc: 'Ã…pnes direkte i Microsoft Excel og SPSS med alle JBI-skÃ¥rer', icon: Table },
     { id: 'word', label: 'Word Rapport', ext: '.doc', desc: 'Komplett akademisk rapport med formaterte tabeller for Word', icon: FileText },
     { id: 'pdf', label: 'PDF Utskrift', ext: '.pdf', desc: 'Klargjort utskriftsrapport & WHO-sertifikat for lagring som PDF', icon: FileCheck },
     { id: 'ris', label: 'RIS Referansefil', ext: '.ris', desc: 'EndNote, Zotero, Covidence og Rayyan med JBI appraisal-notater', icon: Database },
-    { id: 'bibtex', label: 'BibTeX Bibliografi', ext: '.bib', desc: 'LaTeX / Overleaf bibtex-oppføringer med kvalitetsvurderinger', icon: Code },
-    { id: 'json', label: 'JSON Sikkerhetskopi', ext: '.json', desc: 'Fullstendig rådata og prosjektstruktur med revisjonsspor', icon: Layers },
+    { id: 'bibtex', label: 'BibTeX Bibliografi', ext: '.bib', desc: 'LaTeX / Overleaf bibtex-oppfÃ¸ringer med kvalitetsvurderinger', icon: Code },
+    { id: 'json', label: 'JSON Sikkerhetskopi', ext: '.json', desc: 'Fullstendig rÃ¥data og prosjektstruktur med revisjonsspor', icon: Layers },
     { id: 'markdown', label: 'Markdown', ext: '.md', desc: 'GitHub, Obsidian og Notion med formaterte tabeller', icon: Sparkles },
     { id: 'latex', label: 'LaTeX Tabeller', ext: '.tex', desc: 'Ferdig tabellkode (tabular/table) for vitenskapelige artikler', icon: Code },
     { id: 'tsv', label: 'TSV (Tab-separert)', ext: '.tsv', desc: 'For R, Python (Pandas) og statistisk bearbeiding', icon: Table }
@@ -225,11 +225,11 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
               <h2 className="text-base sm:text-lg font-bold text-slate-900 font-serif flex items-center gap-2">
                 <span>Data, Import & Eksport</span>
                 <span className="text-xs font-sans px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-semibold">
-                  Alle Formater Støttes
+                  Alle Formater StÃ¸ttes
                 </span>
               </h2>
               <p className="text-xs text-slate-500">
-                Sømløs integrasjon med EndNote, Zotero, Excel, Word, PDF, BibTeX, JSON og Rayyan
+                SÃ¸mlÃ¸s integrasjon med EndNote, Zotero, Excel, Word, PDF, BibTeX, JSON og Rayyan
               </p>
             </div>
           </div>
@@ -344,7 +344,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                       onChange={(e) => setIncludeJustifications(e.target.checked)}
                       className="rounded text-teal-700 focus:ring-teal-600"
                     />
-                    <span>Inkluder begrunnelser for hvert spørsmål (Q1–Q10)</span>
+                    <span>Inkluder begrunnelser for hvert spÃ¸rsmÃ¥l (Q1â€“Q10)</span>
                   </label>
 
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -400,7 +400,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                         </div>
                         {isSelected && (
                           <div className="mt-2 pt-2 border-t border-teal-200/60 flex items-center justify-end text-[10px] font-bold text-teal-800">
-                            <span>Valgt format ✓</span>
+                            <span>Valgt format âœ“</span>
                           </div>
                         )}
                       </div>
@@ -424,7 +424,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                       className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
                     >
                       <FileCheck className="w-4 h-4" />
-                      <span>Åpne Utskrift / Lagre som PDF</span>
+                      <span>Ã…pne Utskrift / Lagre som PDF</span>
                     </button>
                   ) : (
                     <>
@@ -483,7 +483,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                   }`}
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Lim Inn Referansetekst / Rådata</span>
+                  <span>Lim Inn Referansetekst / RÃ¥data</span>
                 </button>
               </div>
 
@@ -527,7 +527,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                         Dra og slipp forskningsfiler her, eller <span className="text-teal-700 underline">bla gjennom mapper</span>
                       </p>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Støtter <strong>RIS</strong> (.ris), <strong>BibTeX</strong> (.bib), <strong>Excel/CSV</strong> (.csv, .tsv), <strong>JSON</strong> (.json), <strong>PubMed</strong> (.nbib) samt <strong>PDF & Word</strong> (.pdf, .docx).
+                        StÃ¸tter <strong>RIS</strong> (.ris), <strong>BibTeX</strong> (.bib), <strong>Excel/CSV</strong> (.csv, .tsv), <strong>JSON</strong> (.json), <strong>PubMed</strong> (.nbib) samt <strong>PDF & Word</strong> (.pdf, .docx).
                       </p>
                     </div>
                   </div>
@@ -541,7 +541,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                     rows={8}
                     value={pastedContent}
                     onChange={(e) => setPastedContent(e.target.value)}
-                    placeholder={`Lim inn RIS-oppføringer, BibTeX (@article{...}), JSON-struktur, CSV-tabell eller PubMed MEDLINE-tekst her...\n\nEksempel RIS:\nTY  - JOUR\nTI  - Tverrsektorielt samarbeid i primærhelsetjenesten\nAU  - Nordmann, O.\nPY  - 2024\nJO  - Tidsskrift for primærmedisin\nDO  - 10.1186/s12875-024-00000-0\nER  -`}
+                    placeholder={`Lim inn RIS-oppfÃ¸ringer, BibTeX (@article{...}), JSON-struktur, CSV-tabell eller PubMed MEDLINE-tekst her...\n\nEksempel RIS:\nTY  - JOUR\nTI  - Tverrsektorielt samarbeid i primÃ¦rhelsetjenesten\nAU  - Nordmann, O.\nPY  - 2024\nJO  - Tidsskrift for primÃ¦rmedisin\nDO  - 10.1186/s12875-024-00000-0\nER  -`}
                     className="w-full text-xs font-mono p-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-600 leading-relaxed"
                   />
 
@@ -555,7 +555,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                       disabled={isProcessingImport || !pastedContent.trim()}
                       className="inline-flex items-center gap-2 px-5 py-2 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl shadow-xs transition-colors disabled:opacity-50"
                     >
-                      {isProcessingImport ? 'Analyserer...' : 'Analyser og Klargjør Import'}
+                      {isProcessingImport ? 'Analyserer...' : 'Analyser og KlargjÃ¸r Import'}
                     </button>
                   </div>
                 </div>
@@ -574,7 +574,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {importResult.duplicatesCount > 0 
-                          ? `${importResult.duplicatesCount} av artiklene ser ut til å eksistere fra før i biblioteket.`
+                          ? `${importResult.duplicatesCount} av artiklene ser ut til Ã¥ eksistere fra fÃ¸r i biblioteket.`
                           : 'Ingen duplikater funnet mot eksisterende bibliotek.'}
                       </p>
                     </div>
@@ -600,7 +600,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                             #{idx + 1}. {art.title}
                           </span>
                           <p className="text-slate-500 text-[11px]">
-                            {art.authors} • {art.journal} ({art.year}) • DOI: {art.doi || 'Ingen'}
+                            {art.authors} â€¢ {art.journal} ({art.year}) â€¢ DOI: {art.doi || 'Ingen'}
                           </p>
                         </div>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
@@ -625,7 +625,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                       className="inline-flex items-center gap-2 px-5 py-2 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
                     >
                       <Check className="w-4 h-4 text-teal-200" />
-                      <span>Fullfør Import ({importResult.totalParsed} artikler)</span>
+                      <span>FullfÃ¸r Import ({importResult.totalParsed} artikler)</span>
                     </button>
                   </div>
                 </div>
@@ -637,7 +637,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
         {/* Modal Footer */}
         <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
           <span>
-            Evidence Appraisal Tool • Full interoperabilitet med alle ledende referanse- og vitenskapsverktøy
+            Evidence Appraisal Tool â€¢ Full interoperabilitet med alle ledende referanse- og vitenskapsverktÃ¸y
           </span>
           <button
             type="button"
@@ -651,3 +651,4 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
     </div>
   );
 };
+

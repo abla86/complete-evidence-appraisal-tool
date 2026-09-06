@@ -1,4 +1,4 @@
-import { buildCitation, type CitationStyle } from './academicCitationService';
+﻿import { buildCitation, type CitationStyle } from './academicCitationService';
 import type { ReferenceRecord } from './referenceHubService';
 import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
 import { resolveReferenceForSource } from './evidenceIdentityService';
@@ -44,13 +44,13 @@ export function runCitationAudit(
       .filter((reference, index, all) => all.findIndex(r => r.id === reference.id) === index);
     const reasons: string[] = [];
 
-    if (!linkedEvidence.length) reasons.push('Ingen evidens er lenket til påstanden.');
-    if (linkedReferences.length === 0 && linkedEvidence.length) reasons.push('Minst én evidenskilde mangler referansepost i Reference Hub.');
+    if (!linkedEvidence.length) reasons.push('Ingen evidens er lenket til pÃ¥standen.');
+    if (linkedReferences.length === 0 && linkedEvidence.length) reasons.push('Minst Ã©n evidenskilde mangler referansepost i Reference Hub.');
     if (linkedReferences.some(reference => reference.verification !== 'VALIDATED')) reasons.push('ikke bibliografisk verifisert');
-    if (linkedReferences.some(reference => reference.verification === 'RETRACTED' || reference.retraction?.detected)) reasons.push('Minst én lenket referanse er trukket tilbake eller har uttrykt bekymring.');
-    if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.researcherVerified)) reasons.push('Minst én evidensuttrekking er ikke kontrollert av forsker.');
-    if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.location?.page && !item.location?.section && !item.location?.table && !item.location?.figure)) reasons.push('Minst én evidensenhet mangler lokasjon.');
-    if (claim.status !== 'SUPPORTED') reasons.push(`Påstanden har status ${claim.status}.`);
+    if (linkedReferences.some(reference => reference.verification === 'RETRACTED' || reference.retraction?.detected)) reasons.push('Minst Ã©n lenket referanse er trukket tilbake eller har uttrykt bekymring.');
+    if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.researcherVerified)) reasons.push('Minst Ã©n evidensuttrekking er ikke kontrollert av forsker.');
+    if (linkedEvidence.some(item => item.evidenceType !== 'RESEARCHER_DATA' && !item.location?.page && !item.location?.section && !item.location?.table && !item.location?.figure)) reasons.push('Minst Ã©n evidensenhet mangler lokasjon.');
+    if (claim.status !== 'SUPPORTED') reasons.push(`PÃ¥standen har status ${claim.status}.`);
 
     const primary = linkedReferences[0];
     const citation = primary ? buildCitation({ id: primary.id, ...primary }, style) : null;
@@ -76,3 +76,4 @@ export function runCitationAudit(
     canExport: blockingIssues === 0,
   };
 }
+

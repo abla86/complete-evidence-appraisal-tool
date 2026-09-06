@@ -1,4 +1,4 @@
-import type { AppraisalSession } from './universalAppraisalService';
+﻿import type { AppraisalSession } from './universalAppraisalService';
 import type { WorkflowState } from './researchWorkflowService';
 
 export interface ResearchWorkflowStore {
@@ -99,3 +99,4 @@ export const researchWorkflowStore: ResearchWorkflowStore =
   typeof localStorage !== 'undefined'
     ? new LocalStorageResearchWorkflowStore()
     : new InMemoryResearchWorkflowStore();
+

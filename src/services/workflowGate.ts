@@ -1,4 +1,4 @@
-export type WorkflowGateState =
+﻿export type WorkflowGateState =
   | { ok: true }
   | { ok: false; reason: string };
 
@@ -17,3 +17,4 @@ export function requireNoFalseClaim(flag: 'detected' | 'verified' | 'signal' | '
   if (flag === 'verified' || flag === 'certified') return { ok: false, reason: 'unsupported-certification-claim' };
   return { ok: true };
 }
+

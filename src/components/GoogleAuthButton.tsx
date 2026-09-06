@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { LogIn, LogOut, UserCircle } from 'lucide-react';
 
 interface Session {
@@ -48,3 +48,4 @@ export const GoogleAuthButton: React.FC = () => {
     </a>
   );
 };
+

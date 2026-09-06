@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   ArticleAppraisal, 
   AppraisalInstrument, 
   AssessmentStatus, 
@@ -98,31 +98,31 @@ export class MethodIntegrityGate {
       passed: hasRegisteredInst,
       severity: 'CRITICAL',
       message: hasRegisteredInst 
-        ? `Instrument «${instrument.shortName}» (${instrument.id}) er offisielt registrert i Master Methodology Registry.`
-        : `Ukjent instrument-ID «${instrumentId}» finnes ikke i autoritetsregisteret.`,
+        ? `Instrument Â«${instrument.shortName}Â» (${instrument.id}) er offisielt registrert i Master Methodology Registry.`
+        : `Ukjent instrument-ID Â«${instrumentId}Â» finnes ikke i autoritetsregisteret.`,
       expected: 'Registrert instrument-ID',
       actual: instrumentId,
-      ruleCitation: 'Master Methodology Registry (Nivå 1 & 2 Kildekrav)'
+      ruleCitation: 'Master Methodology Registry (NivÃ¥ 1 & 2 Kildekrav)'
     });
     if (!hasRegisteredInst) {
-      criticalErrors.push(`Instrumentet «${instrumentId}» er ikke godkjent i registeret.`);
+      criticalErrors.push(`Instrumentet Â«${instrumentId}Â» er ikke godkjent i registeret.`);
     }
 
     const hasAuthorityLevel = ['original-source', 'peer-reviewed-publication', 'official-manual', 'gold-standard'].includes(instrument.authorityLevel);
     sourceChecks.push({
-      name: 'Authority Level (Nivå 1/2 Kilde)',
+      name: 'Authority Level (NivÃ¥ 1/2 Kilde)',
       category: 'SOURCE',
       passed: hasAuthorityLevel,
       severity: 'CRITICAL',
       message: hasAuthorityLevel
-        ? `Instrumentet har autoritetsnivå: ${instrument.authorityLevel} (${instrument.publisher}).`
-        : `Ugyldig autoritetsnivå: ${instrument.authorityLevel}. Krever primærkilde eller offisiell manual.`,
+        ? `Instrumentet har autoritetsnivÃ¥: ${instrument.authorityLevel} (${instrument.publisher}).`
+        : `Ugyldig autoritetsnivÃ¥: ${instrument.authorityLevel}. Krever primÃ¦rkilde eller offisiell manual.`,
       expected: 'original-source | peer-reviewed-publication | official-manual',
       actual: instrument.authorityLevel,
       ruleCitation: 'WHO & JBI Metodisk kildestandard'
     });
     if (!hasAuthorityLevel) {
-      criticalErrors.push('Instrumentet mangler godkjent autoritetsnivå.');
+      criticalErrors.push('Instrumentet mangler godkjent autoritetsnivÃ¥.');
     }
 
     const hasSourceDoiOrUrl = !!(instrument.doi || instrument.sourceUrl);
@@ -132,8 +132,8 @@ export class MethodIntegrityGate {
       passed: hasSourceDoiOrUrl,
       severity: 'CRITICAL',
       message: hasSourceDoiOrUrl
-        ? `Primærkilde: ${instrument.primaryPublication} (DOI: ${instrument.doi || 'URL verifisert'})`
-        : 'Mangler offisiell DOI eller primærkilde-URL i registeret.',
+        ? `PrimÃ¦rkilde: ${instrument.primaryPublication} (DOI: ${instrument.doi || 'URL verifisert'})`
+        : 'Mangler offisiell DOI eller primÃ¦rkilde-URL i registeret.',
       expected: 'DOI eller kilde-URL',
       actual: instrument.doi || instrument.sourceUrl || 'Mangler',
       ruleCitation: 'APA 7 & Metodisk Sporbarhet'
@@ -156,7 +156,7 @@ export class MethodIntegrityGate {
         : `Versjonskonflikt: Vurderingen oppgir versjon ${appraisal.instrumentVersion}, mens registeret krever ${instrument.version}.`,
       expected: instrument.version,
       actual: appraisal.instrumentVersion || instrument.version,
-      ruleCitation: 'Metodisk Versjonslås & Integritetsvern'
+      ruleCitation: 'Metodisk VersjonslÃ¥s & Integritetsvern'
     });
     if (!versionMatches) {
       criticalErrors.push(`Versjonskonflikt for instrument ${instrument.id}: forventet ${instrument.version}, mottok ${appraisal.instrumentVersion}.`);
@@ -176,7 +176,7 @@ export class MethodIntegrityGate {
       ruleCitation: 'Kvalitetsstyringsmanual'
     });
     if (!isNotDeprecated) {
-      warnings.push(`Instrumentet har status «${instrument.status}».`);
+      warnings.push(`Instrumentet har status Â«${instrument.status}Â».`);
     }
 
     // Snapshot integrity check if snapshot exists
@@ -189,14 +189,14 @@ export class MethodIntegrityGate {
         passed: snapshotVersionValid,
         severity: 'CRITICAL',
         message: snapshotVersionValid
-          ? `Snapshot er forseglet med uforanderlig låse-hash ${snapshot.immutableLockHash.slice(0, 16)}...`
+          ? `Snapshot er forseglet med uforanderlig lÃ¥se-hash ${snapshot.immutableLockHash.slice(0, 16)}...`
           : `Snapshot versjonsfeil: Snapshot oppgir ${snapshot.instrumentVersion}, registrert er ${instrument.version}.`,
         expected: instrument.version,
         actual: snapshot.instrumentVersion,
         ruleCitation: 'Snapshot Immutability Contract'
       });
       if (!snapshotVersionValid) {
-        criticalErrors.push('Snapshotets versjonslås stemmer ikke overens med registeret.');
+        criticalErrors.push('Snapshotets versjonslÃ¥s stemmer ikke overens med registeret.');
       }
     }
 
@@ -214,8 +214,8 @@ export class MethodIntegrityGate {
       passed: countMatches,
       severity: 'CRITICAL',
       message: countMatches
-        ? `Sjekklisten har nøyaktig ${expectedCount} kriterier som påkrevd av ${instrument.shortName}.`
-        : `Metodisk avvik i antall spørsmål: Sjekklisten har ${actualCount} kriterier, registeret krever nøyaktig ${expectedCount}.`,
+        ? `Sjekklisten har nÃ¸yaktig ${expectedCount} kriterier som pÃ¥krevd av ${instrument.shortName}.`
+        : `Metodisk avvik i antall spÃ¸rsmÃ¥l: Sjekklisten har ${actualCount} kriterier, registeret krever nÃ¸yaktig ${expectedCount}.`,
       expected: expectedCount,
       actual: actualCount,
       ruleCitation: `${instrument.shortName} Offisiell Manual (${instrument.edition})`
@@ -235,14 +235,14 @@ export class MethodIntegrityGate {
       passed: hasAllSequentialIds,
       severity: 'CRITICAL',
       message: hasAllSequentialIds
-        ? `Alle spørsmåls-ID-er (1–${expectedCount}) er sekvensielle og uten duplikater.`
-        : `Feil i spørsmåls-ID-er: Mangler elementer eller inneholder duplikater (${questionIds.join(', ')}).`,
+        ? `Alle spÃ¸rsmÃ¥ls-ID-er (1â€“${expectedCount}) er sekvensielle og uten duplikater.`
+        : `Feil i spÃ¸rsmÃ¥ls-ID-er: Mangler elementer eller inneholder duplikater (${questionIds.join(', ')}).`,
       expected: `Sekvens 1 til ${expectedCount}`,
       actual: questionIds.join(', '),
       ruleCitation: 'Strukturert sjekklistekontrakt'
     });
     if (!hasAllSequentialIds) {
-      criticalErrors.push('Sjekklisten mangler nødvendige spørsmål eller har dupliserte spørsmåls-ID-er.');
+      criticalErrors.push('Sjekklisten mangler nÃ¸dvendige spÃ¸rsmÃ¥l eller har dupliserte spÃ¸rsmÃ¥ls-ID-er.');
     }
 
     // Allowed answers check
@@ -255,13 +255,13 @@ export class MethodIntegrityGate {
       severity: 'CRITICAL',
       message: allAnswersValid
         ? 'Alle svaralternativer er autoriserte i henhold til instrumentets spesifikasjon.'
-        : `Ugyldige svaralternativer oppdaget på ${invalidAnswers.length} spørsmål: ${invalidAnswers.map(i => `Q${i.questionId}: «${i.status}»`).join(', ')}.`,
+        : `Ugyldige svaralternativer oppdaget pÃ¥ ${invalidAnswers.length} spÃ¸rsmÃ¥l: ${invalidAnswers.map(i => `Q${i.questionId}: Â«${i.status}Â»`).join(', ')}.`,
       expected: instrument.allowedAnswers.join(', '),
       actual: allAnswersValid ? 'Gyldige' : invalidAnswers.map(i => i.status).join(', '),
       ruleCitation: `${instrument.shortName} Svarformat-standard`
     });
     if (!allAnswersValid) {
-      criticalErrors.push(`Uautoriserte svarverdier funnet i ${invalidAnswers.length} spørsmål.`);
+      criticalErrors.push(`Uautoriserte svarverdier funnet i ${invalidAnswers.length} spÃ¸rsmÃ¥l.`);
     }
 
     // ==========================================
@@ -270,7 +270,7 @@ export class MethodIntegrityGate {
     if (instrument.scoringModel === 'qualitative-judgement') {
       // JBI Qualitative Check:
       // 1. Overall verdict must be qualitative (Inkluder, Ekskluder, etc.), not a fake arithmetic cut-off
-      const validVerdicts = ['Inkluder', 'Ekskluder', 'Vurder videre', 'Søk mer informasjon'];
+      const validVerdicts = ['Inkluder', 'Ekskluder', 'Vurder videre', 'SÃ¸k mer informasjon'];
       const verdictPass = validVerdicts.includes(appraisal.overallVerdict);
       scoringModelChecks.push({
         name: 'Qualitative Holistic Decision Model',
@@ -278,8 +278,8 @@ export class MethodIntegrityGate {
         passed: verdictPass,
         severity: 'CRITICAL',
         message: verdictPass
-          ? `Samlet beslutning er kvalitativt begrunnet: «${appraisal.overallVerdict}» (${instrument.scoringModelExplanation.slice(0, 80)}...).`
-          : `Ugyldig vurderingsbeslutning «${appraisal.overallVerdict}». JBI krever helhetlig kvalitativ dom.`,
+          ? `Samlet beslutning er kvalitativt begrunnet: Â«${appraisal.overallVerdict}Â» (${instrument.scoringModelExplanation.slice(0, 80)}...).`
+          : `Ugyldig vurderingsbeslutning Â«${appraisal.overallVerdict}Â». JBI krever helhetlig kvalitativ dom.`,
         expected: validVerdicts.join(' | '),
         actual: appraisal.overallVerdict,
         ruleCitation: 'JBI Qualitative Guidelines (Aromataris & Munn, 2024)'
@@ -298,8 +298,8 @@ export class MethodIntegrityGate {
         severity: 'CRITICAL',
         message: allJustified
           ? 'Alle vurderingspunkter har dokumentert metodisk begrunnelse (rationale).'
-          : `${itemsWithoutJustification.length} spørsmål mangler obligatorisk skriftlig begrunnelse (Q: ${itemsWithoutJustification.map(i => i.questionId).join(', ')}).`,
-        expected: 'Begrunnelse på alle 10 punkter',
+          : `${itemsWithoutJustification.length} spÃ¸rsmÃ¥l mangler obligatorisk skriftlig begrunnelse (Q: ${itemsWithoutJustification.map(i => i.questionId).join(', ')}).`,
+        expected: 'Begrunnelse pÃ¥ alle 10 punkter',
         actual: allJustified ? '100% begrunnet' : `${itemsWithoutJustification.length} mangler`,
         ruleCitation: 'WHO Handbook Annex 8.1 & JBI Rationale Mandate'
       });
@@ -321,13 +321,13 @@ export class MethodIntegrityGate {
         severity: 'CRITICAL',
         message: hasReflexivity
           ? 'Forskerrefleksivitet og posisjonering er eksplisitt vurdert i Q6 og Q7.'
-          : 'Mangler eksplisitt drøfting av forskerposisjon/refleksivitet i Q6 eller Q7.',
-        expected: 'Dokumentert drøfting i Q6 og Q7',
+          : 'Mangler eksplisitt drÃ¸fting av forskerposisjon/refleksivitet i Q6 eller Q7.',
+        expected: 'Dokumentert drÃ¸fting i Q6 og Q7',
         actual: hasReflexivity ? 'Oppfylt' : 'Ufullstendig',
         ruleCitation: 'JBI Reflexivity Quality Standard'
       });
       if (!hasReflexivity) {
-        criticalErrors.push('Forskerrefleksivitet (JBI Q6 & Q7) må ha eksplisitt metodisk begrunnelse.');
+        criticalErrors.push('Forskerrefleksivitet (JBI Q6 & Q7) mÃ¥ ha eksplisitt metodisk begrunnelse.');
       }
 
       scoringModelChecks.push({
@@ -343,7 +343,7 @@ export class MethodIntegrityGate {
         ruleCitation: 'Forskningsetisk Lovverk & JBI Q9'
       });
       if (!hasEthics) {
-        criticalErrors.push('Forskningsetisk godkjenning (JBI Q9) må være vurdert.');
+        criticalErrors.push('Forskningsetisk godkjenning (JBI Q9) mÃ¥ vÃ¦re vurdert.');
       }
 
     } else if (instrument.scoringModel === 'domain-based') {
@@ -353,7 +353,7 @@ export class MethodIntegrityGate {
           category: 'SCORING_MODEL',
           passed: true,
           severity: 'CRITICAL',
-          message: 'AMSTAR 2 håndhever 7 kritiske domener uten kunstig numerisk prosentpoengscore.',
+          message: 'AMSTAR 2 hÃ¥ndhever 7 kritiske domener uten kunstig numerisk prosentpoengscore.',
           expected: 'Domain Confidence (High, Moderate, Low, Critically Low)',
           actual: 'Domain-based',
           ruleCitation: 'Shea et al., BMJ 2017 (AMSTAR 2 standard)'
@@ -365,7 +365,7 @@ export class MethodIntegrityGate {
         category: 'SCORING_MODEL',
         passed: true,
         severity: 'CRITICAL',
-        message: `${instrument.shortName} er et implementerings- eller spredningsrammeverk uten numerisk kvalitetsskår.`,
+        message: `${instrument.shortName} er et implementerings- eller spredningsrammeverk uten numerisk kvalitetsskÃ¥r.`,
         expected: 'ScoringModel: none',
         actual: 'none',
         ruleCitation: 'Implementeringsvitenskapelig standard'
@@ -480,7 +480,7 @@ export class MethodIntegrityGate {
     const check = this.canExport(appraisals);
     if (!check.allowed) {
       throw new MethodIntegrityGateError(
-        `MethodIntegrityGate blokkerte eksport for ${check.blockedCount} av ${check.totalAppraisalsChecked} studier på grunn av metodiske avvik:\n${check.reasons.join('\n')}`,
+        `MethodIntegrityGate blokkerte eksport for ${check.blockedCount} av ${check.totalAppraisalsChecked} studier pÃ¥ grunn av metodiske avvik:\n${check.reasons.join('\n')}`,
         check.gateResults
       );
     }
@@ -511,10 +511,10 @@ export class MethodIntegrityGate {
         previousAnswer: appraisal.methodologyAlignmentStatus || 'PENDING_VERIFICATION',
         newAnswer: 'INTERNALLY_COMPLIANCE_CHECKED',
         previousRationale: 'Uverifisert',
-        newRationale: `Godkjent gjennom MethodIntegrityGate (Hash: ${check.gateResult.integrityHash}). Kilde, versjon, antall kriterier og skåringsmodell er validert mot registeret.`,
+        newRationale: `Godkjent gjennom MethodIntegrityGate (Hash: ${check.gateResult.integrityHash}). Kilde, versjon, antall kriterier og skÃ¥ringsmodell er validert mot registeret.`,
         changedBy: verifiedBy,
         timestamp: new Date().toISOString(),
-        comment: 'Full metodisk samsvarsgodkjenning fullført.'
+        comment: 'Full metodisk samsvarsgodkjenning fullfÃ¸rt.'
       },
       ...(appraisal.auditTrail || [])
     ];
@@ -569,3 +569,4 @@ export class MethodIntegrityGate {
     };
   }
 }
+

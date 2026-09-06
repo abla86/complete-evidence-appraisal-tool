@@ -1,4 +1,4 @@
-import type { ReferenceRecord } from './referenceHubService.ts';
+﻿import type { ReferenceRecord } from './referenceHubService.ts';
 
 export type ReferenceExportFormat = 'RIS' | 'BIBTEX' | 'CSL_JSON' | 'ENDNOTE_XML' | 'CSV' | 'JSON';
 
@@ -98,3 +98,4 @@ export function exportReferences(records: ReferenceRecord[], format: ReferenceEx
     case 'JSON': return JSON.stringify(records, null, 2);
   }
 }
+

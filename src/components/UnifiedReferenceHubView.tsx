@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+﻿import React, { useMemo, useRef, useState } from 'react';
 import { BookOpen, Download, FileUp, Search, ShieldCheck, Tag } from 'lucide-react';
 import type { ArticleAppraisal } from '../types';
 import {
@@ -129,7 +129,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
         lifecycleStatus: 'DRAFT',
         title: record.title || 'Importert referanse',
         authors: record.authors || 'Ukjent forfatter',
-        shortCitation: `${record.authors?.[0] || 'Ukjent'} (${record.year || 'u.å.'})`,
+        shortCitation: `${record.authors?.[0] || 'Ukjent'} (${record.year || 'u.Ã¥.'})`,
         year: record.year || new Date().getFullYear(),
         doi: record.doi || '',
         doiUrl: record.doi ? `https://doi.org/${record.doi}` : '',
@@ -145,7 +145,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
         overallVerdict: 'Vurder videre',
         verdictNote: 'Importert via samlet Reference Hub',
         keyStrength: 'Metadata importert',
-        mainLimitation: 'Metodisk vurdering ikke gjennomført',
+        mainLimitation: 'Metodisk vurdering ikke gjennomfÃ¸rt',
         apaReference: '',
         items: [],
         auditTrail: [],
@@ -179,7 +179,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-teal-700" />
               <h2 className="text-xl font-bold font-serif">Reference Hub</h2>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 border border-teal-200 text-teal-900">Én referansemotor</span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 border border-teal-200 text-teal-900">Ã‰n referansemotor</span>
             </div>
             <p className="text-sm text-slate-600 mt-1">EndNote, Zotero, Mendeley og Paperpile samles her som interoperabilitet, ikke som parallelle databaser.</p>
           </div>
@@ -197,7 +197,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
           <div className="flex flex-col md:flex-row gap-2 mb-4">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Søk tittel, forfatter, DOI, journal..." className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm" />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="SÃ¸k tittel, forfatter, DOI, journal..." className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm" />
             </div>
             <button type="button" onClick={() => setFilter('all')} className={`px-3 py-2 rounded-xl text-xs font-semibold ${filter === 'all' ? 'bg-teal-800 text-white' : 'bg-slate-100'}`}>Alle</button>
             <button type="button" onClick={() => setFilter('review')} className={`px-3 py-2 rounded-xl text-xs font-semibold ${filter === 'review' ? 'bg-amber-600 text-white' : 'bg-slate-100'}`}>Til kontroll</button>
@@ -219,13 +219,13 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
           {message && <div className="mb-4 p-3 rounded-xl bg-sky-50 border border-sky-200 text-sm text-sky-900">{message}</div>}
 
           <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
-            {filtered.length === 0 && <div className="p-8 text-center text-sm text-slate-500">Ingen referanser matcher søket.</div>}
+            {filtered.length === 0 && <div className="p-8 text-center text-sm text-slate-500">Ingen referanser matcher sÃ¸ket.</div>}
             {filtered.map(record => (
               <button type="button" key={record.id} onClick={() => setSelectedId(record.id)} className={`w-full text-left p-4 hover:bg-slate-50 ${selected?.id === record.id ? 'bg-teal-50/50' : 'bg-white'}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-semibold text-sm truncate">{record.title}</div>
-                    <div className="text-xs text-slate-500 mt-1">{record.authors} {record.year ? `(${record.year})` : ''} {record.journal ? `· ${record.journal}` : ''}</div>
+                    <div className="text-xs text-slate-500 mt-1">{record.authors} {record.year ? `(${record.year})` : ''} {record.journal ? `Â· ${record.journal}` : ''}</div>
                     <div className="flex flex-wrap gap-1 mt-2">{record.tags.map(tag => <span key={tag} className="px-2 py-0.5 rounded-full bg-slate-100 text-[10px]">#{tag}</span>)}</div>
                   </div>
                   <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full ${record.verification === 'VALIDATED' ? 'bg-emerald-100 text-emerald-900' : record.verification === 'INVALID' ? 'bg-rose-100 text-rose-900' : 'bg-amber-100 text-amber-900'}`}>{record.verification}</span>
@@ -244,10 +244,10 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
               </div>
               <div className="space-y-2 text-sm">
                 <div><span className="font-semibold">Forfattere:</span> {selected.authors}</div>
-                <div><span className="font-semibold">DOI:</span> {selected.doi || '—'}</div>
+                <div><span className="font-semibold">DOI:</span> {selected.doi || 'â€”'}</div>
                 <div><span className="font-semibold">Status:</span> {selected.verification}</div>
                 <div><span className="font-semibold">Kilde:</span> {selected.importedFrom.join(', ')}</div>
-                {selected.url && <a className="text-teal-800 underline" href={selected.url} target="_blank" rel="noreferrer">Åpne kilde</a>}
+                {selected.url && <a className="text-teal-800 underline" href={selected.url} target="_blank" rel="noreferrer">Ã…pne kilde</a>}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={handleVerify} className="px-3 py-2 rounded-xl bg-emerald-700 text-white text-xs font-semibold inline-flex gap-1.5 items-center"><ShieldCheck className="w-4 h-4" />Merk som verifisert</button>
@@ -258,7 +258,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
                 {snapshot.duplicateCandidates.filter(d => d.recordId === selected.id || d.candidateId === selected.id).length === 0
                   ? <div className="text-xs text-slate-500">Ingen duplikatforslag for denne referansen.</div>
                   : snapshot.duplicateCandidates.filter(d => d.recordId === selected.id || d.candidateId === selected.id).map(d => (
-                    <div key={`${d.recordId}-${d.candidateId}`} className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">Mulig duplikat ({d.reason}) · {Math.round(d.confidence * 100)}%. Vurder manuelt.</div>
+                    <div key={`${d.recordId}-${d.candidateId}`} className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">Mulig duplikat ({d.reason}) Â· {Math.round(d.confidence * 100)}%. Vurder manuelt.</div>
                   ))}
               </div>
               <div className="border-t border-slate-100 pt-4 text-xs text-slate-500">Ingen referanse slettes automatisk ved duplikatfunn.</div>
@@ -271,3 +271,4 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
     </div>
   );
 };
+

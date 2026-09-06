@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   CandidateEvidence,
   EvidenceLocation,
   DocumentClassificationResult,
@@ -132,10 +132,11 @@ export class ResearchEvidenceBridge {
       suggestedStatus: candidate.suggestedStatus,
       relevanceScore: candidate.relevanceScore,
       confidenceReason: humanVerified
-        ? 'Forhåndsmarkert som verifisert i innkommende data; reviewer-identitet og tidspunkt må følge med separat før materialet brukes som komplett auditspor.'
+        ? 'ForhÃ¥ndsmarkert som verifisert i innkommende data; reviewer-identitet og tidspunkt mÃ¥ fÃ¸lge med separat fÃ¸r materialet brukes som komplett auditspor.'
         : candidate.confidenceReason,
     };
   }
 }
 
 export default ResearchEvidenceBridge;
+

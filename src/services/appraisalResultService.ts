@@ -1,4 +1,4 @@
-import { Amstar2AssessmentEngine, Agree2AssessmentEngine, Rob2AssessmentEngine, CaspValidationService } from './assessmentEngines';
+﻿import { Amstar2AssessmentEngine, Agree2AssessmentEngine, Rob2AssessmentEngine, CaspValidationService } from './assessmentEngines';
 
 const hasAnswer = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== '';
 
@@ -13,13 +13,13 @@ export function buildAppraisalResult(session: { instrumentId: string; instrument
   switch (session.instrumentId) {
     case 'amstar-2': {
       const complete = Array.from({ length: 16 }, (_, i) => answers[String(i + 1)]).every(hasAnswer);
-      if (!complete) return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result: null, methodologicalWarning: 'Ufullstendig AMSTAR 2-vurdering: ingen samlet vurdering beregnes før alle 16 items er besvart.' };
+      if (!complete) return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result: null, methodologicalWarning: 'Ufullstendig AMSTAR 2-vurdering: ingen samlet vurdering beregnes fÃ¸r alle 16 items er besvart.' };
       const result = Amstar2AssessmentEngine.evaluate(answers as Record<number, 'Yes' | 'Partial Yes' | 'No' | 'No meta-analysis conducted' | string>);
       return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result, methodologicalWarning: result.methodologicalWarning };
     }
     case 'agree-ii': {
       const complete = Array.from({ length: 23 }, (_, i) => answers[String(i + 1)]).every(hasAnswer);
-      if (!complete) return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result: null, methodologicalWarning: 'Ufullstendig AGREE II-vurdering: domeneskårer beregnes ikke før alle 23 items er besvart.' };
+      if (!complete) return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result: null, methodologicalWarning: 'Ufullstendig AGREE II-vurdering: domeneskÃ¥rer beregnes ikke fÃ¸r alle 23 items er besvart.' };
       const numericRatings = Object.fromEntries(session.responses.map(r => [Number(r.itemId), typeof r.answer === 'number' ? r.answer : Number(r.answer)])) as Record<number, number>;
       const result = Agree2AssessmentEngine.evaluateDomainScores(numericRatings, 1);
       return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result, methodologicalWarning: result.methodologicalNote };
@@ -27,7 +27,7 @@ export function buildAppraisalResult(session: { instrumentId: string; instrument
     case 'rob-2': {
       const map = session.responses.reduce<Record<string, string>>((acc, r) => { acc[String(r.itemId)] = String(r.answer); return acc; }, {});
       const required = ['1','2','3','4','5'];
-      if (!required.every(id => hasAnswer(map[id]))) return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result: null, methodologicalWarning: 'Ufullstendig RoB 2-vurdering: ingen samlet risiko-for-bias-vurdering beregnes før alle fem domener er vurdert.' };
+      if (!required.every(id => hasAnswer(map[id]))) return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result: null, methodologicalWarning: 'Ufullstendig RoB 2-vurdering: ingen samlet risiko-for-bias-vurdering beregnes fÃ¸r alle fem domener er vurdert.' };
       const result = Rob2AssessmentEngine.evaluate({
         d1Randomisation: map['1'] as 'Low risk' | 'Some concerns' | 'High risk',
         d2Deviations: map['2'] as 'Low risk' | 'Some concerns' | 'High risk',
@@ -42,7 +42,7 @@ export function buildAppraisalResult(session: { instrumentId: string; instrument
         const qualitative = session.instrumentId === 'casp-qualitative';
         if (qualitative) {
           const mapped = Object.fromEntries(session.responses.map(r => [Number(r.itemId), String(r.answer)]));
-          const result = CaspValidationService.evaluateQualitative(mapped as Record<number, 'Yes' | 'Can’t tell' | 'No'>);
+          const result = CaspValidationService.evaluateQualitative(mapped as Record<number, 'Yes' | 'Canâ€™t tell' | 'No'>);
           return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result };
         }
       }
@@ -50,3 +50,4 @@ export function buildAppraisalResult(session: { instrumentId: string; instrument
     }
   }
 }
+

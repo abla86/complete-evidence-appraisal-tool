@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { decideAppraisalLaunch, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
 import { Amstar2AssessmentEngine, Agree2AssessmentEngine, JbiQualitativeAssessmentEngine, Rob2AssessmentEngine, RobinsIAssessmentEngine } from '../services/assessmentEngines';
@@ -65,7 +65,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   const cached = getLatestAppraisalSession(studyId, initialInstrumentId, effectiveReviewerId);
   const [instrumentId, setInstrumentId] = useState(cached?.instrumentId ?? initialInstrumentId);
   const [session, setSession] = useState<AppraisalSession | null>(cached ?? null);
-  const [notice, setNotice] = useState(effectiveReviewerId ? '' : 'Reviewer-ID må oppgis før appraisal kan startes.');
+  const [notice, setNotice] = useState(effectiveReviewerId ? '' : 'Reviewer-ID mÃ¥ oppgis fÃ¸r appraisal kan startes.');
   const [starting, setStarting] = useState(false);
   const [changingInstrument, setChangingInstrument] = useState(false);
   const instrument = MASTER_INSTRUMENTS_REGISTRY.find(item => item.id === instrumentId);
@@ -98,7 +98,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   };
 
   const patch = (itemId: number | string, value: Partial<{ answer: string | null; rationale: string; evidence: { quote?: string; page?: string; section?: string; sourceId?: string } }>) => {
-    if (!session || session.locked) { if (session?.locked) setNotice('Denne vurderingen er låst og kan ikke endres.'); return; }
+    if (!session || session.locked) { if (session?.locked) setNotice('Denne vurderingen er lÃ¥st og kan ikke endres.'); return; }
     try {
       setSession(prev => {
         if (!prev) return prev;
@@ -170,11 +170,11 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   const interpretation = result && 'overallConfidence' in result ? result.overallConfidence
     : result && 'overallRiskOfBias' in result ? result.overallRiskOfBias
     : result && 'verdict' in result ? result.verdict
-    : `${answeredCount}/${instrument?.itemCount ?? 0} besvart — ingen instrumentspesifikk skår før vurderingen er komplett`;
+    : `${answeredCount}/${instrument?.itemCount ?? 0} besvart â€” ingen instrumentspesifikk skÃ¥r fÃ¸r vurderingen er komplett`;
 
   const finalize = async () => {
     if (!session || session.locked) return;
-    if (!effectiveReviewerId) { setNotice('Reviewer-ID må oppgis.'); return; }
+    if (!effectiveReviewerId) { setNotice('Reviewer-ID mÃ¥ oppgis.'); return; }
     if (!validation?.valid) { setNotice(validation?.issues.join(' ') || 'Vurderingen er ikke komplett.'); return; }
     try {
       const canonical = await saveCanonicalSession(session);
@@ -183,7 +183,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke ferdigstille appraisal.');
       setSession(payload.session);
       onSaved?.(payload.session);
-      setNotice('Vurderingen er validert og låst i canonical appraisal workflow.');
+      setNotice('Vurderingen er validert og lÃ¥st i canonical appraisal workflow.');
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Vurderingen kunne ikke lagres.');
     }
@@ -193,7 +193,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   const questions = instrument.questions ?? [];
 
   if (!effectiveReviewerId || !session) {
-    return <section className="bg-white border border-slate-200 rounded-2xl p-6 space-y-3"><h2 className="text-xl font-bold">{instrument.name}</h2><p className="text-sm text-slate-600">{notice || (starting ? 'Oppretter canonical appraisal-session…' : 'Appraisal-session er ikke tilgjengelig.')}</p></section>;
+    return <section className="bg-white border border-slate-200 rounded-2xl p-6 space-y-3"><h2 className="text-xl font-bold">{instrument.name}</h2><p className="text-sm text-slate-600">{notice || (starting ? 'Oppretter canonical appraisal-sessionâ€¦' : 'Appraisal-session er ikke tilgjengelig.')}</p></section>;
   }
 
   return (
@@ -201,12 +201,12 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       <header className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">EVIDENCE APPRAISAL · AKTIV VURDERING</div>
+            <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">EVIDENCE APPRAISAL Â· AKTIV VURDERING</div>
             <h2 className="text-2xl font-bold font-serif">{instrument.name}</h2>
-            <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} · Studie-ID: {studyId} · Reviewer: {effectiveReviewerId}</p>
+            <p className="text-sm text-slate-600 mt-1">Studiedesign: {studyDesign || 'ikke registrert'} Â· Studie-ID: {studyId} Â· Reviewer: {effectiveReviewerId}</p>
           </div>
           <select value={instrumentId} onChange={e => void changeInstrument(e.target.value)} disabled={session.locked || changingInstrument} className="rounded-xl border border-slate-300 px-3 py-2 text-sm max-w-full disabled:opacity-50">
-            {MASTER_INSTRUMENTS_REGISTRY.map(i => <option key={i.id} value={i.id}>{i.shortName} · {i.version}</option>)}
+            {MASTER_INSTRUMENTS_REGISTRY.map(i => <option key={i.id} value={i.id}>{i.shortName} Â· {i.version}</option>)}
           </select>
         </div>
         {notice && <div role="status" className="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">{notice}</div>}
@@ -235,8 +235,8 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       <aside className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div><div className="text-[10px] uppercase tracking-wide text-slate-400">Instrumentspesifikk vurdering</div><h3 className="text-lg font-bold mt-1">{String(interpretation)}</h3>{result && 'methodologicalWarning' in result && result.methodologicalWarning && <p className="text-xs text-amber-800 mt-2">{result.methodologicalWarning}</p>}</div>
         {result && 'domainScores' in result && <div className="grid md:grid-cols-3 gap-2">{result.domainScores.map(d =><div key={d.domainId} className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs"><div className="font-semibold">{d.domainName}</div><div className="text-lg font-bold mt-1">{d.standardizedScorePercent}%</div></div>)}</div>}
-        <button type="button" disabled={!validation?.valid || session.locked || questions.length===0} onClick={finalize} title={!validation?.valid ? (validation?.issues.join(' ') || 'Fyll ut alle nødvendige vurderingspunkter før lagring.') : undefined} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering låst' : 'Lagre og lås vurdering'}</button>
-        {!validation?.valid && <div role="status" className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{validation?.issues.join(' ') || 'Fyll ut alle nødvendige vurderingspunkter før lagring.'}</div>}
+        <button type="button" disabled={!validation?.valid || session.locked || questions.length===0} onClick={finalize} title={!validation?.valid ? (validation?.issues.join(' ') || 'Fyll ut alle nÃ¸dvendige vurderingspunkter fÃ¸r lagring.') : undefined} className="px-4 py-2 rounded-xl bg-teal-800 disabled:opacity-40 text-white text-xs font-bold">{session.locked ? 'Vurdering lÃ¥st' : 'Lagre og lÃ¥s vurdering'}</button>
+        {!validation?.valid && <div role="status" className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{validation?.issues.join(' ') || 'Fyll ut alle nÃ¸dvendige vurderingspunkter fÃ¸r lagring.'}</div>}
       </aside>
 
       {session.locked && instrument.id !== 'jbi-qualitative-2017' && session.responses.length > 0 && (
@@ -247,3 +247,4 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
 };
 
 function Info({ label, value }: { label: string; value: string }) { return <div className="bg-white border border-slate-200 rounded-xl p-3"><div className="text-[10px] uppercase tracking-wide text-slate-400">{label}</div><div className="text-sm font-bold mt-1">{value}</div></div>; }
+

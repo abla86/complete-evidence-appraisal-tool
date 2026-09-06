@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Single shared reference validation boundary.
  *
  * Identifier fields are intentionally optional here so callers can provide
@@ -68,3 +68,4 @@ export function createNorwegianLawReference(input: Omit<SharedReferenceInput, 'k
 export function createNorwegianRegulationReference(input: Omit<SharedReferenceInput, 'kind'>) {
   return createReference({ ...input, kind: 'REGULATION' });
 }
+

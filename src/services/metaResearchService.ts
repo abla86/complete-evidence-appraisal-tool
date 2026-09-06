@@ -21,6 +21,7 @@ export class MetaResearchService {
     };
   }
   private countMatches(t: string, k: string[]): number { return k.reduce((a, w) => a + (t.includes(w) ? 2 : 0), 0); }
-  private createUndetermined(): any { return { id: generateId("meta"), timestamp: new Date().toISOString(), studyDesign: 'UNDETERMINED', confidenceScore: 0, ethicsStatus: 'NOT_FOUND', heuristicScreeningScore: 0, recommendedInstrumentId: null, hasMethodology: false, engineUsed: 'WEIGHTED_HEURISTIC_V3' }; }
-  private mapToInstrument(d: StudyDesign): string | null { const m: any = { 'RCT': 'casp-rct', 'SYSTEMATIC_REVIEW': 'casp-systematic-review', 'QUALITATIVE': 'casp-qualitative', 'OBSERVATIONAL': 'casp-cohort' }; return m[d] || null; }
+  private createUndetermined(): unknown { return { id: generateId("meta"), timestamp: new Date().toISOString(), studyDesign: 'UNDETERMINED', confidenceScore: 0, ethicsStatus: 'NOT_FOUND', heuristicScreeningScore: 0, recommendedInstrumentId: null, hasMethodology: false, engineUsed: 'WEIGHTED_HEURISTIC_V3' }; }
+  private mapToInstrument(d: StudyDesign): string | null { const m: unknown = { 'RCT': 'casp-rct', 'SYSTEMATIC_REVIEW': 'casp-systematic-review', 'QUALITATIVE': 'casp-qualitative', 'OBSERVATIONAL': 'casp-cohort' }; return m[d] || null; }
 }
+

@@ -1,4 +1,4 @@
-import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
+﻿import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { 
   Amstar2AssessmentEngine, 
   Amstar2RatingService,
@@ -127,7 +127,7 @@ export class MethodologyContractTests {
       passed: amstarHigh1.overallConfidence === 'High' && amstarHigh1.nonCriticalFlawsCount === 1,
       expected: 'overallConfidence: High, nonCriticalFlaws: 1',
       actual: `overallConfidence: ${amstarHigh1.overallConfidence}, nonCriticalFlaws: ${amstarHigh1.nonCriticalFlawsCount}`,
-      details: 'Validerer Shea et al. regel: maksimalt én ikke-kritisk svakhet tillatt for High.'
+      details: 'Validerer Shea et al. regel: maksimalt Ã©n ikke-kritisk svakhet tillatt for High.'
     });
 
     // 1.3 AMSTAR 2 - Flaw Combination: 0 Critical / >1 Non-critical -> Moderate
@@ -153,13 +153,13 @@ export class MethodologyContractTests {
     });
     results.push({
       ruleId: 'L1-AMSTAR-04-ONE-CRITICAL-LOW',
-      ruleTitle: 'AMSTAR 2: Nøyaktig 1 kritisk svakhet skal gi Low confidence uansett antall Yes',
+      ruleTitle: 'AMSTAR 2: NÃ¸yaktig 1 kritisk svakhet skal gi Low confidence uansett antall Yes',
       level: 'LEVEL_1_UNIT',
       category: 'SCORING',
       passed: amstarLow.overallConfidence === 'Low' && amstarLow.criticalFlawsCount === 1,
       expected: 'overallConfidence: Low, criticalFlaws: 1',
       actual: `overallConfidence: ${amstarLow.overallConfidence}, criticalFlaws: ${amstarLow.criticalFlawsCount}`,
-      details: 'Validerer at én enkelt kritisk feil (f.eks. protokoll) degraderer direkte til Low.'
+      details: 'Validerer at Ã©n enkelt kritisk feil (f.eks. protokoll) degraderer direkte til Low.'
     });
 
     // 1.5 AMSTAR 2 - Flaw Combination: >1 Critical -> Critically Low
@@ -196,7 +196,7 @@ export class MethodologyContractTests {
     const domain1Max = agreeMax.domainScores.find(d => d.domainId === 1);
     results.push({
       ruleId: 'L1-AGREE-01-MAX-SCORE-100',
-      ruleTitle: 'AGREE II: Maksimal skår (alle 7) skal gi nøyaktig 100% på domenet',
+      ruleTitle: 'AGREE II: Maksimal skÃ¥r (alle 7) skal gi nÃ¸yaktig 100% pÃ¥ domenet',
       level: 'LEVEL_1_UNIT',
       category: 'SCORING',
       passed: domain1Max?.standardizedScorePercent === 100,
@@ -210,7 +210,7 @@ export class MethodologyContractTests {
     const domain1Min = agreeMin.domainScores.find(d => d.domainId === 1);
     results.push({
       ruleId: 'L1-AGREE-02-MIN-SCORE-0',
-      ruleTitle: 'AGREE II: Minimal skår (alle 1) skal gi nøyaktig 0% på domenet',
+      ruleTitle: 'AGREE II: Minimal skÃ¥r (alle 1) skal gi nÃ¸yaktig 0% pÃ¥ domenet',
       level: 'LEVEL_1_UNIT',
       category: 'SCORING',
       passed: domain1Min?.standardizedScorePercent === 0,
@@ -223,11 +223,11 @@ export class MethodologyContractTests {
     const agreeVal = Agree2ScoringService.validateRatings({ 1: 8, 2: 0, 3: 4 } as any);
     results.push({
       ruleId: 'L1-AGREE-03-RATING-RANGE-VALIDATION',
-      ruleTitle: 'AGREE II: Skårer utenfor 1-7 eller ikke-heltall skal avvises',
+      ruleTitle: 'AGREE II: SkÃ¥rer utenfor 1-7 eller ikke-heltall skal avvises',
       level: 'LEVEL_1_UNIT',
       category: 'SAFETY',
       passed: !agreeVal.isValid && agreeVal.errors.length >= 2,
-      expected: 'isValid: false for skårer <1 eller >7',
+      expected: 'isValid: false for skÃ¥rer <1 eller >7',
       actual: `isValid: ${agreeVal.isValid}, errors: ${agreeVal.errors.length}`,
       details: 'Validerer at Likert-skalaen overholdes strengt.'
     });
@@ -238,13 +238,13 @@ export class MethodologyContractTests {
     });
     results.push({
       ruleId: 'L1-CASP-01-SCREENING-GATE',
-      ruleTitle: 'CASP Qualitative: Feil på screening-spørsmål 1 eller 2 skal flagge metodisk usikkerhet',
+      ruleTitle: 'CASP Qualitative: Feil pÃ¥ screening-spÃ¸rsmÃ¥l 1 eller 2 skal flagge metodisk usikkerhet',
       level: 'LEVEL_1_UNIT',
       category: 'SCORING',
       passed: caspScreenFail.screeningQuestionsPassed === false,
       expected: 'screeningQuestionsPassed: false',
       actual: `screeningQuestionsPassed: ${caspScreenFail.screeningQuestionsPassed}`,
-      details: 'CASP-sjekklister krever at spørsmål 1 og 2 besvares bekreftende før videre vurdering er meningsfull.'
+      details: 'CASP-sjekklister krever at spÃ¸rsmÃ¥l 1 og 2 besvares bekreftende fÃ¸r videre vurdering er meningsfull.'
     });
 
     // 1.11 JBI Qualitative (2017) 10-item & Qualitative Verdict Validation
@@ -262,7 +262,7 @@ export class MethodologyContractTests {
     ]);
     results.push({
       ruleId: 'L1-JBI-01-TEN-ITEMS-VALIDATION',
-      ruleTitle: 'JBI Qualitative (2017): Må ha nøyaktig 10 unike items med gyldige svarkoder',
+      ruleTitle: 'JBI Qualitative (2017): MÃ¥ ha nÃ¸yaktig 10 unike items med gyldige svarkoder',
       level: 'LEVEL_1_UNIT',
       category: 'VERSIONS',
       passed: jbiVal.isValid,
@@ -289,7 +289,7 @@ export class MethodologyContractTests {
       passed: robinsICritical.overallRiskOfBias === 'Critical risk',
       expected: 'overallRiskOfBias: Critical risk',
       actual: `overallRiskOfBias: ${robinsICritical.overallRiskOfBias}`,
-      details: 'ROBINS-I determinerer samlet bias basert på det dårligste domenet.'
+      details: 'ROBINS-I determinerer samlet bias basert pÃ¥ det dÃ¥rligste domenet.'
     });
 
     // 1.13 ROBIS Phase 2 to Phase 3 Synthesis Test (High Risk in Domain 2)
@@ -302,7 +302,7 @@ export class MethodologyContractTests {
     });
     results.push({
       ruleId: 'L1-ROBIS-01-PHASE2-TO-PHASE3-HIGH',
-      ruleTitle: 'ROBIS: Høy risiko i fase 2-domene skal føre til samlet høy risiko for bias',
+      ruleTitle: 'ROBIS: HÃ¸y risiko i fase 2-domene skal fÃ¸re til samlet hÃ¸y risiko for bias',
       level: 'LEVEL_1_UNIT',
       category: 'SCORING',
       passed: robisEval.phase3OverallRiskOfBias === 'High risk',
@@ -376,10 +376,10 @@ export class MethodologyContractTests {
     });
     results.push({
       ruleId: 'L1-MMAT-01-NO-NUMERIC-SUM',
-      ruleTitle: 'MMAT 2018: Forbyr numerisk sumskår og krever deskriptiv profil',
+      ruleTitle: 'MMAT 2018: Forbyr numerisk sumskÃ¥r og krever deskriptiv profil',
       level: 'LEVEL_1_UNIT',
       category: 'SAFETY',
-      passed: mmatEval.screeningPassed === true && mmatEval.methodologicalWarning.includes('forbyr eksplisitt å beregne en samlet numerisk poengsum'),
+      passed: mmatEval.screeningPassed === true && mmatEval.methodologicalWarning.includes('forbyr eksplisitt Ã¥ beregne en samlet numerisk poengsum'),
       expected: 'screeningPassed: true with explicit no-score warning',
       actual: `screeningPassed: ${mmatEval.screeningPassed}`,
       details: 'Hong et al. (MMAT 2018) retningslinjer.'
@@ -410,10 +410,10 @@ export class MethodologyContractTests {
     const prismaNotice = ReportingStandardNoticeEngine.getMethodologicalNotice('prisma');
     results.push({
       ruleId: 'L1-REPORTING-01-NOT-RISK-OF-BIAS',
-      ruleTitle: 'Rapporteringsstandarder: CONSORT, PRISMA, STROBE er ikke Risk of Bias-verktøy',
+      ruleTitle: 'Rapporteringsstandarder: CONSORT, PRISMA, STROBE er ikke Risk of Bias-verktÃ¸y',
       level: 'LEVEL_1_UNIT',
       category: 'SAFETY',
-      passed: prismaNotice.includes('rapporteringsstandard (reporting guideline)') && prismaNotice.includes('IKKE et risikovurderingsverktøy'),
+      passed: prismaNotice.includes('rapporteringsstandard (reporting guideline)') && prismaNotice.includes('IKKE et risikovurderingsverktÃ¸y'),
       expected: 'Contains reporting guideline vs risk of bias demarcation',
       actual: 'Demarcation verified',
       details: 'EQUATOR Network standard.'
@@ -427,13 +427,13 @@ export class MethodologyContractTests {
     const gateMismatched = StudyDesignGateService.validateCompatibility('amstar-2', 'Kvalitativ intervjustudie (Hermeneutikk)');
     results.push({
       ruleId: 'L2-GATE-01-STUDY-DESIGN-MISMATCH',
-      ruleTitle: 'StudyDesignGate: Valg av AMSTAR 2 for kvalitativ primærstudie skal gi advarsel',
+      ruleTitle: 'StudyDesignGate: Valg av AMSTAR 2 for kvalitativ primÃ¦rstudie skal gi advarsel',
       level: 'LEVEL_2_INTEGRATION',
       category: 'GATING',
       passed: gateMismatched.isCompatible === false && gateMismatched.recommendedInstrumentId === 'jbi-qualitative-2017',
       expected: 'isCompatible: false, recommendedInstrumentId: jbi-qualitative-2017',
       actual: `isCompatible: ${gateMismatched.isCompatible}, recommended: ${gateMismatched.recommendedInstrumentId}`,
-      details: 'Forhindrer feilanvendelse av vurderingsinstrumenter på uegnede studietypedesign.'
+      details: 'Forhindrer feilanvendelse av vurderingsinstrumenter pÃ¥ uegnede studietypedesign.'
     });
 
     // 2.2 Study Design Compatibility Gate: Compatible match
@@ -453,20 +453,20 @@ export class MethodologyContractTests {
     const verifiedInstruments = MASTER_INSTRUMENTS_REGISTRY.filter(i => i.verificationStatus === 'VERIFIED');
     results.push({
       ruleId: 'L2-REGISTRY-01-ALL-INSTRUMENTS-VERIFIED',
-      ruleTitle: 'MasterRegistry: Alle registrerte instrumenter må ha verifisert kilde og URL/DOI',
+      ruleTitle: 'MasterRegistry: Alle registrerte instrumenter mÃ¥ ha verifisert kilde og URL/DOI',
       level: 'LEVEL_2_INTEGRATION',
       category: 'REGISTRY',
       passed: verifiedInstruments.length >= 10 && MASTER_INSTRUMENTS_REGISTRY.every(i => (i.doi || i.sourceUrl) && i.sourceUrl),
       expected: 'Minimum 10 verifiserte instrumenter med autoritativ kilde/URL',
       actual: `${verifiedInstruments.length} verifiserte instrumenter registrert`,
-      details: 'Garanterer at ingen uverifiserte instrumenter markedsføres uten autoritativ kilde.'
+      details: 'Garanterer at ingen uverifiserte instrumenter markedsfÃ¸res uten autoritativ kilde.'
     });
 
     // 2.4 Snapshot Immutability & Hash integrity
     const sampleArticle = EXAMPLE_ARTICLES[0];
     results.push({
       ruleId: 'L2-SNAPSHOT-01-VERSION-LOCK',
-      ruleTitle: 'Snapshot: Vurderinger må låses med instrumentId, versjon og sjekksum',
+      ruleTitle: 'Snapshot: Vurderinger mÃ¥ lÃ¥ses med instrumentId, versjon og sjekksum',
       level: 'LEVEL_2_INTEGRATION',
       category: 'SNAPSHOTS',
       passed: !!sampleArticle && !!sampleArticle.instrumentId && sampleArticle.items.length === 10,
@@ -490,7 +490,7 @@ export class MethodologyContractTests {
         passed: l3Res.status === 'PASS',
         expected: `Expected: ${l3Res.expectedVerdict}`,
         actual: `Calculated: ${l3Res.calculatedVerdict}`,
-        details: `Kjøretid: ${l3Res.executionTimeMs}ms. Verifisert mot publisert metodisk referansedatasett.`,
+        details: `KjÃ¸retid: ${l3Res.executionTimeMs}ms. Verifisert mot publisert metodisk referansedatasett.`,
         executionTimeMs: l3Res.executionTimeMs
       });
     });
@@ -545,7 +545,7 @@ export class MethodologyContractTests {
         suiteId: 'suite-level-1-unit',
         suiteName: 'Level 1: Unit Tests (Metodisk logikk & Inputvalidering)',
         level: 'LEVEL_1_UNIT',
-        description: 'Enhetstester for alle skåringskombinasjoner i AMSTAR 2, AGREE II, CASP og JBI.',
+        description: 'Enhetstester for alle skÃ¥ringskombinasjoner i AMSTAR 2, AGREE II, CASP og JBI.',
         passed: level1Results.every(r => r.passed),
         assertions: level1Results.map(r => ({
           ruleId: r.ruleId,
@@ -556,9 +556,9 @@ export class MethodologyContractTests {
       },
       {
         suiteId: 'suite-level-2-integration',
-        suiteName: 'Level 2: Integration Tests (Gating, Låsing & Arbeidsflyt)',
+        suiteName: 'Level 2: Integration Tests (Gating, LÃ¥sing & Arbeidsflyt)',
         level: 'LEVEL_2_INTEGRATION',
-        description: 'Integrasjonstester for studiedesign-gating, sjekksummer, versjonslåser og fler-granskerflyt.',
+        description: 'Integrasjonstester for studiedesign-gating, sjekksummer, versjonslÃ¥ser og fler-granskerflyt.',
         passed: level2Results.every(r => r.passed),
         assertions: level2Results.map(r => ({
           ruleId: r.ruleId,
@@ -598,7 +598,8 @@ export class MethodologyContractTests {
       totalExecutionTimeMs,
       suites,
       results,
-      academicHonestyNotice: 'AKADEMISK INTEGRITETSERKLÆRING: Bestått programvaretest («Software test passed») bekrefter algoritmisk determinisme og fravær av implementeringsfeil, men erstatter ALDRI vitenskapelig forskerskjønn eller manuell fagfellevurdering.'
+      academicHonestyNotice: 'AKADEMISK INTEGRITETSERKLÃ†RING: BestÃ¥tt programvaretest (Â«Software test passedÂ») bekrefter algoritmisk determinisme og fravÃ¦r av implementeringsfeil, men erstatter ALDRI vitenskapelig forskerskjÃ¸nn eller manuell fagfellevurdering.'
     };
   }
 }
+

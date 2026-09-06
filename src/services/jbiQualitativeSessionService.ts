@@ -1,4 +1,4 @@
-import { JBI_QUESTIONS } from '../data/jbiData';
+﻿import { JBI_QUESTIONS } from '../data/jbiData';
 import { JbiQualitativeAssessmentEngine } from './assessmentEngines';
 import { createBlankAppraisalSession, upsertAppraisalResponse, type AppraisalSession } from './universalAppraisalService';
 import { appraisalWorkflowStore } from './appraisalWorkflowBridge';
@@ -24,7 +24,7 @@ export function answerJbiQuestion(
   evidence?: { quote?: string; page?: string; section?: string; sourceId?: string },
 ): AppraisalSession {
   const question = JBI_QUESTIONS.find(item => item.id === questionId);
-  if (!question) throw new Error(`Ukjent JBI-spørsmål: ${questionId}`);
+  if (!question) throw new Error(`Ukjent JBI-spÃ¸rsmÃ¥l: ${questionId}`);
   return upsertAppraisalResponse(session, {
     itemId: questionId,
     answer,
@@ -47,3 +47,4 @@ export function evaluateJbiQualitativeSession(session: AppraisalSession): JbiQua
     summary: JbiQualitativeAssessmentEngine.evaluate(items),
   };
 }
+

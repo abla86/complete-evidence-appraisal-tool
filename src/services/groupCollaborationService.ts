@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   ResearchGroupWorkspace, 
   ReviewerProfile, 
   PeerReviewSubmission, 
@@ -69,13 +69,13 @@ export class GroupCollaborationService {
         // Vary question 6 (researcher reflexivity) or 7 (cultural context) on specific articles
         if (index === 0 && item.questionId === 6) {
           itemCopy.status = 'Uklart';
-          itemCopy.justification = 'Reviewer 2 bemerker: Forfatterne oppgir stilling, men diskuterer ikke eksplisitt forforståelsens innvirkning på dataanalysen.';
+          itemCopy.justification = 'Reviewer 2 bemerker: Forfatterne oppgir stilling, men diskuterer ikke eksplisitt forforstÃ¥elsens innvirkning pÃ¥ dataanalysen.';
         } else if (index === 0 && item.questionId === 7) {
           itemCopy.status = 'Ja';
           itemCopy.justification = 'Reviewer 2 vurderer: Kulturell setting er tilstrekkelig beskrevet i innledningskapittelet.';
         } else if (index === 1 && item.questionId === 8) {
           itemCopy.status = 'Uklart';
-          itemCopy.justification = 'Reviewer 2 notat: Sitater er fyldige, men informantkoder mangler på 2 av 8 nøkkelutsagn.';
+          itemCopy.justification = 'Reviewer 2 notat: Sitater er fyldige, men informantkoder mangler pÃ¥ 2 av 8 nÃ¸kkelutsagn.';
         }
         return itemCopy;
       });
@@ -115,7 +115,7 @@ export class GroupCollaborationService {
           completedAt: '2026-03-01T12:15:00Z',
           items: rev2Items,
           overallVerdict: art.overallVerdict === 'Inkluder' ? 'Inkluder' : 'Vurder videre',
-          verdictRationale: 'Uavhengig gjennomgang fullført. Mindre uklarheter ved forskerposisjonering (Q6) bør drøftes i konsensusmøte.',
+          verdictRationale: 'Uavhengig gjennomgang fullfÃ¸rt. Mindre uklarheter ved forskerposisjonering (Q6) bÃ¸r drÃ¸ftes i konsensusmÃ¸te.',
           keyStrength: art.keyStrength,
           mainLimitation: art.mainLimitation
         }
@@ -144,8 +144,8 @@ export class GroupCollaborationService {
         arbiterId: 'rev-3',
         itemConsensus,
         overallVerdict: art.overallVerdict as PeerReviewSubmission['overallVerdict'],
-        verdictRationale: 'Enstemmig konsensus oppnådd etter felles kalibrering og gjennomgang av primærkildens sitater.',
-        consensusNotes: 'Konsensusmøte avholdt via digital samhandling. Ingen uoverkommelige metodiske avvik identifisert.',
+        verdictRationale: 'Enstemmig konsensus oppnÃ¥dd etter felles kalibrering og gjennomgang av primÃ¦rkildens sitater.',
+        consensusNotes: 'KonsensusmÃ¸te avholdt via digital samhandling. Ingen uoverkommelige metodiske avvik identifisert.',
         signedOffBy: ['rev-1', 'rev-2'],
         lockedAt: index === 0 ? '2026-03-02T14:00:00Z' : undefined
       };
@@ -160,7 +160,7 @@ export class GroupCollaborationService {
         authorName: 'Lars Erik V.',
         authorRole: 'Co-Reviewer / Medgransker',
         category: 'METHODOLOGY_CONCERN',
-        text: 'Vennligst sjekk s. 142 i artikkelen. Forfatteren nevner at hun har bakgrunn som intensivsykepleier, men reflekterer ikke over hvordan dette påvirket intervjuguiden.',
+        text: 'Vennligst sjekk s. 142 i artikkelen. Forfatteren nevner at hun har bakgrunn som intensivsykepleier, men reflekterer ikke over hvordan dette pÃ¥virket intervjuguiden.',
         createdAt: '2026-03-01T11:45:00Z',
         resolved: true,
         resolvedAt: '2026-03-02T13:30:00Z',
@@ -446,8 +446,8 @@ export class GroupCollaborationService {
       cohensKappa = Math.max(-1, Math.min(1, (po - pe) / (1 - pe)));
     }
 
-    let interpretation = 'Svært god samstemthet (Almost Perfect)';
-    if (cohensKappa < 0.20) interpretation = 'Dårlig samstemthet (Poor / Slight)';
+    let interpretation = 'SvÃ¦rt god samstemthet (Almost Perfect)';
+    if (cohensKappa < 0.20) interpretation = 'DÃ¥rlig samstemthet (Poor / Slight)';
     else if (cohensKappa < 0.40) interpretation = 'Middels samstemthet (Fair)';
     else if (cohensKappa < 0.60) interpretation = 'Moderat samstemthet (Moderate)';
     else if (cohensKappa < 0.80) interpretation = 'Betydelig samstemthet (Substantial)';
@@ -500,7 +500,7 @@ export class GroupCollaborationService {
   public static generateProtocolMarkdown(workspace: ResearchGroupWorkspace, articles: ArticleAppraisal[]): string {
     let md = `# Fagfellevurderings- og Konsensusprotokoll\n\n`;
     md += `**Prosjekt:** ${workspace.projectName}\n`;
-    md += `**Institusjon / Fagmiljø:** ${workspace.institutionOrCourse || 'Helsevitenskapelig fakultet'}\n`;
+    md += `**Institusjon / FagmiljÃ¸:** ${workspace.institutionOrCourse || 'Helsevitenskapelig fakultet'}\n`;
     md += `**Standard:** ${workspace.protocolPrismaTarget || 'PRISMA 2020 / JBI Critical Appraisal Guidelines'}\n`;
     md += `**Generert dato:** ${new Date().toLocaleDateString('no-NO')} ${new Date().toLocaleTimeString('no-NO')}\n\n`;
 
@@ -511,10 +511,10 @@ export class GroupCollaborationService {
       md += `| **${m.name}** | ${m.role} | ${m.institution || '-'} | ${m.email || '-'} |\n`;
     });
 
-    md += `\n## 2. Metodisk Gjennomføring & Blindingsprotokoll\n\n`;
+    md += `\n## 2. Metodisk GjennomfÃ¸ring & Blindingsprotokoll\n\n`;
     md += `- **Uavhengig dobbeltgransking:** ${workspace.requireDualReview ? 'Ja (Minst to uavhengige granskere per artikkel)' : 'Nei'}\n`;
-    md += `- **Blindingsstatus:** ${workspace.blindedMode ? 'Aktiv (Granskere ser ikke hverandres skår før innsending)' : 'Åpen / Kalibrert'}\n`;
-    md += `- **Konsensusprosedyre:** Ved uenighet gjennomføres strukturert konsensusmøte. Uløste tvister avgjøres av tredjeperson (Arbiter).\n\n`;
+    md += `- **Blindingsstatus:** ${workspace.blindedMode ? 'Aktiv (Granskere ser ikke hverandres skÃ¥r fÃ¸r innsending)' : 'Ã…pen / Kalibrert'}\n`;
+    md += `- **Konsensusprosedyre:** Ved uenighet gjennomfÃ¸res strukturert konsensusmÃ¸te. UlÃ¸ste tvister avgjÃ¸res av tredjeperson (Arbiter).\n\n`;
 
     md += `## 3. Studie-for-studie Samstemthet og Konsensusvedtak\n\n`;
 
@@ -523,21 +523,21 @@ export class GroupCollaborationService {
       const consensus = workspace.consensusRecords[art.id];
       const agreement = this.calculateAgreement(subs);
 
-      md += `### 3.${idx + 1} ${art.shortCitation} – ${art.title}\n\n`;
-      md += `* **Forfattere & År:** ${art.authors} (${art.year})\n`;
+      md += `### 3.${idx + 1} ${art.shortCitation} â€“ ${art.title}\n\n`;
+      md += `* **Forfattere & Ã…r:** ${art.authors} (${art.year})\n`;
       md += `* **Tidsskrift & DOI:** *${art.journal}* | DOI: ${art.doi || 'N/A'}\n`;
       md += `* **Innsendte vurderinger:** ${subs.length} granskere (${subs.map(s => s.reviewerName).join(', ') || 'Ingen'})\n`;
       
       if (agreement) {
-        md += `* **Inter-rater Agreement:** ${agreement.percentAgreement}% samstemthet | Cohen's κ = **${agreement.cohensKappa}** (${agreement.interpretation})\n`;
+        md += `* **Inter-rater Agreement:** ${agreement.percentAgreement}% samstemthet | Cohen's Îº = **${agreement.cohensKappa}** (${agreement.interpretation})\n`;
       }
 
       if (consensus) {
         md += `* **Endelig Konsensusvedtak:** \`${consensus.overallVerdict}\`\n`;
         md += `* **Konsensusbegrunnelse:** ${consensus.verdictRationale}\n`;
-        md += `* **Konsensusmøte:** ${consensus.meetingDate || 'Gjennomført'} | Signert av: ${consensus.signedOffBy.join(', ')}\n\n`;
+        md += `* **KonsensusmÃ¸te:** ${consensus.meetingDate || 'GjennomfÃ¸rt'} | Signert av: ${consensus.signedOffBy.join(', ')}\n\n`;
 
-        md += `#### Kriterie-for-kriterie Konsensus (JBI Q1–Q10):\n\n`;
+        md += `#### Kriterie-for-kriterie Konsensus (JBI Q1â€“Q10):\n\n`;
         md += `| # | JBI Kriterium | Konsensus Status | Begrunnelse |\n`;
         md += `|---|---|---|---|\n`;
         JBI_QUESTIONS.forEach(q => {
@@ -545,14 +545,14 @@ export class GroupCollaborationService {
           md += `| ${q.id} | ${q.shortTitle} | **${itemCons?.status || '-'}** | ${itemCons?.rationale || '-'} |\n`;
         });
       } else {
-        md += `* **Konsensusstatus:** Avventer endelig konsensusmøte.\n`;
+        md += `* **Konsensusstatus:** Avventer endelig konsensusmÃ¸te.\n`;
       }
 
       md += `\n---\n\n`;
     });
 
     md += `## 4. Signaturer & Kvalitetssikring\n\n`;
-    md += `Undertegnede bekrefter at kvalitetsvurderingen og konsensusprosessen er utført i henhold til gjeldende metodologiske standarder og god forskningsetikk:\n\n`;
+    md += `Undertegnede bekrefter at kvalitetsvurderingen og konsensusprosessen er utfÃ¸rt i henhold til gjeldende metodologiske standarder og god forskningsetikk:\n\n`;
     workspace.members.forEach(m => {
       md += `- _____________________________________\n  **${m.name}** (${m.role})\n\n`;
     });
@@ -582,7 +582,7 @@ export class GroupCollaborationService {
 
     html += `<h1>Fagfellevurderings- og Konsensusprotokoll</h1>`;
     html += `<p><strong>Prosjekt:</strong> ${workspace.projectName}<br>`;
-    html += `<strong>Institusjon / Fagmiljø:</strong> ${workspace.institutionOrCourse || 'Helsevitenskapelig fakultet'}<br>`;
+    html += `<strong>Institusjon / FagmiljÃ¸:</strong> ${workspace.institutionOrCourse || 'Helsevitenskapelig fakultet'}<br>`;
     html += `<strong>Dato:</strong> ${new Date().toLocaleDateString('no-NO')} | <strong>Standard:</strong> ${workspace.protocolPrismaTarget || 'PRISMA 2020'}</p>`;
 
     html += `<h2>1. Granskere & Forskningsteam</h2>`;
@@ -599,11 +599,11 @@ export class GroupCollaborationService {
       const consensus = workspace.consensusRecords[art.id];
       const agreement = this.calculateAgreement(subs);
 
-      html += `<h3>${idx + 1}. ${art.shortCitation} – ${art.title}</h3>`;
+      html += `<h3>${idx + 1}. ${art.shortCitation} â€“ ${art.title}</h3>`;
       html += `<p><strong>Forfattere:</strong> ${art.authors} (${art.year}) | <strong>Tidsskrift:</strong> <em>${art.journal}</em> | <strong>DOI:</strong> ${art.doi || 'N/A'}</p>`;
       
       if (agreement) {
-        html += `<p><strong>Inter-Rater Samstemthet:</strong> ${agreement.percentAgreement}% rå samstemthet | Cohen's &kappa; = <strong>${agreement.cohensKappa}</strong> (${agreement.interpretation})</p>`;
+        html += `<p><strong>Inter-Rater Samstemthet:</strong> ${agreement.percentAgreement}% rÃ¥ samstemthet | Cohen's &kappa; = <strong>${agreement.cohensKappa}</strong> (${agreement.interpretation})</p>`;
       }
 
       if (consensus) {
@@ -620,7 +620,7 @@ export class GroupCollaborationService {
     });
 
     html += `<h2>3. Formelle Signaturer</h2>`;
-    html += `<p>Protokollen er gjennomgått og godkjent av samtlige granskere:</p>`;
+    html += `<p>Protokollen er gjennomgÃ¥tt og godkjent av samtlige granskere:</p>`;
     html += `<table style='border: none;'>`;
     workspace.members.forEach(m => {
       html += `<tr style='border: none;'><td style='border: none; padding: 20px 0 5px 0;'>________________________________________________<br><strong>${m.name}</strong> (${m.role})</td></tr>`;
@@ -631,3 +631,4 @@ export class GroupCollaborationService {
     return html;
   }
 }
+

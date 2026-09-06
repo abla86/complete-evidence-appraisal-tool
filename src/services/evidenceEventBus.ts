@@ -1,4 +1,4 @@
-export type EvidenceEventMap = {
+﻿export type EvidenceEventMap = {
   'research.document.attached': {
     studyId: string;
     documentId: string;
@@ -65,3 +65,4 @@ export class InMemoryEvidenceEventBus implements EvidenceEventBus {
 }
 
 export const evidenceEventBus = new InMemoryEvidenceEventBus();
+

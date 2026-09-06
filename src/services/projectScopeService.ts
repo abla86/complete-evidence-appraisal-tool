@@ -1,4 +1,4 @@
-import { requireProjectPermission, type ProjectAccess, type ProjectPermission } from './projectAccessService';
+﻿import { requireProjectPermission, type ProjectAccess, type ProjectPermission } from './projectAccessService';
 
 export interface ProjectScopedAction {
   projectId: string;
@@ -17,3 +17,4 @@ export function assertSameProject(projectId: string, referencedProjectId: string
     throw new Error('PROJECT_SCOPE_DENIED: cross-project reference detected.');
   }
 }
+

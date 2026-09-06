@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { AppraisalInstrument } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { 
@@ -34,7 +34,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
   const inst = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
 
   if (!inst) {
-    return <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-sm text-amber-950">Ukjent eller manglende instrument. Velg et eksplisitt registrert instrument før instrumentinformasjon vises.</div>;
+    return <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-sm text-amber-950">Ukjent eller manglende instrument. Velg et eksplisitt registrert instrument fÃ¸r instrumentinformasjon vises.</div>;
   }
 
   const handleCopyCitation = () => {
@@ -82,7 +82,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold shadow-xs transition-colors"
               >
                 <ShieldCheck className="w-4 h-4 text-teal-200" />
-                <span>Gå til JBI Qualitative matrise</span>
+                <span>GÃ¥ til JBI Qualitative matrise</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
@@ -94,7 +94,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
               >
-                <span>Åpne originalmanual</span>
+                <span>Ã…pne originalmanual</span>
                 <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
               </a>
             )}
@@ -110,7 +110,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
           </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-            <span className="font-bold text-slate-900 block uppercase text-[10px] tracking-wider">Autoritetsnivå</span>
+            <span className="font-bold text-slate-900 block uppercase text-[10px] tracking-wider">AutoritetsnivÃ¥</span>
             <div className="flex items-center gap-1 text-teal-800 font-bold text-[11px]">
               <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
               <span>{inst.authorityLevel}</span>
@@ -121,7 +121,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
             <span className="font-bold text-slate-900 block uppercase text-[10px] tracking-wider">Scoringmodell</span>
             <p className="font-mono text-teal-900 font-bold text-[11px]">{inst.scoringModel}</p>
-            <p className="text-[11px] text-slate-500">Metodisk etterprøvbarhet</p>
+            <p className="text-[11px] text-slate-500">Metodisk etterprÃ¸vbarhet</p>
           </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
@@ -179,7 +179,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
         <div className="space-y-4">
           <div className="bg-teal-50 border border-teal-200 p-4 rounded-2xl text-xs text-teal-950 flex items-center justify-between">
             <div>
-              <strong>Offisielle vurderingskriterier for {inst.shortName}:</strong> Viser alle {inst.questions.length} ledd med signalspørsmål og veiledning.
+              <strong>Offisielle vurderingskriterier for {inst.shortName}:</strong> Viser alle {inst.questions.length} ledd med signalspÃ¸rsmÃ¥l og veiledning.
             </div>
             <span className="font-mono font-bold text-[11px] bg-teal-100 px-2 py-0.5 rounded text-teal-900">
               {inst.itemCount} ledd
@@ -229,13 +229,13 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
             <span>Eksplisitt forbudte akademiske og metodiske praksiser</span>
           </div>
           <p className="text-amber-900 text-xs leading-relaxed">
-            For å opprettholde epistemologisk stringens og unngå feilaktig metodereduksjon, må følgende feil aldri begås ved bruk av {inst.shortName}:
+            For Ã¥ opprettholde epistemologisk stringens og unngÃ¥ feilaktig metodereduksjon, mÃ¥ fÃ¸lgende feil aldri begÃ¥s ved bruk av {inst.shortName}:
           </p>
 
           <ul className="space-y-2.5">
             {inst.prohibitedAcademicPractices.map((proc, i) => (
               <li key={i} className="p-3 bg-white/80 border border-amber-200 rounded-xl text-amber-950 flex items-start gap-2">
-                <span className="font-bold text-amber-800 text-sm leading-none">•</span>
+                <span className="font-bold text-amber-800 text-sm leading-none">â€¢</span>
                 <span className="font-medium">{proc}</span>
               </li>
             ))}
@@ -252,7 +252,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-teal-700" />
-                  <span>Autoritativ Kilde & Primærpublikasjon</span>
+                  <span>Autoritativ Kilde & PrimÃ¦rpublikasjon</span>
                 </h3>
                 <button
                   onClick={handleCopyCitation}
@@ -338,7 +338,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
               </div>
 
               <div className="pt-3 border-t border-slate-200 space-y-2">
-                <span className="font-bold text-slate-900 text-[11px] block">Målgruppe / Studiedesign:</span>
+                <span className="font-bold text-slate-900 text-[11px] block">MÃ¥lgruppe / Studiedesign:</span>
                 <div className="flex flex-wrap gap-1">
                   {inst.targetStudyDesign.map(des => (
                     <span key={des} className="px-2 py-0.5 rounded bg-teal-50 border border-teal-200 text-teal-900 text-[10px] font-medium">
@@ -358,7 +358,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
                 <span>Immutable Version Lock</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Vurderinger som utføres med {inst.shortName} låses til versjon {inst.version} og sjekksum <code className="text-teal-200 font-mono">{inst.validationChecksum}</code> for å sikre etterprøvbarhet i akademiske oppgaver og systematiske oversikter.
+                Vurderinger som utfÃ¸res med {inst.shortName} lÃ¥ses til versjon {inst.version} og sjekksum <code className="text-teal-200 font-mono">{inst.validationChecksum}</code> for Ã¥ sikre etterprÃ¸vbarhet i akademiske oppgaver og systematiske oversikter.
               </p>
             </div>
           </div>
@@ -367,3 +367,4 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
     </div>
   );
 };
+
