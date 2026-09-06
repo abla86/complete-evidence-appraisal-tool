@@ -299,20 +299,19 @@ export class MetaResearchService {
       };
     }
 
-    // Default to Qualitative Research
-    detectedKeywords.push('intervju', 'meningsbærende strukturer', 'tematisk analyse', 'opplevelser');
+    // Do not infer a qualitative design when the document does not contain sufficient evidence.
     return {
-      documentType: 'PRIMARY_QUALITATIVE',
-      documentTypeName: 'Kvalitativ primærforskning (Intervjuer, observasjon, hermeneutikk, fenomenologi)',
-      methodologyType: 'Kvalitativ',
-      epistemology: 'Konstruktivistisk / Hermeneutisk / Fenomenologisk',
-      confidenceScore: 95,
-      detectedKeywords,
-      rationale: 'Teksten utforsker deltakeres levde erfaringer, meningsdannelse eller sosiale prosesser via kvalitative metoder.',
-      unitOfAnalysis: 'Kvalitativ primærstudie (artikkelnivå)',
-      recommendedInstrumentId: 'jbi-qualitative-2017',
-      alternativeInstrumentIds: ['casp-qualitative', 'mmat-2018'],
-      incompatibleInstrumentIds: ['rob-2', 'amstar-2', 'robins-i', 'quadas-2']
+      documentType: 'UNKNOWN_UNCERTAIN',
+      documentTypeName: 'Uavklart studiedesign – krever manuell verifisering',
+      methodologyType: 'Ukjent / Uavklart',
+      epistemology: 'Uavklart',
+      confidenceScore: 0,
+      detectedKeywords: [],
+      rationale: 'Ingen tilstrekkelig evidens for automatisk studiedesignklassifisering. Manuell verifisering er påkrevd før instrument velges.',
+      unitOfAnalysis: 'Uavklart',
+      recommendedInstrumentId: 'manual-verification-required',
+      alternativeInstrumentIds: [],
+      incompatibleInstrumentIds: []
     };
   }
 
