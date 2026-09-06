@@ -132,7 +132,7 @@ export class SnapshotService {
     };
 
     const newAuditEntry = {
-      id: `AUD-${Date.now()}`,
+      id: createId('AUD'),
       studyId: appraisal.id,
       reviewer: finalizedBy,
       instrumentId: currentSnapshot.instrumentId,
