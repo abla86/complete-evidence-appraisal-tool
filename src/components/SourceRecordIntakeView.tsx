@@ -53,7 +53,7 @@ export const SourceRecordIntakeView: React.FC = () => {
     <section className="space-y-6">
       <header>
         <h2 className="text-xl font-bold text-slate-900">SourceRecord Intake</h2>
-        <p className="text-sm text-slate-600 mt-1">Motta, valider og registrer Ã©n kildepost fÃ¸r den kobles til screening og PICO/PECO.</p>
+        <p className="text-sm text-slate-600 mt-1">Motta, valider og registrer Ã©n kildepost før den kobles til screening og PICO/PECO.</p>
       </header>
 
       <div className="flex gap-2">
