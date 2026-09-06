@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { ArticleAppraisal, AssessmentLifecycleStatus } from '../types';
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { JbiQualitativeValidationService } from '../services/jbiValidationService';
@@ -102,13 +102,13 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
       const verified = MethodIntegrityGate.verifyAppraisal(article, article.reviewerName || 'Reviewer 1');
       const finalized = SnapshotService.finalizeAssessment(verified, article.reviewerName || 'Reviewer 1');
       onEditArticle(finalized);
-      showToast('Vurderingen er verifisert mot MethodologyRegistry og forseglet med uforanderlig lås.', 'success');
+      showToast('Vurderingen er verifisert mot MethodologyRegistry og forseglet med uforanderlig lÃ¥s.', 'success');
     }
   };
 
   const handleConfirmReopen = () => {
     if (!reopenReason || reopenReason.trim().length < 5) {
-      showToast('Du må oppgi en obligatorisk faglig begrunnelse (minst 5 tegn) for gjenåpning.', 'error');
+      showToast('Du mÃ¥ oppgi en obligatorisk faglig begrunnelse (minst 5 tegn) for gjenÃ¥pning.', 'error');
       return;
     }
     if (onEditArticle) {
@@ -117,9 +117,9 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
         onEditArticle(reopened);
         setShowReopenModal(false);
         setReopenReason('');
-        showToast('Vurderingen er gjenåpnet for redigering. Endringen er loggført i audit trail.', 'success');
-      } catch (err: any) {
-        showToast(err.message || 'Kunne ikke gjenåpne', 'error');
+        showToast('Vurderingen er gjenÃ¥pnet for redigering. Endringen er loggfÃ¸rt i audit trail.', 'success');
+      } catch (err: unknown) {
+        showToast(err.message || 'Kunne ikke gjenÃ¥pne', 'error');
       }
     }
   };
@@ -135,8 +135,8 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     md += `**Tittel:** ${article.title}\n`;
     md += `**Forfattere:** ${article.authors} (${article.year})\n`;
     md += `**Kilde:** ${article.journal} | DOI: ${article.doi}\n`;
-    md += `**Status:** ${currentLifecycle} | Låst: ${isLocked ? 'Ja' : 'Nei'} | MethodIntegrityGate: VERIFISERT\n`;
-    md += `**Vurderer:** ${article.reviewerName || 'Primærvurderer'} | Dato: ${article.assessmentDate || '2024-03-15'}\n\n`;
+    md += `**Status:** ${currentLifecycle} | LÃ¥st: ${isLocked ? 'Ja' : 'Nei'} | MethodIntegrityGate: VERIFISERT\n`;
+    md += `**Vurderer:** ${article.reviewerName || 'PrimÃ¦rvurderer'} | Dato: ${article.assessmentDate || '2024-03-15'}\n\n`;
     md += `| Spm | JBI Kriterium | Vurdering | Begrunnelse (Rationale) | Evidens i artikkelen | Lokasjon |\n`;
     md += `|---|---|---|---|---|---|\n`;
     
@@ -149,7 +149,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     });
     
     md += `\n### Samlet resultat: ${article.summaryScore.ja} Ja, ${article.summaryScore.uklart} Uklart, ${article.summaryScore.nei} Nei\n`;
-    md += `**Inklusjonsbeslutning:** ${article.overallVerdict} — ${article.verdictNote}\n`;
+    md += `**Inklusjonsbeslutning:** ${article.overallVerdict} â€” ${article.verdictNote}\n`;
     md += `**Integritetssertifikat:** ${gateResult.integrityHash}\n`;
     
     navigator.clipboard.writeText(md);
@@ -231,7 +231,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             onClick={onGoToOverview}
             className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors shrink-0"
           >
-            ← Bibliotek
+            â† Bibliotek
           </button>
 
           {(allArticles?.length ?? 0) > 0 && onSelectArticleId && (
@@ -241,14 +241,14 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               </label>
               <select
                 id="article-select"
-                aria-label="Velg artikkel å inspisere"
+                aria-label="Velg artikkel Ã¥ inspisere"
                 value={article.id}
                 onChange={(e) => onSelectArticleId(e.target.value)}
                 className="w-full text-xs font-semibold text-slate-800 bg-slate-50 hover:bg-white border border-slate-300 rounded-xl py-2 px-3 focus:outline-hidden focus:ring-2 focus:ring-teal-700 cursor-pointer shadow-2xs"
               >
                 {allArticles.map(a => (
                   <option key={a.id} value={a.id}>
-                    {a.shortCitation} ({a.summaryScore.ja}/10 Ja) — {a.title.substring(0, 45)}...
+                    {a.shortCitation} ({a.summaryScore.ja}/10 Ja) â€” {a.title.substring(0, 45)}...
                   </option>
                 ))}
               </select>
@@ -263,12 +263,12 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             {isLocked ? (
               <span className="text-emerald-800 flex items-center gap-1">
                 <Lock className="w-3.5 h-3.5 text-emerald-700" />
-                <span>FINALISERT (LÅST)</span>
+                <span>FINALISERT (LÃ…ST)</span>
               </span>
             ) : (
               <span className="text-amber-800 flex items-center gap-1">
                 <Unlock className="w-3.5 h-3.5 text-amber-600" />
-                <span>{currentLifecycle === 'REOPENED' ? 'GJENÅPNET FOR ENDRING' : 'UNDER VURDERING'}</span>
+                <span>{currentLifecycle === 'REOPENED' ? 'GJENÃ…PNET FOR ENDRING' : 'UNDER VURDERING'}</span>
               </span>
             )}
           </div>
@@ -281,7 +281,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl shadow-2xs transition-colors"
             >
               <Unlock className="w-3.5 h-3.5 text-amber-600" />
-              <span>Gjenåpne vurdering</span>
+              <span>GjenÃ¥pne vurdering</span>
             </button>
           ) : (
             <button
@@ -290,7 +290,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-2xs transition-colors"
             >
               <Lock className="w-3.5 h-3.5 text-emerald-200" />
-              <span>Lås & Finaliser</span>
+              <span>LÃ¥s & Finaliser</span>
             </button>
           )}
 
@@ -382,7 +382,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             <div className="flex items-center gap-4 flex-wrap text-xs text-slate-500 pt-1">
               <span className="flex items-center gap-1">
                 <User className="w-3.5 h-3.5 text-teal-700" />
-                Vurderer: <strong className="text-slate-800">{article.reviewerName || 'Primærvurderer'}</strong>
+                Vurderer: <strong className="text-slate-800">{article.reviewerName || 'PrimÃ¦rvurderer'}</strong>
               </span>
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-teal-700" />
@@ -442,7 +442,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 font-semibold text-teal-800 hover:text-teal-950 underline"
                 >
-                  <span>Åpne kilde på {article.sourceName}</span>
+                  <span>Ã…pne kilde pÃ¥ {article.sourceName}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               )}
@@ -595,7 +595,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                 Fargekodet Evidens- & Tekstlokator
               </h3>
               <p className="text-xs text-slate-500">
-                Visuell verifisering av hvor det enkelte svaret er hentet fra i kildeartikkelen med tilhørende sidetall
+                Visuell verifisering av hvor det enkelte svaret er hentet fra i kildeartikkelen med tilhÃ¸rende sidetall
               </p>
             </div>
           </div>
@@ -647,7 +647,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
 
                 {hasEvidence ? (
                   <p className={`italic text-[11px] p-2 bg-white/90 rounded-lg border-l-3 ${color.quoteBorder} text-slate-800 leading-relaxed font-serif`}>
-                    «{item.evidenceText || item.sourceQuoteOrRef}»
+                    Â«{item.evidenceText || item.sourceQuoteOrRef}Â»
                   </p>
                 ) : (
                   <div className="p-2 bg-white/60 rounded-lg text-[10px] text-slate-400 italic">
@@ -675,16 +675,16 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               JBI Kritisk Vurderingstabell (10 Kriterier)
             </h3>
             <p className="text-xs text-slate-500">
-              Strukturert vurdering: Tydelig skille mellom hva som står i artikkelen (Evidens) og forskerens metodiske dom (Rationale)
+              Strukturert vurdering: Tydelig skille mellom hva som stÃ¥r i artikkelen (Evidens) og forskerens metodiske dom (Rationale)
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
             <span>Resultat: <strong>{article.summaryScore.ja} Ja</strong></span>
-            <span>•</span>
+            <span>â€¢</span>
             <span><strong>{article.summaryScore.uklart} Uklart</strong></span>
             {article.summaryScore.nei > 0 && (
               <>
-                <span>•</span>
+                <span>â€¢</span>
                 <span><strong>{article.summaryScore.nei} Nei</strong></span>
               </>
             )}
@@ -719,7 +719,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                     <td className="py-4 px-4 align-top">
                       <div className="space-y-1">
                         <span className="font-bold text-slate-900 text-xs sm:text-sm block">
-                          {question?.shortTitle || `Spørsmål ${item.questionId}`}
+                          {question?.shortTitle || `SpÃ¸rsmÃ¥l ${item.questionId}`}
                         </span>
                         <p className="text-xs text-slate-600 leading-snug">
                           {question?.officialQuestion}
@@ -784,7 +784,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                               <span>Evidens ikke eksplisitt lokalisert</span>
                             </div>
                             <p className="text-[11px] text-amber-800">
-                              (Metodisk sikkerhetsregel: Fravær av tekstfunn betyr ikke automatisk «Nei». Krever manuell verifikasjon av vurderer.)
+                              (Metodisk sikkerhetsregel: FravÃ¦r av tekstfunn betyr ikke automatisk Â«NeiÂ». Krever manuell verifikasjon av vurderer.)
                             </p>
                           </div>
                         )}
@@ -832,7 +832,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
       {/* Bottom Actions */}
       <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h4 className="text-base font-bold font-serif">Klar til å skrive konklusjonen i oppgaven?</h4>
+          <h4 className="text-base font-bold font-serif">Klar til Ã¥ skrive konklusjonen i oppgaven?</h4>
           <p className="text-xs text-slate-300 mt-1">
             Teksten er ferdig formulert med akademisk stringens og APA 7-kildeliste.
           </p>
@@ -842,7 +842,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
           onClick={onGoToThesis}
           className="px-5 py-2.5 text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition-colors whitespace-nowrap shadow-2xs"
         >
-          Se ferdig oppgavetekst →
+          Se ferdig oppgavetekst â†’
         </button>
       </div>
 
@@ -856,7 +856,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 font-serif">
-                  Gjenåpne finalisert vurdering
+                  GjenÃ¥pne finalisert vurdering
                 </h3>
                 <p className="text-xs text-slate-500">
                   Audit Trail Logging & Metodisk Sporbarhet
@@ -865,13 +865,13 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              For å ivareta forskningsintegritet kreves det en eksplisitt faglig begrunnelse for å åpne en låst vurdering. Begrunnelsen og tidspunktet loggføres uutslettelig i studiens <strong>Audit Trail</strong>.
+              For Ã¥ ivareta forskningsintegritet kreves det en eksplisitt faglig begrunnelse for Ã¥ Ã¥pne en lÃ¥st vurdering. Begrunnelsen og tidspunktet loggfÃ¸res uutslettelig i studiens <strong>Audit Trail</strong>.
             </p>
 
             <div className="space-y-3 pt-2">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Vurderer / Forsker som gjenåpner:
+                  Vurderer / Forsker som gjenÃ¥pner:
                 </label>
                 <input
                   type="text"
@@ -889,7 +889,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                   rows={3}
                   value={reopenReason}
                   onChange={(e) => setReopenReason(e.target.value)}
-                  placeholder="F.eks: 'Ny informasjon innhentet fra forfatter angående etisk godkjenning (JBI 9)' eller 'Kvalitetskontroll etter fagfellevurdering'."
+                  placeholder="F.eks: 'Ny informasjon innhentet fra forfatter angÃ¥ende etisk godkjenning (JBI 9)' eller 'Kvalitetskontroll etter fagfellevurdering'."
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-700"
                 />
               </div>
@@ -908,7 +908,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                 onClick={handleConfirmReopen}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-700 hover:bg-amber-800 shadow-xs"
               >
-                Bekreft & Gjenåpne
+                Bekreft & GjenÃ¥pne
               </button>
             </div>
           </div>
@@ -917,3 +917,5 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     </div>
   );
 };
+
+

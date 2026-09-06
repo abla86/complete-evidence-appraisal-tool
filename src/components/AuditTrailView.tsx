@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ArticleAppraisal, AuditTrailEntry } from '../types';
 import { History, Search, Download, ShieldCheck, User, Calendar, FileText, BookOpen, Lock, CheckCircle, AlertOctagon } from 'lucide-react';
 import { useToast } from './Toast';
@@ -82,7 +82,7 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
         {articles.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-200 text-xs">
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700">Filtrer på studie:</label>
+              <label className="font-semibold text-slate-700">Filtrer pÃ¥ studie:</label>
               <select
                 value={selectedStudy}
                 onChange={(e) => setSelectedStudy(e.target.value)}
@@ -96,12 +96,12 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700">Søk i revisjonslogg:</label>
+              <label className="font-semibold text-slate-700">SÃ¸k i revisjonslogg:</label>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Søk i kriterier, begrunnelser eller reviewer..."
+                  placeholder="SÃ¸k i kriterier, begrunnelser eller reviewer..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-teal-600 text-xs"
@@ -140,15 +140,15 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
           <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
             <History className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-slate-900 font-serif">Ingen hendelser i revisjonssporet ennå</h3>
+          <h3 className="text-base font-bold text-slate-900 font-serif">Ingen hendelser i revisjonssporet ennÃ¥</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Når du oppretter, reviderer eller gjenåpner vurderinger for artikler i prosjektet ditt, vil hver endring, begrunnelse og tidsstempel loggføres automatisk her for full metodisk transparens.
+            NÃ¥r du oppretter, reviderer eller gjenÃ¥pner vurderinger for artikler i prosjektet ditt, vil hver endring, begrunnelse og tidsstempel loggfÃ¸res automatisk her for full metodisk transparens.
           </p>
         </div>
       ) : filteredEntries.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-2 shadow-xs">
-          <p className="text-sm font-semibold text-slate-800">Ingen hendelser matchet søket.</p>
-          <p className="text-xs text-slate-500">Prøv å endre søkeord eller velg en annen studie.</p>
+          <p className="text-sm font-semibold text-slate-800">Ingen hendelser matchet sÃ¸ket.</p>
+          <p className="text-xs text-slate-500">PrÃ¸v Ã¥ endre sÃ¸keord eller velg en annen studie.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -235,3 +235,5 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
     </div>
   );
 };
+
+

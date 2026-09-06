@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { assessGRADE, assessCERQual, lockQualityAssessment, type StoredQualityAssessment } from '../services/qualityAssessmentService';
 import { getQualityAssessmentsForSession } from '../services/appraisalSessionStore';
 import type { AppraisalSession } from '../services/universalAppraisalService';
@@ -27,17 +27,17 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
 
   const save = () => {
     try {
-      if (!session.locked) throw new Error('Appraisal-sesjonen må være ferdigstilt før GRADE/CERQual kan registreres.');
+      if (!session.locked) throw new Error('Appraisal-sesjonen mÃ¥ vÃ¦re ferdigstilt fÃ¸r GRADE/CERQual kan registreres.');
       if (!evidenceId.trim()) throw new Error('Ingen canonical evidenceId er tilgjengelig for kvalitetsvurderingen.');
       const existing = getQualityAssessmentsForSession(session.id);
-      if (existing.some(item => item.evidenceId === evidenceId && item.kind === mode && item.locked)) throw new Error(`${mode}-vurdering for dette evidensfunnet er allerede låst.`);
+      if (existing.some(item => item.evidenceId === evidenceId && item.kind === mode && item.locked)) throw new Error(`${mode}-vurdering for dette evidensfunnet er allerede lÃ¥st.`);
 
       const draft = mode === 'GRADE'
         ? assessGRADE({ evidenceId, appraisalSessionId: session.id, outcomeName: outcome, studyDesign, ...downgrades, reviewerId })
         : assessCERQual({ evidenceId, appraisalSessionId: session.id, finding, ...cerqual, reviewerId });
       const locked = lockQualityAssessment(draft);
       onSaved?.(locked);
-      setMessage(`${mode} lagret og låst som versjon ${locked.version}.`);
+      setMessage(`${mode} lagret og lÃ¥st som versjon ${locked.version}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Kvalitetsvurdering kunne ikke lagres.');
     }
@@ -70,8 +70,10 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
         </div>
       )}
 
-      <button type="button" onClick={save} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Lagre og lås {mode}</button>
+      <button type="button" onClick={save} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Lagre og lÃ¥s {mode}</button>
       {message && <div role="status" className="rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-sm">{message}</div>}
     </section>
   );
 };
+
+

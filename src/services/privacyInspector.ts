@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Local-first privacy inspection extracted from Research Privacy Inspector.
  * No network access. Signals are observations, not proof of tracking or compliance.
  */
@@ -78,3 +78,5 @@ export function inspectPrivacy({
 }
 
 export const TRACKING_INDICATORS = Object.freeze([...DEFAULT_TRACKING_MARKERS]);
+
+

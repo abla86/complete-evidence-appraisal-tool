@@ -1,4 +1,4 @@
-export type RetrievalProvider = 'PUBMED' | 'CROSSREF';
+﻿export type RetrievalProvider = 'PUBMED' | 'CROSSREF';
 
 export interface RetrievalQuery {
   provider: RetrievalProvider;
@@ -25,7 +25,7 @@ function text(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-function authorName(author: any): string {
+function authorName(author: unknown): string {
   const family = text(author?.lastname) ?? text(author?.family) ?? '';
   const given = text(author?.forename) ?? text(author?.given) ?? '';
   return [family, given].filter(Boolean).join(', ');
@@ -42,7 +42,7 @@ export async function searchCrossref({ query, limit = 10 }: Omit<RetrievalQuery,
   url.searchParams.set('query.bibliographic', query);
   url.searchParams.set('rows', String(Math.min(Math.max(limit, 1), 50)));
   const data = await fetchJson(url.toString());
-  return (data?.message?.items ?? []).map((item: any) => ({
+  return (data?.message?.items ?? []).map((item: unknown) => ({
     provider: 'CROSSREF' as const,
     externalId: text(item?.DOI),
     doi: text(item?.DOI),
@@ -75,8 +75,8 @@ export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, '
   return ids.map(id => {
     const item = summary?.result?.[id] ?? {};
     const authors = (item?.authors ?? []).map(authorName).filter(Boolean);
-    const doi = (item?.articleids ?? []).find((x: any) => x?.idtype === 'doi')?.value;
-    const pmcid = (item?.articleids ?? []).find((x: any) => x?.idtype === 'pmc')?.value;
+    const doi = (item?.articleids ?? []).find((x: unknown) => x?.idtype === 'doi')?.value;
+    const pmcid = (item?.articleids ?? []).find((x: unknown) => x?.idtype === 'pmc')?.value;
     return {
       provider: 'PUBMED' as const,
       externalId: id,
@@ -96,3 +96,5 @@ export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, '
 export async function searchResearch(query: RetrievalQuery): Promise<RetrievedReferenceCandidate[]> {
   return query.provider === 'PUBMED' ? searchPubMed(query) : searchCrossref(query);
 }
+
+

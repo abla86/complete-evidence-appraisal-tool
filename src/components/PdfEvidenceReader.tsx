@@ -1,3 +1,4 @@
+﻿import { generateId } from '../utils/id';
 import React, { useMemo, useState } from 'react';
 import type { PdfAnnotation } from '../services/pdfAttachmentService';
 import { annotationToEvidence, linkAnnotationToEvidence } from '../services/pdfEvidenceBridge';
@@ -23,16 +24,16 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
     const text = selectedText.trim();
     const actorId = reviewerId.trim();
     if (!actorId) {
-      setMessage('Reviewer-ID må være eksplisitt angitt.');
+      setMessage('Reviewer-ID mÃ¥ vÃ¦re eksplisitt angitt.');
       return;
     }
     if (!text) {
-      setMessage('Marker eller lim inn tekst fra PDF før du oppretter evidens.');
+      setMessage('Marker eller lim inn tekst fra PDF fÃ¸r du oppretter evidens.');
       return;
     }
 
     const annotation: PdfAnnotation = {
-      id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: generateId('annotation'),
       attachmentId: referenceId,
       page,
       type: 'HIGHLIGHT',
@@ -54,13 +55,13 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
     <section className="grid lg:grid-cols-[minmax(0,1fr)_22rem] gap-4 bg-white border border-slate-200 rounded-2xl p-4">
       <div className="min-h-[36rem] rounded-xl border border-slate-200 overflow-hidden bg-slate-100">
         <object data={`${url}#page=${page}`} type="application/pdf" className="w-full h-[36rem]">
-          <div className="p-6 text-sm">Nettleseren kan ikke vise PDF direkte. Bruk forhåndsvisning eller åpne filen i PDF-leser.</div>
+          <div className="p-6 text-sm">Nettleseren kan ikke vise PDF direkte. Bruk forhÃ¥ndsvisning eller Ã¥pne filen i PDF-leser.</div>
         </object>
       </div>
 
       <aside className="space-y-3">
         <div>
-          <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">PDF → EVIDENCE</div>
+          <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">PDF â†’ EVIDENCE</div>
           <h3 className="text-lg font-bold">Marker evidens</h3>
           <p className="text-xs text-slate-500 mt-1">Tekstutdrag lagres som evidens med sidereferanse. Forskerverifisering skjer separat.</p>
         </div>
@@ -77,3 +78,5 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
     </section>
   );
 };
+
+

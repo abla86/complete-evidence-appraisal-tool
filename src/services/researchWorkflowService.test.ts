@@ -1,4 +1,4 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createResearchWorkflowFromText, recordScreeningDecision, updateResearchClassification, verifyResearchClassification, verifyResearchEvidence, selectResearchInstrument, assertReadyForAppraisal } from './researchWorkflowService';
 
@@ -39,3 +39,5 @@ test('excluded studies cannot pass appraisal readiness', () => {
   const next=recordScreeningDecision(state,'reviewer-1','EXCLUDED');
   assert.throws(()=>assertReadyForAppraisal(next),/INCLUDED/);
 });
+
+

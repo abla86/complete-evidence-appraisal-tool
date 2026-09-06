@@ -1,4 +1,4 @@
-export interface PdfAttachment {
+﻿export interface PdfAttachment {
   id: string;
   referenceId: string;
   name: string;
@@ -37,3 +37,5 @@ export async function createPdfAttachment(file: File, referenceId: string): Prom
     addedAt: new Date().toISOString(),
   };
 }
+
+

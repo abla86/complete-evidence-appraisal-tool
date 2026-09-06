@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { ArticleAppraisal } from '../types';
 import { JbiQualitativeValidationService } from '../services/jbiValidationService';
 import { MethodIntegrityGate } from '../services/methodIntegrityGate';
@@ -36,13 +36,13 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
   // Dynamically generate synthesis text
   const generateDynamicThesisText = () => {
     let text = `### Kritisk vurdering av de inkluderte kvalitative studiene\n\n`;
-    text += `De kvalitative studiene (${articles.map(a => a.shortCitation).join(', ')}) ble vurdert ved hjelp av Joanna Briggs Institutes (JBI) Critical Appraisal Checklist for Qualitative Research (Joanna Briggs Institute, 2017). Sjekklisten består av ti standardiserte metodiske kriterier som evaluerer samsvar mellom ontologisk/filosofisk perspektiv, forskningsmetodologi, problemstilling, datainnsamling, dataanalyse og fortolkning, samt forskerens posisjon (refleksivitet), representasjon av informantenes stemmer, forskningsetikk og sammenheng mellom empirisk materiale og konklusjoner.\n\n`;
+    text += `De kvalitative studiene (${articles.map(a => a.shortCitation).join(', ')}) ble vurdert ved hjelp av Joanna Briggs Institutes (JBI) Critical Appraisal Checklist for Qualitative Research (Joanna Briggs Institute, 2017). Sjekklisten bestÃ¥r av ti standardiserte metodiske kriterier som evaluerer samsvar mellom ontologisk/filosofisk perspektiv, forskningsmetodologi, problemstilling, datainnsamling, dataanalyse og fortolkning, samt forskerens posisjon (refleksivitet), representasjon av informantenes stemmer, forskningsetikk og sammenheng mellom empirisk materiale og konklusjoner.\n\n`;
 
     articles.forEach(art => {
       const artScore = JbiQualitativeValidationService.computeScore(art.items, 10);
-      text += `**${art.shortCitation}** oppnådde ${artScore.ja} «Ja»`;
-      if (artScore.uklart > 0) text += `, ${artScore.uklart} «Uklart»`;
-      if (artScore.nei > 0) text += ` og ${artScore.nei} «Nei»`;
+      text += `**${art.shortCitation}** oppnÃ¥dde ${artScore.ja} Â«JaÂ»`;
+      if (artScore.uklart > 0) text += `, ${artScore.uklart} Â«UklartÂ»`;
+      if (artScore.nei > 0) text += ` og ${artScore.nei} Â«NeiÂ»`;
       text += ` av 10 JBI-kriterier (${artScore.jaScorePercent}% oppfyllelse). `;
       text += `Studien benyttet ${art.design.toLowerCase()} med ${art.dataCollection.toLowerCase()} blant ${art.participants.toLowerCase()}. `;
       text += `${art.verdictNote || 'Studien demonstrerer god metodisk konsistens og transparent analyse.'} `;
@@ -52,7 +52,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
     });
 
     text += `### Metodisk rekkevidde og epistemologisk tolkning\n\n`;
-    text += `Studiene i kunnskapsgrunnlaget bidrar med dypgående forståelse for deltakernes erfaringer, meningsdanning og sosiale prosesser. Det er imidlertid et avgjørende vitenskapsteoretisk poeng at kvalitative undersøkelser ikke alene kan isolere eller bevise kausale effekter av intervensjoner eller ordninger. Funnene må derfor tolkes som kontekstspesifikke beskrivelser av opplevelser og mulige mekanismer, og overførbarheten må vurderes i lys av studienes kontekst, utvalg og forskerposisjon.\n\n`;
+    text += `Studiene i kunnskapsgrunnlaget bidrar med dypgÃ¥ende forstÃ¥else for deltakernes erfaringer, meningsdanning og sosiale prosesser. Det er imidlertid et avgjÃ¸rende vitenskapsteoretisk poeng at kvalitative undersÃ¸kelser ikke alene kan isolere eller bevise kausale effekter av intervensjoner eller ordninger. Funnene mÃ¥ derfor tolkes som kontekstspesifikke beskrivelser av opplevelser og mulige mekanismer, og overfÃ¸rbarheten mÃ¥ vurderes i lys av studienes kontekst, utvalg og forskerposisjon.\n\n`;
 
     text += `### Referanser (APA 7th Edition)\n\n`;
     text += `Joanna Briggs Institute. (2017). JBI critical appraisal checklist for qualitative research. Joanna Briggs Institute. https://jbi.global/critical-appraisal-tools\n\n`;
@@ -95,7 +95,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
       MethodIntegrityGate.assertCanExport(articles);
       navigator.clipboard.writeText(content);
       showToast(`${label} validert mot MethodIntegrityGate og kopiert til utklippstavlen!`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(`Eksport blokkert av MethodIntegrityGate: ${err.message}`, 'error');
     }
   };
@@ -111,7 +111,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
       element.click();
       document.body.removeChild(element);
       showToast(`Filen ${filename} ble validert mot MethodIntegrityGate og lastet ned!`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(`Eksport blokkert av MethodIntegrityGate: ${err.message}`, 'error');
     }
   };
@@ -147,10 +147,10 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
               <span>Syntese & Masteroppgavetekst</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold font-serif text-slate-900 leading-snug">
-              Metodedrøfting & Oppgavesyntese
+              MetodedrÃ¸fting & Oppgavesyntese
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              Auto-generert metodesyntese og drøftingskapittel basert på alle {articles.length} artikler i biblioteket ditt.
+              Auto-generert metodesyntese og drÃ¸ftingskapittel basert pÃ¥ alle {articles.length} artikler i biblioteket ditt.
             </p>
           </div>
 
@@ -244,10 +244,10 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
         </div>
         <div className="space-y-1 text-xs sm:text-sm">
           <h3 className="font-bold text-amber-950 font-serif text-sm sm:text-base">
-            Metodisk Presisjon: Kvalitative Funn vs. Kausale Påstander
+            Metodisk Presisjon: Kvalitative Funn vs. Kausale PÃ¥stander
           </h3>
           <p className="text-amber-900/90 leading-relaxed">
-            I en kunnskapsoppsummering eller masteroppgave må man skille skarpt mellom deltakernes <em>opplevelser og meningsdanning</em> (kvalitativ empiri) og <em>effekt av intervensjoner</em> (kausalitet). Kvalitativ forskning belyser hvordan og hvorfor mekanismer oppleves, men kan ikke isolere kausalitet.
+            I en kunnskapsoppsummering eller masteroppgave mÃ¥ man skille skarpt mellom deltakernes <em>opplevelser og meningsdanning</em> (kvalitativ empiri) og <em>effekt av intervensjoner</em> (kausalitet). Kvalitativ forskning belyser hvordan og hvorfor mekanismer oppleves, men kan ikke isolere kausalitet.
           </p>
         </div>
       </div>
@@ -257,9 +257,9 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
           <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
             <FileText className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-slate-900 font-serif">Ingen vurderte artikler i prosjektet ennå</h3>
+          <h3 className="text-base font-bold text-slate-900 font-serif">Ingen vurderte artikler i prosjektet ennÃ¥</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Når du legger til og vurderer artikler i arbeidsområdet ditt, vil denne modulen automatisk syntetisere en publiseringsklar metodetekst, tabelloversikt og APA 7-referanseliste.
+            NÃ¥r du legger til og vurderer artikler i arbeidsomrÃ¥det ditt, vil denne modulen automatisk syntetisere en publiseringsklar metodetekst, tabelloversikt og APA 7-referanseliste.
           </p>
         </div>
       ) : (
@@ -278,14 +278,14 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
 
               <div className="text-slate-800 space-y-5 text-sm sm:text-base leading-relaxed font-serif">
                 <p>
-                  De kvalitative studiene i kunnskapsgrunnlaget ({articles.map(a => a.shortCitation).join(', ')}) ble vurdert ved hjelp av Joanna Briggs Institutes (JBI) Critical Appraisal Checklist for Qualitative Research (Joanna Briggs Institute, 2017). Sjekklisten vurderer ti metodologiske nøkkelkriterier for vitenskapelig stringens og transparens.
+                  De kvalitative studiene i kunnskapsgrunnlaget ({articles.map(a => a.shortCitation).join(', ')}) ble vurdert ved hjelp av Joanna Briggs Institutes (JBI) Critical Appraisal Checklist for Qualitative Research (Joanna Briggs Institute, 2017). Sjekklisten vurderer ti metodologiske nÃ¸kkelkriterier for vitenskapelig stringens og transparens.
                 </p>
 
                 {articles.map(art => (
                   <div key={art.id} className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 font-sans text-xs sm:text-sm space-y-2">
                     <div className="flex items-center justify-between">
                       <strong className="text-slate-900 font-serif text-sm sm:text-base font-bold">
-                        {art.shortCitation} — {art.title}
+                        {art.shortCitation} â€” {art.title}
                       </strong>
                       <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
                         {art.summaryScore.ja}/10 Ja
@@ -312,7 +312,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
                 ))}
 
                 <p>
-                  Samlet vurdering viser at de inkluderte studiene oppfyller JBI-kriteriene for metodologisk konsistens og transparent analyse. Funnene må likevel fortolkes i tråd med det kvalitative designets epistemologiske forutsetninger.
+                  Samlet vurdering viser at de inkluderte studiene oppfyller JBI-kriteriene for metodologisk konsistens og transparent analyse. Funnene mÃ¥ likevel fortolkes i trÃ¥d med det kvalitative designets epistemologiske forutsetninger.
                 </p>
               </div>
 
@@ -338,7 +338,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
           {activeFormat === 'plain' && (
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs max-w-4xl mx-auto space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500">Klar til å limes inn i Word / Google Docs</span>
+                <span className="text-xs font-bold text-slate-500">Klar til Ã¥ limes inn i Word / Google Docs</span>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(fullText, 'Ren tekst')}
@@ -402,3 +402,5 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
     </div>
   );
 };
+
+

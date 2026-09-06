@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   StandardDocumentType, 
   MethodologicalApproach, 
   MethodologicalPurpose, 
@@ -61,7 +61,7 @@ export class DocumentClassifierService {
       fullContext.includes('tverrsnitt') ||
       fullContext.includes('cross-sectional') ||
       fullContext.includes('diagnostic accuracy') ||
-      fullContext.includes('diagnostisk nøyaktighet') ||
+      fullContext.includes('diagnostisk nÃ¸yaktighet') ||
       fullContext.includes('guideline') ||
       fullContext.includes('retningslinje') ||
       fullContext.includes('veileder') ||
@@ -76,18 +76,18 @@ export class DocumentClassifierService {
         documentType: 'UNKNOWN_UNCERTAIN',
         documentTypeName: 'Ukjent / kan ikke klassifiseres sikkert',
         isResearchDocument: null,
-        studyDesign: 'Kan ikke fastslås – utilstrekkelig datagrunnlag',
+        studyDesign: 'Kan ikke fastslÃ¥s â€“ utilstrekkelig datagrunnlag',
         methodologicalApproach: 'Ukjent / Uavklart',
         methodologicalPurpose: 'Uavklart / Krever manuell presisering',
         confidenceScore: 0,
         confidenceStatus: 'INSUFFICIENT_INFORMATION',
-        statusBadgeText: 'Kan ikke klassifiseres sikkert – manuell vurdering kreves',
+        statusBadgeText: 'Kan ikke klassifiseres sikkert â€“ manuell vurdering kreves',
         evidenceSignals: [],
-        rationale: 'Tekstgrunnlaget er for kort eller ufullstendig til å gjennomføre en evidensbasert klassifisering. Ingen standardkategori kan tilordnes automatisk.',
+        rationale: 'Tekstgrunnlaget er for kort eller ufullstendig til Ã¥ gjennomfÃ¸re en evidensbasert klassifisering. Ingen standardkategori kan tilordnes automatisk.',
         hasMetadataContentConflict: false,
         recommendedInstrumentId: 'UNKNOWN',
-        recommendedInstrumentName: 'Manuelt instrumentvalg påkrevd',
-        recommendedInstrumentJustification: 'Dokumentet kan ikke klassifiseres automatisk. Forskeren må manuelt angi studiedesign og velge et godkjent appraisal-instrument.',
+        recommendedInstrumentName: 'Manuelt instrumentvalg pÃ¥krevd',
+        recommendedInstrumentJustification: 'Dokumentet kan ikke klassifiseres automatisk. Forskeren mÃ¥ manuelt angi studiedesign og velge et godkjent appraisal-instrument.',
         alternativeInstruments: [],
         methodologicalLimitations: 'Uten identifisert design kan ingen validitetsregler eller sjekklister anvendes automatisk.',
         instrumentSourceAndAuthority: 'Krever manuell verifisering',
@@ -103,11 +103,11 @@ export class DocumentClassifierService {
 
     const metaImpliesReview = title.includes('systematic review') || title.includes('meta-analysis') || journal.includes('systematic reviews') || journal.includes('cochrane');
     const contentHasInterviews = lower.includes('semi-structured interview') || lower.includes('intervjuguide') || lower.includes('grounded theory') || lower.includes('thematic analysis');
-    const contentHasNoSearch = !lower.includes('database') && !lower.includes('search strategy') && !lower.includes('søkestrategi') && !lower.includes('pubmed') && !lower.includes('medline');
+    const contentHasNoSearch = !lower.includes('database') && !lower.includes('search strategy') && !lower.includes('sÃ¸kestrategi') && !lower.includes('pubmed') && !lower.includes('medline');
 
     if (metaImpliesReview && contentHasInterviews && contentHasNoSearch) {
       hasMetadataContentConflict = true;
-      conflictDetails = 'Tittel/metadata indikerer en systematisk oversikt, men innholdet beskriver kvalitative intervjuer uten søkestrategi i litteraturdatabaser.';
+      conflictDetails = 'Tittel/metadata indikerer en systematisk oversikt, men innholdet beskriver kvalitative intervjuer uten sÃ¸kestrategi i litteraturdatabaser.';
     }
 
     // -------------------------------------------------------------
@@ -134,20 +134,20 @@ export class DocumentClassifierService {
         documentTypeName: docName,
         isResearchDocument: true,
         studyDesign: isSRProtocol ? 'Protokoll for kunnskapsoppsummering' : 'Studieprotokoll',
-        methodologicalApproach: 'Metodologi & Verktøyutvikling',
+        methodologicalApproach: 'Metodologi & VerktÃ¸yutvikling',
         methodologicalPurpose: 'Studieprotokoll / Prosjektplan',
         confidenceScore: 92,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Protokoll)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Protokoll)',
         evidenceSignals: signals,
-        rationale: 'Dokumentet er en forhåndsdefinert forskningsprotokoll som beskriver planlagte metoder og analyser før datainnsamling/syntese fullføres.',
+        rationale: 'Dokumentet er en forhÃ¥ndsdefinert forskningsprotokoll som beskriver planlagte metoder og analyser fÃ¸r datainnsamling/syntese fullfÃ¸res.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'prisma-2020',
         recommendedInstrumentName: 'PRISMA-P / PRISMA 2020 (Reporting Standard)',
-        recommendedInstrumentJustification: 'PRISMA-P (Preferred Reporting Items for Systematic review and Meta-Analysis Protocols) gir standardisert veiledning for transparens i forhåndsregistrerte protokoller.',
+        recommendedInstrumentJustification: 'PRISMA-P (Preferred Reporting Items for Systematic review and Meta-Analysis Protocols) gir standardisert veiledning for transparens i forhÃ¥ndsregistrerte protokoller.',
         alternativeInstruments: [],
-        methodologicalLimitations: 'Protokoller inneholder ikke empiriske resultater og kan ikke risikovurderes for publiserte utfallsmål.',
+        methodologicalLimitations: 'Protokoller inneholder ikke empiriske resultater og kan ikke risikovurderes for publiserte utfallsmÃ¥l.',
         instrumentSourceAndAuthority: 'PRISMA-P Statement (Moher et al., BMJ / PRISMA Group)',
         instrumentRoleType: 'REPORTING_STANDARD',
         humanDecision: { status: 'PENDING' },
@@ -210,18 +210,18 @@ export class DocumentClassifierService {
         methodologicalPurpose: purpose,
         confidenceScore: 96,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Ikke-forskningsartikkel)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Ikke-forskningsartikkel)',
         evidenceSignals: signals,
-        rationale: 'Dette dokumentet er identifisert som en klinisk eller faglig retningslinje/policy, IKKE en primærforskningsartikkel. Retningslinjer vurderes på metodisk rigiditet i utviklingsprosessen, ikke som enkeltstudier.',
+        rationale: 'Dette dokumentet er identifisert som en klinisk eller faglig retningslinje/policy, IKKE en primÃ¦rforskningsartikkel. Retningslinjer vurderes pÃ¥ metodisk rigiditet i utviklingsprosessen, ikke som enkeltstudier.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'agree-ii',
         recommendedInstrumentName: 'AGREE II (Appraisal of Guidelines for Research & Evaluation)',
-        recommendedInstrumentJustification: 'AGREE II er den internasjonale gullstandarden (23 items, 6 domener) for å vurdere metodisk kvalitet, transparens og utviklingsprosess for kliniske retningslinjer.',
+        recommendedInstrumentJustification: 'AGREE II er den internasjonale gullstandarden (23 items, 6 domener) for Ã¥ vurdere metodisk kvalitet, transparens og utviklingsprosess for kliniske retningslinjer.',
         alternativeInstruments: [
           { id: 'grade', name: 'GRADE Evidence-to-Decision (EtD)', role: 'Vurdering av anbefalingsstyrke og balanse mellom fordeler og ulemper' }
         ],
-        methodologicalLimitations: 'AGREE II vurderer retningslinjens utviklingsprosess og rapportering, men måler ikke den isolerte risikoen for bias i underliggende enkeltstudier direkte.',
+        methodologicalLimitations: 'AGREE II vurderer retningslinjens utviklingsprosess og rapportering, men mÃ¥ler ikke den isolerte risikoen for bias i underliggende enkeltstudier direkte.',
         instrumentSourceAndAuthority: 'AGREE Next Steps Consortium / WHO Guidelines Review Committee (2014)',
         instrumentRoleType: 'GUIDELINE_APPRAISAL',
         humanDecision: { status: 'PENDING' },
@@ -241,27 +241,27 @@ export class DocumentClassifierService {
       (fullContext.includes('validation of a') && fullContext.includes('tool'));
 
     if (isMethodologyStudy) {
-      signals.push({ signalType: 'Methodology Study Marker', value: 'Verktøyutvikling og metodologisk validering', foundIn: 'Tittel/Metode' });
+      signals.push({ signalType: 'Methodology Study Marker', value: 'VerktÃ¸yutvikling og metodologisk validering', foundIn: 'Tittel/Metode' });
 
       return {
         documentType: 'METHODOLOGY_STUDY',
-        documentTypeName: 'Metodestudie / Verktøyvalidering',
+        documentTypeName: 'Metodestudie / VerktÃ¸yvalidering',
         isResearchDocument: true,
         studyDesign: 'Metodestudie',
-        methodologicalApproach: 'Metodologi & Verktøyutvikling',
-        methodologicalPurpose: 'Metodisk rammeverk / Verktøy',
+        methodologicalApproach: 'Metodologi & VerktÃ¸yutvikling',
+        methodologicalPurpose: 'Metodisk rammeverk / VerktÃ¸y',
         confidenceScore: 92,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Metodestudie)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Metodestudie)',
         evidenceSignals: signals,
-        rationale: 'Dokumentet er en empirisk metodologisk studie som utvikler, tester eller evaluerer måleinstrumenter, analysemetoder eller appraisal-verktøy.',
+        rationale: 'Dokumentet er en empirisk metodologisk studie som utvikler, tester eller evaluerer mÃ¥leinstrumenter, analysemetoder eller appraisal-verktÃ¸y.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'mmat-2018',
         recommendedInstrumentName: 'MMAT 2018 / Psykometrisk evalueringsmatrise',
         recommendedInstrumentJustification: 'MMAT eller spesifikk metodologisk/psykometrisk valideringsmatrise (f.eks. COSMIN) benyttes for metodiske studier.',
         alternativeInstruments: [],
-        methodologicalLimitations: 'Vurderer verktøyets reliabilitet, validitet og anvendbarhet, ikke klinisk pasienteffekt.',
+        methodologicalLimitations: 'Vurderer verktÃ¸yets reliabilitet, validitet og anvendbarhet, ikke klinisk pasienteffekt.',
         instrumentSourceAndAuthority: 'Hong et al. / COSMIN Initiative for health measurement instruments',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -303,7 +303,7 @@ export class DocumentClassifierService {
     const isIntegrativeReview = fullContext.includes('integrative review') || fullContext.includes('integrativ oversikt');
 
     if (isQualitativeSynthesis) {
-      signals.push({ signalType: 'Synthesis of Qualitative Studies', value: 'Meta-etnografi / Metasyntese av kvalitative primærstudier', foundIn: 'Metodedel' });
+      signals.push({ signalType: 'Synthesis of Qualitative Studies', value: 'Meta-etnografi / Metasyntese av kvalitative primÃ¦rstudier', foundIn: 'Metodedel' });
 
       return {
         documentType: 'QUALITATIVE_EVIDENCE_SYNTHESIS',
@@ -314,19 +314,19 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Kvalitativ evidenssyntese',
         confidenceScore: 94,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Kvalitativ syntese)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Kvalitativ syntese)',
         evidenceSignals: signals,
-        rationale: 'Studien aggregerer og syntetiserer funn fra flere uavhengige kvalitative primærstudier for å utvikle nye konseptuelle modeller eller overordnede temaer.',
+        rationale: 'Studien aggregerer og syntetiserer funn fra flere uavhengige kvalitative primÃ¦rstudier for Ã¥ utvikle nye konseptuelle modeller eller overordnede temaer.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'grade-cerqual',
         recommendedInstrumentName: 'GRADE-CERQual (Confidence in the Evidence from Reviews of Qualitative research)',
-        recommendedInstrumentJustification: 'GRADE-CERQual er den internasjonale gullstandarden for å vurdere tillit til funn fra kvalitative kunnskapsoppsummeringer basert på 4 kjernekomponenter (metodiske begrensninger, sammenheng, datamengde og relevans).',
+        recommendedInstrumentJustification: 'GRADE-CERQual er den internasjonale gullstandarden for Ã¥ vurdere tillit til funn fra kvalitative kunnskapsoppsummeringer basert pÃ¥ 4 kjernekomponenter (metodiske begrensninger, sammenheng, datamengde og relevans).',
         alternativeInstruments: [
-          { id: 'jbi-qualitative-2017', name: 'JBI Qualitative Checklist', role: 'Vurdering av individuelle inkluderte primærstudier i syntesen' },
+          { id: 'jbi-qualitative-2017', name: 'JBI Qualitative Checklist', role: 'Vurdering av individuelle inkluderte primÃ¦rstudier i syntesen' },
           { id: 'casp-systematic-review', name: 'CASP Systematic Review', role: 'Overordnet vurdering av syntesens metodikk' }
         ],
-        methodologicalLimitations: 'GRADE-CERQual vurderer tilliten til syntetiserte kvalitative funn, ikke en numerisk kvalitetsskår for enkeltartikler.',
+        methodologicalLimitations: 'GRADE-CERQual vurderer tilliten til syntetiserte kvalitative funn, ikke en numerisk kvalitetsskÃ¥r for enkeltartikler.',
         instrumentSourceAndAuthority: 'Lewin et al., PLOS Medicine (2018) / Cochrane Qualitative Implementation Group',
         instrumentRoleType: 'EVIDENCE_CERTAINTY',
         humanDecision: { status: 'PENDING' },
@@ -335,7 +335,7 @@ export class DocumentClassifierService {
     }
 
     if (isScopingReview) {
-      signals.push({ signalType: 'Scoping Review Methodology', value: 'Kartlegging av kunnskapsfelt og omfang', foundIn: 'Formål/Tittel' });
+      signals.push({ signalType: 'Scoping Review Methodology', value: 'Kartlegging av kunnskapsfelt og omfang', foundIn: 'FormÃ¥l/Tittel' });
 
       return {
         documentType: 'SCOPING_REVIEW',
@@ -346,18 +346,18 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Kunnskapssyntese / Meta-analyse',
         confidenceScore: 93,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Scoping Review)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Scoping Review)',
         evidenceSignals: signals,
-        rationale: 'Studien kartlegger utbredelse, nøkkelbegreper og forskningshull innen et bredt fagfelt uten nødvendigvis å utføre formell meta-analytisk effektestimering.',
+        rationale: 'Studien kartlegger utbredelse, nÃ¸kkelbegreper og forskningshull innen et bredt fagfelt uten nÃ¸dvendigvis Ã¥ utfÃ¸re formell meta-analytisk effektestimering.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'prisma-2020',
         recommendedInstrumentName: 'PRISMA-ScR / PRISMA 2020 (Reporting Guideline)',
-        recommendedInstrumentJustification: 'PRISMA-ScR gir standardisert transparensveiledning for scoping reviews. AMSTAR 2 er primært beregnet på systematiske oversikter over intervensjonseffekter og er sjelden direkte egnet for rene kartleggingsoversikter.',
+        recommendedInstrumentJustification: 'PRISMA-ScR gir standardisert transparensveiledning for scoping reviews. AMSTAR 2 er primÃ¦rt beregnet pÃ¥ systematiske oversikter over intervensjonseffekter og er sjelden direkte egnet for rene kartleggingsoversikter.',
         alternativeInstruments: [
-          { id: 'amstar-2', name: 'AMSTAR 2', role: 'Kun aktuelt dersom oversikten inkluderer systematisk kritisk appraisal av alle primærstudier' }
+          { id: 'amstar-2', name: 'AMSTAR 2', role: 'Kun aktuelt dersom oversikten inkluderer systematisk kritisk appraisal av alle primÃ¦rstudier' }
         ],
-        methodologicalLimitations: 'PRISMA-ScR er en rapporteringsretningslinje, ikke et verktøy for å beregne bias i primærstudiene.',
+        methodologicalLimitations: 'PRISMA-ScR er en rapporteringsretningslinje, ikke et verktÃ¸y for Ã¥ beregne bias i primÃ¦rstudiene.',
         instrumentSourceAndAuthority: 'Tricco et al., Annals of Internal Medicine (2018) / JBI Scoping Review Guidance',
         instrumentRoleType: 'REPORTING_STANDARD',
         humanDecision: { status: 'PENDING' },
@@ -380,18 +380,18 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Kunnskapssyntese / Meta-analyse',
         confidenceScore: 91,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: `AI-kandidatforslag – krever verifisering (${docName})`,
+        statusBadgeText: `AI-kandidatforslag â€“ krever verifisering (${docName})`,
         evidenceSignals: signals,
-        rationale: `Dokumentet representerer en spesialisert oversiktstype (${docName}) med tilpasset litteratursøk og syntesestrategi.`,
+        rationale: `Dokumentet representerer en spesialisert oversiktstype (${docName}) med tilpasset litteratursÃ¸k og syntesestrategi.`,
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'amstar-2',
         recommendedInstrumentName: 'AMSTAR 2 / ROBIS',
-        recommendedInstrumentJustification: 'Systematiske kunnskapsoppsummeringer evalueres primært med AMSTAR 2 for kvantitative synteser eller ROBIS for risiko for bias.',
+        recommendedInstrumentJustification: 'Systematiske kunnskapsoppsummeringer evalueres primÃ¦rt med AMSTAR 2 for kvantitative synteser eller ROBIS for risiko for bias.',
         alternativeInstruments: [
           { id: 'prisma-2020', name: 'PRISMA 2020', role: 'Rapporteringsstandard' }
         ],
-        methodologicalLimitations: 'Hurtigoversikter har ofte metodiske snarveier i søk eller screening som må dokumenteres eksplisitt.',
+        methodologicalLimitations: 'Hurtigoversikter har ofte metodiske snarveier i sÃ¸k eller screening som mÃ¥ dokumenteres eksplisitt.',
         instrumentSourceAndAuthority: 'Shea et al., BMJ (2017) / Whiting et al., J Clin Epidemiol (2016)',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -403,7 +403,7 @@ export class DocumentClassifierService {
       const docType: StandardDocumentType = isMetaAnalysis ? 'META_ANALYSIS' : 'SYSTEMATIC_REVIEW';
       const docName = isMetaAnalysis ? 'Systematisk oversikt med meta-analyse' : 'Systematisk oversikt (uten formell meta-analyse)';
 
-      signals.push({ signalType: 'Database Search', value: 'Systematisk litteratursøk i elektroniske databaser', foundIn: 'Metodedel' });
+      signals.push({ signalType: 'Database Search', value: 'Systematisk litteratursÃ¸k i elektroniske databaser', foundIn: 'Metodedel' });
       if (isMetaAnalysis) {
         signals.push({ signalType: 'Quantitative Synthesis', value: 'Statistisk pooling / meta-analyse', foundIn: 'Resultatdel' });
       }
@@ -417,20 +417,20 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Kunnskapssyntese / Meta-analyse',
         confidenceScore: 97,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Systematisk oversikt)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Systematisk oversikt)',
         evidenceSignals: signals,
-        rationale: 'Dokumentet er en systematisk kunnskapsoppsummering med definerte inklusjonskriterier, systematisk litteratursøk og kritisk vurdering av inkluderte studier.',
+        rationale: 'Dokumentet er en systematisk kunnskapsoppsummering med definerte inklusjonskriterier, systematisk litteratursÃ¸k og kritisk vurdering av inkluderte studier.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'amstar-2',
         recommendedInstrumentName: 'AMSTAR 2 (A MeaSurement Tool to Assess systematic Reviews)',
-        recommendedInstrumentJustification: 'AMSTAR 2 (16 items, 7 kritiske domener) er den internasjonalt etablerte gullstandarden for å vurdere systematiske oversikter over helseintervensjoner.',
+        recommendedInstrumentJustification: 'AMSTAR 2 (16 items, 7 kritiske domener) er den internasjonalt etablerte gullstandarden for Ã¥ vurdere systematiske oversikter over helseintervensjoner.',
         alternativeInstruments: [
           { id: 'casp-systematic-review', name: 'CASP Systematic Review', role: 'Forenklet pedagogisk appraisal' },
-          { id: 'prisma-2020', name: 'PRISMA 2020', role: 'Rapporteringsstandard (NB: måler ikke bias)' },
-          { id: 'grade', name: 'GRADE Summary of Findings', role: 'Gradering av evidensstyrke på utfallsnivå' }
+          { id: 'prisma-2020', name: 'PRISMA 2020', role: 'Rapporteringsstandard (NB: mÃ¥ler ikke bias)' },
+          { id: 'grade', name: 'GRADE Summary of Findings', role: 'Gradering av evidensstyrke pÃ¥ utfallsnivÃ¥' }
         ],
-        methodologicalLimitations: 'AMSTAR 2 vurderer oversiktens metodiske gjennomføring, ikke resultatene i den enkelte primærstudie isolert.',
+        methodologicalLimitations: 'AMSTAR 2 vurderer oversiktens metodiske gjennomfÃ¸ring, ikke resultatene i den enkelte primÃ¦rstudie isolert.',
         instrumentSourceAndAuthority: 'Shea et al., BMJ (2017) / WHO Handbook for Guideline Development',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -449,7 +449,7 @@ export class DocumentClassifierService {
       (fullContext.includes('implementation framework') && !fullContext.includes('scoping review'));
 
     if (isImplementationFramework) {
-      signals.push({ signalType: 'Implementation Framework Marker', value: 'Strukturerte determinanter og implementeringsdomener', foundIn: 'Tittel & Nøkkelord' });
+      signals.push({ signalType: 'Implementation Framework Marker', value: 'Strukturerte determinanter og implementeringsdomener', foundIn: 'Tittel & NÃ¸kkelord' });
 
       return {
         documentType: 'IMPLEMENTATION_FRAMEWORK',
@@ -460,18 +460,18 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Implementeringsdeterminanter / Endringsprosess',
         confidenceScore: 90,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Implementeringsrammeverk)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Implementeringsrammeverk)',
         evidenceSignals: signals,
-        rationale: 'Dokumentet beskriver eller anvender et implementeringsvitenskapelig rammeverk (f.eks. CFIR / KTA) for å analysere determinanter, barrierer eller praksisendring.',
+        rationale: 'Dokumentet beskriver eller anvender et implementeringsvitenskapelig rammeverk (f.eks. CFIR / KTA) for Ã¥ analysere determinanter, barrierer eller praksisendring.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'cfir-2',
         recommendedInstrumentName: 'CFIR 2.0 (Consolidated Framework for Implementation Research)',
-        recommendedInstrumentJustification: 'CFIR 2.0 gir et standardisert rammeverk over 48 konstrukter fordelt på 5 domener for å kartlegge implementeringsdeterminanter.',
+        recommendedInstrumentJustification: 'CFIR 2.0 gir et standardisert rammeverk over 48 konstrukter fordelt pÃ¥ 5 domener for Ã¥ kartlegge implementeringsdeterminanter.',
         alternativeInstruments: [
           { id: 'kta', name: 'Knowledge-to-Action (KTA)', role: 'Prosessmodell for translasjon' }
         ],
-        methodologicalLimitations: 'CFIR og KTA er analyse- og implementeringsrammeverk, IKKE kvalitetsskåringsverktøy for metodisk bias.',
+        methodologicalLimitations: 'CFIR og KTA er analyse- og implementeringsrammeverk, IKKE kvalitetsskÃ¥ringsverktÃ¸y for metodisk bias.',
         instrumentSourceAndAuthority: 'Damschroder et al., Implementation Science (2022)',
         instrumentRoleType: 'IMPLEMENTATION_FRAMEWORK',
         humanDecision: { status: 'PENDING' },
@@ -498,24 +498,24 @@ export class DocumentClassifierService {
         documentType: 'RCT',
         documentTypeName: 'Randomisert kontrollert studie (RCT)',
         isResearchDocument: true,
-        studyDesign: 'Randomisert kontrollert studie (RCT) / Klinisk utprøving',
+        studyDesign: 'Randomisert kontrollert studie (RCT) / Klinisk utprÃ¸ving',
         methodologicalApproach: 'Kvantitativ (Eksperimentell / RCT)',
         methodologicalPurpose: 'Kausaleffekt / Behandlingseffekt',
         confidenceScore: 97,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (RCT)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (RCT)',
         evidenceSignals: signals,
-        rationale: 'Studien benytter randomisert fordeling av deltakere til to eller flere grupper for å evaluere kausal effekt av en intervensjon. Kvalitative verktøy som JBI Qualitative er metodisk inkompatible.',
+        rationale: 'Studien benytter randomisert fordeling av deltakere til to eller flere grupper for Ã¥ evaluere kausal effekt av en intervensjon. Kvalitative verktÃ¸y som JBI Qualitative er metodisk inkompatible.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'rob-2',
         recommendedInstrumentName: 'Cochrane RoB 2 (Risk of Bias 2 for Randomized Trials)',
-        recommendedInstrumentJustification: 'RoB 2 er den internasjonale gullstandarden (5 bias-domener, signalspørsmål og algoritmestyrt vurdering) for randomiserte forsøk.',
+        recommendedInstrumentJustification: 'RoB 2 er den internasjonale gullstandarden (5 bias-domener, signalspÃ¸rsmÃ¥l og algoritmestyrt vurdering) for randomiserte forsÃ¸k.',
         alternativeInstruments: [
           { id: 'casp-rct', name: 'CASP Randomised Controlled Trial', role: 'Pedagogisk sjekkliste for RCT' },
-          { id: 'mmat-2018', name: 'MMAT 2018 (Kvantitativ del)', role: 'Dersom studien inngår i et mixed-methods program' }
+          { id: 'mmat-2018', name: 'MMAT 2018 (Kvantitativ del)', role: 'Dersom studien inngÃ¥r i et mixed-methods program' }
         ],
-        methodologicalLimitations: 'RoB 2 vurderer risiko for bias knyttet til et spesifikt utfallsmål, ikke studiens overordnede sannhetsverdi generelt.',
+        methodologicalLimitations: 'RoB 2 vurderer risiko for bias knyttet til et spesifikt utfallsmÃ¥l, ikke studiens overordnede sannhetsverdi generelt.',
         instrumentSourceAndAuthority: 'Sterne et al., BMJ (2019) / Cochrane Handbook for Systematic Reviews',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -530,23 +530,23 @@ export class DocumentClassifierService {
       fullContext.includes('index test') ||
       fullContext.includes('reference standard') ||
       fullContext.includes('roc curve') ||
-      fullContext.includes('diagnostisk nøyaktighet');
+      fullContext.includes('diagnostisk nÃ¸yaktighet');
 
     if (isDiagnostic) {
       signals.push({ signalType: 'Diagnostic Accuracy Metrics', value: 'Sensitivitet/Spesifisitet og referansestandard', foundIn: 'Metodedel' });
 
       return {
         documentType: 'DIAGNOSTIC_ACCURACY_STUDY',
-        documentTypeName: 'Diagnostisk nøyaktighetsstudie / Testvalidering',
+        documentTypeName: 'Diagnostisk nÃ¸yaktighetsstudie / Testvalidering',
         isResearchDocument: true,
-        studyDesign: 'Diagnostisk nøyaktighetsstudie',
+        studyDesign: 'Diagnostisk nÃ¸yaktighetsstudie',
         methodologicalApproach: 'Diagnostikk & Testvalidering',
-        methodologicalPurpose: 'Diagnostisk nøyaktighet / Testvalidering',
+        methodologicalPurpose: 'Diagnostisk nÃ¸yaktighet / Testvalidering',
         confidenceScore: 95,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Diagnostisk)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Diagnostisk)',
         evidenceSignals: signals,
-        rationale: 'Studien sammenligner en indekstest mot en referansestandard i en definert pasientgruppe for å vurdere testens diagnostiske treffsikkerhet.',
+        rationale: 'Studien sammenligner en indekstest mot en referansestandard i en definert pasientgruppe for Ã¥ vurdere testens diagnostiske treffsikkerhet.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'quadas-2',
@@ -555,7 +555,7 @@ export class DocumentClassifierService {
         alternativeInstruments: [
           { id: 'grade', name: 'GRADE for Diagnostic Tests', role: 'Utfallsvurdering' }
         ],
-        methodologicalLimitations: 'QUADAS-2 evaluerer bias og klinisk anvendelighet, men måler ikke direkte helseeffekt av å innføre testen i rutinepraksis.',
+        methodologicalLimitations: 'QUADAS-2 evaluerer bias og klinisk anvendelighet, men mÃ¥ler ikke direkte helseeffekt av Ã¥ innfÃ¸re testen i rutinepraksis.',
         instrumentSourceAndAuthority: 'Whiting et al., Annals of Internal Medicine (2011) / Cochrane Diagnostic Test Accuracy Group',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -570,7 +570,7 @@ export class DocumentClassifierService {
       fullContext.includes('retrospective cohort') ||
       fullContext.includes('follow-up study') ||
       fullContext.includes('register-based cohort') ||
-      fullContext.includes('oppfølgingsstudie');
+      fullContext.includes('oppfÃ¸lgingsstudie');
 
     if (isCohort) {
       signals.push({ signalType: 'Cohort Follow-up', value: 'Definert kohort fulgt over tid for utfallsregistrering', foundIn: 'Metodedel' });
@@ -584,9 +584,9 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Etiologi / Risikofaktorer',
         confidenceScore: 94,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Kohortstudie)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Kohortstudie)',
         evidenceSignals: signals,
-        rationale: 'Studien følger en eksponert og en ueksponert gruppe over tid for å undersøke relativ risiko og insidens av utfall.',
+        rationale: 'Studien fÃ¸lger en eksponert og en ueksponert gruppe over tid for Ã¥ undersÃ¸ke relativ risiko og insidens av utfall.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'robins-i',
@@ -595,7 +595,7 @@ export class DocumentClassifierService {
         alternativeInstruments: [
           { id: 'casp-cohort', name: 'CASP Cohort Study', role: 'Pedagogisk sjekkliste for kohortstudier' }
         ],
-        methodologicalLimitations: 'Konfundering og seleksjonsskjevhet er iboende utfordringer i observasjonelle kohorter som krever nøye justering.',
+        methodologicalLimitations: 'Konfundering og seleksjonsskjevhet er iboende utfordringer i observasjonelle kohorter som krever nÃ¸ye justering.',
         instrumentSourceAndAuthority: 'Sterne et al., BMJ (2016) / Cochrane Non-Randomized Studies Group',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -621,7 +621,7 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Etiologi / Risikofaktorer',
         confidenceScore: 93,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Kasus-kontroll)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Kasus-kontroll)',
         evidenceSignals: signals,
         rationale: 'Studien identifiserer personer med et utfall (kasus) og sammenligner deres tidligere eksponering mot personer uten utfallet (kontroller).',
         hasMetadataContentConflict,
@@ -630,7 +630,7 @@ export class DocumentClassifierService {
         recommendedInstrumentName: 'CASP Case-Control / ROBINS-I',
         recommendedInstrumentJustification: 'CASP eller tilpasset ROBINS-I sikrer metodisk vurdering av kontrollgruppeutvalg og tilbakekallingsskjevhet (recall bias).',
         alternativeInstruments: [],
-        methodologicalLimitations: 'Særlig sårbar for seleksjonsskjevhet i kontrollutvalg og unøyaktig historisk eksponeringsmåling.',
+        methodologicalLimitations: 'SÃ¦rlig sÃ¥rbar for seleksjonsskjevhet i kontrollutvalg og unÃ¸yaktig historisk eksponeringsmÃ¥ling.',
         instrumentSourceAndAuthority: 'Critical Appraisal Skills Programme (CASP Oxford)',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -644,30 +644,30 @@ export class DocumentClassifierService {
       fullContext.includes('survey study') ||
       fullContext.includes('prevalence study') ||
       fullContext.includes('prevalensstudie') ||
-      fullContext.includes('spørreundersøkelse');
+      fullContext.includes('spÃ¸rreundersÃ¸kelse');
 
     if (isCrossSectional) {
-      signals.push({ signalType: 'Cross-sectional Survey', value: 'Samtidig måling av eksponering og utfall på ett tidspunkt', foundIn: 'Metodedel' });
+      signals.push({ signalType: 'Cross-sectional Survey', value: 'Samtidig mÃ¥ling av eksponering og utfall pÃ¥ ett tidspunkt', foundIn: 'Metodedel' });
 
       return {
         documentType: 'CROSS_SECTIONAL_STUDY',
-        documentTypeName: 'Tverrsnittstudie / Prevalensundersøkelse',
+        documentTypeName: 'Tverrsnittstudie / PrevalensundersÃ¸kelse',
         isResearchDocument: true,
         studyDesign: 'Analytisk tverrsnittsstudie / Kvantitativ survey',
         methodologicalApproach: 'Kvantitativ (Observasjonell)',
         methodologicalPurpose: 'Prevalens / Kartlegging',
         confidenceScore: 92,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Tverrsnitt)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Tverrsnitt)',
         evidenceSignals: signals,
-        rationale: 'Studien undersøker forekomst eller sammenhenger i en definert populasjon på ett gitt tidspunkt. Kan ikke fastslå kausal tidsrekkefølge.',
+        rationale: 'Studien undersÃ¸ker forekomst eller sammenhenger i en definert populasjon pÃ¥ ett gitt tidspunkt. Kan ikke fastslÃ¥ kausal tidsrekkefÃ¸lge.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'mmat-2018',
         recommendedInstrumentName: 'MMAT 2018 (Kvantitativ deskriptiv del)',
-        recommendedInstrumentJustification: 'MMAT eller JBI Analytical Cross-Sectional Checklist vurderer representativitet, svarprosent og målemetoder.',
+        recommendedInstrumentJustification: 'MMAT eller JBI Analytical Cross-Sectional Checklist vurderer representativitet, svarprosent og mÃ¥lemetoder.',
         alternativeInstruments: [],
-        methodologicalLimitations: 'Tverrsnittsdesign kan ikke skille årsak fra virkning.',
+        methodologicalLimitations: 'Tverrsnittsdesign kan ikke skille Ã¥rsak fra virkning.',
         instrumentSourceAndAuthority: 'Hong et al., Education for Information (2018) / JBI',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -703,25 +703,25 @@ export class DocumentClassifierService {
       (hasQualIndicators && hasQuantIndicators && fullContext.includes('integrat'));
 
     if (isMixedMethodsExplicit) {
-      signals.push({ signalType: 'Mixed Methods Integration', value: 'Både kvalitative og kvantitative datakilder integrert', foundIn: 'Metodedel' });
+      signals.push({ signalType: 'Mixed Methods Integration', value: 'BÃ¥de kvalitative og kvantitative datakilder integrert', foundIn: 'Metodedel' });
 
       return {
         documentType: 'MIXED_METHODS_STUDY',
-        documentTypeName: 'Mixed methods primærstudie (Blandet metode)',
+        documentTypeName: 'Mixed methods primÃ¦rstudie (Blandet metode)',
         isResearchDocument: true,
         studyDesign: 'Mixed Methods (Kvalitativ + Kvantitativ integrasjon)',
         methodologicalApproach: 'Mixed Methods (Blandet metode)',
         methodologicalPurpose: 'Levde erfaringer / Sosiale fenomener',
         confidenceScore: 94,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Mixed Methods)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Mixed Methods)',
         evidenceSignals: signals,
-        rationale: 'Studien kombinerer kvalitative intervjuer/observasjoner med kvantitative målinger og krever spesifikk evaluering av integrasjon og metodisk koherens. Skal IKKE tvinges inn i en ren kvalitativ eller ren kvantitativ sjekkliste.',
+        rationale: 'Studien kombinerer kvalitative intervjuer/observasjoner med kvantitative mÃ¥linger og krever spesifikk evaluering av integrasjon og metodisk koherens. Skal IKKE tvinges inn i en ren kvalitativ eller ren kvantitativ sjekkliste.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'mmat-2018',
         recommendedInstrumentName: 'MMAT 2018 (Mixed Methods Appraisal Tool)',
-        recommendedInstrumentJustification: 'MMAT 2018 er den internasjonalt anerkjente standarden for mixed-methods-studier og vurderer både kvalitative komponenter, kvantitative komponenter og selve integrasjonen (metodisk samspill).',
+        recommendedInstrumentJustification: 'MMAT 2018 er den internasjonalt anerkjente standarden for mixed-methods-studier og vurderer bÃ¥de kvalitative komponenter, kvantitative komponenter og selve integrasjonen (metodisk samspill).',
         alternativeInstruments: [
           { id: 'jbi-qualitative-2017', name: 'JBI Qualitative Checklist', role: 'Kun for den kvalitative delstudien isolert' }
         ],
@@ -761,26 +761,26 @@ export class DocumentClassifierService {
 
       return {
         documentType: 'QUALITATIVE_STUDY',
-        documentTypeName: 'Kvalitativ primærforskning',
+        documentTypeName: 'Kvalitativ primÃ¦rforskning',
         isResearchDocument: true,
         studyDesign: 'Kvalitativ studie (Intervju, Fenomenologi, Grounded Theory, Hermeneutikk)',
         methodologicalApproach: 'Kvalitativ',
         methodologicalPurpose: 'Levde erfaringer / Sosiale fenomener',
         confidenceScore: 96,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Kvalitativ studie)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Kvalitativ studie)',
         evidenceSignals: signals,
         rationale: 'Studien utforsker menneskelige erfaringer, meningsdannelse eller sosiale prosesser via kvalitative forskningsmetoder (intervjuer, observasjon, hermeneutikk, Grounded Theory).',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'jbi-qualitative-2017',
         recommendedInstrumentName: 'JBI Critical Appraisal Checklist for Qualitative Research (2017/2024)',
-        recommendedInstrumentJustification: 'JBI Qualitative (10 kriterier) er den internasjonalt etablerte gullstandarden for å vurdere metodisk kongruens, forskerrefleksivitet, etikk og representasjon i kvalitative primærstudier.',
+        recommendedInstrumentJustification: 'JBI Qualitative (10 kriterier) er den internasjonalt etablerte gullstandarden for Ã¥ vurdere metodisk kongruens, forskerrefleksivitet, etikk og representasjon i kvalitative primÃ¦rstudier.',
         alternativeInstruments: [
           { id: 'casp-qualitative', name: 'CASP Qualitative Checklist', role: 'Pedagogisk 10-punkts sjekkliste' },
           { id: 'mmat-2018', name: 'MMAT 2018 (Kvalitativ del)', role: 'For kvalitative studier i fler-metodiske prosjekter' }
         ],
-        methodologicalLimitations: 'JBI Qualitative er et kvalitativt skjønnsbasert beslutningsstøtteverktøy, IKKE en matematisk kalkulator for automatisk eksklusjon.',
+        methodologicalLimitations: 'JBI Qualitative er et kvalitativt skjÃ¸nnsbasert beslutningsstÃ¸tteverktÃ¸y, IKKE en matematisk kalkulator for automatisk eksklusjon.',
         instrumentSourceAndAuthority: 'Joanna Briggs Institute (JBI Adelaide 2017) / Lockwood et al. (2015)',
         instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
         humanDecision: { status: 'PENDING' },
@@ -804,17 +804,17 @@ export class DocumentClassifierService {
         isResearchDocument: true,
         studyDesign: docName,
         methodologicalApproach: 'Kvantitativ (Observasjonell)',
-        methodologicalPurpose: 'Prognose / Forløp',
+        methodologicalPurpose: 'Prognose / ForlÃ¸p',
         confidenceScore: 91,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: `AI-kandidatforslag – krever verifisering (${docName})`,
+        statusBadgeText: `AI-kandidatforslag â€“ krever verifisering (${docName})`,
         evidenceSignals: signals,
-        rationale: 'Studien beskriver ett eller få kliniske pasientforløp deskriptivt uten kontrollgruppe.',
+        rationale: 'Studien beskriver ett eller fÃ¥ kliniske pasientforlÃ¸p deskriptivt uten kontrollgruppe.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'mmat-2018',
         recommendedInstrumentName: 'JBI / CASP Case Report Appraisal',
-        recommendedInstrumentJustification: 'Kasusrapporter vurderes på klinisk deskriptiv nøyaktighet og transparens.',
+        recommendedInstrumentJustification: 'Kasusrapporter vurderes pÃ¥ klinisk deskriptiv nÃ¸yaktighet og transparens.',
         alternativeInstruments: [],
         methodologicalLimitations: 'Mangler kontrollgruppe og kan ikke generaliseres statistisk.',
         instrumentSourceAndAuthority: 'JBI Critical Appraisal Tools',
@@ -842,14 +842,14 @@ export class DocumentClassifierService {
         methodologicalPurpose: 'Uavklart / Krever manuell presisering',
         confidenceScore: 90,
         confidenceStatus: 'AI_CANDIDATE_REQUIRES_VERIFICATION',
-        statusBadgeText: 'AI-kandidatforslag – krever verifisering (Ikke-forskningsartikkel)',
+        statusBadgeText: 'AI-kandidatforslag â€“ krever verifisering (Ikke-forskningsartikkel)',
         evidenceSignals: signals,
-        rationale: 'Dette er et menings- eller debattinnlegg, ikke en empirisk forskningsstudie. Kritiske vurderingsverktøy for empirisk forskning kan ikke anvendes.',
+        rationale: 'Dette er et menings- eller debattinnlegg, ikke en empirisk forskningsstudie. Kritiske vurderingsverktÃ¸y for empirisk forskning kan ikke anvendes.',
         hasMetadataContentConflict,
         conflictDetails,
         recommendedInstrumentId: 'jbi-qualitative-2017',
         recommendedInstrumentName: 'Ikke egnet for standard critical appraisal',
-        recommendedInstrumentJustification: 'Kommentarer og brev mangler systematisk metodedel og datainnsamling og skal ikke vurderes som empiriske primærstudier.',
+        recommendedInstrumentJustification: 'Kommentarer og brev mangler systematisk metodedel og datainnsamling og skal ikke vurderes som empiriske primÃ¦rstudier.',
         alternativeInstruments: [],
         methodologicalLimitations: 'Inneholder ingen systematisk forskningsmetode.',
         instrumentSourceAndAuthority: 'Vitenskapelig publiseringsetikk (COPE)',
@@ -866,26 +866,26 @@ export class DocumentClassifierService {
       documentType: 'UNKNOWN_UNCERTAIN',
       documentTypeName: 'Ukjent / kan ikke klassifiseres sikkert',
       isResearchDocument: null,
-      studyDesign: 'Uavklart studiedesign – krever manuell forskervurdering',
+      studyDesign: 'Uavklart studiedesign â€“ krever manuell forskervurdering',
       methodologicalApproach: 'Ukjent / Uavklart',
       methodologicalPurpose: 'Uavklart / Krever manuell presisering',
       confidenceScore: 35,
       confidenceStatus: 'MANUAL_VERIFICATION_REQUIRED',
-      statusBadgeText: 'Kan ikke klassifiseres sikkert – manuell vurdering kreves',
+      statusBadgeText: 'Kan ikke klassifiseres sikkert â€“ manuell vurdering kreves',
       evidenceSignals: signals,
-      rationale: 'Teksten inneholder elementer av forskning, men mangler entydige metodiske kjennetegn for å avgjøre om dette er en primærstudie, oversikt eller retningslinje. Manuell verifisering er påkrevd før valg av vurderingsinstrument.',
+      rationale: 'Teksten inneholder elementer av forskning, men mangler entydige metodiske kjennetegn for Ã¥ avgjÃ¸re om dette er en primÃ¦rstudie, oversikt eller retningslinje. Manuell verifisering er pÃ¥krevd fÃ¸r valg av vurderingsinstrument.',
       hasMetadataContentConflict,
       conflictDetails,
       recommendedInstrumentId: 'jbi-qualitative-2017',
       recommendedInstrumentName: 'Manuell verifisering kreves',
-      recommendedInstrumentJustification: 'Systemet nekter å gjette vilkårlig på et studiedesign. Velg riktig instrument basert på dokumentets fulle metodedel.',
+      recommendedInstrumentJustification: 'Systemet nekter Ã¥ gjette vilkÃ¥rlig pÃ¥ et studiedesign. Velg riktig instrument basert pÃ¥ dokumentets fulle metodedel.',
       alternativeInstruments: [
         { id: 'jbi-qualitative-2017', name: 'JBI Qualitative', role: 'Dersom dokumentet er en kvalitativ studie' },
         { id: 'amstar-2', name: 'AMSTAR 2', role: 'Dersom dokumentet er en systematisk oversikt' },
         { id: 'rob-2', name: 'RoB 2', role: 'Dersom dokumentet er en RCT' },
         { id: 'agree-ii', name: 'AGREE II', role: 'Dersom dokumentet er en retningslinje' }
       ],
-      methodologicalLimitations: 'Uten verifisert studiedesign kan ingen vitenskapelig validitetsvurdering utføres.',
+      methodologicalLimitations: 'Uten verifisert studiedesign kan ingen vitenskapelig validitetsvurdering utfÃ¸res.',
       instrumentSourceAndAuthority: 'Metodisk integritetskontroll',
       instrumentRoleType: 'CRITICAL_APPRAISAL_ROB',
       humanDecision: { status: 'PENDING' },
@@ -906,37 +906,37 @@ export class DocumentClassifierService {
       case 'CRITICAL_APPRAISAL_ROB':
         return {
           title: 'Critical Appraisal & Risk of Bias (f.eks. JBI, AMSTAR 2, RoB 2, ROBINS-I, MMAT)',
-          roleExplanation: 'Evaluerer den metodiske validiteten, indre stringensen og risikoen for systematiske skjevheter (bias) i design, gjennomføring og analyse av en empirisk studie.',
-          whatItIsFor: 'Kvalitetsvurdering og bias-screening for å avgjøre om studiens resultater er pålitelige.',
-          whatItIsNotFor: 'Dette er IKKE en rapporteringssjekkliste og måler IKKE sikkerheten til hele evidensgrunnlaget på tvers av studier.'
+          roleExplanation: 'Evaluerer den metodiske validiteten, indre stringensen og risikoen for systematiske skjevheter (bias) i design, gjennomfÃ¸ring og analyse av en empirisk studie.',
+          whatItIsFor: 'Kvalitetsvurdering og bias-screening for Ã¥ avgjÃ¸re om studiens resultater er pÃ¥litelige.',
+          whatItIsNotFor: 'Dette er IKKE en rapporteringssjekkliste og mÃ¥ler IKKE sikkerheten til hele evidensgrunnlaget pÃ¥ tvers av studier.'
         };
       case 'GUIDELINE_APPRAISAL':
         return {
           title: 'Guideline Appraisal (f.eks. AGREE II)',
           roleExplanation: 'Evaluerer den metodiske rigiditeten, transparensen og interessent-involveringen i utviklingen av faglige og kliniske retningslinjer.',
           whatItIsFor: 'Kvalitetsvurdering av nasjonale og internasjonale retningslinjer.',
-          whatItIsNotFor: 'Dette er IKKE et verktøy for å vurdere enkeltstående primærforskningsartikler.'
+          whatItIsNotFor: 'Dette er IKKE et verktÃ¸y for Ã¥ vurdere enkeltstÃ¥ende primÃ¦rforskningsartikler.'
         };
       case 'REPORTING_STANDARD':
         return {
           title: 'Reporting Standard (f.eks. PRISMA 2020, CONSORT, COREQ, STROBE)',
-          roleExplanation: 'Spesifiserer minimumskrav til åpenhet og transparens for hva som må rapporteres i en publisert artikkel.',
-          whatItIsFor: 'Sikre at forfattere oppgir alle nødvendige opplysninger slik at leseren kan forstå hva som er gjort.',
-          whatItIsNotFor: 'Dette er IKKE et kvalitetsskåringsverktøy for metodisk gyldighet. En studie kan være perfekt rapportert etter PRISMA, men likevel ha fatal risiko for metodisk bias.'
+          roleExplanation: 'Spesifiserer minimumskrav til Ã¥penhet og transparens for hva som mÃ¥ rapporteres i en publisert artikkel.',
+          whatItIsFor: 'Sikre at forfattere oppgir alle nÃ¸dvendige opplysninger slik at leseren kan forstÃ¥ hva som er gjort.',
+          whatItIsNotFor: 'Dette er IKKE et kvalitetsskÃ¥ringsverktÃ¸y for metodisk gyldighet. En studie kan vÃ¦re perfekt rapportert etter PRISMA, men likevel ha fatal risiko for metodisk bias.'
         };
       case 'EVIDENCE_CERTAINTY':
         return {
           title: 'Certainty of Evidence Framework (f.eks. GRADE, GRADE-CERQual)',
-          roleExplanation: 'Vurderer den samlede tilliten til et spesifikt syntetisert kunnskapsfunn eller en effektstørrelse på tvers av en hel samling studier.',
-          whatItIsFor: 'Gradere tillit til evidens på utfallsnivå for kliniske beslutninger og oppsummeringer.',
-          whatItIsNotFor: 'Dette er IKKE en kvalitetsskår for en enkeltstående primærstudie.'
+          roleExplanation: 'Vurderer den samlede tilliten til et spesifikt syntetisert kunnskapsfunn eller en effektstÃ¸rrelse pÃ¥ tvers av en hel samling studier.',
+          whatItIsFor: 'Gradere tillit til evidens pÃ¥ utfallsnivÃ¥ for kliniske beslutninger og oppsummeringer.',
+          whatItIsNotFor: 'Dette er IKKE en kvalitetsskÃ¥r for en enkeltstÃ¥ende primÃ¦rstudie.'
         };
       case 'IMPLEMENTATION_FRAMEWORK':
         return {
           title: 'Implementation Framework (f.eks. CFIR 2.0, KTA)',
-          roleExplanation: 'Strukturerer og kategoriserer determinanter, barrierer, fremmere og endringsprosesser ved innføring av nye tiltak i helse- og velferdstjenestene.',
+          roleExplanation: 'Strukturerer og kategoriserer determinanter, barrierer, fremmere og endringsprosesser ved innfÃ¸ring av nye tiltak i helse- og velferdstjenestene.',
           whatItIsFor: 'Kartlegge kontekstuelle faktorer og implementeringsutfall.',
-          whatItIsNotFor: 'Dette er IKKE et kvalitetsskåringsverktøy for metodisk bias.'
+          whatItIsNotFor: 'Dette er IKKE et kvalitetsskÃ¥ringsverktÃ¸y for metodisk bias.'
         };
     }
   }
@@ -981,9 +981,11 @@ export class DocumentClassifierService {
       }
     } else if (decision.status === 'UNCERTAIN' || decision.status === 'REJECTED') {
       updated.confidenceStatus = 'MANUAL_VERIFICATION_REQUIRED';
-      updated.statusBadgeText = 'Avvist av forsker – krever manuell re-vurdering';
+      updated.statusBadgeText = 'Avvist av forsker â€“ krever manuell re-vurdering';
     }
 
     return updated;
   }
 }
+
+

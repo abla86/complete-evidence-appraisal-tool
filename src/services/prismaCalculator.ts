@@ -1,4 +1,4 @@
-import type { PRISMAFlow } from '../types/researchWorkflow';
+﻿import type { PRISMAFlow } from '../types/researchWorkflow';
 
 export interface PRISMAStages {
   databases: number;
@@ -79,3 +79,5 @@ export function generatePRISMAMermaid(flow: PRISMAFlow): string {
     `H --> I[Studies quality assessed: ${flow.included.studiesQualityAssessment}]`,
   ].join('\n');
 }
+
+

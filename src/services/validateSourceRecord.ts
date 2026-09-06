@@ -1,4 +1,4 @@
-import { SOURCE_RECORD_SCHEMA_VERSION } from '../domain/sourceRecord';
+﻿import { SOURCE_RECORD_SCHEMA_VERSION } from '../domain/sourceRecord';
 
 export interface SourceRecordValidationResult {
   ok: boolean;
@@ -64,7 +64,7 @@ export function validateSourceRecord(record: unknown): SourceRecordValidationRes
   } else {
     if (!['complete', 'incomplete', 'unverifiable'].includes(String(draft.status))) errors.push('invalid referenceDraft.status');
     if (draft.status === 'complete' && typeof draft.apa7 !== 'string') errors.push('complete reference requires non-null apa7 string');
-    if (draft.note !== 'Draft – detected metadata, not verified against source') errors.push('referenceDraft.note must preserve non-verification warning');
+    if (draft.note !== 'Draft â€“ detected metadata, not verified against source') errors.push('referenceDraft.note must preserve non-verification warning');
   }
 
   const privacy = record.privacy;
@@ -87,3 +87,5 @@ export function validateSourceRecord(record: unknown): SourceRecordValidationRes
 
   return { ok: errors.length === 0, errors };
 }
+
+

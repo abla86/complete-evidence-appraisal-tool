@@ -1,4 +1,4 @@
-import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
+﻿import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import type { AppraisalInstrument } from '../types';
 
 export type ImplementationLevel = 'FULL' | 'ENGINE' | 'WORKSPACE' | 'REGISTRY_ONLY';
@@ -45,10 +45,12 @@ export function getInstrumentCoverage(): InstrumentCoverage[] {
       note: implementationLevel === 'FULL'
         ? 'Kanonisk arbeidsflate og instrumentspesifikk resultatmotor er koblet.'
         : implementationLevel === 'ENGINE'
-          ? 'Det finnes en instrumentspesifikk motor, men den er ikke koblet til den kanoniske arbeidsflaten ennå.'
+          ? 'Det finnes en instrumentspesifikk motor, men den er ikke koblet til den kanoniske arbeidsflaten ennÃ¥.'
           : implementationLevel === 'WORKSPACE'
             ? 'Felles vurderingsflate finnes; instrumentspesifikk resultatmotor er ikke koblet.'
-            : 'Instrumentet finnes som metoderegisteroppføring, men er ikke aktivt kjørbart i appraisal-arbeidsflaten.'
+            : 'Instrumentet finnes som metoderegisteroppfÃ¸ring, men er ikke aktivt kjÃ¸rbart i appraisal-arbeidsflaten.'
     };
   });
 }
+
+

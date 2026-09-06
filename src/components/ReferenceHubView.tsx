@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import {
   createHubSnapshot,
   markReferenceVerified,
@@ -58,7 +58,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
       <div>
         <h2 className="text-xl font-bold text-slate-900 font-serif">Reference Hub</h2>
         <p className="text-sm text-slate-500 max-w-3xl">
-          Én felles referansemotor for hele Evidence-systemet. EndNote, Zotero, Mendeley og Paperpile håndteres som kompatibilitets- og import/eksportformater.
+          Ã‰n felles referansemotor for hele Evidence-systemet. EndNote, Zotero, Mendeley og Paperpile hÃ¥ndteres som kompatibilitets- og import/eksportformater.
         </p>
       </div>
 
@@ -71,7 +71,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Søk etter tittel, forfatter, tidsskrift, DOI eller tag…" className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-600" />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="SÃ¸k etter tittel, forfatter, tidsskrift, DOI eller tagâ€¦" className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-600" />
           <select value={filter} onChange={e => setFilter(e.target.value as typeof filter)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
             <option value="all">Alle</option>
             <option value="validation">Krever verifikasjon</option>
@@ -90,7 +90,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="font-semibold text-sm text-slate-900 truncate">{record.title || 'Uten tittel'}</div>
-                      <div className="text-xs text-slate-500 truncate">{record.authors || 'Ukjent forfatter'} · {record.year || 'Ukjent år'}</div>
+                      <div className="text-xs text-slate-500 truncate">{record.authors || 'Ukjent forfatter'} Â· {record.year || 'Ukjent Ã¥r'}</div>
                     </div>
                     <span className={`shrink-0 text-[10px] px-2 py-1 rounded-full border ${record.verification === 'VALIDATED' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
                       {record.verification === 'VALIDATED' ? 'VALIDERT' : 'KONTROLLER'}
@@ -107,12 +107,12 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
                 <div>
                   <div className="text-[10px] uppercase tracking-wide text-slate-400">Detaljer</div>
                   <h3 className="font-bold text-slate-900 mt-1">{selected.title || 'Uten tittel'}</h3>
-                  <p className="text-xs text-slate-500 mt-1">{selected.authors || 'Ukjent forfatter'} · {selected.year || 'Ukjent år'}</p>
+                  <p className="text-xs text-slate-500 mt-1">{selected.authors || 'Ukjent forfatter'} Â· {selected.year || 'Ukjent Ã¥r'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <Detail label="Type" value={selected.kind} />
-                  <Detail label="DOI" value={selected.doi || '—'} />
-                  <Detail label="Tidsskrift" value={selected.journal || '—'} />
+                  <Detail label="DOI" value={selected.doi || 'â€”'} />
+                  <Detail label="Tidsskrift" value={selected.journal || 'â€”'} />
                   <Detail label="Kilde" value={selected.importedFrom.join(', ')} />
                   <Detail label="PDF" value={String(selected.attachments.filter(a => a.kind === 'PDF').length)} />
                   <Detail label="Annotasjoner" value={String(selected.annotations.length)} />
@@ -138,7 +138,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
           {Object.entries(REFERENCE_COMPATIBILITY_CAPABILITIES).map(([name, capabilities]) => (
             <div key={name} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
               <div className="text-sm font-semibold">{name}</div>
-              <div className="text-[11px] text-slate-500 mt-1">{capabilities.join(' · ')}</div>
+              <div className="text-[11px] text-slate-500 mt-1">{capabilities.join(' Â· ')}</div>
             </div>
           ))}
         </div>
@@ -158,3 +158,5 @@ function Metric({ label, value }: { label: string; value: number }) {
 function Detail({ label, value }: { label: string; value: string }) {
   return <div className="rounded-lg bg-slate-50 p-2"><div className="text-[10px] text-slate-400">{label}</div><div className="text-xs font-medium text-slate-800 break-words mt-0.5">{value}</div></div>;
 }
+
+

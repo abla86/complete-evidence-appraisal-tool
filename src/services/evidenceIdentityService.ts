@@ -1,4 +1,4 @@
-import type { ReferenceRecord } from './referenceHubService';
+﻿import type { ReferenceRecord } from './referenceHubService';
 
 export interface SourceIdentityLike {
   recordId: string;
@@ -45,3 +45,5 @@ export function sameReference(a: ReferenceRecord, b: ReferenceRecord): boolean {
     return Boolean(left && right && left === right);
   }) || a.id === b.id;
 }
+
+

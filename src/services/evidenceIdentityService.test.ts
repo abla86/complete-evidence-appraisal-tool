@@ -1,4 +1,4 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createReferenceRecord } from './referenceHubService';
 import { resolveReferenceForSource } from './evidenceIdentityService';
@@ -17,3 +17,5 @@ test('DOI remains a stable identity match', () => {
   const reference = createReferenceRecord({ id: 'reference-2', title: 'Example DOI', authors: 'Example B', year: 2026, doi: '10.1234/example' });
   assert.equal(resolveReferenceForSource({ recordId: 'source-10', identifiers: { doi: 'https://doi.org/10.1234/example' } }, [reference])?.id, 'reference-2');
 });
+
+

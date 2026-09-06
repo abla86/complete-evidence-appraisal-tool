@@ -1,4 +1,4 @@
-import { createReference, type SharedReferenceInput } from './sharedReferenceEngine';
+﻿import { createReference, type SharedReferenceInput } from './sharedReferenceEngine';
 
 export type CitationStyle = 'APA7' | 'VANCOUVER' | 'HARVARD' | 'CHICAGO_AUTHOR_DATE' | 'MLA9' | 'IEEE';
 
@@ -19,7 +19,7 @@ function firstAuthor(authors?: string): string {
 
 function apa(input: CitationInput) {
   const author = firstAuthor(input.authors);
-  const year = input.year || 'u.å.';
+  const year = input.year || 'u.Ã¥.';
   const title = input.title || '[Uten tittel]';
   const journal = input.journal || '';
   const volume = input.volume ? `, ${input.volume}` : '';
@@ -46,7 +46,7 @@ function vancouver(input: CitationInput) {
 
 function harvard(input: CitationInput) {
   const author = firstAuthor(input.authors);
-  const year = input.year || 'u.å.';
+  const year = input.year || 'u.Ã¥.';
   const title = input.title || '[Uten tittel]';
   return {
     inline: `(${author} ${year})`,
@@ -90,3 +90,5 @@ export function buildCitation(input: CitationInput, style: CitationStyle): Citat
   }
   return { id: input.id, ...formatted, sourceStatus: validation.status };
 }
+
+

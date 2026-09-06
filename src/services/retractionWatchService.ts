@@ -1,4 +1,4 @@
-export type RetractionSignal = 'RETRACTION' | 'CORRECTION' | 'EXPRESSION_OF_CONCERN' | 'NONE' | 'UNVERIFIED';
+﻿export type RetractionSignal = 'RETRACTION' | 'CORRECTION' | 'EXPRESSION_OF_CONCERN' | 'NONE' | 'UNVERIFIED';
 
 interface CrossrefUpdate { type?: string; label?: string; }
 interface CrossrefMessage { ['update-to']?: CrossrefUpdate[]; }
@@ -31,3 +31,5 @@ export async function checkDoiStatus(doi: string): Promise<RetractionCheckResult
   if (correction) return { doi: clean, signal: 'CORRECTION', source: 'CROSSREF', checkedAt: new Date().toISOString(), details: String(correction.label || correction.type || 'Correction update found.') };
   return { doi: clean, signal: 'NONE', source: 'CROSSREF', checkedAt: new Date().toISOString() };
 }
+
+

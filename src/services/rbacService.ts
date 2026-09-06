@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Server and Client Side Role-Based Access Control (RBAC) Service
  * 
  * Enforces explicit role permissions:
@@ -8,7 +8,7 @@
  * - Adjudicator: Resolves reviewer discrepancies, enters consensus rationales
  */
 
-export type UserRole = 'admin' | 'researcher' | 'reviewer' | 'second_reviewer' | 'lead_reviewer' | 'adjudicator' | 'auditor' | 'read_only';
+export type UserRole = 'admin' | 'lead_reviewer' | 'reviewer' | 'adjudicator';
 
 export interface UserSession {
   userId: string;
@@ -34,30 +34,6 @@ export interface PermissionDefinition {
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, PermissionDefinition> = {
-  read_only: {
-    canCreateProject: false, canEditProjectConfig: false, canImportDocuments: false,
-    canClassifyStudy: false, canConductAppraisal: false, canConductDualReview: false,
-    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: false,
-    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
-  },
-  auditor: {
-    canCreateProject: false, canEditProjectConfig: false, canImportDocuments: false,
-    canClassifyStudy: false, canConductAppraisal: false, canConductDualReview: false,
-    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: true,
-    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
-  },
-  second_reviewer: {
-    canCreateProject: false, canEditProjectConfig: false, canImportDocuments: true,
-    canClassifyStudy: true, canConductAppraisal: true, canConductDualReview: true,
-    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: true,
-    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
-  },
-  researcher: {
-    canCreateProject: true, canEditProjectConfig: true, canImportDocuments: true,
-    canClassifyStudy: true, canConductAppraisal: true, canConductDualReview: false,
-    canAdjudicateDisagreements: false, canSignOffConsensus: false, canExportData: true,
-    canPurgeData: false, canViewAuditTrail: true, canManageUsers: false
-  },
   admin: {
     canCreateProject: true,
     canEditProjectConfig: true,
@@ -131,31 +107,24 @@ export class RbacService {
           name: 'Hovedgransker / Prosjektleder',
           description: 'Ansvarlig for protokoll, kvalitetskontroll, konsensus og godkjenning av syntese.'
         };
-      case 'second_reviewer':
-        return { id: 'second_reviewer', name: 'Reviewer 2', description: 'Uavhengig sekundærgransker.' };
       case 'adjudicator':
         return {
           id: 'adjudicator',
           name: 'Tredjeperson / Mekler (Arbiter)',
-          description: 'Autorisert til å avgjøre dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmøte.'
+          description: 'Autorisert til Ã¥ avgjÃ¸re dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmÃ¸te.'
         };
-      case 'researcher':
-        return { id: 'researcher', name: 'Forsker', description: 'Forsker med tilgang til prosjektarbeid og metodisk vurdering.' };
-      case 'auditor':
-        return { id: 'auditor', name: 'Revisor', description: 'Lesetilgang til auditspor og eksportert revisjonsinformasjon.' };
-      case 'read_only':
-        return { id: 'read_only', name: 'Lesetilgang', description: 'Kun lesetilgang uten endringshandlinger.' };
       case 'reviewer':
+      default:
         return {
           id: 'reviewer',
           name: 'Uavhengig gransker (Reviewer)',
-          description: 'Gjennomfører blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
+          description: 'GjennomfÃ¸rer blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
         };
     }
   }
 
   public static getAvailableRoles() {
-    return (['researcher', 'reviewer', 'second_reviewer', 'lead_reviewer', 'adjudicator', 'auditor', 'read_only', 'admin'] as UserRole[]).map(role => this.getRoleDefinition(role));
+    return (['lead_reviewer', 'reviewer', 'adjudicator', 'admin'] as UserRole[]).map(this.getRoleDefinition);
   }
 
   public static checkPermission(role: UserRole, permission: keyof PermissionDefinition): boolean {
@@ -168,3 +137,5 @@ export class RbacService {
     return session.authorizedProjectIds.includes(targetProjectId);
   }
 }
+
+

@@ -1,3 +1,4 @@
+import { generateId } from '../utils/id';
 /**
  * Open Scientific Research Database API Service
  * 
@@ -164,7 +165,7 @@ export class OpenResearchApiService {
         const doiRaw = w.doi ? w.doi.replace(/^https?:\/\/doi\.org\//i, '') : undefined;
 
         return {
-          id: `openalex-${w.id?.replace('https://openalex.org/', '') || Math.random().toString(36)}`,
+          id: `openalex-${w.id?.replace('https://openalex.org/', '') || generateId()}`,
           source: norwegianOnly ? 'Norske Forskningsarkiv (NVA/Cristin)' : 'OpenAlex (Global & Norsk)',
           title: (w.title || 'Uten tittel').replace(/<[^>]*>?/gm, '').trim(),
           authors,
@@ -203,7 +204,7 @@ export class OpenResearchApiService {
       
       const list = data.resultList?.result || [];
       return list.map((item: any) => ({
-        id: `epmc-${item.id || item.doi || Math.random().toString(36)}`,
+        id: `epmc-${item.id || item.doi || generateId()}`,
         source: 'Europe PMC',
         title: (item.title || 'Uten tittel').replace(/<[^>]*>?/gm, '').trim(),
         authors: item.authorString || (item.authorList?.author?.map((a: any) => a.fullName).join(', ')) || 'Ikke oppgitt',
@@ -244,7 +245,7 @@ export class OpenResearchApiService {
         const year = item.published?.['date-parts']?.[0]?.[0] ? String(item.published['date-parts'][0][0]) : 'Ukjent';
         
         return {
-          id: `cr-${item.DOI || Math.random().toString(36)}`,
+          id: `cr-${item.DOI || generateId()}`,
           source: 'Crossref',
           title: title.replace(/<[^>]*>?/gm, '').trim(),
           authors: authorStr,
@@ -325,7 +326,7 @@ export class OpenResearchApiService {
         const doi = item.externalIds?.DOI;
 
         return {
-          id: `s2-${item.paperId || Math.random().toString(36)}`,
+          id: `s2-${item.paperId || generateId()}`,
           source: 'Semantic Scholar',
           title: (item.title || 'Uten tittel').trim(),
           authors,
@@ -364,7 +365,7 @@ export class OpenResearchApiService {
         const doiId = (bib.identifier || []).find((id: any) => id.type === 'doi')?.id;
 
         return {
-          id: `doaj-${item.id || Math.random().toString(36)}`,
+          id: `doaj-${item.id || generateId()}`,
           source: 'DOAJ (Open Access)',
           title: (bib.title || 'Uten tittel').trim(),
           authors,

@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   ArticleAppraisal, 
   AssessmentStatus, 
   JBIEvaluationItem, 
@@ -118,18 +118,18 @@ export class JbiQualitativeValidationService {
     const verdictNote = (metadata?.verdictNote || '').toLowerCase();
     if (
       (design.includes('kvalitativ') || design.includes('grounded') || design.includes('fenomenolog')) &&
-      (verdictNote.includes('beviser kausal') || verdictNote.includes('kausal effekt') || verdictNote.includes('isolerer årsak'))
+      (verdictNote.includes('beviser kausal') || verdictNote.includes('kausal effekt') || verdictNote.includes('isolerer Ã¥rsak'))
     ) {
-      criticalFlaws.push('Epistemologisk kausalitetsfeil: Kvalitativ studie omtales som kausal effektprøving.');
+      criticalFlaws.push('Epistemologisk kausalitetsfeil: Kvalitativ studie omtales som kausal effektprÃ¸ving.');
     }
 
     if (score.unanswered > 0) {
       return {
         verdict: 'Ufullstendig',
         riskOfBias: 'Uavklart',
-        rationale: `Vurderingen er ufullstendig (${score.unanswered} av 10 spørsmål gjenstår). Alle 10 kriterier må vurderes med begrunnelse.`,
+        rationale: `Vurderingen er ufullstendig (${score.unanswered} av 10 spÃ¸rsmÃ¥l gjenstÃ¥r). Alle 10 kriterier mÃ¥ vurderes med begrunnelse.`,
         criticalFlaws: [...criticalFlaws, ...identifiedWeaknesses],
-        suggestedAction: 'Fullfør de ubesvarte kriteriene før endelig inklusjonsvedtak fattes.'
+        suggestedAction: 'FullfÃ¸r de ubesvarte kriteriene fÃ¸r endelig inklusjonsvedtak fattes.'
       };
     }
 
@@ -141,7 +141,7 @@ export class JbiQualitativeValidationService {
         riskOfBias: 'Moderat',
         rationale: `Epistemologisk avvik oppdaget: ${criticalFlaws.join('; ')}. Studien krever metodisk presisering i oppgaven.`,
         criticalFlaws,
-        suggestedAction: 'Drøft det metodiske avviket og unngå kausale generaliseringer i syntesen.'
+        suggestedAction: 'DrÃ¸ft det metodiske avviket og unngÃ¥ kausale generaliseringer i syntesen.'
       };
     }
 
@@ -149,7 +149,7 @@ export class JbiQualitativeValidationService {
       return {
         verdict: 'Inkluder',
         riskOfBias: 'Lav',
-        rationale: 'Høy metodisk stringens: Samtlige 10 JBI-kriterier er vurdert som oppfylt («Ja») med dokumentert begrunnelse.',
+        rationale: 'HÃ¸y metodisk stringens: Samtlige 10 JBI-kriterier er vurdert som oppfylt (Â«JaÂ») med dokumentert begrunnelse.',
         criticalFlaws: [],
         suggestedAction: 'Inkluder studien i kunnskapsgrunnlaget og tematisk syntese.'
       };
@@ -157,24 +157,24 @@ export class JbiQualitativeValidationService {
 
     if (score.nei > 0 || score.uklart > 0) {
       const hasManyUnclear = score.uklart >= 3;
-      const suggestedVerdict = hasManyUnclear ? 'Søk mer informasjon' : (score.ja >= 7 ? 'Inkluder' : 'Vurder videre');
-      const biasLevel = score.nei >= 3 ? 'Høy' : (score.nei >= 1 || score.uklart >= 2 ? 'Moderat' : 'Lav');
+      const suggestedVerdict = hasManyUnclear ? 'SÃ¸k mer informasjon' : (score.ja >= 7 ? 'Inkluder' : 'Vurder videre');
+      const biasLevel = score.nei >= 3 ? 'HÃ¸y' : (score.nei >= 1 || score.uklart >= 2 ? 'Moderat' : 'Lav');
 
       return {
         verdict: suggestedVerdict,
         riskOfBias: biasLevel,
-        rationale: `JBI Metodisk profil: ${score.ja} Ja, ${score.nei} Nei, ${score.uklart} Uklart, ${score.ikkeRelevant} Ikke relevant. Identifiserte punkter: ${identifiedWeaknesses.join(' ')} (JBI foreskriver ikke en rigid cut-off score; vurderingen er veiledende beslutningsstøtte).`,
+        rationale: `JBI Metodisk profil: ${score.ja} Ja, ${score.nei} Nei, ${score.uklart} Uklart, ${score.ikkeRelevant} Ikke relevant. Identifiserte punkter: ${identifiedWeaknesses.join(' ')} (JBI foreskriver ikke en rigid cut-off score; vurderingen er veiledende beslutningsstÃ¸tte).`,
         criticalFlaws: identifiedWeaknesses,
         suggestedAction: hasManyUnclear 
-          ? 'Kontakt forfattere eller søk supplerende metodisk dokumentasjon for uavklarte punkter.' 
-          : 'Vurder studiens metodiske styrker og svakheter i lys av syntesens formål og kontekst.'
+          ? 'Kontakt forfattere eller sÃ¸k supplerende metodisk dokumentasjon for uavklarte punkter.' 
+          : 'Vurder studiens metodiske styrker og svakheter i lys av syntesens formÃ¥l og kontekst.'
       };
     }
 
     return {
       verdict: 'Vurder videre',
       riskOfBias: 'Moderat',
-      rationale: `Metodisk profil: ${score.ja}/10 Ja. JBI krever helhetlig faglig forskerskjønn for inklusjonsbeslutning.`,
+      rationale: `Metodisk profil: ${score.ja}/10 Ja. JBI krever helhetlig faglig forskerskjÃ¸nn for inklusjonsbeslutning.`,
       criticalFlaws: identifiedWeaknesses,
       suggestedAction: 'Vurder studiens samlede metodiske troverdighet i oppgavens diskusjonskapittel.'
     };
@@ -208,7 +208,7 @@ export class JbiQualitativeValidationService {
       r2Counts[st2] = (r2Counts[st2] || 0) + 1;
 
       const qDef = JBI_QUESTIONS.find(q => q.id === qId);
-      const qTitle = qDef?.shortTitle || `Spørsmål ${qId}`;
+      const qTitle = qDef?.shortTitle || `SpÃ¸rsmÃ¥l ${qId}`;
 
       if (st1 === st2) {
         agreedCount++;
@@ -240,12 +240,12 @@ export class JbiQualitativeValidationService {
       cohensKappa = Math.max(-1, Math.min(1, Number(((pObserved - pExpected) / (1 - pExpected)).toFixed(3))));
     }
 
-    let kappaInterpretation: InterRaterAgreementResult['kappaInterpretation'] = 'Svært god (Almost perfect)';
-    if (cohensKappa < 0.20) kappaInterpretation = 'Dårlig (Poor)';
+    let kappaInterpretation: InterRaterAgreementResult['kappaInterpretation'] = 'SvÃ¦rt god (Almost perfect)';
+    if (cohensKappa < 0.20) kappaInterpretation = 'DÃ¥rlig (Poor)';
     else if (cohensKappa <= 0.40) kappaInterpretation = 'Middels (Fair)';
     else if (cohensKappa <= 0.60) kappaInterpretation = 'Moderat (Moderate)';
     else if (cohensKappa <= 0.80) kappaInterpretation = 'Betydelig (Substantial)';
-    else kappaInterpretation = 'Svært god (Almost perfect)';
+    else kappaInterpretation = 'SvÃ¦rt god (Almost perfect)';
 
     return {
       totalItems,
@@ -291,7 +291,7 @@ export class JbiQualitativeValidationService {
     pages?: string;
   }): string {
     const { authors, year, title, journal, doi, volumeIssue, pages } = meta;
-    let ref = `${authors || 'Forfattere'} (${year || 'u.å.'}). ${title}. ${journal}`;
+    let ref = `${authors || 'Forfattere'} (${year || 'u.Ã¥.'}). ${title}. ${journal}`;
     if (volumeIssue) ref += `, ${volumeIssue}`;
     if (pages) ref += `, ${pages}`;
     ref += '.';
@@ -319,13 +319,13 @@ export class JbiQualitativeValidationService {
 
     // 1. Mandatory metadata checks
     if (!assessment.title || assessment.title.trim().length === 0) {
-      errors.push('Studietittel / Artikkeltittel er påkrevd.');
+      errors.push('Studietittel / Artikkeltittel er pÃ¥krevd.');
     }
     if (!assessment.authors || assessment.authors.trim().length === 0) {
-      warnings.push('Forfattere bør registreres for korrekt akademisk kildehenvisning.');
+      warnings.push('Forfattere bÃ¸r registreres for korrekt akademisk kildehenvisning.');
     }
     if (!assessment.reviewerName || assessment.reviewerName.trim().length === 0) {
-      warnings.push('Reviewer-navn / Vurderer bør registreres for sporbarhet i audit trail.');
+      warnings.push('Reviewer-navn / Vurderer bÃ¸r registreres for sporbarhet i audit trail.');
     }
     if (!assessment.assessmentDate) {
       warnings.push('Vurderingsdato mangler.');
@@ -339,12 +339,12 @@ export class JbiQualitativeValidationService {
       const item = items.find(i => i.questionId === qId);
 
       if (!item) {
-        warnings.push(`Spørsmål ${qId} er ikke besvart.`);
+        warnings.push(`SpÃ¸rsmÃ¥l ${qId} er ikke besvart.`);
         continue;
       }
 
       if (!item.status) {
-        warnings.push(`Spørsmål ${qId} mangler svarverdi (Ja, Nei, Uklart, Ikke relevant).`);
+        warnings.push(`SpÃ¸rsmÃ¥l ${qId} mangler svarverdi (Ja, Nei, Uklart, Ikke relevant).`);
         continue;
       }
 
@@ -352,12 +352,12 @@ export class JbiQualitativeValidationService {
 
       // Check rationale
       if (!item.justification || item.justification.trim().length < 10) {
-        warnings.push(`Spørsmål ${qId} mangler utførlig faglig begrunnelse / rationale (WHO standard).`);
+        warnings.push(`SpÃ¸rsmÃ¥l ${qId} mangler utfÃ¸rlig faglig begrunnelse / rationale (WHO standard).`);
       }
 
       // Evidence check for 'Ja' answers
       if (canonical === 'Ja' && (!item.evidenceText || item.evidenceText.trim().length === 0) && (!item.location?.page && !item.location?.section)) {
-        warnings.push(`Spørsmål ${qId}: Direkte sitat eller sidetallhenvisning anbefales for positive «Ja»-vurderinger.`);
+        warnings.push(`SpÃ¸rsmÃ¥l ${qId}: Direkte sitat eller sidetallhenvisning anbefales for positive Â«JaÂ»-vurderinger.`);
       }
     }
 
@@ -397,3 +397,5 @@ export class JbiQualitativeValidationService {
 
 // Export canonical alias for broad full-app appraisal validation
 export { JbiQualitativeValidationService as AppraisalValidationEngine };
+
+

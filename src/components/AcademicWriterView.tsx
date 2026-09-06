@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import type { ReferenceRecord } from '../services/referenceHubService.ts';
 import {
   auditAcademicProject,
@@ -19,7 +19,7 @@ const MODES: Array<{ value: WritingMode; label: string }> = [
   { value: 'WRITE_FROM_SOURCES', label: 'Skriv fra kilder' },
   { value: 'SYNTHESIZE_SOURCES', label: 'Syntetiser kilder' },
   { value: 'WRITE_FROM_PROJECT_DATA', label: 'Skriv fra prosjektdata' },
-  { value: 'EDIT_ONLY', label: 'Kun språkvask' },
+  { value: 'EDIT_ONLY', label: 'Kun sprÃ¥kvask' },
   { value: 'ARGUMENT_AUDIT', label: 'Argumentaudit' },
   { value: 'CITATION_AUDIT', label: 'Siteringsaudit' },
   { value: 'SUPERVISOR_REVIEW', label: 'Veiledergjennomgang' },
@@ -60,7 +60,7 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
       sourceRecordIds: [...selectedReferenceIds],
       evidenceLocations: [],
       supportState: selectedReferenceIds.length > 0 ? 'SOURCE_DETECTED' : 'UNSUPPORTED',
-      uncertaintyNote: selectedReferenceIds.length > 0 ? 'Kilden må verifiseres og evidenssted må kobles før påstanden kan brukes som etablert faktum.' : 'Ingen kilde valgt.',
+      uncertaintyNote: selectedReferenceIds.length > 0 ? 'Kilden mÃ¥ verifiseres og evidenssted mÃ¥ kobles fÃ¸r pÃ¥standen kan brukes som etablert faktum.' : 'Ingen kilde valgt.',
       researcherApproved: false,
     }]);
     setDraftClaim('');
@@ -77,7 +77,7 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
           <div>
             <div className="text-[11px] uppercase tracking-wide text-violet-700 font-bold">Academic Writer</div>
             <h2 className="text-2xl font-bold font-serif text-slate-900">Master + PhD forskningsskriver</h2>
-            <p className="text-sm text-slate-600 mt-1 max-w-3xl">Skriving er koblet til Reference Hub. Faktapåstander uten tilstrekkelig støtte blir stående som eksplisitte hull i stedet for å fylles med oppdiktet informasjon.</p>
+            <p className="text-sm text-slate-600 mt-1 max-w-3xl">Skriving er koblet til Reference Hub. FaktapÃ¥stander uten tilstrekkelig stÃ¸tte blir stÃ¥ende som eksplisitte hull i stedet for Ã¥ fylles med oppdiktet informasjon.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <select value={level} onChange={e => setLevel(e.target.value as AcademicLevel)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
@@ -99,7 +99,7 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
         <section className="xl:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <h3 className="font-bold text-slate-900">Prosjekt</h3>
           <label className="block text-sm"><span className="font-semibold">Tittel</span><input value={title} onChange={e => setTitle(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" /></label>
-          <label className="block text-sm"><span className="font-semibold">Forskningsspørsmål</span><textarea value={question} onChange={e => setQuestion(e.target.value)} rows={4} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" /></label>
+          <label className="block text-sm"><span className="font-semibold">ForskningsspÃ¸rsmÃ¥l</span><textarea value={question} onChange={e => setQuestion(e.target.value)} rows={4} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" /></label>
 
           <div>
             <div className="font-semibold text-sm mb-2">Koblede referanser</div>
@@ -108,7 +108,7 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
               {references.map(reference => (
                 <label key={reference.id} className="flex items-start gap-2 text-xs rounded-xl bg-slate-50 border border-slate-200 p-2">
                   <input type="checkbox" checked={selectedReferenceIds.includes(reference.id)} onChange={() => toggleReference(reference.id)} />
-                  <span><strong>{reference.title || 'Uten tittel'}</strong><br />{reference.authors || 'Ukjent forfatter'} · {reference.year || 'u.å.'}</span>
+                  <span><strong>{reference.title || 'Uten tittel'}</strong><br />{reference.authors || 'Ukjent forfatter'} Â· {reference.year || 'u.Ã¥.'}</span>
                 </label>
               ))}
             </div>
@@ -116,12 +116,12 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
         </section>
 
         <section className="xl:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <div className="flex items-center justify-between"><h3 className="font-bold text-slate-900">Claim ledger</h3><span className={`text-[10px] font-bold px-2 py-1 rounded-full ${audit.readyForExport ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'}`}>{audit.readyForExport ? 'KLAR' : 'MÅ KONTROLLERES'}</span></div>
-          <textarea value={draftClaim} onChange={e => setDraftClaim(e.target.value)} rows={5} placeholder="Skriv inn en påstand som skal vurderes mot valgte kilder..." className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-          <button type="button" onClick={addClaim} className="w-full rounded-xl bg-violet-700 text-white py-2 text-sm font-bold">Legg påstand i claim ledger</button>
+          <div className="flex items-center justify-between"><h3 className="font-bold text-slate-900">Claim ledger</h3><span className={`text-[10px] font-bold px-2 py-1 rounded-full ${audit.readyForExport ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'}`}>{audit.readyForExport ? 'KLAR' : 'MÃ… KONTROLLERES'}</span></div>
+          <textarea value={draftClaim} onChange={e => setDraftClaim(e.target.value)} rows={5} placeholder="Skriv inn en pÃ¥stand som skal vurderes mot valgte kilder..." className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+          <button type="button" onClick={addClaim} className="w-full rounded-xl bg-violet-700 text-white py-2 text-sm font-bold">Legg pÃ¥stand i claim ledger</button>
           <div className="space-y-2 max-h-80 overflow-auto">
-            {claims.length === 0 && <div className="text-xs text-slate-500">Ingen påstander er registrert ennå.</div>}
-            {claims.map(claim => <div key={claim.id} className="rounded-xl border border-slate-200 p-3"><div className="text-sm font-semibold">{claim.text}</div><div className="text-[11px] text-slate-500 mt-1">{claim.supportState} · {claim.sourceRecordIds.length} kilde(r) · {claim.evidenceLocations.length} evidenssted(er)</div></div>)}
+            {claims.length === 0 && <div className="text-xs text-slate-500">Ingen pÃ¥stander er registrert ennÃ¥.</div>}
+            {claims.map(claim => <div key={claim.id} className="rounded-xl border border-slate-200 p-3"><div className="text-sm font-semibold">{claim.text}</div><div className="text-[11px] text-slate-500 mt-1">{claim.supportState} Â· {claim.sourceRecordIds.length} kilde(r) Â· {claim.evidenceLocations.length} evidenssted(er)</div></div>)}
           </div>
         </section>
 
@@ -130,14 +130,16 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
           <div className="grid grid-cols-2 gap-2">{sections.map(section => <div key={section} className="rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs">{section}</div>)}</div>
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
             <div className="font-bold text-amber-950 text-sm">Integritetsvakt</div>
-            <div className="text-xs text-amber-900 mt-1">Ustøttede: {audit.unsupportedClaims.length} · Uverifiserte kilder: {audit.unverifiedSourceClaims.length} · Mangler evidenssted: {audit.missingEvidenceLocations.length}</div>
+            <div className="text-xs text-amber-900 mt-1">UstÃ¸ttede: {audit.unsupportedClaims.length} Â· Uverifiserte kilder: {audit.unverifiedSourceClaims.length} Â· Mangler evidenssted: {audit.missingEvidenceLocations.length}</div>
           </div>
           <div>
-            <div className="font-semibold text-sm mb-2">Kildebasert forhåndsvisning</div>
-            <pre className="whitespace-pre-wrap text-xs bg-slate-950 text-slate-100 rounded-xl p-3 max-h-64 overflow-auto">{groundedPreview || 'Ingen påstander lagt inn.'}</pre>
+            <div className="font-semibold text-sm mb-2">Kildebasert forhÃ¥ndsvisning</div>
+            <pre className="whitespace-pre-wrap text-xs bg-slate-950 text-slate-100 rounded-xl p-3 max-h-64 overflow-auto">{groundedPreview || 'Ingen pÃ¥stander lagt inn.'}</pre>
           </div>
         </section>
       </div>
     </div>
   );
 };
+
+

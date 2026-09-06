@@ -1,4 +1,4 @@
-export type ProjectRole = 'OWNER' | 'REVIEWER' | 'ADJUDICATOR' | 'RESEARCHER' | 'VIEWER';
+﻿export type ProjectRole = 'OWNER' | 'REVIEWER' | 'ADJUDICATOR' | 'RESEARCHER' | 'VIEWER';
 
 export type ProjectPermission =
   | 'PROJECT_MANAGE' | 'SOURCE_EDIT' | 'SCREEN' | 'APPRAISE'
@@ -33,3 +33,5 @@ export function requireProjectPermission(access: ProjectAccess, permission: Proj
 export function canExportProject(access: ProjectAccess): boolean {
   return hasProjectPermission(access, 'EXPORT');
 }
+
+

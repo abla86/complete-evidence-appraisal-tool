@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   Clock, 
@@ -84,7 +84,7 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
     showToast('Komplett hvelv-backup lastet ned!', 'success');
   };
 
-  const handleClearVault = () => { AutosaveService.clearArticleVault(); onRestoreArticles([]); setSnapshots([]); showToast('Lokal artikkelbuffer er tømt. Nye metadata kan nå overskrive gammel cache.', 'success'); };
+  const handleClearVault = () => { AutosaveService.clearArticleVault(); onRestoreArticles([]); setSnapshots([]); showToast('Lokal artikkelbuffer er tÃ¸mt. Nye metadata kan nÃ¥ overskrive gammel cache.', 'success'); };
 
   const handleSaveNow = () => {
     AutosaveService.saveArticles(articles, true);
@@ -126,7 +126,7 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
                 <strong className="text-teal-950 text-sm font-semibold">Autolagring er Aktiv</strong>
               </div>
               <p className="text-slate-600">
-                Alle endringer i skjemaer, søk, vurderinger og synteser lagres kontinuerlig i nettleserens sikre datavault.
+                Alle endringer i skjemaer, sÃ¸k, vurderinger og synteser lagres kontinuerlig i nettleserens sikre datavault.
               </p>
               {autosaveStatus.lastSavedAt && (
                 <p className="text-[11px] text-teal-800 font-mono">
@@ -140,11 +140,11 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
               className="px-3.5 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-bold shadow-xs transition-all flex items-center gap-1.5 shrink-0"
             >
               <Save className="w-4 h-4" />
-              <span>Lagre nå</span>
+              <span>Lagre nÃ¥</span>
             </button>
           </div>
 
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3"><div><strong className="text-amber-950">Stale eller feilaktige metadata?</strong><p className="text-amber-900 mt-1">Tøm lokal buffer før ny import dersom gammel cache hindrer overskriving.</p></div><button type="button" onClick={handleClearVault} className="px-3.5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shrink-0 flex items-center gap-1.5"><Trash2 className="w-4 h-4" />Nullstill / Tøm lokal buffer</button></div>
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3"><div><strong className="text-amber-950">Stale eller feilaktige metadata?</strong><p className="text-amber-900 mt-1">TÃ¸m lokal buffer fÃ¸r ny import dersom gammel cache hindrer overskriving.</p></div><button type="button" onClick={handleClearVault} className="px-3.5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shrink-0 flex items-center gap-1.5"><Trash2 className="w-4 h-4" />Nullstill / TÃ¸m lokal buffer</button></div>
 
           {/* Create Manual Snapshot */
           <div className="space-y-2">
@@ -156,7 +156,7 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
                 type="text"
                 value={newSnapshotLabel}
                 onChange={(e) => setNewSnapshotLabel(e.target.value)}
-                placeholder="F.eks. 'Før ferdigstilling av JBI-artikkel 2'..."
+                placeholder="F.eks. 'FÃ¸r ferdigstilling av JBI-artikkel 2'..."
                 className="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white focus:ring-2 focus:ring-teal-600"
               />
               <button
@@ -189,7 +189,7 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
 
             {snapshots.length === 0 ? (
               <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl text-center text-slate-500">
-                Ingen historiske snapshots opprettet ennå. Systemet genererer automatiske backups ved endring.
+                Ingen historiske snapshots opprettet ennÃ¥. Systemet genererer automatiske backups ved endring.
               </div>
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -212,7 +212,7 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
                         )}
                       </div>
                       <p className="text-[11px] text-slate-500">
-                        {snap.formattedTime} • {snap.articleCount} artikler
+                        {snap.formattedTime} â€¢ {snap.articleCount} artikler
                       </p>
                     </div>
 
@@ -245,3 +245,5 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({
     </div>
   );
 };
+
+

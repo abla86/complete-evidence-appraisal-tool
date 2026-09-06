@@ -1,4 +1,4 @@
-import { buildSourceRecord } from './buildSourceRecord';
+﻿import { buildSourceRecord } from './buildSourceRecord';
 import type { ResearchMetadataRecord, PrivacyInspectionResult } from '../shared/moduleContracts';
 
 export interface SourceRecordGatewayInput {
@@ -16,3 +16,5 @@ export function createSourceRecord(input: SourceRecordGatewayInput) {
     toolVersion: input.toolVersion ?? '1.0.0',
   });
 }
+
+

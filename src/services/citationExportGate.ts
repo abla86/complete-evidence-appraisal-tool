@@ -1,4 +1,4 @@
-import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
+﻿import type { AcademicClaim, EvidenceExtraction } from '../domain/academicEvidence';
 import type { ReferenceRecord } from './referenceHubService';
 import { runCitationAudit, type CitationAuditReport } from './citationAuditService';
 
@@ -24,3 +24,5 @@ export function evaluateCitationExportGate(
     blockingReasons: [...new Set(blockingReasons)],
   };
 }
+
+

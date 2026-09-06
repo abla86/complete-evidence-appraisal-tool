@@ -1,4 +1,4 @@
-import type { EvidenceExtraction, AcademicClaim } from '../domain/academicEvidence';
+﻿import type { EvidenceExtraction, AcademicClaim } from '../domain/academicEvidence';
 
 export type SynthesisType = 'NARRATIVE' | 'META_ANALYSIS' | 'QUALITATIVE_THEMATIC' | 'META_AGGREGATION';
 
@@ -45,12 +45,12 @@ export function validateSynthesis(
 ): SynthesisValidation {
   const blockers:string[]=[]; const warnings:string[]=[];
   const provenance = synthesis.inputs.map(input => ({ inputId: input.id, studyId: input.studyId, appraisalSessionId: input.appraisalSessionId, evidenceIds: [...input.evidenceIds], claimIds: claims.filter(c => c.supportingEvidenceIds.some(id => input.evidenceIds.includes(id))).map(c => c.id) }));
-  if (!synthesis.question.trim()) blockers.push('Syntesen mangler forskningsspørsmål.');
+  if (!synthesis.question.trim()) blockers.push('Syntesen mangler forskningsspÃ¸rsmÃ¥l.');
   if (!synthesis.inputs.length) blockers.push('Syntesen har ingen inkluderte input-enheter.');
   if (synthesis.type === 'META_ANALYSIS' && !synthesis.poolingMethod) blockers.push('Meta-analysen mangler pooling method.');
   if (synthesis.type === 'META_ANALYSIS' && synthesis.poolingMethod === 'NOT_APPLICABLE') blockers.push('Meta-analyse kan ikke merkes NOT_APPLICABLE for pooling.');
-  if (synthesis.heterogeneity?.i2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.i2) || synthesis.heterogeneity.i2 < 0 || synthesis.heterogeneity.i2 > 100)) blockers.push('I² må være mellom 0 og 100.');
-  if (synthesis.heterogeneity?.tau2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.tau2) || synthesis.heterogeneity.tau2 < 0)) blockers.push('Tau² kan ikke være negativ.');
+  if (synthesis.heterogeneity?.i2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.i2) || synthesis.heterogeneity.i2 < 0 || synthesis.heterogeneity.i2 > 100)) blockers.push('IÂ² mÃ¥ vÃ¦re mellom 0 og 100.');
+  if (synthesis.heterogeneity?.tau2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.tau2) || synthesis.heterogeneity.tau2 < 0)) blockers.push('TauÂ² kan ikke vÃ¦re negativ.');
 
   const appraisalIds=new Set(appraisals.filter(a=>a.locked).map(a=>a.id));
   const evidenceIds=new Set(evidence.map(e=>e.id));
@@ -60,17 +60,17 @@ export function validateSynthesis(
   for(const input of synthesis.inputs){
     if(!input.eligible) blockers.push(`Synteseinput ${input.id} er ikke eligible.`);
     if(!input.outcomeOrFinding.trim()) blockers.push(`Synteseinput ${input.id} mangler outcome/finding.`);
-    if((synthesis.type === 'QUALITATIVE_THEMATIC' || synthesis.type === 'META_AGGREGATION') && input.evidenceIds.length === 0) blockers.push(`Kvalitativt synteseinput ${input.id} må ha minst én evidenskilde.`);
+    if((synthesis.type === 'QUALITATIVE_THEMATIC' || synthesis.type === 'META_AGGREGATION') && input.evidenceIds.length === 0) blockers.push(`Kvalitativt synteseinput ${input.id} mÃ¥ ha minst Ã©n evidenskilde.`);
     if((synthesis.type === 'QUALITATIVE_THEMATIC' || synthesis.type === 'META_AGGREGATION') && (input.value !== undefined || input.standardError !== undefined || input.confidenceInterval !== undefined)) warnings.push(`Kvalitativt synteseinput ${input.id} inneholder kvantitativt metadata; kontroller at dette ikke blandes inn i kvalitativ syntese.`);
-    if(!appraisalIds.has(input.appraisalSessionId)) blockers.push(`Synteseinput ${input.id} mangler låst appraisal.`);
+    if(!appraisalIds.has(input.appraisalSessionId)) blockers.push(`Synteseinput ${input.id} mangler lÃ¥st appraisal.`);
     const appraisal = appraisals.find(a => a.id === input.appraisalSessionId);
     if (appraisal && appraisal.studyId !== input.studyId) blockers.push(`Synteseinput ${input.id} har studyId som ikke samsvarer med appraisal.`);
     for(const id of input.evidenceIds){
       if(!evidenceIds.has(id)) blockers.push(`Synteseinput ${input.id} peker til ukjent evidens ${id}.`);
       else {
-        if(!claimEvidence.has(id)) warnings.push(`Evidens ${id} er ikke knyttet til en akademisk påstand.`);
+        if(!claimEvidence.has(id)) warnings.push(`Evidens ${id} er ikke knyttet til en akademisk pÃ¥stand.`);
         const extraction = evidenceById.get(id);
-        if (extraction && !claims.some(claim => claim.supportingEvidenceIds.includes(id))) blockers.push(`Evidens ${id} kan ikke inngå i syntesen uten en støttende akademisk påstand.`);
+        if (extraction && !claims.some(claim => claim.supportingEvidenceIds.includes(id))) blockers.push(`Evidens ${id} kan ikke inngÃ¥ i syntesen uten en stÃ¸ttende akademisk pÃ¥stand.`);
       }
     }
     if(synthesis.type==='META_ANALYSIS' && (input.value===undefined || input.standardError===undefined)) blockers.push(`Meta-analyseinput ${input.id} mangler effect estimate eller standard error.`);
@@ -87,20 +87,22 @@ export function validateSynthesis(
   for (const input of synthesis.inputs) for (const evidenceId of input.evidenceIds) { const extraction = evidenceById.get(evidenceId); if (extraction && extraction.sourceRecordId.trim() === '') blockers.push(`Evidens ${evidenceId} mangler sourceRecordId.`); }
   if (synthesis.type === 'META_ANALYSIS') {
     const measures = new Set(synthesis.inputs.map(input => input.effectMeasure).filter(Boolean));
-    if (measures.size > 1) blockers.push('Meta-analysen blander ulike effect measures. Eksplisitt harmonisering/transformasjon må dokumenteres før pooling.');
+    if (measures.size > 1) blockers.push('Meta-analysen blander ulike effect measures. Eksplisitt harmonisering/transformasjon mÃ¥ dokumenteres fÃ¸r pooling.');
   }
-  if(new Set(synthesis.inputs.map(i=>i.studyId)).size<2) warnings.push('Syntesen bygger foreløpig på færre enn to studier.');
+  if(new Set(synthesis.inputs.map(i=>i.studyId)).size<2) warnings.push('Syntesen bygger forelÃ¸pig pÃ¥ fÃ¦rre enn to studier.');
   return {provenance,valid:blockers.length===0,blockers:[...new Set(blockers)],warnings:[...new Set(warnings)]};
 }
 
 export function createSynthesisRecord(input: Omit<SynthesisRecord,'createdAt'|'locked'>): SynthesisRecord {
-  if(!input.createdBy.trim()) throw new Error('createdBy er påkrevd.');
+  if(!input.createdBy.trim()) throw new Error('createdBy er pÃ¥krevd.');
   return {...input,createdAt:new Date().toISOString(),locked:false};
 }
 
 export function lockSynthesis(synthesis:SynthesisRecord, validation:SynthesisValidation, lockedBy:string):SynthesisRecord {
-  if(synthesis.inputs.some(input => !input.studyId.trim() || !input.appraisalSessionId.trim())) throw new Error('Alle synteseinputs må ha studyId og appraisalSessionId før låsing.');
-  if(!validation.valid) throw new Error(`Synthesis kan ikke låses: ${validation.blockers.join(' | ')}`);
-  if(!lockedBy.trim()) throw new Error('lockedBy er påkrevd.');
+  if(synthesis.inputs.some(input => !input.studyId.trim() || !input.appraisalSessionId.trim())) throw new Error('Alle synteseinputs mÃ¥ ha studyId og appraisalSessionId fÃ¸r lÃ¥sing.');
+  if(!validation.valid) throw new Error(`Synthesis kan ikke lÃ¥ses: ${validation.blockers.join(' | ')}`);
+  if(!lockedBy.trim()) throw new Error('lockedBy er pÃ¥krevd.');
   return {...synthesis,locked:true};
 }
+
+

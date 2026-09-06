@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -158,7 +158,7 @@ export const MethodologyAuditView: React.FC = () => {
   const renderSourceValidityBadge = (instrument: AppraisalInstrument, auditItem?: MethodAuditItem) => {
     const isSourcePass = auditItem ? auditItem.sourceProvenanceStatus === 'PASS' : instrument.verificationStatus === 'VERIFIED';
     const isLevel1 = instrument.authorityLevel === 'original-source';
-    const levelLabel = isLevel1 ? 'Nivå 1: Originalkilde' : 'Nivå 2: Offisiell manual';
+    const levelLabel = isLevel1 ? 'NivÃ¥ 1: Originalkilde' : 'NivÃ¥ 2: Offisiell manual';
 
     return (
       <div className="flex flex-col gap-0.5">
@@ -193,7 +193,7 @@ export const MethodologyAuditView: React.FC = () => {
           <span className={`text-[9px] px-1 py-0.2 rounded font-sans font-bold ${
             isCurrent ? 'bg-emerald-200/70 text-emerald-950' : 'bg-slate-200 text-slate-700'
           }`}>
-            {isCurrent ? 'AKTIV LÅS' : 'LÅST'}
+            {isCurrent ? 'AKTIV LÃ…S' : 'LÃ…ST'}
           </span>
         </span>
         {instrument.latestUpdateYear && instrument.latestUpdateYear !== instrument.year && (
@@ -212,14 +212,14 @@ export const MethodologyAuditView: React.FC = () => {
         <div className="relative z-10 max-w-4xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-200 text-xs font-semibold">
             <ShieldCheck className="w-3.5 h-3.5 text-teal-300" />
-            <span>Forskningsintegritet & Kildehierarki (Nivå 1 & 2 Verifisert)</span>
+            <span>Forskningsintegritet & Kildehierarki (NivÃ¥ 1 & 2 Verifisert)</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-serif">
             Metodisk, Versjons- og Kildekontroll
           </h1>
           <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
-            Evidence Appraisal Tool itererer gjennom alle registrerte instrumenter i <strong>MethodologyRegistry</strong> og verifiserer hvert enkelt verktøy (JBI, CASP, AMSTAR 2, AGREE II, RoB 2, GRADE m.fl.) 
+            Evidence Appraisal Tool itererer gjennom alle registrerte instrumenter i <strong>MethodologyRegistry</strong> og verifiserer hvert enkelt verktÃ¸y (JBI, CASP, AMSTAR 2, AGREE II, RoB 2, GRADE m.fl.) 
             med en eksplisitt statusindikator (VERIFIED / PARTIALLY_VERIFIED / UNVERIFIED), autoritativ kildeopprinnelse og gjeldende versjonsgyldighet.
           </p>
 
@@ -230,11 +230,11 @@ export const MethodologyAuditView: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
               <Lock className="w-4 h-4 text-emerald-400" />
-              <span>Versjonslås: <strong>Gjeldende standard (Immutable Hash)</strong></span>
+              <span>VersjonslÃ¥s: <strong>Gjeldende standard (Immutable Hash)</strong></span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
               <Award className="w-4 h-4 text-teal-400" />
-              <span>Kildeautoritet: <strong>Nivå 1 & 2 Primærkilder</strong></span>
+              <span>Kildeautoritet: <strong>NivÃ¥ 1 & 2 PrimÃ¦rkilder</strong></span>
             </div>
           </div>
         </div>
@@ -345,11 +345,11 @@ export const MethodologyAuditView: React.FC = () => {
                 <Award className="w-5 h-5 text-teal-600" />
                 <span>{auditReport.auditsSummary.sourceAudit === 'PASS' ? '100% PASS' : 'ISSUES'}</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">Nivå 1 & 2 Primærkilder</p>
+              <p className="text-[11px] text-slate-500 mt-1">NivÃ¥ 1 & 2 PrimÃ¦rkilder</p>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-[11px] text-slate-500 font-bold uppercase">Gjeldende Versjonslås</span>
+              <span className="text-[11px] text-slate-500 font-bold uppercase">Gjeldende VersjonslÃ¥s</span>
               <div className="text-lg font-bold text-teal-800 flex items-center gap-1.5 mt-1">
                 <Lock className="w-5 h-5 text-teal-600" />
                 <span>{auditReport.auditsSummary.versionAudit === 'PASS' ? '100% PASS' : 'ISSUES'}</span>
@@ -405,7 +405,7 @@ export const MethodologyAuditView: React.FC = () => {
                   <Search className="w-3.5 h-3.5 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Søk i MethodologyRegistry (navn, ID, utgiver)..."
+                    placeholder="SÃ¸k i MethodologyRegistry (navn, ID, utgiver)..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="w-full bg-transparent border-none text-xs focus:outline-hidden text-slate-800"
@@ -476,7 +476,7 @@ export const MethodologyAuditView: React.FC = () => {
                   <tr>
                     <th className="py-3 px-4">Instrument</th>
                     <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3">Kildeopprinnelse (Nivå 1/2)</th>
+                    <th className="py-3 px-3">Kildeopprinnelse (NivÃ¥ 1/2)</th>
                     <th className="py-3 px-3">Gjeldende Versjonsgyldighet</th>
                     <th className="py-3 px-3">Scoringsintegritet</th>
                     <th className="py-3 px-3">Analyseenhet</th>
@@ -503,7 +503,7 @@ export const MethodologyAuditView: React.FC = () => {
                           </td>
                           <td className="py-3 px-3">
                             {inst ? renderSourceValidityBadge(inst, item) : (
-                              <span className="text-[11px] text-slate-500">Nivå 1</span>
+                              <span className="text-[11px] text-slate-500">NivÃ¥ 1</span>
                             )}
                           </td>
                           <td className="py-3 px-3">
@@ -588,7 +588,7 @@ export const MethodologyAuditView: React.FC = () => {
                                   <div className="space-y-1">
                                     <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
                                       <Award className="w-3.5 h-3.5 text-teal-700" />
-                                      <span>Verifisert Kildeopprinnelse (Nivå 1 & 2)</span>
+                                      <span>Verifisert Kildeopprinnelse (NivÃ¥ 1 & 2)</span>
                                     </span>
                                     <p className="text-slate-800 font-serif italic text-[11px]">
                                       {inst?.officialSource || item.instrumentName}
@@ -606,7 +606,7 @@ export const MethodologyAuditView: React.FC = () => {
                                   <div className="space-y-1">
                                     <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
                                       <Lock className="w-3.5 h-3.5 text-emerald-700" />
-                                      <span>Gjeldende Versjonslås & Integritet</span>
+                                      <span>Gjeldende VersjonslÃ¥s & Integritet</span>
                                     </span>
                                     <p className="text-slate-800 font-mono text-[11px] font-semibold">
                                       {inst?.edition || `Offisiell ${item.version} Standard`}
@@ -711,13 +711,13 @@ export const MethodologyAuditView: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-teal-400/20 text-teal-200 text-[11px] font-mono font-bold">
-                  AKADEMISK METODISK INTEGRITET & ETTERPRØVBARHET
+                  AKADEMISK METODISK INTEGRITET & ETTERPRÃ˜VBARHET
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold font-serif text-white">
-                  9 Uavhengige Metodiske Funksjoner – Forbud mot Universell Skårflating
+                  9 Uavhengige Metodiske Funksjoner â€“ Forbud mot Universell SkÃ¥rflating
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed max-w-4xl">
-                  En vanlig fallgruve i automatiserte verktøy er å redusere alle metodiske instrumenter til en generisk prosentandel eller en oppdiktet sumskår (f.eks. «84% score»). 
+                  En vanlig fallgruve i automatiserte verktÃ¸y er Ã¥ redusere alle metodiske instrumenter til en generisk prosentandel eller en oppdiktet sumskÃ¥r (f.eks. Â«84% scoreÂ»). 
                   I henhold til internasjonale standarder (Cochrane, GRADE Working Group, AGREE Enterprise, JBI) har disse 9 rammeverkene i <strong>MethodologyRegistry</strong> fundamentalt ulike epistemologiske roller, ulike analyseenheter og krever distinkte evalueringsformater.
                 </p>
               </div>
@@ -763,7 +763,7 @@ export const MethodologyAuditView: React.FC = () => {
                         {currentInst.methodologicalFunction}
                       </span>
                       {currentAudit && renderStatusBadge(currentAudit.overallStatus, 'sm')}
-                      <span className="text-slate-400">•</span>
+                      <span className="text-slate-400">â€¢</span>
                       <span className="font-mono text-slate-500 text-[11px]">ID: {currentInst.id}</span>
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 font-serif mt-1">
@@ -846,19 +846,19 @@ export const MethodologyAuditView: React.FC = () => {
                       <p className="text-emerald-400">=== AMSTAR 2 DOMENEBASERT KONFIDENS-EVALUERING ===</p>
                       <p>Kritiske svakheter (Critical Flaws): 0 / 7 kritiske domener (Items 2, 4, 7, 9, 11, 13, 15)</p>
                       <p>Ikke-kritiske svakheter: 1 (Item 10: kilder til finansiering)</p>
-                      <p className="text-teal-300 font-bold">Overordnet tillit til oversikten: HØY (High Confidence)</p>
-                      <p className="text-amber-400 text-[10px]">ADVARSEL: Ingen numerisk sumskår tillates beregnet eller rapportert.</p>
+                      <p className="text-teal-300 font-bold">Overordnet tillit til oversikten: HÃ˜Y (High Confidence)</p>
+                      <p className="text-amber-400 text-[10px]">ADVARSEL: Ingen numerisk sumskÃ¥r tillates beregnet eller rapportert.</p>
                     </div>
                   )}
 
                   {currentInst.id === 'agree-ii' && (
                     <div className="space-y-1.5 text-slate-300">
-                      <p className="text-emerald-400">=== AGREE II 6 STANDARDISERTE DOMENESKÅRER ===</p>
-                      <p>Domene 1 (Omfang & Formål): 89% | Domene 2 (Interessenter): 83%</p>
-                      <p>Domene 3 (Metodisk nøyaktighet): 92% | Domene 4 (Klarhet): 95%</p>
+                      <p className="text-emerald-400">=== AGREE II 6 STANDARDISERTE DOMENESKÃ…RER ===</p>
+                      <p>Domene 1 (Omfang & FormÃ¥l): 89% | Domene 2 (Interessenter): 83%</p>
+                      <p>Domene 3 (Metodisk nÃ¸yaktighet): 92% | Domene 4 (Klarhet): 95%</p>
                       <p>Domene 5 (Anvendelighet): 78% | Domene 6 (Redaksjonell uavhengighet): 100%</p>
                       <p className="text-teal-300 font-bold">Overordnet anbefaling: ANBEFALES UTEN MODIFIKASJONER</p>
-                      <p className="text-amber-400 text-[10px]">ADVARSEL: Domeneskårene er uavhengige og slås aldri sammen til en aggregert retningslinjeskår.</p>
+                      <p className="text-amber-400 text-[10px]">ADVARSEL: DomeneskÃ¥rene er uavhengige og slÃ¥s aldri sammen til en aggregert retningslinjeskÃ¥r.</p>
                     </div>
                   )}
 
@@ -878,7 +878,7 @@ export const MethodologyAuditView: React.FC = () => {
                       <p>D1 (Randomiseringsprosess): Lav risiko (Low risk)</p>
                       <p>D2 (Avvik fra intenderte intervensjoner): Lav risiko (Low risk)</p>
                       <p>D3 (Manglende utfallsdata): Noen bekymringer (Some concerns)</p>
-                      <p>D4 (Måling av utfall): Lav risiko (Low risk)</p>
+                      <p>D4 (MÃ¥ling av utfall): Lav risiko (Low risk)</p>
                       <p>D5 (Seleksjon av rapportert resultat): Lav risiko (Low risk)</p>
                       <p className="text-teal-300 font-bold">Samlet Cochrane RoB 2-risiko: NOEN BEKYMRINGER (Some concerns)</p>
                     </div>
@@ -887,29 +887,29 @@ export const MethodologyAuditView: React.FC = () => {
                   {currentInst.id === 'grade' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== GRADE TILLIT TIL EVIDENS PER UTFALL ===</p>
-                      <p>Utfall: Smertereduksjon ved 12 uker | Studiedesign: RCT (Startnivå: Høy tillit = 4)</p>
+                      <p>Utfall: Smertereduksjon ved 12 uker | Studiedesign: RCT (StartnivÃ¥: HÃ¸y tillit = 4)</p>
                       <p>Nedgraderingsfaktorer: Risk of Bias (-1 pga. frafall), Imprecision (0), Inconsistency (0), Indirectness (0), Publication Bias (0)</p>
                       <p className="text-teal-300 font-bold">Endelig GRADE-tillit: MODERAT TILLIT (Moderate Certainty)</p>
-                      <p className="text-amber-400 text-[10px]">ADVARSEL: Vurderingen tilhører et spesifikt utfallsmål, ikke hele primærstudien.</p>
+                      <p className="text-amber-400 text-[10px]">ADVARSEL: Vurderingen tilhÃ¸rer et spesifikt utfallsmÃ¥l, ikke hele primÃ¦rstudien.</p>
                     </div>
                   )}
 
                   {currentInst.id === 'casp-qualitative' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== CASP KVALITATIV PEDAGOGISK EVALUERING ===</p>
-                      <p>Seksjon A (Screening-spørsmål 1 & 2): BESTÅTT (Klart formål og hensiktsmessig design)</p>
+                      <p>Seksjon A (Screening-spÃ¸rsmÃ¥l 1 & 2): BESTÃ…TT (Klart formÃ¥l og hensiktsmessig design)</p>
                       <p>Seksjon B (Metodisk stringens & refleksivitet): VURDERT MED NARRATIV BEGRUNNELSE</p>
-                      <p>Seksjon C (Lokal overførbarhet og nytteverdi): HØY RELEVANS</p>
-                      <p className="text-teal-300 font-bold">CASP Konklusjon: Kvalitativ studie med høy pedagogisk stringens</p>
+                      <p>Seksjon C (Lokal overfÃ¸rbarhet og nytteverdi): HÃ˜Y RELEVANS</p>
+                      <p className="text-teal-300 font-bold">CASP Konklusjon: Kvalitativ studie med hÃ¸y pedagogisk stringens</p>
                     </div>
                   )}
 
                   {currentInst.id === 'grade-cerqual' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== GRADE-CERQual TILLIT TIL KVALITATIVT SYNTESEFUNN ===</p>
-                      <p>Syntesefunn: «Fastleger opplever tidspress og manglende felles arenaer som hovedbarriere»</p>
+                      <p>Syntesefunn: Â«Fastleger opplever tidspress og manglende felles arenaer som hovedbarriereÂ»</p>
                       <p>Komponenter: Metodiske begrensninger (Mindre), Koherens (Ingen), Tilstrekkelighet (Ingen), Relevans (Ingen)</p>
-                      <p className="text-teal-300 font-bold">Samlet CERQual-tillit: HØY TILLIT (High Confidence)</p>
+                      <p className="text-teal-300 font-bold">Samlet CERQual-tillit: HÃ˜Y TILLIT (High Confidence)</p>
                     </div>
                   )}
 
@@ -917,17 +917,17 @@ export const MethodologyAuditView: React.FC = () => {
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== PRISMA 2020 RAPPORTERINGSETTERLEVELESE ===</p>
                       <p>27 Sjekklistepunkter: 25 Rapportert, 2 Delvis rapportert, 0 Ikke rapportert</p>
-                      <p>Flytskjema (Item 16) & Full Søkestrategi (Item 7): FULLSTENDIG TRANSPARENT</p>
+                      <p>Flytskjema (Item 16) & Full SÃ¸kestrategi (Item 7): FULLSTENDIG TRANSPARENT</p>
                       <p className="text-teal-300 font-bold">Rapporteringskompletthet: 96% etterlevelse av PRISMA 2020</p>
-                      <p className="text-amber-400 text-[10px]">MERK: PRISMA måler rapporteringsintegritet, IKKE metodisk bias.</p>
+                      <p className="text-amber-400 text-[10px]">MERK: PRISMA mÃ¥ler rapporteringsintegritet, IKKE metodisk bias.</p>
                     </div>
                   )}
 
                   {currentInst.id === 'cfir-2' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== CFIR 2.0 DETERMINANT-KARTLEGGINGSPROFIL ===</p>
-                      <p>Vurderte konstrukter: 14 på tvers av de 5 domenene</p>
-                      <p>Identifiserte determinanter: 8 Fasilitatorer (+1/+2), 4 Barrierer (-1/-2), 2 Nøytrale</p>
+                      <p>Vurderte konstrukter: 14 pÃ¥ tvers av de 5 domenene</p>
+                      <p>Identifiserte determinanter: 8 Fasilitatorer (+1/+2), 4 Barrierer (-1/-2), 2 NÃ¸ytrale</p>
                       <p className="text-teal-300 font-bold">Dominant domene: Indre kontekst (Inner Setting - Kultur & Ressurser)</p>
                       <p className="text-amber-400 text-[10px]">MERK: Ingen poengskala. Resultatet er en kvalitativ determinantoversikt for implementeringsstrategier.</p>
                     </div>
@@ -936,10 +936,10 @@ export const MethodologyAuditView: React.FC = () => {
                   {currentInst.id === 'kta' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== KTA PROSESSUELL HANDLINGSPLAN-STATUS ===</p>
-                      <p>Kunnskapstrakten (Knowledge Creation): Syntetiserte verktøy ferdigstilt</p>
-                      <p>Handlingssyklus (Action Cycle): 4 av 7 faser fullført</p>
-                      <p className="text-teal-300 font-bold">Aktiv fase: Steg 5 (Overvåke kunnskapsbruk og klinisk etterlevelse)</p>
-                      <p className="text-amber-400 text-[10px]">MERK: Prosessuelt rammeverk for handlingsløp, ikke kvalitetsindeks.</p>
+                      <p>Kunnskapstrakten (Knowledge Creation): Syntetiserte verktÃ¸y ferdigstilt</p>
+                      <p>Handlingssyklus (Action Cycle): 4 av 7 faser fullfÃ¸rt</p>
+                      <p className="text-teal-300 font-bold">Aktiv fase: Steg 5 (OvervÃ¥ke kunnskapsbruk og klinisk etterlevelse)</p>
+                      <p className="text-amber-400 text-[10px]">MERK: Prosessuelt rammeverk for handlingslÃ¸p, ikke kvalitetsindeks.</p>
                     </div>
                   )}
                 </div>
@@ -958,7 +958,7 @@ export const MethodologyAuditView: React.FC = () => {
               <Search className="w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Søk i MethodologyRegistry (navn, formål, kilde, utgiver)..."
+                placeholder="SÃ¸k i MethodologyRegistry (navn, formÃ¥l, kilde, utgiver)..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent border-none text-xs focus:outline-hidden text-slate-800"
@@ -1068,10 +1068,10 @@ export const MethodologyAuditView: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-teal-950 uppercase flex items-center gap-1.5">
                           <Award className="w-4 h-4 text-teal-700" />
-                          <span>Kildeopprinnelse & Nivå</span>
+                          <span>Kildeopprinnelse & NivÃ¥</span>
                         </span>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-200 text-teal-950">
-                          {selectedInstrument.authorityLevel === 'original-source' ? 'NIVÅ 1 (PRIMÆR)' : 'NIVÅ 2 (MANUAL)'}
+                          {selectedInstrument.authorityLevel === 'original-source' ? 'NIVÃ… 1 (PRIMÃ†R)' : 'NIVÃ… 2 (MANUAL)'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-800 font-serif italic">
@@ -1102,7 +1102,7 @@ export const MethodologyAuditView: React.FC = () => {
                         {selectedInstrument.edition || `Offisiell ${selectedInstrument.version} Utgave`}
                       </p>
                       <p className="text-[11px] text-slate-600">
-                        Publiseringsår: <strong>{selectedInstrument.year}</strong> | Siste internasjonale revisjon: <strong>{selectedInstrument.latestUpdateYear || selectedInstrument.year}</strong>
+                        PubliseringsÃ¥r: <strong>{selectedInstrument.year}</strong> | Siste internasjonale revisjon: <strong>{selectedInstrument.latestUpdateYear || selectedInstrument.year}</strong>
                       </p>
                       {selectedInstrument.validationChecksum && (
                         <div className="text-[10px] text-slate-500 font-mono pt-1 border-t border-emerald-200/60">
@@ -1128,7 +1128,7 @@ export const MethodologyAuditView: React.FC = () => {
 
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
                       <span className="text-[11px] font-bold text-slate-900 block uppercase tracking-wider">
-                        Målgruppe & Studiedesign
+                        MÃ¥lgruppe & Studiedesign
                       </span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {selectedInstrument.targetStudyDesign.map(des => (
@@ -1222,7 +1222,7 @@ export const MethodologyAuditView: React.FC = () => {
               Studiedesign-Gate & Kompatibilitetsvalidering
             </h3>
             <p className="text-slate-600 mt-1">
-              Forhindrer metodisk uoverensstemmelse ved å teste om valgt vurderingsinstrument er metodisk gyldig for det konkrete studiedesignet.
+              Forhindrer metodisk uoverensstemmelse ved Ã¥ teste om valgt vurderingsinstrument er metodisk gyldig for det konkrete studiedesignet.
             </p>
           </div>
 
@@ -1260,7 +1260,7 @@ export const MethodologyAuditView: React.FC = () => {
               >
                 {MethodologyRegistry.map(inst => (
                   <option key={inst.id} value={inst.id}>
-                    {inst.shortName} ({inst.version}) – {inst.categoryName}
+                    {inst.shortName} ({inst.version}) â€“ {inst.categoryName}
                   </option>
                 ))}
               </select>
@@ -1301,7 +1301,7 @@ export const MethodologyAuditView: React.FC = () => {
                         onClick={() => setSelectedInstrumentId(rec.id)}
                         className="px-2.5 py-1 rounded bg-white text-teal-900 border border-teal-300 font-bold hover:bg-teal-100 transition-colors"
                       >
-                        ✓ {rec.shortName} ({rec.version})
+                        âœ“ {rec.shortName} ({rec.version})
                       </button>
                     ))}
                   </div>
@@ -1324,7 +1324,7 @@ export const MethodologyAuditView: React.FC = () => {
                   <span>Automatiserte Metodiske Kontrakttester (Fail-Safe Suite)</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  En formell regresjonssuite som kontinuerlig tester og håndhever kravene i Master Prompt for forskningsintegritet.
+                  En formell regresjonssuite som kontinuerlig tester og hÃ¥ndhever kravene i Master Prompt for forskningsintegritet.
                 </p>
               </div>
 
@@ -1335,7 +1335,7 @@ export const MethodologyAuditView: React.FC = () => {
                   {contractTestsResult.allPassed ? (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>{contractTestsResult.passedTests} / {contractTestsResult.totalTests} TESTER BESTÅTT</span>
+                      <span>{contractTestsResult.passedTests} / {contractTestsResult.totalTests} TESTER BESTÃ…TT</span>
                     </>
                   ) : (
                     <>
@@ -1349,7 +1349,7 @@ export const MethodologyAuditView: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Testkjøring:</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">TestkjÃ¸ring:</span>
                 <p className="font-mono text-slate-800 text-[11px] mt-0.5">{contractTestsResult.timestamp.split('T')[0]}</p>
               </div>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
@@ -1459,3 +1459,5 @@ export const MethodologyAuditView: React.FC = () => {
     </div>
   );
 };
+
+

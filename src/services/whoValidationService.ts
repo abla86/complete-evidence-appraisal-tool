@@ -1,4 +1,4 @@
-import type { 
+﻿import type { 
   ArticleAppraisal, 
   MethodologyControlReport, 
   MethodologyRuleEvaluation,
@@ -17,7 +17,7 @@ export class WhoValidationService {
   ): MethodologyControlReport {
     const instrument = INSTRUMENTS_REGISTRY.find(i => i.id === instrumentId);
     if (!instrument) {
-      throw new Error(`Ukjent instrument: ${instrumentId || 'mangler'}. Metodisk kontroll kan ikke gjennomføres uten et eksplisitt registrert instrument.`);
+      throw new Error(`Ukjent instrument: ${instrumentId || 'mangler'}. Metodisk kontroll kan ikke gjennomfÃ¸res uten et eksplisitt registrert instrument.`);
     }
     const rules: MethodologyRuleEvaluation[] = [];
     const recommendations: string[] = [];
@@ -33,10 +33,10 @@ export class WhoValidationService {
       category: 'Modellversjon',
       passed: isLatestVersion && isWhoApproved,
       severity: 'critical',
-      details: `Vurderingen anvender offisiell modell: «${instrument.name}» (Versjon: ${instrument.version}, ${instrument.edition}). Modell-sjekksum: ${instrument.validationChecksum}.`,
+      details: `Vurderingen anvender offisiell modell: Â«${instrument.name}Â» (Versjon: ${instrument.version}, ${instrument.edition}). Modell-sjekksum: ${instrument.validationChecksum}.`,
       recommendation: isLatestVersion 
         ? 'Modellen er verifisert mot nyeste offisielle revisjon.' 
-        : 'Oppdater til nyeste standardversjon for å forhindre feilvurdering.'
+        : 'Oppdater til nyeste standardversjon for Ã¥ forhindre feilvurdering.'
     });
 
     // RULE 2: Completeness Control (100% Item Coverage)
@@ -56,12 +56,12 @@ export class WhoValidationService {
       severity: 'critical',
       details: `${answeredItems.length} av ${totalRequiredItems} metodiske kriterier er fullstendig besvart.`,
       recommendation: allAnswered 
-        ? 'Alle standardiserte kriterier er systematisk gjennomgått.' 
-        : `Fullfør evalueringen for de resterende ${totalRequiredItems - answeredItems.length} punktene.`
+        ? 'Alle standardiserte kriterier er systematisk gjennomgÃ¥tt.' 
+        : `FullfÃ¸r evalueringen for de resterende ${totalRequiredItems - answeredItems.length} punktene.`
     });
 
     if (!allAnswered) {
-      recommendations.push(`Besvar alle ${totalRequiredItems} kriterier for å oppnå full metodisk transparens.`);
+      recommendations.push(`Besvar alle ${totalRequiredItems} kriterier for Ã¥ oppnÃ¥ full metodisk transparens.`);
     }
 
     // RULE 3: Mandatory Substantive Rationale (Begrunnelsesplikt)
@@ -73,7 +73,7 @@ export class WhoValidationService {
     rules.push({
       id: 'WHO-RAT-03',
       name: 'Faglig Begrunnelsesplikt (Rationale Transparency)',
-      standard: 'Interne kontrollregel basert på oppgitt WHO/JBI-kildemateriale: Eksplisitt, transparent begrunnelse bak alle metodiske vurderinger',
+      standard: 'Interne kontrollregel basert pÃ¥ oppgitt WHO/JBI-kildemateriale: Eksplisitt, transparent begrunnelse bak alle metodiske vurderinger',
       category: 'Begrunnelse & Rationale',
       passed: hasSufficientRationales,
       severity: 'critical',
@@ -82,7 +82,7 @@ export class WhoValidationService {
         : `${missingRationaleItems.length} kriterier mangler tilstrekkelig skriftlig begrunnelse (f.eks. Spm ${missingRationaleItems.map(i => i.questionId).join(', ')}).`,
       recommendation: hasSufficientRationales
         ? 'Transparensen i de metodiske vurderingene oppfyller forventet faglig standard.'
-        : 'Legg inn utfyllende faglige begrunnelser for alle vurderinger for å sikre etterprøvbarhet.'
+        : 'Legg inn utfyllende faglige begrunnelser for alle vurderinger for Ã¥ sikre etterprÃ¸vbarhet.'
     });
 
     if (!hasSufficientRationales) {
@@ -103,10 +103,10 @@ export class WhoValidationService {
       category: 'Evidensforankring',
       passed: hasGoodEvidenceAnchoring,
       severity: 'warning',
-      details: `${evidenceRate}% av bekreftende «Ja»-vurderinger (${jaItemsWithEvidence.length}/${jaItems.length}) har direkte sitat eller sidetallhenvisning.`,
+      details: `${evidenceRate}% av bekreftende Â«JaÂ»-vurderinger (${jaItemsWithEvidence.length}/${jaItems.length}) har direkte sitat eller sidetallhenvisning.`,
       recommendation: hasGoodEvidenceAnchoring
         ? 'God empirisk forankring med direkte henvisning til artikkelens tekst.'
-        : 'Knytt flere direkte sitater eller sidetall til «Ja»-vurderingene for maksimal vitenskapelig stringens.'
+        : 'Knytt flere direkte sitater eller sidetall til Â«JaÂ»-vurderingene for maksimal vitenskapelig stringens.'
     });
 
     // RULE 5: Researcher Reflexivity & Ethics (Forskerrefleksivitet)
@@ -122,9 +122,9 @@ export class WhoValidationService {
       passed: reflexivityAddressed,
       severity: 'warning',
       details: reflexivityAddressed
-        ? 'Forskerens teoretiske ståsted og refleksivitet (JBI 6 & 7) er eksplisitt evaluert.'
-        : 'Forskerposisjonering og påvirkning på datainnsamling/analyse bør drøftes mer inngående.',
-      recommendation: 'Sørg for at forskerens forforståelse og relasjon til informantene er vurdert.'
+        ? 'Forskerens teoretiske stÃ¥sted og refleksivitet (JBI 6 & 7) er eksplisitt evaluert.'
+        : 'Forskerposisjonering og pÃ¥virkning pÃ¥ datainnsamling/analyse bÃ¸r drÃ¸ftes mer inngÃ¥ende.',
+      recommendation: 'SÃ¸rg for at forskerens forforstÃ¥else og relasjon til informantene er vurdert.'
     });
 
     // RULE 6: Epistemological Guardrail (No Unwarranted Causal Leaps)
@@ -132,7 +132,7 @@ export class WhoValidationService {
     const designText = (article.design || '').toLowerCase();
     const verdictNoteText = (article.verdictNote || '').toLowerCase();
     const hasCausalViolation = (designText.includes('kvalitativ') || designText.includes('grounded') || designText.includes('fenomenolog')) &&
-      (verdictNoteText.includes('beviser effekt') || verdictNoteText.includes('kausal effekt') || verdictNoteText.includes('isolerer årsak'));
+      (verdictNoteText.includes('beviser effekt') || verdictNoteText.includes('kausal effekt') || verdictNoteText.includes('isolerer Ã¥rsak'));
 
     rules.push({
       id: 'WHO-EPI-06',
@@ -143,7 +143,7 @@ export class WhoValidationService {
       severity: 'critical',
       details: hasCausalViolation
         ? 'ADVARSEL: Kvalitativ studie omtales som bevis for kausal intervensjonseffekt.'
-        : 'Kvalitative funn tolkes korrekt som meningsbærende erfaringer og mekanismer, uten ulovlige kausale slutninger.',
+        : 'Kvalitative funn tolkes korrekt som meningsbÃ¦rende erfaringer og mekanismer, uten ulovlige kausale slutninger.',
       recommendation: 'Kvalitative studier kan belyse hvordan og hvorfor opplevelser skapes, men kan aldri isolere kausalitet.'
     });
 
@@ -165,7 +165,7 @@ export class WhoValidationService {
     return {
       overallPassed: allCriticalPassed && complianceScore >= 80,
       complianceScore,
-      whoHandbookStandard: 'WHO Handbook for Guideline Development (2nd ed., 2014) — kildereferanse, ikke sertifisering',
+      whoHandbookStandard: 'WHO Handbook for Guideline Development (2nd ed., 2014) â€” kildereferanse, ikke sertifisering',
       appraisalModel: instrument.name,
       modelVersion: `${instrument.version} (${instrument.edition})`,
       modelChecksum: instrument.validationChecksum,
@@ -185,7 +185,7 @@ export class WhoValidationService {
   public static generateCertificateText(report: MethodologyControlReport, article: Partial<ArticleAppraisal>): string {
     let cert = `================================================================================\n`;
     cert += `       METODISK KVALITETSREVISJONSRAPPORT & INTEGRITETSKONTROLL\n`;
-    cert += `     Basert på prinsipper fra WHO Handbook (2. utg., 2014) & JBI Standards\n`;
+    cert += `     Basert pÃ¥ prinsipper fra WHO Handbook (2. utg., 2014) & JBI Standards\n`;
     cert += `================================================================================\n\n`;
     cert += `Dato: ${new Date(report.timestamp).toLocaleDateString('no-NO')}  Kl: ${new Date(report.timestamp).toLocaleTimeString('no-NO')}\n`;
     cert += `Standard: ${report.whoHandbookStandard}\n`;
@@ -194,14 +194,14 @@ export class WhoValidationService {
     cert += `Gjeldende Studie: ${report.articleCitation}\n`;
     cert += `Tittel: ${article.title || '-'}\n`;
     cert += `Forfattere: ${article.authors || '-'} (${article.year || '-'})\n`;
-    cert += `Vurderer: ${article.reviewerName || 'Registrert forsker'} (${article.reviewerRole || 'Primærvurderer'})\n\n`;
-    cert += `STATUS: ${report.summaryVerdict} (Skår: ${report.complianceScore}% / ${report.passedRuleCount} av ${report.totalRuleCount} kontrollregler bestått)\n\n`;
+    cert += `Vurderer: ${article.reviewerName || 'Registrert forsker'} (${article.reviewerRole || 'PrimÃ¦rvurderer'})\n\n`;
+    cert += `STATUS: ${report.summaryVerdict} (SkÃ¥r: ${report.complianceScore}% / ${report.passedRuleCount} av ${report.totalRuleCount} kontrollregler bestÃ¥tt)\n\n`;
     cert += `--------------------------------------------------------------------------------\n`;
     cert += `REVISJONSRESULTAT PER KONTROLLREGEL:\n`;
     cert += `--------------------------------------------------------------------------------\n`;
 
     report.rules.forEach((r, idx) => {
-      const statusIcon = r.passed ? '[BESTÅTT]' : '[IKKE OPPFYLT]';
+      const statusIcon = r.passed ? '[BESTÃ…TT]' : '[IKKE OPPFYLT]';
       cert += `${idx + 1}. ${statusIcon} [${r.id}] ${r.name} (${r.category})\n`;
       cert += `   Standard: ${r.standard}\n`;
       cert += `   Detaljer: ${r.details}\n`;
@@ -210,12 +210,14 @@ export class WhoValidationService {
 
     cert += `--------------------------------------------------------------------------------\n`;
     cert += `METODISK TRANSPARENS & GYLDIGHETSAVGRENSNING:\n`;
-    cert += `Denne rapporten dokumenterer at evalueringen av «${report.articleCitation}» oppfyller\n`;
+    cert += `Denne rapporten dokumenterer at evalueringen av Â«${report.articleCitation}Â» oppfyller\n`;
     cert += `de interne kravene til fullstendighet, begrunnelsesplikt, forskerrefleksivitet og\n`;
-    cert += `evidensforankring i tråd med WHO Handbook (2014) og JBI Appraisal Standards.\n`;
+    cert += `evidensforankring i trÃ¥d med WHO Handbook (2014) og JBI Appraisal Standards.\n`;
     cert += `Merk: Verdens helseorganisasjon (WHO) utsteder ikke individuelle sertifikater for enkeltstudier.\n`;
     cert += `================================================================================\n`;
 
     return cert;
   }
 }
+
+

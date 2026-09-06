@@ -1,4 +1,4 @@
-import { evaluateAcademicIntegrity, type AcademicClaim, type EvidenceExtraction } from '../domain/academicEvidence';
+﻿import { evaluateAcademicIntegrity, type AcademicClaim, type EvidenceExtraction } from '../domain/academicEvidence';
 import type { ReferenceRecord } from './referenceHubService';
 import type { AppraisalSession } from './universalAppraisalService';
 import type { StoredQualityAssessment } from './qualityAssessmentService';
@@ -40,7 +40,7 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
     const validation = validateSynthesis(synthesis, input.appraisal.map(item => ({ id:item.id, studyId:item.studyId, locked:item.locked })), input.evidence, input.claims);
     blockers.push(...validation.blockers);
     warnings.push(...validation.warnings);
-    if (!synthesis.locked) blockers.push(`Syntese ${synthesis.id} er ikke låst.`);
+    if (!synthesis.locked) blockers.push(`Syntese ${synthesis.id} er ikke lÃ¥st.`);
   }
 
   const verifiedSourceIds = new Set(
@@ -59,7 +59,7 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
     if (session && !appraisalStudyIds.has(session.studyId)) blockers.push(`Quality-vurdering ${item.id} har ugyldig studieproveniens.`);
   }
   const openAppraisals = input.appraisal.filter(item => !item.locked);
-  if (openAppraisals.length > 0) blockers.push(`${openAppraisals.length} appraisal-sesjon(er) er ikke låst.`);
+  if (openAppraisals.length > 0) blockers.push(`${openAppraisals.length} appraisal-sesjon(er) er ikke lÃ¥st.`);
 
   const evidenceIds = new Set(input.evidence.map(item => item.id));
   const appraisalIds = new Set(input.appraisal.map(item => item.id));
@@ -67,7 +67,7 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
   if (invalidQualityLinks.length > 0) blockers.push(`${invalidQualityLinks.length} quality-vurdering(er) peker til manglende evidence eller appraisal-session.`);
 
   const openQuality = input.quality.filter(item => !item.locked);
-  if (openQuality.length > 0) blockers.push(`${openQuality.length} GRADE/CERQual-vurdering(er) er ikke låst.`);
+  if (openQuality.length > 0) blockers.push(`${openQuality.length} GRADE/CERQual-vurdering(er) er ikke lÃ¥st.`);
 
   const orphanQuality = input.quality.filter(item => {
     const session = appraisalById.get(item.appraisalSessionId);
@@ -81,7 +81,7 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
   for (const item of input.quality) {
     const key = `${item.appraisalSessionId}:${item.evidenceId}:${item.kind}:${item.outcomeOrFinding.trim().toLowerCase()}`;
     if (duplicatedQualityIds.has(key)) {
-      blockers.push('Dupliserte GRADE/CERQual-vurderinger må ryddes før eksport.');
+      blockers.push('Dupliserte GRADE/CERQual-vurderinger mÃ¥ ryddes fÃ¸r eksport.');
       break;
     }
     duplicatedQualityIds.add(key);
@@ -89,3 +89,5 @@ export function evaluateProjectExportGate(input: ProjectExportGateInput): Projec
 
   return { canExport: blockers.length === 0, blockers, warnings };
 }
+
+

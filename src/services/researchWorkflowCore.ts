@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Compatibility facade. The canonical workflow implementation lives in
  * researchWorkflowService.ts. Appraisal creation is owned by appraisalWorkflowBridge.ts.
  */
@@ -24,3 +24,5 @@ export type {
   WorkflowState,
   ResearchAppraisalPayload,
 } from './researchWorkflowService';
+
+

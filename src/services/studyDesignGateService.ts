@@ -1,4 +1,4 @@
-import { AppraisalInstrument, StandardDocumentType } from '../types';
+﻿import { AppraisalInstrument, StandardDocumentType } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { DocumentClassifierService } from './documentClassifierService';
 
@@ -17,7 +17,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'qualitative',
     name: 'Kvalitativ forskning (Intervjuer, fokusgrupper, observasjon, hermeneutikk, fenomenologi)',
     category: 'Kvalitativ',
-    description: 'Primærstudier som utforsker menneskelige erfaringer, meningsbærende strukturer, sosial samhandling eller prosesser.',
+    description: 'PrimÃ¦rstudier som utforsker menneskelige erfaringer, meningsbÃ¦rende strukturer, sosial samhandling eller prosesser.',
     primaryInstrumentId: 'jbi-qualitative-2017',
     alternativeInstrumentIds: ['casp-qualitative', 'mmat-2018'],
     isResearchDocument: true
@@ -26,7 +26,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'systematic-review',
     name: 'Systematisk oversikt / Kunnskapsoppsummering (med eller uten meta-analyse)',
     category: 'Kunnskapsoppsummering',
-    description: 'Systematiske oversikter over intervensjoner eller observasjonsstudier med definert søkestrategi og syntese.',
+    description: 'Systematiske oversikter over intervensjoner eller observasjonsstudier med definert sÃ¸kestrategi og syntese.',
     primaryInstrumentId: 'amstar-2',
     alternativeInstrumentIds: ['casp-systematic-review', 'prisma-2020', 'grade'],
     isResearchDocument: true
@@ -51,9 +51,9 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
   },
   {
     id: 'rct',
-    name: 'Randomisert kontrollert studie (RCT) / Klyngerandomisert utprøving',
+    name: 'Randomisert kontrollert studie (RCT) / Klyngerandomisert utprÃ¸ving',
     category: 'Kvantitativ / Eksperimentell',
-    description: 'Eksperimentelle studier med tilfeldig fordeling til intervensjons- og kontrollgruppe for å måle behandlingseffekt.',
+    description: 'Eksperimentelle studier med tilfeldig fordeling til intervensjons- og kontrollgruppe for Ã¥ mÃ¥le behandlingseffekt.',
     primaryInstrumentId: 'rob-2',
     alternativeInstrumentIds: ['casp-rct', 'mmat-2018'],
     isResearchDocument: true
@@ -62,7 +62,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'non-randomized-cohort',
     name: 'Observasjonsstudie / Kohortstudie / Registerforskning',
     category: 'Kvantitativ / Observasjonell',
-    description: 'Prospektive eller retrospektive kohort- og registerstudier som følger deltakere over tid.',
+    description: 'Prospektive eller retrospektive kohort- og registerstudier som fÃ¸lger deltakere over tid.',
     primaryInstrumentId: 'robins-i',
     alternativeInstrumentIds: ['casp-cohort', 'mmat-2018'],
     isResearchDocument: true
@@ -80,7 +80,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'cross-sectional',
     name: 'Analytisk tverrsnittsstudie / Kvantitativ survey / Prevalensstudie',
     category: 'Kvantitativ / Observasjonell',
-    description: 'Kvantitative studier som måler eksponering og utfall samtidig i en definert populasjon.',
+    description: 'Kvantitative studier som mÃ¥ler eksponering og utfall samtidig i en definert populasjon.',
     primaryInstrumentId: 'mmat-2018',
     alternativeInstrumentIds: [],
     isResearchDocument: true
@@ -89,16 +89,16 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'mixed-methods',
     name: 'Blandet metode (Mixed Methods / Kvalitativ + Kvantitativ integrasjon)',
     category: 'Blandet metode',
-    description: 'Fler-metodiske studier som integrerer kvalitative intervjuer/observasjoner med kvantitative utfallsmål.',
+    description: 'Fler-metodiske studier som integrerer kvalitative intervjuer/observasjoner med kvantitative utfallsmÃ¥l.',
     primaryInstrumentId: 'mmat-2018',
     alternativeInstrumentIds: [],
     isResearchDocument: true
   },
   {
     id: 'diagnostic-accuracy',
-    name: 'Diagnostisk nøyaktighetsstudie / Testvalidering / Sensitivitet & Spesifisitet',
+    name: 'Diagnostisk nÃ¸yaktighetsstudie / Testvalidering / Sensitivitet & Spesifisitet',
     category: 'Diagnostikk',
-    description: 'Studier som evaluerer nøyaktigheten til en diagnostisk test eller biomarkør mot en referansestandard.',
+    description: 'Studier som evaluerer nÃ¸yaktigheten til en diagnostisk test eller biomarkÃ¸r mot en referansestandard.',
     primaryInstrumentId: 'quadas-2',
     alternativeInstrumentIds: ['grade'],
     isResearchDocument: true
@@ -107,7 +107,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'clinical-guideline',
     name: 'Klinisk retningslinje / Faglige behandlingsanbefalinger / Nasjonal veileder',
     category: 'Retningslinjer',
-    description: 'Systematisk utviklede faglige anbefalinger for klinisk praksis, pasientforløp og helsetjenester (Ikke primærforskning).',
+    description: 'Systematisk utviklede faglige anbefalinger for klinisk praksis, pasientforlÃ¸p og helsetjenester (Ikke primÃ¦rforskning).',
     primaryInstrumentId: 'agree-ii',
     alternativeInstrumentIds: ['grade'],
     isResearchDocument: false
@@ -116,7 +116,7 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'implementation-study',
     name: 'Implementeringsstudie / Tjenesteinnovasjon & Praksisendring (f.eks. CFIR / KTA)',
     category: 'Implementering',
-    description: 'Evaluering av barrierer, fremmere, implementeringsutfall og determinanter ved innføring av nye tiltak.',
+    description: 'Evaluering av barrierer, fremmere, implementeringsutfall og determinanter ved innfÃ¸ring av nye tiltak.',
     primaryInstrumentId: 'cfir-2',
     alternativeInstrumentIds: ['kta'],
     isResearchDocument: true
@@ -125,16 +125,16 @@ export const SUPPORTED_STUDY_DESIGNS: StudyDesignOption[] = [
     id: 'protocol',
     name: 'Studieprotokoll / Prosjektplan (f.eks. PROSPERO, ClinicalTrials.gov)',
     category: 'Protokoll',
-    description: 'Forhåndsdefinert forskningsprotokoll uten empiriske resultater.',
+    description: 'ForhÃ¥ndsdefinert forskningsprotokoll uten empiriske resultater.',
     primaryInstrumentId: 'prisma-2020',
     alternativeInstrumentIds: [],
     isResearchDocument: true
   },
   {
     id: 'methodology-study',
-    name: 'Metodestudie / Verktøyvalidering',
+    name: 'Metodestudie / VerktÃ¸yvalidering',
     category: 'Metodologi',
-    description: 'Studie som utvikler, tester eller validerer måleinstrumenter eller forskningsmetoder.',
+    description: 'Studie som utvikler, tester eller validerer mÃ¥leinstrumenter eller forskningsmetoder.',
     primaryInstrumentId: 'mmat-2018',
     alternativeInstrumentIds: [],
     isResearchDocument: true
@@ -195,7 +195,7 @@ export class StudyDesignGateService {
         isCompatible: false,
         matchLevel: 'CRITICAL_ERROR',
         headline: 'Ingen appraisal-instrument valgt',
-        explanation: 'Velg et appraisal-instrument før metodisk kompatibilitet kan vurderes.',
+        explanation: 'Velg et appraisal-instrument fÃ¸r metodisk kompatibilitet kan vurderes.',
         recommendedInstruments: [],
         incompatibleReasons: ['Ingen instrument valgt'],
         requiresExplicitOverrideConfirmation: false
@@ -213,7 +213,7 @@ export class StudyDesignGateService {
 
     // If design is unknown/uncertain, no instrument is automatically pre-cleared without researcher verification
     if (design.id === 'unknown-uncertain') {
-      const specificError = `Uavklart studiedesign: Studiedesignet er ikke sikkert identifisert. Forskeren må eksplisitt bekrefte design før valg av ${instrument.shortName}.`;
+      const specificError = `Uavklart studiedesign: Studiedesignet er ikke sikkert identifisert. Forskeren mÃ¥ eksplisitt bekrefte design fÃ¸r valg av ${instrument.shortName}.`;
       return {
         isCompatible: false,
         matchLevel: 'CRITICAL_ERROR',
@@ -222,7 +222,7 @@ export class StudyDesignGateService {
         recommendedInstruments: recommendedList,
         incompatibleReasons: [
           specificError,
-          `Ingen verktøy kan forhåndsgodkjennes automatisk for uavklart studiedesign.`
+          `Ingen verktÃ¸y kan forhÃ¥ndsgodkjennes automatisk for uavklart studiedesign.`
         ],
         requiresExplicitOverrideConfirmation: true
       };
@@ -234,7 +234,7 @@ export class StudyDesignGateService {
         isCompatible: true,
         matchLevel: 'EXACT_RECOMMENDED',
         headline: `Optimalt metodisk instrument (${instrument.shortName})`,
-        explanation: `«${instrument.name}» er det verifiserte gullstandard-instrumentet for ${design.name.toLowerCase()}.`,
+        explanation: `Â«${instrument.name}Â» er det verifiserte gullstandard-instrumentet for ${design.name.toLowerCase()}.`,
         recommendedInstruments: recommendedList,
         requiresExplicitOverrideConfirmation: false
       };
@@ -246,7 +246,7 @@ export class StudyDesignGateService {
         isCompatible: true,
         matchLevel: 'ACCEPTABLE_ALTERNATIVE',
         headline: `Gyldig metodisk alternativ (${instrument.shortName})`,
-        explanation: `«${instrument.name}» er et anerkjent alternativ for ${design.name.toLowerCase()}, men ${recommendedList[0]?.shortName || 'anbefalt verktøy'} gir mer spesifikk veiledning.`,
+        explanation: `Â«${instrument.name}Â» er et anerkjent alternativ for ${design.name.toLowerCase()}, men ${recommendedList[0]?.shortName || 'anbefalt verktÃ¸y'} gir mer spesifikk veiledning.`,
         recommendedInstruments: recommendedList,
         requiresExplicitOverrideConfirmation: false
       };
@@ -255,21 +255,21 @@ export class StudyDesignGateService {
     // Critical Mismatch / Methodological Error
     let specificError = '';
     if (design.id === 'qualitative' && (instrument.id === 'amstar-2' || instrument.id === 'rob-2' || instrument.id === 'robins-i' || instrument.id === 'agree-ii')) {
-      specificError = `Metodisk feil: ${instrument.shortName} kan IKKE brukes til å vurdere kvalitative primærstudier (intervjuer/tekst). Bruk JBI Qualitative eller CASP Qualitative.`;
+      specificError = `Metodisk feil: ${instrument.shortName} kan IKKE brukes til Ã¥ vurdere kvalitative primÃ¦rstudier (intervjuer/tekst). Bruk JBI Qualitative eller CASP Qualitative.`;
     } else if (design.id === 'systematic-review' && (instrument.id === 'jbi-qualitative-2017' || instrument.id === 'casp-qualitative')) {
-      specificError = `Metodisk feil: Kvalitative sjekklister vurderer kvalitative primærstudier, ikke systematiske kunnskapsoppsummeringer. Bruk AMSTAR 2 eller ROBIS.`;
+      specificError = `Metodisk feil: Kvalitative sjekklister vurderer kvalitative primÃ¦rstudier, ikke systematiske kunnskapsoppsummeringer. Bruk AMSTAR 2 eller ROBIS.`;
     } else if (design.id === 'rct' && (instrument.id === 'jbi-qualitative-2017' || instrument.id === 'casp-qualitative')) {
-      specificError = `Metodisk feil: Kvalitative verktøy kan ikke vurdere randomiserte kontrollerte studier (RCT). Bruk RoB 2 eller CASP RCT.`;
+      specificError = `Metodisk feil: Kvalitative verktÃ¸y kan ikke vurdere randomiserte kontrollerte studier (RCT). Bruk RoB 2 eller CASP RCT.`;
     } else if (design.id === 'clinical-guideline' && instrument.id !== 'agree-ii') {
-      specificError = `Metodisk advarsel: Kliniske retningslinjer er normative veiledere, ikke primærforskning, og skal vurderes med AGREE II.`;
+      specificError = `Metodisk advarsel: Kliniske retningslinjer er normative veiledere, ikke primÃ¦rforskning, og skal vurderes med AGREE II.`;
     } else if (design.id === 'diagnostic-accuracy' && instrument.id !== 'quadas-2') {
-      specificError = `Metodisk advarsel: Diagnostiske nøyaktighetsstudier krever QUADAS-2 (4 bias-domener).`;
+      specificError = `Metodisk advarsel: Diagnostiske nÃ¸yaktighetsstudier krever QUADAS-2 (4 bias-domener).`;
     } else if (design.id === 'mixed-methods' && (instrument.id === 'rob-2' || instrument.id === 'amstar-2')) {
       specificError = `Metodisk advarsel: Mixed methods krever evaluering av integrasjonen mellom kvalitative og kvantitative data med MMAT 2018.`;
     } else if (design.id === 'unknown-uncertain') {
-      specificError = `Uavklart studiedesign: Studiedesignet er ikke sikkert identifisert. Forskeren må eksplisitt bekrefte design før valg av ${instrument.shortName}.`;
+      specificError = `Uavklart studiedesign: Studiedesignet er ikke sikkert identifisert. Forskeren mÃ¥ eksplisitt bekrefte design fÃ¸r valg av ${instrument.shortName}.`;
     } else {
-      specificError = `Instrumentet «${instrument.shortName}» (${instrument.categoryName}) er ikke metodisk tilpasset studiedesignet «${design.name}».`;
+      specificError = `Instrumentet Â«${instrument.shortName}Â» (${instrument.categoryName}) er ikke metodisk tilpasset studiedesignet Â«${design.name}Â».`;
     }
 
     return {
@@ -280,7 +280,7 @@ export class StudyDesignGateService {
       recommendedInstruments: recommendedList,
       incompatibleReasons: [
         specificError,
-        `Målgruppe for ${instrument.shortName}: ${instrument.targetPopulationOrContext}`,
+        `MÃ¥lgruppe for ${instrument.shortName}: ${instrument.targetPopulationOrContext}`,
         `Valgt studiedesign krever: ${recommendedList.map(r => r.shortName).join(' eller ')}`
       ],
       requiresExplicitOverrideConfirmation: true
@@ -303,7 +303,7 @@ export class StudyDesignGateService {
     if (raw.includes('scoping review') || raw.includes('kartleggingsoversikt')) {
       return SUPPORTED_STUDY_DESIGNS.find(d => d.id === 'scoping-review')!;
     }
-    if (raw.includes('randomized') || raw.includes('randomised') || raw.includes('rct') || raw.includes('klinisk utprøving')) {
+    if (raw.includes('randomized') || raw.includes('randomised') || raw.includes('rct') || raw.includes('klinisk utprÃ¸ving')) {
       return SUPPORTED_STUDY_DESIGNS.find(d => d.id === 'rct')!;
     }
     if (raw.includes('mixed methods') || raw.includes('blandet metode')) {
@@ -361,3 +361,5 @@ export class StudyDesignGateService {
     }
   }
 }
+
+

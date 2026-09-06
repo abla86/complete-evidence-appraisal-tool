@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+﻿import type { Request, Response } from 'express';
 import {
   buildResearchAppraisalPayload,
   getResearchEvidenceSummary,
@@ -189,3 +189,4 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
     }
   });
 }
+

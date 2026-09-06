@@ -1,4 +1,4 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EvidencePipelineService } from './evidencePipelineService';
 
@@ -37,7 +37,7 @@ test('pipeline blocks unauthorized consensus transition', async () => {
       id: 'reviewer-1',
       role: 'reviewer',
     }),
-    /Pipeline kan bare gå til neste steg/,
+    /Pipeline kan bare gÃ¥ til neste steg/,
   );
 });
 
@@ -52,3 +52,5 @@ test('pipeline audit chain verifies after transitions', async () => {
   assert.equal(audit.length, 3);
   assert.ok(audit[1].previousEntryHash);
 });
+
+

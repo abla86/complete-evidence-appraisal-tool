@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { inspectPrivacy } from '../services/privacyInspector';
 import { inspectAccessibility } from '../services/accessibilityInspector';
 import { IMRaDAnalysisService } from '../services/imradAnalysisService';
@@ -17,11 +17,11 @@ export const IntegratedResearchInspectorsView: React.FC = () => {
     <section className="space-y-6">
       <header>
         <h2 className="text-xl font-bold text-slate-900">Integrert Research Inspector</h2>
-        <p className="text-sm text-slate-600 mt-1">Lokal metadata-, personvern- og tilgjengelighetsanalyse som støttefunksjon i evidence-workflowen.</p>
+        <p className="text-sm text-slate-600 mt-1">Lokal metadata-, personvern- og tilgjengelighetsanalyse som stÃ¸ttefunksjon i evidence-workflowen.</p>
       </header>
 
       <article className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-2">
-        <h3 className="font-bold text-slate-900">IMRaD – rapporteringsstruktur</h3>
+        <h3 className="font-bold text-slate-900">IMRaD â€“ rapporteringsstruktur</h3>
         <p className="text-xs text-slate-600 mt-1">Strukturell analyse av Introduction, Methods, Results og Discussion. Dette er ikke en appraisal-score.</p>
         <textarea value={researchText} onChange={e => setResearchText(e.target.value)} className="mt-4 w-full border rounded-lg p-3 text-sm h-32" aria-label="Forskningsdokument for IMRaD-analyse" />
         <div className="grid md:grid-cols-4 gap-3 mt-4">
@@ -29,7 +29,7 @@ export const IntegratedResearchInspectorsView: React.FC = () => {
             <div key={section.key} className="rounded-lg bg-slate-50 border p-3">
               <div className="font-semibold text-sm">{section.label}</div>
               <div className="text-xs mt-1">{section.status}</div>
-              <div className="text-xs text-slate-600 mt-1">Heading: {section.explicitHeading ? 'Ja' : 'Nei'} · {section.wordCount} ord</div>
+              <div className="text-xs text-slate-600 mt-1">Heading: {section.explicitHeading ? 'Ja' : 'Nei'} Â· {section.wordCount} ord</div>
               <div className="text-xs text-slate-600">Confidence: {Math.round(section.confidence * 100)}%</div>
             </div>
           ))}
@@ -42,7 +42,7 @@ export const IntegratedResearchInspectorsView: React.FC = () => {
           <h3 className="font-bold text-slate-900">Privacy signals</h3>
           <label className="block mt-4 text-xs font-semibold text-slate-700">Kildeside</label>
           <input value={url} onChange={e => setUrl(e.target.value)} className="mt-1 w-full border rounded-lg p-2 text-sm" />
-          <label className="block mt-3 text-xs font-semibold text-slate-700">Eksterne URL-er, én per linje</label>
+          <label className="block mt-3 text-xs font-semibold text-slate-700">Eksterne URL-er, Ã©n per linje</label>
           <textarea value={externalUrls} onChange={e => setExternalUrls(e.target.value)} className="mt-1 w-full border rounded-lg p-2 text-sm h-28" />
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-slate-50 p-3"><div className="text-xl font-bold">{privacy.externalResourceCount}</div><div className="text-[11px]">Eksterne ressurser</div></div>
@@ -66,3 +66,5 @@ export const IntegratedResearchInspectorsView: React.FC = () => {
     </section>
   );
 };
+
+

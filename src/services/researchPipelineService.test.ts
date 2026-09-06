@@ -1,4 +1,4 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildPipelineSnapshot,
@@ -30,3 +30,5 @@ test('advancePipeline records actor, records and rationale', () => {
   assert.deepEqual(result.snapshot.links[0].recordIds,['source-1']);
   assert.equal(result.snapshot.links[0].rationale,'Imported after database search');
 });
+
+

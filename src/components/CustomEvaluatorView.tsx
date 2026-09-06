@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ArticleAppraisal, AssessmentStatus, JBIEvaluationItem } from '../types';
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { StatusBadge } from './StatusBadge';
@@ -64,7 +64,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
   const shortCitation = authors ? `${authors.split(',')[0].trim()} et al.${year ? ` (${year})` : ''}` : 'Ny artikkel';
 
   // Auto generated thesis paragraph
-  const generatedParagraph = `${shortCitation} oppnådde ${jaCount} Â«JaÂ»${uklartCount > 0 ? `, ${uklartCount} Â«UklartÂ»` : ''}${neiCount > 0 ? ` og ${neiCount} Â«NeiÂ»` : ''}. Studien benyttet ${design.toLowerCase()} og samlet data via ${dataCollection.toLowerCase()}. Analysen ble gjennomført ved hjelp av ${analyticMethod.toLowerCase()}. Samlet vurderes studien til å holde ${jaCount >= 8 ? 'god metodisk kvalitet' : 'akseptabel metodisk kvalitet'}, og ${overallVerdict === 'Inkluder' ? 'inkluderes i kunnskapsgrunnlaget' : 'vurderes videre før eventuell inklusjon'}.`;
+  const generatedParagraph = `${shortCitation} oppnÃ¥dde ${jaCount} Ã‚Â«JaÃ‚Â»${uklartCount > 0 ? `, ${uklartCount} Ã‚Â«UklartÃ‚Â»` : ''}${neiCount > 0 ? ` og ${neiCount} Ã‚Â«NeiÃ‚Â»` : ''}. Studien benyttet ${design.toLowerCase()} og samlet data via ${dataCollection.toLowerCase()}. Analysen ble gjennomfÃ¸rt ved hjelp av ${analyticMethod.toLowerCase()}. Samlet vurderes studien til Ã¥ holde ${jaCount >= 8 ? 'god metodisk kvalitet' : 'akseptabel metodisk kvalitet'}, og ${overallVerdict === 'Inkluder' ? 'inkluderes i kunnskapsgrunnlaget' : 'vurderes videre fÃ¸r eventuell inklusjon'}.`;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +104,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
     };
 
     onSaveNewArticle(newArticle);
-    showToast(`Artikkelen Â«${shortCitation}Â» ble lagret i listen!`, 'success');
+    showToast(`Artikkelen Ã‚Â«${shortCitation}Ã‚Â» ble lagret i listen!`, 'success');
   };
 
   const copyParagraph = () => {
@@ -118,13 +118,13 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
       <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 shadow-2xs">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-800 mb-1">
           <CheckSquare className="w-4 h-4 text-teal-700" />
-          Interaktivt JBI Vurderingsverktøy
+          Interaktivt JBI VurderingsverktÃ¸y
         </div>
         <h2 className="text-xl sm:text-2xl font-bold font-serif text-slate-900 leading-snug">
           Vurder Din Egen Kvalitative Artikkel (JBI 2017)
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Fyll inn artikkeldata og vurder de 10 JBI-kriteriene. Verktøyet beregner scoren automatisk og genererer ferdig tekst til oppgaven.
+          Fyll inn artikkeldata og vurder de 10 JBI-kriteriene. VerktÃ¸yet beregner scoren automatisk og genererer ferdig tekst til oppgaven.
         </p>
       </div>
 
@@ -161,7 +161,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700">Publikasjonsår</label>
+              <label className="font-semibold text-slate-700">PublikasjonsÃ¥r</label>
               <input
                 type="number"
                 value={year}
@@ -209,7 +209,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
         <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              2. JBI 10-Spørsmåls Sjekkliste
+              2. JBI 10-SpÃ¸rsmÃ¥ls Sjekkliste
             </h3>
             <div className="flex items-center gap-3 text-xs font-bold">
               <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">{jaCount} Ja</span>
@@ -257,7 +257,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
                   <div>
                     <input
                       type="text"
-                      placeholder={`Begrunnelse for spørsmål ${q.id}...`}
+                      placeholder={`Begrunnelse for spÃ¸rsmÃ¥l ${q.id}...`}
                       value={currentItem.justification}
                       onChange={(e) => updateItemJustification(q.id, e.target.value)}
                       className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded focus:bg-white focus:ring-1 focus:ring-teal-600 focus:outline-hidden"
@@ -304,3 +304,5 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
     </div>
   );
 };
+
+

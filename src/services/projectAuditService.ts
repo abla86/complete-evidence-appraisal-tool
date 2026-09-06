@@ -1,4 +1,4 @@
-import { appendAuditEntry, type AuditEntry } from './auditTrailService';
+﻿import { appendAuditEntry, type AuditEntry } from './auditTrailService';
 import type { Actor } from './sourceIntakeService';
 
 export interface ProjectAuditEvent {
@@ -34,3 +34,5 @@ export async function appendProjectAuditEvent(
     detail: entry.detail,
   };
 }
+
+

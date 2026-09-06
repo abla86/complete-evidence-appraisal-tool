@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Users, 
@@ -100,7 +100,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
   // Form state for evaluating current study
   const [evalFormItems, setEvalFormItems] = useState<Record<number, { status: AssessmentStatus; justification: string }>>({});
-  const [evalOverallVerdict, setEvalOverallVerdict] = useState<'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon'>('Inkluder');
+  const [evalOverallVerdict, setEvalOverallVerdict] = useState<'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon'>('Inkluder');
   const [evalVerdictRationale, setEvalVerdictRationale] = useState('');
 
   // Sync form state when active reviewer or selected study changes
@@ -138,7 +138,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
   // Consensus drafting state
   const [consensusDraft, setConsensusDraft] = useState<{
     itemConsensus: Record<number, { status: AssessmentStatus; rationale: string }>;
-    overallVerdict: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon';
+    overallVerdict: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon';
     verdictRationale: string;
     consensusNotes: string;
   }>({
@@ -195,8 +195,8 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
     setWorkspace(updated);
     showToast(
       nextState 
-        ? 'Blindet modus AKTIVERT: Granskere kan ikke se hverandres vurderinger før innsending.' 
-        : 'Blindet modus DEAKTIVERT: Full innsyn på tvers av granskere.', 
+        ? 'Blindet modus AKTIVERT: Granskere kan ikke se hverandres vurderinger fÃ¸r innsending.' 
+        : 'Blindet modus DEAKTIVERT: Full innsyn pÃ¥ tvers av granskere.', 
       'success'
     );
   };
@@ -280,7 +280,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       itemConsensus: itemConsensusObj,
       overallVerdict: consensusDraft.overallVerdict,
       verdictRationale: consensusDraft.verdictRationale,
-      consensusNotes: consensusDraft.consensusNotes || 'Felles konsensusmøte avholdt og godkjent.',
+      consensusNotes: consensusDraft.consensusNotes || 'Felles konsensusmÃ¸te avholdt og godkjent.',
       signedOffBy: workspace.members.slice(0, 2).map(m => m.name),
       lockedAt: new Date().toISOString()
     };
@@ -322,7 +322,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       // fallback
     }
 
-    showToast(`Konsensusvedtak for "${selectedArticle.shortCitation}" ble lagret og låst!`, 'success');
+    showToast(`Konsensusvedtak for "${selectedArticle.shortCitation}" ble lagret og lÃ¥st!`, 'success');
   };
 
   const handleAddComment = (e: React.FormEvent) => {
@@ -403,7 +403,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               {workspace.projectName}
             </h1>
             <p className="text-xs text-slate-600 mt-0.5">
-              {workspace.institutionOrCourse} • {workspace.members.length} granskere i forskningsteamet • {articles.length} inkluderte artikler
+              {workspace.institutionOrCourse} â€¢ {workspace.members.length} granskere i forskningsteamet â€¢ {articles.length} inkluderte artikler
             </p>
           </div>
 
@@ -437,12 +437,12 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   ? 'bg-amber-50 text-amber-900 border-amber-300 shadow-2xs hover:bg-amber-100'
                   : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
               }`}
-              title="Blindet modus skjuler andre granskeres skår før du selv har sendt inn"
+              title="Blindet modus skjuler andre granskeres skÃ¥r fÃ¸r du selv har sendt inn"
             >
               {workspace.blindedMode ? (
                 <>
                   <EyeOff className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Blindet Modus: PÅ</span>
+                  <span>Blindet Modus: PÃ…</span>
                 </>
               ) : (
                 <>
@@ -502,7 +502,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>3. Inter-Rater Samstemthet (κ) & Avvik</span>
+            <span>3. Inter-Rater Samstemthet (Îº) & Avvik</span>
           </button>
 
           <button
@@ -515,7 +515,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>4. Konsensusmøte & Adjudisering</span>
+            <span>4. KonsensusmÃ¸te & Adjudisering</span>
           </button>
 
           <button
@@ -597,7 +597,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   <p className="text-[10px] text-slate-500 mt-1 truncate">{m.institution || 'Institusjon ikke oppgitt'}</p>
                   
                   <div className="mt-3 pt-3 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-600">Fullførte studier:</span>
+                    <span className="text-slate-600">FullfÃ¸rte studier:</span>
                     <span className="font-extrabold text-slate-900">
                       {(Object.values(workspace.submissions) as PeerReviewSubmission[][]).filter(subs => subs.some(s => s.reviewerId === m.id)).length} / {articles.length}
                     </span>
@@ -656,7 +656,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                           >
                             {art.shortCitation}
                           </button>
-                          <span className="block text-[10px] font-normal text-slate-500 mt-0.5">{art.year} • {art.journal}</span>
+                          <span className="block text-[10px] font-normal text-slate-500 mt-0.5">{art.year} â€¢ {art.journal}</span>
                         </td>
                         <td className="p-3 text-slate-800 align-top max-w-xs">
                           <span className="font-semibold line-clamp-1">{art.title}</span>
@@ -673,7 +673,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                             {subs.length < 2 && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
                                 <AlertTriangle className="w-3 h-3 text-amber-600" />
-                                Venter på {2 - subs.length} gransker(e)
+                                Venter pÃ¥ {2 - subs.length} gransker(e)
                               </span>
                             )}
                           </div>
@@ -682,26 +682,26 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                           {agreement ? (
                             <div>
                               <span className="font-extrabold text-slate-900 font-mono text-xs block">
-                                κ = {agreement.cohensKappa.toFixed(2)} ({agreement.percentAgreement}%)
+                                Îº = {agreement.cohensKappa.toFixed(2)} ({agreement.percentAgreement}%)
                               </span>
                               <span className="text-[10px] text-slate-600">
                                 {agreement.discrepancies.length === 0 ? 'Full enighet' : `${agreement.discrepancies.length} avvik`}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-[11px] text-slate-400">Krever ≥2 vurderinger</span>
+                            <span className="text-[11px] text-slate-400">Krever â‰¥2 vurderinger</span>
                           )}
                         </td>
                         <td className="p-3 align-top">
                           {isConsensusReached ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-900 font-extrabold text-[11px] border border-emerald-300">
                               <Lock className="w-3 h-3" />
-                              Låst Konsensus ({consensus?.overallVerdict})
+                              LÃ¥st Konsensus ({consensus?.overallVerdict})
                             </span>
                           ) : isFullyReviewed ? (
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300">
                               <AlertTriangle className="w-3 h-3" />
-                              Klar for konsensusmøte
+                              Klar for konsensusmÃ¸te
                             </span>
                           ) : (
                             <span className="text-[11px] text-slate-500 font-medium">
@@ -753,10 +753,10 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                 Uavhengig Dobbeltgransking som: {activeReviewer?.name} ({activeReviewer?.role})
               </span>
               <h2 className="text-lg font-bold text-slate-900 font-serif">
-                {selectedArticle?.shortCitation} – {selectedArticle?.title}
+                {selectedArticle?.shortCitation} â€“ {selectedArticle?.title}
               </h2>
               <p className="text-xs text-slate-600">
-                Design: {selectedArticle?.design} • Utvalg: {selectedArticle?.participants}
+                Design: {selectedArticle?.design} â€¢ Utvalg: {selectedArticle?.participants}
               </p>
             </div>
 
@@ -779,7 +779,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
             <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-3 text-xs text-amber-900">
               <EyeOff className="w-5 h-5 text-amber-700 shrink-0" />
               <div>
-                <strong>Blindet protokoll aktiv:</strong> Du kan ikke se vurderingene til de andre granskerne før du har fullført og lagret din egen uavhengige gjennomgang. Dette eliminerer bias og sikrer metodisk stringens.
+                <strong>Blindet protokoll aktiv:</strong> Du kan ikke se vurderingene til de andre granskerne fÃ¸r du har fullfÃ¸rt og lagret din egen uavhengige gjennomgang. Dette eliminerer bias og sikrer metodisk stringens.
               </div>
             </div>
           )}
@@ -788,10 +788,10 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h3 className="text-base font-bold text-slate-900 font-serif">
-                JBI Kriterievurdering (Q1–Q10) for {selectedArticle?.shortCitation}
+                JBI Kriterievurdering (Q1â€“Q10) for {selectedArticle?.shortCitation}
               </h3>
               <span className="text-xs text-slate-500 font-medium">
-                Svar på samtlige 10 punkter med begrunnelse
+                Svar pÃ¥ samtlige 10 punkter med begrunnelse
               </span>
             </div>
 
@@ -862,7 +862,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               </h4>
 
               <div className="flex flex-wrap items-center gap-3">
-                {(['Inkluder', 'Vurder videre', 'Søk mer informasjon', 'Ekskluder'] as const).map(verdict => (
+                {(['Inkluder', 'Vurder videre', 'SÃ¸k mer informasjon', 'Ekskluder'] as const).map(verdict => (
                   <button
                     key={verdict}
                     type="button"
@@ -880,13 +880,13 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
               <div>
                 <label className="text-xs font-bold text-teal-950 block mb-1">
-                  Metodisk helhetsvurdering & kommentar til konsensusmøtet:
+                  Metodisk helhetsvurdering & kommentar til konsensusmÃ¸tet:
                 </label>
                 <textarea
                   rows={2}
                   value={evalVerdictRationale}
                   onChange={(e) => setEvalVerdictRationale(e.target.value)}
-                  placeholder="Oppsummer studiens styrker, svakheter og eventuelle uklarheter som krever felles drøfting..."
+                  placeholder="Oppsummer studiens styrker, svakheter og eventuelle uklarheter som krever felles drÃ¸fting..."
                   className="w-full p-2.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-600"
                 />
               </div>
@@ -954,7 +954,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
                     <span className="text-[10px] font-extrabold uppercase text-slate-600 block">
-                      Rå Prosent Samstemthet
+                      RÃ¥ Prosent Samstemthet
                     </span>
                     <span className="text-3xl font-extrabold text-slate-900 font-mono">
                       {irrAgreement.percentAgreement}%
@@ -972,7 +972,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                       {irrAgreement.discrepancies.length}
                     </span>
                     <span className="text-xs text-amber-900 block mt-1">
-                      Krever konsensusdrøfting
+                      Krever konsensusdrÃ¸fting
                     </span>
                   </div>
                 </div>
@@ -1030,7 +1030,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-600 text-xs space-y-2">
                 <AlertTriangle className="w-8 h-8 text-amber-600 mx-auto" />
                 <p className="font-bold text-slate-800">Krever minst to uavhengige granskervurderinger</p>
-                <p>Bytt aktiv gransker øverst til høyre for å fylle inn vurdering for Reviewer 2.</p>
+                <p>Bytt aktiv gransker Ã¸verst til hÃ¸yre for Ã¥ fylle inn vurdering for Reviewer 2.</p>
               </div>
             )}
           </div>
@@ -1047,12 +1047,12 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 bg-teal-100 text-teal-900 text-[10px] font-extrabold rounded-md uppercase">
-                    Konsensusmøte & Adjudisering
+                    KonsensusmÃ¸te & Adjudisering
                   </span>
                   {currentConsensus?.status === 'CONSENSUS_REACHED' && (
                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-md flex items-center gap-1">
                       <Lock className="w-3 h-3" />
-                      LÅST VEDTAK
+                      LÃ…ST VEDTAK
                     </span>
                   )}
                 </div>
@@ -1078,7 +1078,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
             {/* Item-by-item Consensus Decision Matrix */}
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-900 font-serif">
-                Strukturert enighet per JBI-kriterium (1–10):
+                Strukturert enighet per JBI-kriterium (1â€“10):
               </h4>
 
               {JBI_QUESTIONS.map(q => {
@@ -1187,7 +1187,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               </h4>
 
               <div className="flex flex-wrap items-center gap-3">
-                {(['Inkluder', 'Vurder videre', 'Søk mer informasjon', 'Ekskluder'] as const).map(v => (
+                {(['Inkluder', 'Vurder videre', 'SÃ¸k mer informasjon', 'Ekskluder'] as const).map(v => (
                   <button
                     key={v}
                     type="button"
@@ -1223,7 +1223,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   className="px-6 py-2.5 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2"
                 >
                   <Lock className="w-4 h-4" />
-                  <span>Godkjenn & Lås Konsensusprotokoll</span>
+                  <span>Godkjenn & LÃ¥s Konsensusprotokoll</span>
                 </button>
               </div>
             </div>
@@ -1243,7 +1243,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   Fagfelletilbakemeldinger & Metodisk Samhandling
                 </h3>
                 <p className="text-xs text-slate-600">
-                  Drøft metodiske usikkerheter, sitater og kvalitetspunkter direkte i granskerteamet.
+                  DrÃ¸ft metodiske usikkerheter, sitater og kvalitetspunkter direkte i granskerteamet.
                 </p>
               </div>
 
@@ -1277,11 +1277,11 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                     onChange={(e) => setNewCommentCategory(e.target.value as CommentCategory)}
                     className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold"
                   >
-                    <option value="METHODOLOGY_CONCERN">⚠️ Metodisk bekymring / Usikkerhet</option>
-                    <option value="CLARIFICATION_NEEDED">❓ Behov for oppklaring</option>
-                    <option value="STRENGTH_PRAISE">🌟 Metodisk styrke / Ros</option>
-                    <option value="CONSENSUS_NOTE">📝 Konsensusnotat</option>
-                    <option value="GENERAL_FEEDBACK">💬 Generell tilbakemelding</option>
+                    <option value="METHODOLOGY_CONCERN">âš ï¸ Metodisk bekymring / Usikkerhet</option>
+                    <option value="CLARIFICATION_NEEDED">â“ Behov for oppklaring</option>
+                    <option value="STRENGTH_PRAISE">ðŸŒŸ Metodisk styrke / Ros</option>
+                    <option value="CONSENSUS_NOTE">ðŸ“ Konsensusnotat</option>
+                    <option value="GENERAL_FEEDBACK">ðŸ’¬ Generell tilbakemelding</option>
                   </select>
                 </div>
 
@@ -1306,7 +1306,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   required
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
-                  placeholder="Skriv kommentar til forskningsteamet (f.eks. henvisning til side i fulltekst, spørsmål til medgransker)..."
+                  placeholder="Skriv kommentar til forskningsteamet (f.eks. henvisning til side i fulltekst, spÃ¸rsmÃ¥l til medgransker)..."
                   className="w-full p-2.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-600"
                 />
               </div>
@@ -1350,7 +1350,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded">
-                            {study?.shortCitation} {c.questionId ? `• Q${c.questionId}` : ''}
+                            {study?.shortCitation} {c.questionId ? `â€¢ Q${c.questionId}` : ''}
                           </span>
                           <button
                             type="button"
@@ -1361,7 +1361,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                                 : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-800'
                             }`}
                           >
-                            {c.resolved ? '✓ Avklart' : 'Marker som avklart'}
+                            {c.resolved ? 'âœ“ Avklart' : 'Marker som avklart'}
                           </button>
                           <button
                             type="button"
@@ -1438,7 +1438,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   Fagfellevurderingsprotokoll: {workspace.projectName}
                 </h2>
                 <p className="text-[11px] font-sans text-slate-600 mt-1">
-                  Institusjon: {workspace.institutionOrCourse} • Standard: {workspace.protocolPrismaTarget} • Dato: {new Date().toLocaleDateString('no-NO')}
+                  Institusjon: {workspace.institutionOrCourse} â€¢ Standard: {workspace.protocolPrismaTarget} â€¢ Dato: {new Date().toLocaleDateString('no-NO')}
                 </p>
               </div>
 
@@ -1470,18 +1470,18 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                       <div key={art.id} className="p-4 bg-white rounded-lg border border-slate-200 space-y-2 font-sans">
                         <div className="flex items-center justify-between">
                           <strong className="text-slate-900 font-serif text-sm">
-                            {idx + 1}. {art.shortCitation} – {art.title}
+                            {idx + 1}. {art.shortCitation} â€“ {art.title}
                           </strong>
                           <span className="px-2 py-0.5 bg-teal-100 text-teal-900 font-bold rounded text-[11px]">
                             Konsensus: {consensus?.overallVerdict || 'Avventer'}
                           </span>
                         </div>
                         <p className="text-slate-600 text-xs">
-                          {art.authors} ({art.year}) • <em>{art.journal}</em> • DOI: {art.doi || 'N/A'}
+                          {art.authors} ({art.year}) â€¢ <em>{art.journal}</em> â€¢ DOI: {art.doi || 'N/A'}
                         </p>
                         {agreement && (
                           <p className="text-teal-950 text-xs font-semibold">
-                            Inter-Rater Samstemthet: {agreement.percentAgreement}% • Cohen's &kappa; = {agreement.cohensKappa} ({agreement.interpretation})
+                            Inter-Rater Samstemthet: {agreement.percentAgreement}% â€¢ Cohen's &kappa; = {agreement.cohensKappa} ({agreement.interpretation})
                           </p>
                         )}
                         {consensus && (
@@ -1594,3 +1594,5 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
     </div>
   );
 };
+
+

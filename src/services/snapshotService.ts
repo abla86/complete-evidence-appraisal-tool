@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   ArticleAppraisal, 
   AssessmentSnapshot, 
   AssessmentLifecycleStatus, 
@@ -70,7 +70,7 @@ export class SnapshotService {
     reopenedBy: string
   ): ArticleAppraisal {
     if (!reason || reason.trim().length < 5) {
-      throw new Error('Obligatorisk faglig begrunnelse (minst 5 tegn) kreves for å gjenåpne en finalisert vurdering.');
+      throw new Error('Obligatorisk faglig begrunnelse (minst 5 tegn) kreves for Ã¥ gjenÃ¥pne en finalisert vurdering.');
     }
 
     const currentSnapshot = appraisal.snapshot || this.createSnapshot(appraisal, reopenedBy);
@@ -97,14 +97,14 @@ export class SnapshotService {
       instrumentId: currentSnapshot.instrumentId,
       version: currentSnapshot.instrumentVersion,
       itemId: 0,
-      itemTitle: 'Gjenåpning av finalisert vurdering',
+      itemTitle: 'GjenÃ¥pning av finalisert vurdering',
       previousAnswer: 'FINALIZED',
       newAnswer: 'REOPENED',
-      previousRationale: 'Låst vurdering',
+      previousRationale: 'LÃ¥st vurdering',
       newRationale: reason,
       changedBy: reopenedBy,
       timestamp: new Date().toISOString(),
-      comment: `Vurdering gjenåpnet: ${reason}`
+      comment: `Vurdering gjenÃ¥pnet: ${reason}`
     };
 
     return {
@@ -137,14 +137,14 @@ export class SnapshotService {
       instrumentId: currentSnapshot.instrumentId,
       version: currentSnapshot.instrumentVersion,
       itemId: 0,
-      itemTitle: 'Finalisering og låsing av vurdering',
+      itemTitle: 'Finalisering og lÃ¥sing av vurdering',
       previousAnswer: appraisal.lifecycleStatus || 'IN_REVIEW',
       newAnswer: 'FINALIZED',
       previousRationale: 'Under vurdering',
-      newRationale: 'Vurdering fullført og metodisk godkjent.',
+      newRationale: 'Vurdering fullfÃ¸rt og metodisk godkjent.',
       changedBy: finalizedBy,
       timestamp: new Date().toISOString(),
-      comment: 'Vurdering finalisert og låst for redigering.'
+      comment: 'Vurdering finalisert og lÃ¥st for redigering.'
     };
 
     return {
@@ -155,3 +155,5 @@ export class SnapshotService {
     };
   }
 }
+
+

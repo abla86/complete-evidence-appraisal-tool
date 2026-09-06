@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { IntegratedResearchInspectorsView } from './IntegratedResearchInspectorsView';
 import { SourceRecordIntakeView } from './SourceRecordIntakeView';
 
@@ -21,3 +21,5 @@ export const ModuleWorkspaceView: React.FC = () => {
     </section>
   );
 };
+
+

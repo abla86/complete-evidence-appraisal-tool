@@ -1,4 +1,4 @@
-import type { AppraisalSession, ResearchAppraisalPayload, ResearchWorkflowContext, ScreeningDecision, ScreeningRecord, WorkflowState } from '../types/workflow.contracts';
+﻿import type { AppraisalSession, ResearchAppraisalPayload, ResearchWorkflowContext, ScreeningDecision, ScreeningRecord, WorkflowState } from '../types/workflow.contracts';
 import { decideAppraisalLaunch } from './universalAppraisalService';
 import { EvidenceFoundation, type EvidenceModule } from './evidenceSystemFoundation';
 import { ResearchEngineGateway, type ResearchEngineDocument } from './researchEngineGateway';
@@ -126,7 +126,7 @@ export function createResearchWorkflowFromText(
   fileName = 'document.txt',
   studyId?: string,
 ): WorkflowState {
-  if (!text?.trim()) throw new Error('Dokumenttekst kan ikke være tom.');
+  if (!text?.trim()) throw new Error('Dokumenttekst kan ikke vÃ¦re tom.');
 
   const normalizedFileName = fileName.trim() || 'document.txt';
   const analysis = ResearchEngineGateway.analyzeText(text, normalizedFileName);
@@ -240,7 +240,7 @@ export function verifyResearchEvidence(
   if (!current) throw new Error(`Evidence finnes ikke: ${evidenceId}`);
   if (current.source === 'REJECTED' && verified) {
     throw new Error(
-      'Avvist evidence må vurderes på nytt gjennom eksplisitt re-inntak før det kan verifiseres.',
+      'Avvist evidence mÃ¥ vurderes pÃ¥ nytt gjennom eksplisitt re-inntak fÃ¸r det kan verifiseres.',
     );
   }
 
@@ -340,7 +340,7 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
 
   if (!state.research.classificationVerified) {
     throw new Error(
-      'Human verification av dokumentklassifisering (classification) er påkrevd.',
+      'Human verification av dokumentklassifisering (classification) er pÃ¥krevd.',
     );
   }
 
@@ -360,7 +360,7 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
   const verifiedEvidence = getVerifiedResearchEvidence(state);
   if (verifiedEvidence.length === 0) {
     throw new Error(
-      'Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.',
+      'Minst ett evidensfunn mÃ¥ vÃ¦re menneskelig verifisert fÃ¸r appraisal kan startes.',
     );
   }
 
@@ -420,3 +420,5 @@ export function getResearchEvidenceSummary(state: WorkflowState) {
     rejected: evidence.filter(item => item.source === 'REJECTED').length,
   };
 }
+
+

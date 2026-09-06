@@ -1,4 +1,4 @@
-import type { ReferenceRecord } from './referenceHubService';
+﻿import type { ReferenceRecord } from './referenceHubService';
 
 const STORAGE_KEY = 'evidence-appraisal-reference-hub-v1';
 
@@ -34,3 +34,5 @@ export function clearReferenceLibrary(): void {
   if (typeof localStorage === 'undefined') return;
   localStorage.removeItem(STORAGE_KEY);
 }
+
+

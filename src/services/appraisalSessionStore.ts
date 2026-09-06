@@ -1,4 +1,4 @@
-import type { AppraisalSession } from './universalAppraisalService';
+﻿import type { AppraisalSession } from './universalAppraisalService';
 import type { StoredQualityAssessment } from './qualityAssessmentService';
 
 const STORAGE_KEY = 'evidence-appraisal-appraisal-sessions-v1';
@@ -93,3 +93,5 @@ export function upsertQualityAssessment(item: StoredQualityAssessment): StoredQu
   writeQuality(next);
   return next;
 }
+
+

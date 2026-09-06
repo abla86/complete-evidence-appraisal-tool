@@ -1,4 +1,4 @@
-import type { AppraisalSession } from './universalAppraisalService';
+﻿import type { AppraisalSession } from './universalAppraisalService';
 import { getInstrumentOrNull, validateAppraisalSession } from './universalAppraisalService';
 
 export interface AppraisalIntegrityReport {
@@ -18,7 +18,7 @@ export function validateAppraisalIntegrity(session: AppraisalSession): Appraisal
   blockingIssues.push(...validation.issues);
 
   if (session.instrumentVersion !== instrument.version) {
-    blockingIssues.push(`Instrumentversjon er endret: økt ${session.instrumentVersion}, registry ${instrument.version}. Opprett ny vurderingsversjon.`);
+    blockingIssues.push(`Instrumentversjon er endret: Ã¸kt ${session.instrumentVersion}, registry ${instrument.version}. Opprett ny vurderingsversjon.`);
   }
 
   if (instrument.verificationStatus === 'PROTOTYPE' || instrument.verificationStatus === 'DEPRECATED') {
@@ -27,3 +27,5 @@ export function validateAppraisalIntegrity(session: AppraisalSession): Appraisal
 
   return { valid: blockingIssues.length === 0, blockingIssues, warnings };
 }
+
+

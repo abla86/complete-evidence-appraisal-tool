@@ -1,4 +1,4 @@
-import type { AppraisalInstrument } from '../types';
+﻿import type { AppraisalInstrument } from '../types';
 import type { AppraisalAnswer, AppraisalEvidenceLink, AppraisalItemResponse, AppraisalSession, AppraisalSessionValidation, AppraisalLaunchDecision } from '../types/workflow.contracts';
 export type { AppraisalAnswer, AppraisalEvidenceLink, AppraisalItemResponse, AppraisalSession, AppraisalSessionValidation, AppraisalLaunchDecision } from '../types/workflow.contracts';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
@@ -37,15 +37,15 @@ export function createBlankAppraisalSession(studyId: string, instrumentId: strin
 }
 
 export function upsertAppraisalResponse(session: AppraisalSession, response: AppraisalItemResponse): AppraisalSession {
-  if (session.locked) throw new Error('Vurderingen er låst og kan ikke endres.');
+  if (session.locked) throw new Error('Vurderingen er lÃ¥st og kan ikke endres.');
   const instrument = getInstrumentOrNull(session.instrumentId);
   if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${session.instrumentId}`);
   const normalizedItemId = normalizeId(response.itemId);
-  if (!normalizedItemId) throw new Error('Vurderingspunkt-ID er påkrevd.');
+  if (!normalizedItemId) throw new Error('Vurderingspunkt-ID er pÃ¥krevd.');
   const question = (instrument.questions ?? []).find(q => normalizeId(q.id) === normalizedItemId);
   if (!question) throw new Error(`Vurderingspunkt ${normalizedItemId} finnes ikke i ${instrument.id} versjon ${instrument.version}.`);
   const answerPresent = response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '';
-  if (answerPresent && !String(response.rationale ?? '').trim()) throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizedItemId}.`);
+  if (answerPresent && !String(response.rationale ?? '').trim()) throw new Error(`Begrunnelse er pÃ¥krevd for vurderingspunkt ${normalizedItemId}.`);
   const allowedAnswers = question.allowedAnswers ?? instrument.allowedAnswers ?? [];
   if (allowedAnswers.length > 0 && answerPresent && !allowedAnswers.map(String).includes(String(response.answer))) throw new Error(`Svarverdien for vurderingspunkt ${normalizedItemId} er ikke tillatt av instrumentet.`);
   const normalizedResponse: AppraisalItemResponse = {
@@ -84,7 +84,7 @@ export function validateAppraisalSession(session: AppraisalSession): AppraisalSe
   if (!session.id.trim()) issues.push('Session-ID mangler.');
   if (!session.studyId.trim()) issues.push('studyId mangler.');
   if (!session.reviewerId.trim()) issues.push('reviewerId mangler.');
-  if (session.instrumentVersion !== instrument.version) issues.push(`Instrumentversjonen i sesjonen (${session.instrumentVersion}) avviker fra registry (${instrument.version}). Sesjonen må migreres eller vurderes på nytt.`);
+  if (session.instrumentVersion !== instrument.version) issues.push(`Instrumentversjonen i sesjonen (${session.instrumentVersion}) avviker fra registry (${instrument.version}). Sesjonen mÃ¥ migreres eller vurderes pÃ¥ nytt.`);
   if (missingItemIds.length > 0) issues.push(`${missingItemIds.length} vurderingspunkt mangler svar.`);
   if (unexpectedItemIds.length > 0) issues.push(`${unexpectedItemIds.length} svar peker til vurderingspunkt som ikke finnes i valgt instrumentversjon.`);
   if (duplicateItemIds.length > 0) issues.push(`Dupliserte svar finnes for vurderingspunkt: ${duplicateItemIds.join(', ')}.`);
@@ -104,10 +104,10 @@ export function assertInstrumentIntegrity(session: AppraisalSession): void {
 
 export function lockAppraisalSession(session: AppraisalSession): AppraisalSession {
   if (session.locked) return session;
-  if (!session.reviewerId.trim()) throw new Error('Kan ikke låse appraisal uten reviewerId.');
+  if (!session.reviewerId.trim()) throw new Error('Kan ikke lÃ¥se appraisal uten reviewerId.');
   assertInstrumentIntegrity(session);
   const validation = validateAppraisalSession(session);
-  if (!validation.valid) throw new Error(`Kan ikke låse vurderingen: ${validation.issues.join(' ')}`);
+  if (!validation.valid) throw new Error(`Kan ikke lÃ¥se vurderingen: ${validation.issues.join(' ')}`);
   return { ...session, locked: true, updatedAt: new Date().toISOString() };
 }
 
@@ -115,12 +115,14 @@ export function decideAppraisalLaunch(studyDesign: string, instrumentId: string,
   const instrument = getInstrumentOrNull(instrumentId);
   if (!instrument) return { instrument: null, allowed: false, warnings: ['Ukjent instrument.'], reason: 'Instrumentet finnes ikke.' };
   const design = studyDesign.trim().toLowerCase();
-  if (!design) return { instrument, allowed: false, warnings: ['Studiedesign mangler.'], reason: 'Registrer studiedesign før appraisal-instrument velges.' };
+  if (!design) return { instrument, allowed: false, warnings: ['Studiedesign mangler.'], reason: 'Registrer studiedesign fÃ¸r appraisal-instrument velges.' };
   const compatible = instrument.targetStudyDesign.some(target => {
     const normalizedTarget = target.trim().toLowerCase();
     return normalizedTarget === design || normalizedTarget.includes(design) || design.includes(normalizedTarget);
   });
   if (compatible) return { instrument, allowed: true, warnings: [], reason: 'Instrumentet er kompatibelt med registrert studiedesign.' };
-  if (allowAlternative) return { instrument, allowed: true, warnings: [`Instrumentet er ikke et direkte design-treff for «${studyDesign}». Bruk krever eksplisitt metodisk begrunnelse.`], reason: 'Instrumentet er valgt som eksplisitt alternativ.' };
-  return { instrument, allowed: false, warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'], reason: 'Bytt instrument eller åpne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.' };
+  if (allowAlternative) return { instrument, allowed: true, warnings: [`Instrumentet er ikke et direkte design-treff for Â«${studyDesign}Â». Bruk krever eksplisitt metodisk begrunnelse.`], reason: 'Instrumentet er valgt som eksplisitt alternativ.' };
+  return { instrument, allowed: false, warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'], reason: 'Bytt instrument eller Ã¥pne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.' };
 }
+
+

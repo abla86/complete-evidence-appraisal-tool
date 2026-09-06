@@ -1,4 +1,4 @@
-import { CandidateEvidence, DocumentAnalysisResult } from '../types';
+﻿import { CandidateEvidence, DocumentAnalysisResult } from '../types';
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { IMRaDAnalysisService } from './imradAnalysisService';
 
@@ -6,7 +6,7 @@ export class DocumentAnalysisService {
   /**
    * Analyzes research text and extracts candidate evidence passages.
    * Automated extraction is never treated as a methodological judgement.
-   * "Ikke funnet ≠ No" remains a hard rule.
+   * "Ikke funnet â‰  No" remains a hard rule.
    */
   public static analyzeText(
     text: string,
@@ -20,7 +20,7 @@ export class DocumentAnalysisService {
         disclaimer:
           'Ingen kandidat-evidens ble generert fordi dokumentteksten er tom.',
         goldenRule:
-          'Metodisk prinsipp: Ikke funnet i tekstsøk betyr IKKE automatisk «Nei». All vurdering krever menneskelig faglig skjønn.',
+          'Metodisk prinsipp: Ikke funnet i tekstsÃ¸k betyr IKKE automatisk Â«NeiÂ». All vurdering krever menneskelig faglig skjÃ¸nn.',
         candidateEvidence: [],
         imradAnalysis: IMRaDAnalysisService.analyze('', fileName),
       };
@@ -65,7 +65,7 @@ export class DocumentAnalysisService {
           'philosophy',
         ],
         hint:
-          'Sjekk om forfatterne eksplisitt gjør rede for filosofisk/epistemologisk ståsted eller kun metodologi.',
+          'Sjekk om forfatterne eksplisitt gjÃ¸r rede for filosofisk/epistemologisk stÃ¥sted eller kun metodologi.',
       },
       2: {
         keywords: [
@@ -73,7 +73,7 @@ export class DocumentAnalysisService {
           'objective',
           'research question',
           'purpose',
-          'formål',
+          'formÃ¥l',
           'problemstilling',
           'explore',
           'investigate',
@@ -127,7 +127,7 @@ export class DocumentAnalysisService {
           'methods',
         ],
         hint:
-          'Sjekk om analyseprosedyren følger anerkjente trinn i metoden.',
+          'Sjekk om analyseprosedyren fÃ¸lger anerkjente trinn i metoden.',
       },
       5: {
         keywords: [
@@ -147,7 +147,7 @@ export class DocumentAnalysisService {
           'discussion',
         ],
         hint:
-          'Sjekk om tolkningene bygger konsistent på den analytiske tilnærmingen.',
+          'Sjekk om tolkningene bygger konsistent pÃ¥ den analytiske tilnÃ¦rmingen.',
       },
       6: {
         keywords: [
@@ -159,7 +159,7 @@ export class DocumentAnalysisService {
           'insider',
           'outsider',
           'pre-understanding',
-          'forforståelse',
+          'forforstÃ¥else',
         ],
         sectionKeywords: [
           'methods',
@@ -168,7 +168,7 @@ export class DocumentAnalysisService {
           'research team',
         ],
         hint:
-          'Sjekk om forfatterne gjør rede for egen kulturell eller teoretisk posisjonering.',
+          'Sjekk om forfatterne gjÃ¸r rede for egen kulturell eller teoretisk posisjonering.',
       },
       7: {
         keywords: [
@@ -187,7 +187,7 @@ export class DocumentAnalysisService {
           'methods',
         ],
         hint:
-          'Sjekk om forskerens påvirkning på studien og deltakerne er drøftet.',
+          'Sjekk om forskerens pÃ¥virkning pÃ¥ studien og deltakerne er drÃ¸ftet.',
       },
       8: {
         keywords: [
@@ -237,7 +237,7 @@ export class DocumentAnalysisService {
           'grounded in the data',
           'summary',
           'our findings demonstrate',
-          'drøfting',
+          'drÃ¸fting',
           'konklusjon',
         ],
         sectionKeywords: [
@@ -307,7 +307,7 @@ export class DocumentAnalysisService {
           extractedSnippet: bestSnippet,
           confidenceReason:
             `Automatisk kandidat fra ${bestSection}. ` +
-            'Sideangivelse er ikke kjent fra ren tekstanalyse og må kontrolleres mot originaldokumentet. ' +
+            'Sideangivelse er ikke kjent fra ren tekstanalyse og mÃ¥ kontrolleres mot originaldokumentet. ' +
             config.hint,
           verifiedByResearcher: false,
         });
@@ -320,10 +320,12 @@ export class DocumentAnalysisService {
       totalPassagesFound: candidates.length,
       imradAnalysis: IMRaDAnalysisService.analyze(text, fileName),
       disclaimer:
-        'Candidate evidence – requires researcher verification. Dette er automatisk identifiserte tekstutdrag som må evalueres og verifiseres av forsker/vurderer. Lokasjon fra ren tekstanalyse skal ikke behandles som verifisert sidehenvisning.',
+        'Candidate evidence â€“ requires researcher verification. Dette er automatisk identifiserte tekstutdrag som mÃ¥ evalueres og verifiseres av forsker/vurderer. Lokasjon fra ren tekstanalyse skal ikke behandles som verifisert sidehenvisning.',
       goldenRule:
-        'Metodisk prinsipp: Ikke funnet i tekstsøk betyr IKKE automatisk «Nei». All vurdering krever menneskelig faglig skjønn.',
+        'Metodisk prinsipp: Ikke funnet i tekstsÃ¸k betyr IKKE automatisk Â«NeiÂ». All vurdering krever menneskelig faglig skjÃ¸nn.',
       candidateEvidence: candidates,
     };
   }
 }
+
+

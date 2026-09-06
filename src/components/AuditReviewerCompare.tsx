@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { getAuditTrail } from '../services/auditTrailService';
 
 interface Props { reviewerA: string; reviewerB: string; }
@@ -28,3 +28,5 @@ export const AuditReviewerCompare: React.FC<Props> = ({ reviewerA, reviewerB }) 
 function ReviewerCard({ name, entries }: { name: string; entries: ReturnType<typeof getAuditTrail> }) {
   return <div className="rounded-xl border border-slate-200 p-4"><div className="font-bold">{name}</div><div className="text-xs text-slate-500 mt-1">{entries.length} hendelser</div><div className="mt-3 space-y-2 max-h-80 overflow-auto">{entries.length === 0 ? <div className="text-xs text-slate-500">Ingen hendelser.</div> : entries.map(entry => <div key={entry.entryId} className="border-b border-slate-100 pb-2 last:border-0"><div className="text-xs font-semibold">{entry.action}</div><div className="text-[11px] text-slate-500">{new Date(entry.timestamp).toLocaleString('nb-NO')}</div></div>)}</div></div>;
 }
+
+

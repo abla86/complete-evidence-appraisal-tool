@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Comprehensive Academic Citation & Reference Engine
  * 
  * Supports all major international citation standards:
@@ -51,7 +51,7 @@ export const SUPPORTED_CITATION_STYLES: CitationStyleInfo[] = [
     name: 'APA 7th Edition',
     shortName: 'APA 7',
     discipline: 'Helsefag, Sykepleie, Psykologi, Pedagogikk, Samfunnsvitenskap',
-    description: 'Forfatter-år format med sentence case artikkeltitler og kursivert tidsskrift/volum.'
+    description: 'Forfatter-Ã¥r format med sentence case artikkeltitler og kursivert tidsskrift/volum.'
   },
   {
     id: 'vancouver',
@@ -64,15 +64,15 @@ export const SUPPORTED_CITATION_STYLES: CitationStyleInfo[] = [
     id: 'harvard',
     name: 'Harvard Style',
     shortName: 'Harvard',
-    discipline: 'Naturvitenskap, Økonomi, Tverrfaglige studier',
-    description: 'Forfatter-år format med enkle anførselstegn for titler og eksplisitt "Available at:".'
+    discipline: 'Naturvitenskap, Ã˜konomi, Tverrfaglige studier',
+    description: 'Forfatter-Ã¥r format med enkle anfÃ¸rselstegn for titler og eksplisitt "Available at:".'
   },
   {
     id: 'chicago-author-date',
     name: 'Chicago 17th / 18th (Author-Date)',
     shortName: 'Chicago (A-D)',
     discipline: 'Samfunnsvitenskap, Antropologi, Naturvitenskap',
-    description: 'Forfatter-år format med doble anførselstegn for titler og Title Case.'
+    description: 'Forfatter-Ã¥r format med doble anfÃ¸rselstegn for titler og Title Case.'
   },
   {
     id: 'chicago-notes',
@@ -85,15 +85,15 @@ export const SUPPORTED_CITATION_STYLES: CitationStyleInfo[] = [
     id: 'mla9',
     name: 'MLA 9th Edition',
     shortName: 'MLA 9',
-    discipline: 'Språk, Litteratur, Kulturstudier, Humaniora',
+    discipline: 'SprÃ¥k, Litteratur, Kulturstudier, Humaniora',
     description: 'Works Cited format med "vol.", "no." og "pp." deskriptorer.'
   },
   {
     id: 'ieee',
     name: 'IEEE Reference Style',
     shortName: 'IEEE',
-    discipline: 'Medisinsk informatikk, Kunstig intelligens, Bioingeniørfag, Teknologi',
-    description: 'Numerisk format i hakeparentes [1] med forfatterinitialer først.'
+    discipline: 'Medisinsk informatikk, Kunstig intelligens, BioingeniÃ¸rfag, Teknologi',
+    description: 'Numerisk format i hakeparentes [1] med forfatterinitialer fÃ¸rst.'
   },
   {
     id: 'bibtex',
@@ -107,7 +107,7 @@ export const SUPPORTED_CITATION_STYLES: CitationStyleInfo[] = [
     name: 'RIS Export Format',
     shortName: 'RIS',
     discipline: 'EndNote, Zotero, Mendeley, Citavi, Paperpile',
-    description: 'Universelt utvekslingsformat for alle ledende referansehåndterere.'
+    description: 'Universelt utvekslingsformat for alle ledende referansehÃ¥ndterere.'
   }
 ];
 
@@ -169,7 +169,7 @@ export interface DoiLookupResult {
   success: boolean;
   source: 'DOI Content Negotiation' | 'Crossref REST API' | 'Europe PMC' | 'DataCite' | 'Local Parser';
   formatted: Apa7FormattedResult;
-  rawCslJson?: any;
+  rawCslJson?: unknown;
   errorMessage?: string;
 }
 
@@ -184,7 +184,7 @@ export interface BatchBibliographyResult {
   items: Array<{
     id: string;
     citation: MultiStyleCitationResult;
-    parsed: any;
+    parsed: unknown;
   }>;
 }
 
@@ -518,7 +518,7 @@ export class Apa7CitationService {
   public static toJournalTitleCase(journal?: string): string {
     if (!journal || !journal.trim()) return '';
     const minorWords = new Set([
-      'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'with', 'og', 'i', 'av', 'for', 'på'
+      'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'with', 'og', 'i', 'av', 'for', 'pÃ¥'
     ]);
 
     const words = journal.trim().split(/\s+/);
@@ -555,7 +555,7 @@ export class Apa7CitationService {
     const volume = input.volume ? String(input.volume).trim() : '';
     const issue = input.issue ? String(input.issue).trim() : '';
     let pages = input.pages ? String(input.pages).trim() : '';
-    if (pages) pages = pages.replace(/-/g, '–');
+    if (pages) pages = pages.replace(/-/g, 'â€“');
     const articleNumber = input.articleNumber ? String(input.articleNumber).trim() : '';
 
     const rawDoi = this.cleanDoi(input.doi);
@@ -644,7 +644,7 @@ export class Apa7CitationService {
     // 2. Vancouver / NLM
     // -------------------------------------------------------------
     const vancAuthors = this.formatVancouverAuthorList(authorsList);
-    const vancPages = pages.replace(/–/g, '-');
+    const vancPages = pages.replace(/â€“/g, '-');
     let vancSource = '';
     if (journalTitle) {
       vancSource += `${journalTitle}. ${yearStr}`;
@@ -757,7 +757,7 @@ export class Apa7CitationService {
     if (volume) ris += `VL  - ${volume}\n`;
     if (issue) ris += `IS  - ${issue}\n`;
     if (pages) {
-      const [sp, ep] = pages.split('–');
+      const [sp, ep] = pages.split('â€“');
       if (sp) ris += `SP  - ${sp.trim()}\n`;
       if (ep) ris += `EP  - ${ep.trim()}\n`;
     }
@@ -919,7 +919,7 @@ export class Apa7CitationService {
       return 0; // retain original sequential order
     });
 
-    const items: Array<{ id: string; citation: MultiStyleCitationResult; parsed: any }> = [];
+    const items: Array<{ id: string; citation: MultiStyleCitationResult; parsed: unknown }> = [];
     const plainList: string[] = [];
     const htmlList: string[] = [];
     const mdList: string[] = [];
@@ -993,7 +993,7 @@ export class Apa7CitationService {
         const csl = await cslResponse.json();
         const authors: AuthorName[] = [];
         if (Array.isArray(csl.author)) {
-          csl.author.forEach((a: any) => {
+          csl.author.forEach((a: unknown) => {
             if (a.family) {
               authors.push({
                 family: a.family,
@@ -1054,7 +1054,7 @@ export class Apa7CitationService {
         
         const authors: AuthorName[] = [];
         if (Array.isArray(msg.author)) {
-          msg.author.forEach((a: any) => {
+          msg.author.forEach((a: unknown) => {
             if (a.family) {
               authors.push({
                 family: a.family,
@@ -1107,7 +1107,7 @@ export class Apa7CitationService {
         if (item) {
           const authors: AuthorName[] = [];
           if (item.authorList?.author) {
-            item.authorList.author.forEach((a: any) => {
+            item.authorList.author.forEach((a: unknown) => {
               if (a.lastName) {
                 authors.push({
                   family: a.lastName,
@@ -1154,3 +1154,5 @@ export class Apa7CitationService {
     };
   }
 }
+
+

@@ -1,4 +1,4 @@
-import type { AcademicClaim, EvidenceExtraction, EvidenceKind } from '../domain/academicEvidence';
+﻿import type { AcademicClaim, EvidenceExtraction, EvidenceKind } from '../domain/academicEvidence';
 import { createId } from '../utils/id';
 import { AuditTrailService } from './auditTrailService';
 
@@ -52,9 +52,9 @@ export function linkHighlightToEvidence(
   audit: AuditTrailService,
 ): PdfHighlightLink {
   if (!Number.isFinite(link.confidence) || link.confidence < 0 || link.confidence > 1) {
-    throw new Error('Highlight confidence må være mellom 0 og 1.');
+    throw new Error('Highlight confidence mÃ¥ vÃ¦re mellom 0 og 1.');
   }
-  if (!link.highlightId.trim() || !link.evidenceId.trim()) throw new Error('Highlight og evidence må identifiseres.');
+  if (!link.highlightId.trim() || !link.evidenceId.trim()) throw new Error('Highlight og evidence mÃ¥ identifiseres.');
   if (!link.createdBy.trim()) throw new Error('createdBy is required.');
   if (!evidence.some(item => item.id === link.evidenceId)) throw new Error('Evidensen finnes ikke.');
 
@@ -85,7 +85,7 @@ export function attachEvidenceToClaim(
   if (claim.authorId.trim() === '') throw new Error('Claim authorId is required.');
   if ((evidence.researcherVerified === false || evidence.aiReviewRequired === true) && claim.status === 'SUPPORTED') throw new Error('Evidence requiring researcher review cannot support a claim marked SUPPORTED.');
   if (claim.contradictoryEvidenceIds.includes(evidenceId)) {
-    throw new Error('Evidensen er registrert som motstridende for denne påstanden.');
+    throw new Error('Evidensen er registrert som motstridende for denne pÃ¥standen.');
   }
 
   const supportingEvidenceIds = claim.supportingEvidenceIds.includes(evidenceId)
@@ -109,3 +109,4 @@ export function attachEvidenceToClaim(
 
   return next;
 }
+

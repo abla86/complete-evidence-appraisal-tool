@@ -1,4 +1,4 @@
-import { AppraisalInstrument } from '../types';
+﻿import { AppraisalInstrument } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 
 export type VerificationStatusType = 'VERIFIED' | 'PARTIALLY_VERIFIED' | 'UNVERIFIED';
@@ -83,11 +83,11 @@ export class MethodIntegrityService {
       name: 'Offisiell Kildeopprinnelse & Utgiver',
       category: 'SOURCE',
       status: sourceStatus,
-      officialStandard: 'Krav om primærkilde fra opprinnelig opphavsrettsorganisasjon / fagfellevurdert standardpublikasjon (Nivå 1/2)',
+      officialStandard: 'Krav om primÃ¦rkilde fra opprinnelig opphavsrettsorganisasjon / fagfellevurdert standardpublikasjon (NivÃ¥ 1/2)',
       localImplementation: `${inst.publisher} | ${inst.primaryPublication.slice(0, 75)}...`,
       details: sourceStatus === 'MET' 
-        ? 'Fullstendig kildekontroll bestått med autoritativ referanse, primærpublikasjon og utgiverorgan.' 
-        : 'Mangelfull eller sekundær kildereferanse identifisert.'
+        ? 'Fullstendig kildekontroll bestÃ¥tt med autoritativ referanse, primÃ¦rpublikasjon og utgiverorgan.' 
+        : 'Mangelfull eller sekundÃ¦r kildereferanse identifisert.'
     });
 
     // 2. Strict Version Lock Verification Check
@@ -101,13 +101,13 @@ export class MethodIntegrityService {
 
     requirementChecks.push({
       id: 'REQ-VERSION-LOCK',
-      name: 'Eksplisitt Versjonslås & Utgaveidentifikator',
+      name: 'Eksplisitt VersjonslÃ¥s & Utgaveidentifikator',
       category: 'VERSION',
       status: versionCheckStatus,
-      officialStandard: 'Eksplisitt versjonsangivelse og utgave for å forhindre blanding av historiske revisjoner',
+      officialStandard: 'Eksplisitt versjonsangivelse og utgave for Ã¥ forhindre blanding av historiske revisjoner',
       localImplementation: `Versjon: ${inst.version} (${inst.year}) | ${inst.edition}`,
       details: versionCheckStatus === 'MET'
-        ? `Låst til offisiell ${inst.version}-utgave (${inst.year}).`
+        ? `LÃ¥st til offisiell ${inst.version}-utgave (${inst.year}).`
         : 'Ufullstendig versjonsspesifikasjon.'
     });
 
@@ -138,40 +138,40 @@ export class MethodIntegrityService {
     let scoringExpectedDetails = '';
 
     if (inst.id === 'amstar-2') {
-      scoringExpectedDetails = 'AMSTAR 2 krever 16 items, 7 kritiske domener og kategorisk tillitsgradering. Ingen prosent eller sumskår.';
+      scoringExpectedDetails = 'AMSTAR 2 krever 16 items, 7 kritiske domener og kategorisk tillitsgradering. Ingen prosent eller sumskÃ¥r.';
       if (inst.scoringModel !== 'domain-based' || inst.itemCount !== 16 || !inst.criticalDomains || inst.criticalDomains.length !== 7) {
         scoringCheckStatus = 'UNMET';
         notes.push('Avvik: AMSTAR 2 krever domenebasert konfidensvurdering (7 kritiske domener), ikke numerisk sum.');
       }
     } else if (inst.id === 'agree-ii') {
-      scoringExpectedDetails = 'AGREE II krever 23 items fordelt på 6 standardiserte domener. Ingen sammenslått felles retningslinjeskår.';
+      scoringExpectedDetails = 'AGREE II krever 23 items fordelt pÃ¥ 6 standardiserte domener. Ingen sammenslÃ¥tt felles retningslinjeskÃ¥r.';
       if (inst.scoringModel !== 'domain-based' || inst.itemCount !== 23 || !inst.criticalDomains || inst.criticalDomains.length !== 6) {
         scoringCheckStatus = 'UNMET';
-        notes.push('Avvik: AGREE II krever 23 items fordelt på 6 standardiserte domener.');
+        notes.push('Avvik: AGREE II krever 23 items fordelt pÃ¥ 6 standardiserte domener.');
       }
     } else if (inst.id === 'rob-2') {
-      scoringExpectedDetails = 'RoB 2 krever 5 faste bias-domener med signalspørsmål og algoritmisk vurdering per spesifikt utfallsmål.';
+      scoringExpectedDetails = 'RoB 2 krever 5 faste bias-domener med signalspÃ¸rsmÃ¥l og algoritmisk vurdering per spesifikt utfallsmÃ¥l.';
       if (inst.scoringModel !== 'domain-based' || inst.itemCount !== 5) {
         scoringCheckStatus = 'UNMET';
-        notes.push('Avvik: RoB 2 krever 5 faste bias-domener med signalspørsmål.');
+        notes.push('Avvik: RoB 2 krever 5 faste bias-domener med signalspÃ¸rsmÃ¥l.');
       }
     } else if (inst.id === 'jbi-qualitative-2017') {
       scoringExpectedDetails = 'JBI Kvalitativ (2017) krever 10 sjekklistepunkter og helhetlig kvalitativ vurdering uten rigid prosentkutt.';
       if (inst.scoringModel !== 'qualitative-judgement' || inst.itemCount !== 10) {
         scoringCheckStatus = 'UNMET';
-        notes.push('Avvik: JBI Qualitative (2017) krever nøyaktig 10 items og helhetlig kvalitativ inklusjonsvurdering.');
+        notes.push('Avvik: JBI Qualitative (2017) krever nÃ¸yaktig 10 items og helhetlig kvalitativ inklusjonsvurdering.');
       }
     } else if (inst.id.startsWith('casp-')) {
-      scoringExpectedDetails = 'CASP-sjekklister krever 3-delt pedagogisk struktur (Screening, metodikk, lokal verdi) uten sumskår.';
+      scoringExpectedDetails = 'CASP-sjekklister krever 3-delt pedagogisk struktur (Screening, metodikk, lokal verdi) uten sumskÃ¥r.';
       if (inst.scoringModel !== 'qualitative-judgement') {
         scoringCheckStatus = 'UNMET';
         notes.push(`Avvik: ${inst.shortName} krever pedagogisk kvalitativ vurdering uten samlet poengsum.`);
       }
     } else if (inst.id === 'grade' || inst.id === 'grade-cerqual') {
-      scoringExpectedDetails = 'GRADE / CERQual krever gradering per utfall/funn basert på nedgraderingsfaktorer, ikke primærartikkel-kvalitet.';
+      scoringExpectedDetails = 'GRADE / CERQual krever gradering per utfall/funn basert pÃ¥ nedgraderingsfaktorer, ikke primÃ¦rartikkel-kvalitet.';
       if (inst.scoringModel !== 'qualitative-judgement' && inst.scoringModel !== 'domain-based') {
         scoringCheckStatus = 'UNMET';
-        notes.push(`Avvik: ${inst.shortName} krever skjønnsmessig evidensgradering på utfalls-/syntesenivå.`);
+        notes.push(`Avvik: ${inst.shortName} krever skjÃ¸nnsmessig evidensgradering pÃ¥ utfalls-/syntesenivÃ¥.`);
       }
     } else if (inst.id === 'prisma-2020' || inst.id === 'cfir-2' || inst.id === 'kta') {
       scoringExpectedDetails = `${inst.shortName} er en rapporteringsstandard eller et implementeringsrammeverk uten numerisk kvalitetsscore (scoringModel: 'none').`;
@@ -189,7 +189,7 @@ export class MethodIntegrityService {
       officialStandard: scoringExpectedDetails,
       localImplementation: `ScoringModel: ${inst.scoringModel} | Items: ${inst.itemCount} | Modell: ${inst.interpretationModel}`,
       details: scoringCheckStatus === 'MET'
-        ? 'Scoringsmodellen og tolkningen samsvarer 100% med offisiell håndbok og forbyr uautorisert skårflating.'
+        ? 'Scoringsmodellen og tolkningen samsvarer 100% med offisiell hÃ¥ndbok og forbyr uautorisert skÃ¥rflating.'
         : 'Uoverensstemmelse i scoringsmodell eller item-antall oppdaget mot offisiell standard.'
     });
 
@@ -200,14 +200,14 @@ export class MethodIntegrityService {
 
     requirementChecks.push({
       id: 'REQ-DESIGN-GATING',
-      name: 'Studiedesign-Gating & Målgruppekontekst',
+      name: 'Studiedesign-Gating & MÃ¥lgruppekontekst',
       category: 'DESIGN_GATE',
       status: designCheckStatus,
-      officialStandard: 'Eksplisitt definerte gyldige primære studiedesign og målgruppekontekst for å forhindre feilbruk',
+      officialStandard: 'Eksplisitt definerte gyldige primÃ¦re studiedesign og mÃ¥lgruppekontekst for Ã¥ forhindre feilbruk',
       localImplementation: `Tillatte design: ${inst.targetStudyDesign.join(', ')}`,
       details: designCheckStatus === 'MET'
         ? `Gyldig definert for ${inst.targetStudyDesign.length} spesifikke studiedesign med aktiv varslingsport.`
-        : 'Manglende målgruppe- eller studiedesign-spesifikasjon.'
+        : 'Manglende mÃ¥lgruppe- eller studiedesign-spesifikasjon.'
     });
 
     // 6. License & Source Attribution Check
@@ -221,7 +221,7 @@ export class MethodIntegrityService {
       name: 'Opphavsrett, Lisens & Kildeattribusjon',
       category: 'LICENSE',
       status: licenseCheckStatus,
-      officialStandard: 'Tydelig dokumentert lisensrettighet, bruksbetingelser og kildekreditering i tråd med opprinnelig utgiver',
+      officialStandard: 'Tydelig dokumentert lisensrettighet, bruksbetingelser og kildekreditering i trÃ¥d med opprinnelig utgiver',
       localImplementation: `${inst.licenseStatus} | ${inst.sourceAttribution}`,
       details: licenseCheckStatus === 'MET'
         ? 'Juridisk og akademisk attribusjon fullt dokumentert.'
@@ -260,7 +260,7 @@ export class MethodIntegrityService {
       localImplementation: isEngineImplemented ? `Aktiv deterministisk motor for ${inst.shortName}` : 'Standard register-implementering',
       details: engineCheckStatus === 'MET'
         ? 'Fullt implementert deterministisk evalueringsmotor i kodebasen.'
-        : 'Verktøyet benytter standard registerlogikk.'
+        : 'VerktÃ¸yet benytter standard registerlogikk.'
     });
 
     // Compute Overall Verification Status
@@ -346,8 +346,8 @@ export class MethodIntegrityService {
    * Generates formatted audit markdown report text for research and export
    */
   public static generateMarkdownAuditReport(report: ComprehensiveAuditReport): string {
-    let md = `# EVIDENCE APPRAISAL TOOL – METHODOLOGICAL QA & AUDIT REPORT\n\n`;
-    md += `**Audit Dato:** ${report.timestamp.split('T')[0]} | **Status:** ${report.overallSystemAudit === 'PASS' ? '✅ PASS (ALL VERIFIED)' : '⚠️ ATTENTION REQUIRED'}\n`;
+    let md = `# EVIDENCE APPRAISAL TOOL â€“ METHODOLOGICAL QA & AUDIT REPORT\n\n`;
+    md += `**Audit Dato:** ${report.timestamp.split('T')[0]} | **Status:** ${report.overallSystemAudit === 'PASS' ? 'âœ… PASS (ALL VERIFIED)' : 'âš ï¸ ATTENTION REQUIRED'}\n`;
     md += `**Totalt antall registrerte instrumenter:** ${report.totalInstruments} (VERIFIED: ${report.verifiedCount}, PARTIALLY_VERIFIED: ${report.partiallyVerifiedCount}, UNVERIFIED: ${report.unverifiedCount})\n\n`;
 
     md += `## 1. INSTRUMENT AUDIT & VERIFICATION MATRIX\n\n`;
@@ -360,10 +360,10 @@ export class MethodIntegrityService {
 
     md += `\n## 2. SYSTEM INTEGRITY VERIFICATION SUMMARY\n\n`;
     md += `- **SOURCE AUDIT:** ${report.auditsSummary.sourceAudit} (Dobbel autoritativ kildekontroll for alle instrumenter)\n`;
-    md += `- **VERSION AUDIT:** ${report.auditsSummary.versionAudit} (Eksplisitt versjonslås & ingen blanding av utgaver)\n`;
-    md += `- **SCORING AUDIT:** ${report.auditsSummary.scoringAudit} (Ingen uautorisert sumskår for AMSTAR 2 / CFIR / KTA / JBI)\n`;
+    md += `- **VERSION AUDIT:** ${report.auditsSummary.versionAudit} (Eksplisitt versjonslÃ¥s & ingen blanding av utgaver)\n`;
+    md += `- **SCORING AUDIT:** ${report.auditsSummary.scoringAudit} (Ingen uautorisert sumskÃ¥r for AMSTAR 2 / CFIR / KTA / JBI)\n`;
     md += `- **STUDY DESIGN AUDIT:** ${report.auditsSummary.studyDesignAudit} (Aktiv studietype-gating & advarselslogikk)\n`;
-    md += `- **AI SAFETY AUDIT:** ${report.auditsSummary.aiSafetyAudit} (Prinsipp: «Not found ≠ No», menneskelig verifikasjonskrav)\n`;
+    md += `- **AI SAFETY AUDIT:** ${report.auditsSummary.aiSafetyAudit} (Prinsipp: Â«Not found â‰  NoÂ», menneskelig verifikasjonskrav)\n`;
     md += `- **EVIDENCE TRACEABILITY:** ${report.auditsSummary.evidenceTraceabilityAudit} (Strukturert lagring av sitater, sidetall og begrunnelse)\n`;
     md += `- **AUDIT TRAIL:** ${report.auditsSummary.auditTrailAudit} (Revisjonslogg med tidsstempel, endret verdi og begrunnelse)\n`;
     md += `- **EXPORT INTEGRITY:** ${report.auditsSummary.exportIntegrityAudit} (Uendret deterministisk eksport til Markdown / TXT / JSON)\n`;
@@ -371,3 +371,5 @@ export class MethodIntegrityService {
     return md;
   }
 }
+
+
