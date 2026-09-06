@@ -1,11 +1,1 @@
-﻿export const generateId = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  const buffer = new Uint8Array(16);
-  crypto.getRandomValues(buffer);
-  buffer[6] = (buffer[6] & 0x0f) | 0x40;
-  buffer[8] = (buffer[8] & 0x3f) | 0x80;
-  const hex = Array.from(buffer).map(b => b.toString(16).padStart(2, '0'));
-  return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
-};
+﻿export const generateId = (prefix?: string): string => { const uuid = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = (crypto.getRandomValues(new Uint8Array(1))[0] % 16) | 0; const v = c === "x" ? r : (r & 0x3) | 0x8; return v.toString(16); }); return prefix ? `${prefix}-${uuid}` : uuid; };
