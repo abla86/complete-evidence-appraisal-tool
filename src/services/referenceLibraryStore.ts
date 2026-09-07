@@ -35,7 +35,7 @@ export function saveReferenceLibrary(records: ReferenceRecord[]): void {
 }
 
 export function clearReferenceLibrary(): void {
-  if (typeof localStorage === 'undefined') return;
+  if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
   localStorage.removeItem(STORAGE_KEY);
 }
 
