@@ -22,7 +22,7 @@ jobs:
       run:
         working-directory: gateways/dotnet-clinical-gateway
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
@@ -34,7 +34,7 @@ jobs:
       run:
         working-directory: gateways/python-meta-pipeline
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
