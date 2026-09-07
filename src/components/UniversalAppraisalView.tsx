@@ -129,7 +129,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       const ratings: Record<number, number> = {};
       map.forEach((r,k) => { if (hasAnswer(r.answer)) ratings[Number(k)] = Number(r.answer); });
       return Object.keys(ratings).length === instrument.itemCount && Object.values(ratings).every(Number.isInteger)
-        ? Agree2AssessmentEngine.evaluateDomainScores(ratings, 1)
+        ? Agree2AssessmentEngine.evaluateDomainScores(ratings)
         : null;
     }
     if (instrument.id === 'rob-2') {
@@ -142,11 +142,11 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
       const d5 = map.get('5')?.answer;
       if (![d1, d2, d3, d4, d5].every(isRob2Risk)) return null;
       return Rob2AssessmentEngine.evaluate({
-        d1Randomisation: d1,
-        d2Deviations: d2,
-        d3MissingData: d3,
-        d4Measurement: d4,
-        d5Selection: d5,
+        d1Randomisation: d1 as 'Low risk' | 'Some concerns' | 'High risk',
+        d2Deviations: d2 as 'Low risk' | 'Some concerns' | 'High risk',
+        d3MissingData: d3 as 'Low risk' | 'Some concerns' | 'High risk',
+        d4Measurement: d4 as 'Low risk' | 'Some concerns' | 'High risk',
+        d5Selection: d5 as 'Low risk' | 'Some concerns' | 'High risk',
       });
     }
     if (instrument.id === 'robins-i') {
