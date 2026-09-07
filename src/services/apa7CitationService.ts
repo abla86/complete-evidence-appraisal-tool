@@ -971,193 +971,125 @@ export class Apa7CitationService {
    */
   public static async lookupDoi(doiOrUrl: string, language: 'nb' | 'en' = 'nb'): Promise<DoiLookupResult> {
     const cleanDoi = this.cleanDoi(doiOrUrl);
-
     if (!cleanDoi) {
-      return {
-        success: false,
-        source: 'Local Parser',
-        errorMessage: 'Ingen gyldig DOI oppgitt.',
-        formatted: this.formatApa7({}, language)
-      };
+      return { success: false, source: 'Local Parser', errorMessage: 'Ingen gyldig DOI oppgitt.', formatted: this.formatApa7({}, language) };
     }
 
-    // Step 1: Attempt Content Negotiation on https://doi.org with CSL-JSON
+    const parseAuthors = (value: unknown): AuthorName[] => {
+      if (!Array.isArray(value)) return [];
+      return value.map((entry): AuthorName | null => {
+        const a = entry && typeof entry === 'object' ? entry as Record<string, unknown> : {};
+        const family = typeof a.family === 'string' ? a.family : undefined;
+        const given = typeof a.given === 'string' ? a.given : undefined;
+        const name = typeof a.name === 'string' ? a.name : (typeof a.literal === 'string' ? a.literal : undefined);
+        if (family) return { family, given };
+        return name ? { family: name, isOrganization: true } : null;
+      }).filter((a): a is AuthorName => Boolean(a));
+    };
+
     try {
-      const cslResponse = await fetch(`https://doi.org/${cleanDoi}`, {
-        headers: {
-          'Accept': 'application/vnd.citationstyles.csl+json, application/json'
-        }
-      });
-
-      if (cslResponse.ok) {
-        const csl = await cslResponse.json();
-        const authors: AuthorName[] = [];
-        if (Array.isArray(csl.author)) {
-          csl.author.forEach((a: unknown) => {
-            const author = a && typeof a === 'object' ? a as Record<string, unknown> : {};
-            const family = typeof author.family === 'string' ? author.family : undefined;
-            const given = typeof author.given === 'string' ? author.given : undefined;
-            const name = typeof author.name === 'string' ? author.name : undefined;
-            const author = a && typeof a === 'object' ? a as Record<string, unknown> : {};
-            const family = typeof author.family === 'string' ? author.family : undefined;
-            const given = typeof author.given === 'string' ? author.given : undefined;
-            const name = typeof author.name === 'string' ? author.name : undefined;
-            const literal = typeof author.literal === 'string' ? author.literal : undefined;
-            if (family) {
-              authors.push({
-                family,
-                given: given || (typeof author['non-dropping-particle'] === 'string' ? author['non-dropping-particle'] : undefined)
-              });
-            } else if (name || literal) {
-              authors.push({
-                family: name || literal,
-                isOrganization: true
-              });
-            }
-          });
-        }
-
-        let year: string | number = '';
-        if (csl['published-print']?.['date-parts']?.[0]?.[0]) {
-          year = csl['published-print']['date-parts'][0][0];
-        } else if (csl['published-online']?.['date-parts']?.[0]?.[0]) {
-          year = csl['published-online']['date-parts'][0][0];
-        } else if (csl.issued?.['date-parts']?.[0]?.[0]) {
-          year = csl.issued['date-parts'][0][0];
-        } else if (csl.created?.['date-parts']?.[0]?.[0]) {
-          year = csl.created['date-parts'][0][0];
-        }
-
-        const formatted = this.formatApa7({
-          title: csl.title || csl['original-title'],
-          authors: authors.length > 0 ? authors : undefined,
-          year,
-          journal: csl['container-title'] || csl['short-container-title'] || csl.publisher,
-          volume: csl.volume,
-          issue: csl.issue,
-          pages: csl.page,
-          articleNumber: csl['article-number'],
-          doi: cleanDoi,
-          url: csl.URL || `https://doi.org/${cleanDoi}`,
-          publisher: csl.publisher,
-          abstract: csl.abstract
-        }, language);
-
+      const response = await fetch(`https://doi.org/${cleanDoi}`, { headers: { Accept: 'application/vnd.citationstyles.csl+json, application/json' } });
+      if (response.ok) {
+        const csl = await response.json() as Record<string, any>;
+        const authors = parseAuthors(csl.author);
+        const dateParts = (value: unknown): number | undefined => {
+          if (!value || typeof value !== 'object') return undefined;
+          const parts = (value as { 'date-parts'?: unknown })['date-parts'];
+          return Array.isArray(parts) && Array.isArray(parts[0]) && typeof parts[0][0] === 'number' ? parts[0][0] : undefined;
+        };
+        const year = dateParts(csl['published-print']) ?? dateParts(csl['published-online']) ?? dateParts(csl.issued) ?? dateParts(csl.created);
         return {
           success: true,
           source: 'DOI Content Negotiation',
-          formatted,
+          formatted: this.formatApa7({
+            title: typeof csl.title === 'string' ? csl.title : Array.isArray(csl.title) ? csl.title[0] : undefined,
+            authors: authors.length ? authors : undefined,
+            year,
+            journal: typeof csl['container-title'] === 'string' ? csl['container-title'] : Array.isArray(csl['container-title']) ? csl['container-title'][0] : typeof csl.publisher === 'string' ? csl.publisher : undefined,
+            volume: csl.volume,
+            issue: csl.issue,
+            pages: csl.page,
+            articleNumber: csl['article-number'],
+            doi: cleanDoi,
+            url: typeof csl.URL === 'string' ? csl.URL : `https://doi.org/${cleanDoi}`,
+            publisher: csl.publisher,
+            abstract: csl.abstract
+          }, language),
           rawCslJson: csl
         };
       }
-    } catch (err) {
-      console.warn('DOI Content Negotiation failed, falling back to Crossref REST API', err);
+    } catch (error) {
+      console.warn('DOI Content Negotiation failed', error);
     }
 
-    // Step 2: Fallback to Crossref REST API
     try {
-      const crResponse = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`);
-      if (crResponse.ok) {
-        const crData = await crResponse.json();
-        const msg = crData.message;
-        
-        const authors: AuthorName[] = [];
-        if (Array.isArray(msg.author)) {
-          msg.author.forEach((a: unknown) => {
-            if (family) {
-              authors.push({
-                family,
-                given
-              });
-            } else if (name) {
-              authors.push({
-                family: name,
-                isOrganization: true
-              });
-            }
-          });
-        }
-
-        const title = Array.isArray(msg.title) ? msg.title[0] : (msg.title || 'Uten tittel');
-        const journal = Array.isArray(msg['container-title']) ? msg['container-title'][0] : (msg['container-title'] || msg.publisher);
-        const year = msg.published?.['date-parts']?.[0]?.[0] || msg['published-print']?.['date-parts']?.[0]?.[0] || msg['published-online']?.['date-parts']?.[0]?.[0];
-
-        const formatted = this.formatApa7({
-          title,
-          authors: authors.length > 0 ? authors : undefined,
-          year,
-          journal,
-          volume: msg.volume,
-          issue: msg.issue,
-          pages: msg.page,
-          articleNumber: msg['article-number'],
-          doi: cleanDoi,
-          url: msg.URL || `https://doi.org/${cleanDoi}`,
-          publisher: msg.publisher
-        }, language);
-
+      const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`);
+      if (response.ok) {
+        const data = await response.json() as { message?: Record<string, any> };
+        const msg = data.message ?? {};
+        const authors = parseAuthors(msg.author);
+        const published = msg.published?.['date-parts']?.[0]?.[0] ?? msg['published-print']?.['date-parts']?.[0]?.[0] ?? msg['published-online']?.['date-parts']?.[0]?.[0];
         return {
           success: true,
           source: 'Crossref REST API',
-          formatted,
+          formatted: this.formatApa7({
+            title: Array.isArray(msg.title) ? msg.title[0] : msg.title,
+            authors: authors.length ? authors : undefined,
+            year: published,
+            journal: Array.isArray(msg['container-title']) ? msg['container-title'][0] : msg['container-title'] || msg.publisher,
+            volume: msg.volume,
+            issue: msg.issue,
+            pages: msg.page,
+            articleNumber: msg['article-number'],
+            doi: cleanDoi,
+            url: msg.URL || `https://doi.org/${cleanDoi}`,
+            publisher: msg.publisher
+          }, language),
           rawCslJson: msg
         };
       }
-    } catch (err) {
-      console.warn('Crossref REST API failed, falling back to Europe PMC', err);
+    } catch (error) {
+      console.warn('Crossref REST API failed', error);
     }
 
-    // Step 3: Fallback to Europe PMC
     try {
-      const epmcResponse = await fetch(`https://api.europepmc.org/search?query=DOI:${encodeURIComponent(cleanDoi)}&format=json&resultType=core`);
-      if (epmcResponse.ok) {
-        const epmcData = await epmcResponse.json();
-        const item = epmcData.resultList?.result?.[0];
+      const response = await fetch(`https://api.europepmc.org/search?query=DOI:${encodeURIComponent(cleanDoi)}&format=json&resultType=core`);
+      if (response.ok) {
+        const data = await response.json() as { resultList?: { result?: Array<Record<string, any>> } };
+        const item = data.resultList?.result?.[0];
         if (item) {
           const authors: AuthorName[] = [];
-          if (item.authorList?.author) {
-            item.authorList.author.forEach((a: unknown) => {
-              const author = a && typeof a === 'object' ? a as Record<string, unknown> : {};
-              const lastName = typeof author.lastName === 'string' ? author.lastName : undefined;
-              const firstName = typeof author.firstName === 'string' ? author.firstName : undefined;
-              const initials = typeof author.initials === 'string' ? author.initials : undefined;
-              const fullName = typeof author.fullName === 'string' ? author.fullName : undefined;
-              if (lastName) {
-                authors.push({
-                  family: lastName,
-                  given: firstName || initials
-                });
-              } else if (fullName) {
-                authors.push({ family: fullName });
-              }
-            });
-          } else if (item.authorString) {
+          const authorList = item.authorList?.author;
+          if (Array.isArray(authorList)) {
+            for (const entry of authorList) {
+              const a = entry && typeof entry === 'object' ? entry as Record<string, unknown> : {};
+              if (typeof a.lastName === 'string') authors.push({ family: a.lastName, given: typeof a.firstName === 'string' ? a.firstName : typeof a.initials === 'string' ? a.initials : undefined });
+              else if (typeof a.fullName === 'string') authors.push({ family: a.fullName, isOrganization: true });
+            }
+          } else if (typeof item.authorString === 'string') {
             authors.push(...this.parseAuthorString(item.authorString));
           }
-
-          const formatted = this.formatApa7({
-            title: item.title?.replace(/<[^>]*>?/gm, ''),
-            authors: authors.length > 0 ? authors : undefined,
-            year: item.pubYear,
-            journal: item.journalTitle || item.journalInfo?.journal?.title,
-            volume: item.journalInfo?.volume,
-            issue: item.journalInfo?.issue,
-            pages: item.pageInfo,
-            doi: cleanDoi,
-            url: `https://doi.org/${cleanDoi}`,
-            abstract: item.abstractText
-          }, language);
-
           return {
             success: true,
             source: 'Europe PMC',
-            formatted,
+            formatted: this.formatApa7({
+              title: typeof item.title === 'string' ? item.title.replace(/<[^>]*>?/gm, '') : undefined,
+              authors: authors.length ? authors : undefined,
+              year: item.pubYear,
+              journal: item.journalTitle || item.journalInfo?.journal?.title,
+              volume: item.journalInfo?.volume,
+              issue: item.journalInfo?.issue,
+              pages: item.pageInfo,
+              doi: cleanDoi,
+              url: `https://doi.org/${cleanDoi}`,
+              abstract: item.abstractText
+            }, language),
             rawCslJson: item
           };
         }
       }
-    } catch (err) {
-      console.warn('Europe PMC search failed', err);
+    } catch (error) {
+      console.warn('Europe PMC search failed', error);
     }
 
     return {
@@ -1166,6 +1098,7 @@ export class Apa7CitationService {
       errorMessage: `Kunne ikke finne DOI "${cleanDoi}" i internasjonale registre (Crossref/Europe PMC). Sjekk at DOI-koden er skrevet riktig.`,
       formatted: this.formatApa7({ doi: cleanDoi }, language)
     };
+  }
   }
 }
 
