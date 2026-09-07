@@ -25,7 +25,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
 
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('');
-  const [year, setYear] = useState<number | undefined>(undefined);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
   const [journal, setJournal] = useState('');
   const [doi, setDoi] = useState('');
   const [design, setDesign] = useState('');
