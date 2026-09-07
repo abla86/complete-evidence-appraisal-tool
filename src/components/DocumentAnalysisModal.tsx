@@ -172,7 +172,7 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
         showToast(`Dokument lastet opp og parset (${parsed.wordCount} ord).`);
       }
     } catch (err: unknown) {
-      showToast(`Feil under filparsing: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
+      showToast(`Feil under filparsing: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Ukjent feil'}`, 'error');
     } finally {
       setIsAnalyzing(false);
     }
