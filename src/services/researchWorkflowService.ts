@@ -101,7 +101,7 @@ export function createResearchWorkflow(
     studyDesign: document.metadata.studyDesignDetected?.trim() || 'UNKNOWN',
     screening: [],
     appraisalSessions: [],
-    events: foundation.state.events(),
+    events: [...foundation.state.events()],
     research: {
       document,
       evidenceBundle,
