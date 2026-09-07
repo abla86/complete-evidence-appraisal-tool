@@ -60,6 +60,13 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
   const [sofItems, setSofItems] = useState<GradeSummaryOfFindingsItem[]>([
     {
       id: 'sof-1',
+      reviewFinding: 'Smertereduksjon ved 12 uker viser en konsistent effekt i de inkluderte studiene.',
+      methodologicalLimitations: 'No or very minor concerns',
+      coherence: 'No or very minor concerns',
+      adequacyOfData: 'No or very minor concerns',
+      relevance: 'No or very minor concerns',
+      contributingStudies: 4,
+      overallConfidence: 'High confidence',
       outcomeName: 'Smertereduksjon ved 12 uker (VAS 0-100)',
       outcomeType: 'Continuous',
       assumedRisk: 'Kontroll: Gj.snitt 58 mm',
@@ -79,6 +86,13 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
     },
     {
       id: 'sof-2',
+      reviewFinding: 'Alvorlige uønskede hendelser er usikre grunnet imprecision.',
+      methodologicalLimitations: 'Minor concerns',
+      coherence: 'No or very minor concerns',
+      adequacyOfData: 'No or very minor concerns',
+      relevance: 'No or very minor concerns',
+      contributingStudies: 4,
+      overallConfidence: 'Moderate confidence',
       outcomeName: 'Alvorlige uÃ¸nskede hendelser (Adverse events)',
       outcomeType: 'Dichotomous',
       assumedRisk: '15 per 1 000',
