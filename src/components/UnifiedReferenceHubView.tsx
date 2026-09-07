@@ -41,7 +41,7 @@ function referenceToArticle(reference: ReferenceRecord, article: ArticleAppraisa
     ...article,
     title: reference.title,
     authors: reference.authors,
-    year: reference.year || article.year,
+    year: Number(reference.year) || article.year,
     journal: reference.journal || article.journal,
     volumeIssue: reference.volume ? `${reference.volume}${reference.issue ? `(${reference.issue})` : ''}` : article.volumeIssue,
     pages: reference.pages || article.pages,
