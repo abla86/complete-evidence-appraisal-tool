@@ -56,7 +56,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
       const histItem: SearchHistoryEntry = { id: `hist-${Date.now()}`, query: q, source: dbConfig.name, timestamp: new Date().toISOString(), resultsCount: fetched.length };
       setHistory(prev => [histItem, ...prev.filter(h => h.query !== q).slice(0, 19)]);
       showToast(fetched.length === 0 ? `Ingen Ã¥pne artikler funnet i ${dbConfig.name} for "${q}"` : `Fant ${fetched.length} treff i ${dbConfig.name}. Treffene er ikke automatisk klassifisert som fagfellevurderte.`, fetched.length === 0 ? 'info' : 'success');
-    } catch (err: unknown) { console.error('Search error:', err); showToast(`SÃ¸kefeil: ${err.message || 'Kunne ikke kontakte databasen'}`, 'error'); }
+    } catch (err: unknown) { console.error('Search error:', err); showToast(`SÃ¸kefeil: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Kunne ikke kontakte databasen'}`, 'error'); }
     finally { setIsLoading(false); }
   };
 
@@ -74,7 +74,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
       const data = await response.json();
       setVerificationByDoi(prev => ({ ...prev, [cleanDoi.toLowerCase()]: data }));
       showToast(data.success ? (data.verification?.isRetracted ? 'Kritisk varsel: Crossref har registrert en retraction-relasjon.' : 'DOI verifisert mot Crossref. Fagfellevurdering er ikke konkludert automatisk.') : 'Ingen verifiserbar Crossref-post funnet. Dette betyr ikke automatisk at publikasjonen er ugyldig.', data.success ? (data.verification?.isRetracted ? 'warning' : 'success') : 'info');
-    } catch (err: unknown) { showToast(`Kildeverifisering feilet: ${err.message || 'ukjent feil'}`, 'error'); }
+    } catch (err: unknown) { showToast(`Kildeverifisering feilet: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'ukjent feil'}`, 'error'); }
     finally { setVerifyingDoi(null); }
   };
 
