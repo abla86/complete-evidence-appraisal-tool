@@ -99,10 +99,10 @@ export class CaspValidationService {
       errors.push('CASP Qualitative krever nøyaktig 10 vurderingspunkter.');
       return { isValid: false, errors };
     }
+    const allowed = new Set(['yes', 'no', "can't tell", 'can’t tell', 'ja', 'nei', 'kan ikke si det', 'uklart']);
     for (let n = 1; n <= 10; n += 1) {
-      if (!normalizeCaspAnswer(r[n])) {
-        errors.push(`Ugyldig/manglende CASP Item ${n}. Tillatte svar er Ja, Nei eller Kan ikke si det.`);
-      }
+      const value = String(r[n] ?? '').trim().toLowerCase();
+      if (!allowed.has(value)) errors.push(`Ugyldig/manglende CASP Item ${n}.`);
     }
     return { isValid: errors.length === 0, errors };
   }
@@ -111,7 +111,6 @@ export class CaspValidationService {
     return 'CASP har ingen offisiell numerisk totalscore. Resultatet skal rapporteres kvalitativt med synlige kriterier, evidens og begrunnelser.';
   }
 }
-
 export class JbiValidationService{public static evaluate(i:{questionId:number;status:string;justification?:string}[]){return JbiQualitativeAssessmentEngine.evaluate(i);}public static validateInput(i:{questionId:number;status:string;justification?:string}[]){const errors:string[]=[];if(i.length!==10)errors.push('JBI Qualitative krever 10 items.');const ids=i.map(x=>x.questionId);if(new Set(ids).size!==10||ids.some(id=>id<1||id>10))errors.push('JBI question IDs må være unike 1-10.');return{isValid:errors.length===0,errors};}}
 export class Rob2ValidationService{public static evaluate(i:Parameters<typeof Rob2AssessmentEngine.evaluate>[0]){return Rob2AssessmentEngine.evaluate(i);}}
 export class GradeCertaintyService{public static evaluateOutcome(i:Parameters<typeof GradeAssessmentEngine.evaluateOutcome>[0]){return GradeAssessmentEngine.evaluateOutcome(i);}}
