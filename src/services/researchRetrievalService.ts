@@ -26,8 +26,9 @@ function text(value: unknown): string | undefined {
 }
 
 function authorName(author: unknown): string {
-  const family = text(author?.lastname) ?? text(author?.family) ?? '';
-  const given = text(author?.forename) ?? text(author?.given) ?? '';
+  const record = author && typeof author === 'object' ? author as Record<string, unknown> : {};
+  const family = text(record.lastname) ?? text(record.family) ?? '';
+  const given = text(record.forename) ?? text(record.given) ?? '';
   return [family, given].filter(Boolean).join(', ');
 }
 
@@ -41,7 +42,7 @@ export async function searchCrossref({ query, limit = 10 }: Omit<RetrievalQuery,
   const url = new URL('https://api.crossref.org/works');
   url.searchParams.set('query.bibliographic', query);
   url.searchParams.set('rows', String(Math.min(Math.max(limit, 1), 50)));
-  const data = await fetchJson(url.toString());
+  const data = await fetchJson(url.toString()) as { message?: { items?: unknown[] } };
   return (data?.message?.items ?? []).map((item: unknown) => ({
     provider: 'CROSSREF' as const,
     externalId: text(item?.DOI),
@@ -62,7 +63,7 @@ export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, '
   searchUrl.searchParams.set('term', query);
   searchUrl.searchParams.set('retmode', 'json');
   searchUrl.searchParams.set('retmax', String(Math.min(Math.max(limit, 1), 50)));
-  const search = await fetchJson(searchUrl.toString());
+  const search = await fetchJson(searchUrl.toString()) as { esearchresult?: { idlist?: string[] } };
   const ids: string[] = search?.esearchresult?.idlist ?? [];
   if (!ids.length) return [];
 
@@ -70,13 +71,14 @@ export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, '
   summaryUrl.searchParams.set('db', 'pubmed');
   summaryUrl.searchParams.set('id', ids.join(','));
   summaryUrl.searchParams.set('retmode', 'json');
-  const summary = await fetchJson(summaryUrl.toString());
+  const summary = await fetchJson(summaryUrl.toString()) as { result?: Record<string, unknown> };
 
   return ids.map(id => {
-    const item = summary?.result?.[id] ?? {};
-    const authors = (item?.authors ?? []).map(authorName).filter(Boolean);
-    const doi = (item?.articleids ?? []).find((x: unknown) => x?.idtype === 'doi')?.value;
-    const pmcid = (item?.articleids ?? []).find((x: unknown) => x?.idtype === 'pmc')?.value;
+    const item = (summary?.result?.[id] ?? {}) as Record<string, unknown>;
+    const authors = (Array.isArray(item.authors) ? item.authors : []).map(authorName).filter(Boolean);
+    const articleids = Array.isArray(item.articleids) ? item.articleids as Record<string, unknown>[] : [];
+    const doi = articleids.find(x => x.idtype === 'doi')?.value;
+    const pmcid = articleids.find(x => x.idtype === 'pmc')?.value;
     return {
       provider: 'PUBMED' as const,
       externalId: id,
