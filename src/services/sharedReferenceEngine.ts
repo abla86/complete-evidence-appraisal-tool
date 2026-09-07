@@ -46,6 +46,7 @@ export interface SharedReferenceInput {
   dateCode?: string;
   section?: string;
   websiteName?: string;
+  sourceRecordIds?: string[];
 }
 
 export function createReference(input: SharedReferenceInput) {
