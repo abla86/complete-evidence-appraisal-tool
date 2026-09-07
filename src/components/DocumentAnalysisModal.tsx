@@ -172,7 +172,7 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
         showToast(`Dokument lastet opp og parset (${parsed.wordCount} ord).`);
       }
     } catch (err: unknown) {
-      showToast(`Feil under filparsing: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Ukjent feil'}`, 'error');
+      showToast(`Feil under filparsing: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -230,7 +230,7 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
         setAnalysisResult(analysis);
         showToast(`Dokument klassifisert og analysert.`);
       } catch (e: unknown) {
-        showToast('Feil under dokumentanalyse: ' + e.message, 'error');
+        showToast('Feil under dokumentanalyse: ' + (e instanceof Error ? e.message : 'Ukjent feil'), 'error');
       } finally {
         setIsAnalyzing(false);
       }
