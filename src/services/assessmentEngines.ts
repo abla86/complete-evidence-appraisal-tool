@@ -39,7 +39,47 @@ export class Agree2AssessmentEngine{public static readonly DOMAINS=[{id:1,name:'
 export class JbiQualitativeAssessmentEngine{public static evaluate(items:{questionId:number;status:string;justification?:string}[]){const o=[...items].sort((a,b)=>a.questionId-b.questionId);if(o.length!==10||o.some((x,n)=>x.questionId!==n+1))throw new Error('JBI Qualitative krever 10 unike items.');const v=new Set(['ja','nei','uklart','ikke relevant','yes','no','unclear','not applicable']);if(o.some(x=>!v.has(norm(x.status))))throw new Error('Ugyldig JBI-svar.');const strengths=o.filter(x=>['ja','yes'].includes(norm(x.status))),weaknesses=o.filter(x=>['nei','no'].includes(norm(x.status))),unresolved=o.filter(x=>['uklart','unclear'].includes(norm(x.status)));const identifiedDefects=[...weaknesses.map(x=>`Kriterium ${x.questionId}: Ikke oppfylt (${x.justification?.trim()||'Ingen begrunnelse oppgitt'})`),...unresolved.map(x=>`Kriterium ${x.questionId}: Uklart (${x.justification?.trim()||'Krever avklaring'})`)];return{jaCount:strengths.length,neiCount:weaknesses.length,uklartCount:unresolved.length,ikkeRelevantCount:o.filter(x=>['ikke relevant','not applicable'].includes(norm(x.status))).length,verdict:unresolved.length?'Søk mer informasjon':weaknesses.length?'Vurder videre':'Inkluder',rationale:unresolved.length?'Minst ett JBI-kriterium er uavklart og må avklares før endelig beslutning.':weaknesses.length?'Metodiske svakheter er identifisert. Endelig beslutning krever eksplisitt forskerbegrunnelse.':'Alle ti JBI-kriterier er besvart Ja. Dette er en kvalitativ forskervurdering, ikke en cut-off.',identifiedDefects,criticalItemsDefects:weaknesses.map(x=>`Kriterium ${x.questionId}: ${x.justification?.trim()||'Ikke oppfylt'}`),methodologicalNote:'JBI Qualitative (2017) har ingen rigid numerisk cut-off; endelig beslutning er kvalitativ.'};}}
 export class Rob2AssessmentEngine{public static evaluate(d:{variant?:'parallel-group'|'cluster-randomised'|'crossover';d1Randomisation:'Low risk'|'Some concerns'|'High risk';d2Deviations:'Low risk'|'Some concerns'|'High risk';d3MissingData:'Low risk'|'Some concerns'|'High risk';d4Measurement:'Low risk'|'Some concerns'|'High risk';d5Selection:'Low risk'|'Some concerns'|'High risk'}):Rob2EvaluationResult{const m={D1:d.d1Randomisation,D2:d.d2Deviations,D3:d.d3MissingData,D4:d.d4Measurement,D5:d.d5Selection};const domainEvaluations=ROB2_DOMAINS.map(([domainId,domainTitle,signallingItemsSummary])=>({domainId,domainTitle,riskOfBias:m[domainId as keyof typeof m],signallingItemsSummary}));const o=overallRisk(domainEvaluations.map(x=>x.riskOfBias));return{variant:d.variant??'parallel-group',domainEvaluations,overallRiskOfBias:o,phase3OverallRiskOfBias:o,algorithmRationale:'RoB 2 er domenebasert på utfallsnivå; ingen numerisk totalscore.'};}}
 export class GradeAssessmentEngine{public static evaluateOutcome(input:{outcomeName:string;studyDesign:string;riskOfBias:string|number;inconsistency:string|number;indirectness:string|number;imprecision:string|number;publicationBias:string|number;largeEffect?:string|number;doseResponse?:string|number;opposingConfounders?:string|number;finalCertainty?:GradeCertaintyEvaluation['finalCertainty'];certaintyRationale?:string}):GradeCertaintyEvaluation{if(!input.outcomeName.trim())throw new Error('GRADE outcomeName er påkrevd.');const down=(v:string|number)=>{const n=Number(v);if(![-2,-1,0].includes(n))throw new Error('GRADE downgrade judgments must be 0, -1 or -2.');return n as 0|-1|-2;};const up=(v:string|number|undefined)=>{const n=Number(v??0);if(![0,1].includes(n))throw new Error('GRADE upgrade adjustment must be 0 or 1.');return n as 0|1;};const large=(v:string|number|undefined)=>{const n=Number(v??0);if(![0,1,2].includes(n))throw new Error('GRADE large-effect adjustment must be 0, 1 or 2.');return n as 0|1|2;};const studyDesign=input.studyDesign.trim().toUpperCase()==='RCT'?'RCT':'Observational';const downgradeFactors={riskOfBias:down(input.riskOfBias),inconsistency:down(input.inconsistency),indirectness:down(input.indirectness),imprecision:down(input.imprecision),publicationBias:down(input.publicationBias)},upgradeFactors={largeEffect:large(input.largeEffect),doseResponse:up(input.doseResponse),opposingConfounders:up(input.opposingConfounders)};const level=Math.max(1,Math.min(4,(studyDesign==='RCT'?4:2)+Object.values(downgradeFactors).reduce((a,b)=>a+b,0)+upgradeFactors.largeEffect+upgradeFactors.doseResponse+upgradeFactors.opposingConfounders));const finalCertainty:GradeCertaintyEvaluation['finalCertainty']=level===4?'High':level===3?'Moderate':level===2?'Low':'Very Low';if(input.finalCertainty&&!input.certaintyRationale?.trim())throw new Error('Eksplisitt GRADE-final certainty krever begrunnelse.');return{outcomeName:input.outcomeName.trim(),studyDesign,initialCertainty:studyDesign==='RCT'?'High':'Low',downgradeFactors,upgradeFactors,finalCertainty:input.finalCertainty??finalCertainty,certaintyRationale:input.certaintyRationale?.trim()||'Endelig GRADE judgment skal dokumenteres eksplisitt av forskeren.'};}}
-export class CaspAssessmentEngine{public static evaluateQualitative(r:Record<number,'Yes'|'Can’t tell'|'No'>):CaspQualitativeResult{const k=Object.keys(r).map(Number).sort((a,b)=>a-b);if(k.length!==10||k.some((v,n)=>v!==n+1))throw new Error('CASP qualitative appraisal requires exactly 10 questions.');const issues=k.filter(n=>r[n]!=='Yes').map(n=>`Spørsmål ${n} er ikke bekreftet Ja.`);return{screeningQuestionsPassed:r[1]==='Yes'&&r[2]==='Yes',methodologicalRigorNotes:issues.join(' ')||'Alle 10 CASP-spørsmål er eksplisitt bekreftet Ja.',isValuableLocally:r[10]==='Yes',qualitativeSummary:'CASP vurderes kvalitativt; ingen totalscore beregnes.'};}}
+export type CaspQualitativeAnswer = 'Ja' | 'Nei' | 'Kan ikke si det';
+
+function normalizeCaspAnswer(value: unknown): CaspQualitativeAnswer | null {
+  const normalized = String(value ?? '').trim().toLowerCase().replace(/[’']/g, "'");
+  if (normalized === 'yes' || normalized === 'ja') return 'Ja';
+  if (normalized === 'no' || normalized === 'nei') return 'Nei';
+  if (normalized === "can't tell" || normalized === 'cannot tell' || normalized === 'kan ikke si det' || normalized === 'uklart') return 'Kan ikke si det';
+  return null;
+}
+
+export class CaspAssessmentEngine {
+  public static evaluateQualitative(
+    responses: Record<number, string>,
+  ): CaspQualitativeResult {
+    const ids = Object.keys(responses).map(Number).sort((a, b) => a - b);
+    if (ids.length !== 10 || ids.some((id, index) => id !== index + 1)) {
+      throw new Error('CASP qualitative appraisal requires exactly 10 questions.');
+    }
+
+    const normalized: Record<number, CaspQualitativeAnswer> = {};
+    for (const id of ids) {
+      const answer = normalizeCaspAnswer(responses[id]);
+      if (!answer) {
+        throw new Error(`Ugyldig CASP-svar for spørsmål ${id}. Tillatte svar er Ja, Nei eller Kan ikke si det.`);
+      }
+      normalized[id] = answer;
+    }
+
+    const issues = ids
+      .filter(id => normalized[id] !== 'Ja')
+      .map(id => `Spørsmål ${id} er ikke bekreftet Ja.`);
+
+    return {
+      screeningQuestionsPassed: normalized[1] === 'Ja' && normalized[2] === 'Ja',
+      methodologicalRigorNotes: issues.join(' ') || 'Alle 10 CASP-spørsmål er eksplisitt vurdert Ja.',
+      isValuableLocally: normalized[10] === 'Ja',
+      qualitativeSummary: 'CASP vurderes kvalitativt; CASP har ingen offisiell numerisk totalscore.'
+    };
+  }
+}
+
 export class GradeCerqualAssessmentEngine{public static evaluateFinding(i:{reviewFinding:string;methodologicalLimitations:CerqualConcern;coherence:CerqualConcern;adequacyOfData:CerqualConcern;relevance:CerqualConcern;overallConfidence?:GradeCerqualEvaluationResult['overallConfidence'];confidenceExplanation?:string;methodologicalNote?:string}):GradeCerqualEvaluationResult{if(!i.reviewFinding.trim())throw new Error('CERQual-funn må beskrives.');const components={methodologicalLimitations:i.methodologicalLimitations,coherence:i.coherence,adequacyOfData:i.adequacyOfData,relevance:i.relevance};if(Object.values(components).some(v=>!v))throw new Error('CERQual krever eksplisitt judgment for alle fire komponenter.');if (!i.overallConfidence || !i.confidenceExplanation?.trim()) {
       throw new Error('CERQual krever eksplisitt overall confidence og en begrunnelse. Ingen confidence-default kan brukes.');
     }
@@ -47,7 +87,31 @@ export class GradeCerqualAssessmentEngine{public static evaluateFinding(i:{revie
 export class ReportingStandardNoticeEngine{public static readonly REPORTING_GUIDELINES=[{id:'consort',name:'CONSORT 2010',target:'RCT'},{id:'strobe',name:'STROBE',target:'Observasjonsstudier'},{id:'prisma',name:'PRISMA 2020',target:'Systematiske oversikter'},{id:'stard',name:'STARD 2015',target:'Diagnostiske studier'},{id:'tripod',name:'TRIPOD',target:'Prediksjonsmodeller'},{id:'care',name:'CARE',target:'Kasusrapporter'},{id:'coreq',name:'COREQ',target:'Kvalitativ forskning'},{id:'srqr',name:'SRQR',target:'Kvalitativ forskning'},{id:'squire',name:'SQUIRE 2.0',target:'Kvalitetsforbedring'},{id:'cheers',name:'CHEERS 2022',target:'Helseøkonomi'},{id:'right',name:'RIGHT',target:'Retningslinjer'}];public static getMethodologicalNotice(id:string){return`METODISK SKILLE: ${id.toUpperCase()} er en rapporteringsstandard og ikke et risikovurderingsverktøy eller en samlet kvalitetsscore.`;}}
 export class Amstar2RatingService{public static readonly STANDARD_CRITICAL_DOMAINS=[2,4,7,8,9,13,15];public static evaluateStandard(i:Record<number,string>){return Amstar2AssessmentEngine.evaluate(i);}public static evaluateCustomAdaptation(i:Record<number,string>,d:number[],r:string){if(!r.trim())throw new Error('Tilpasningsbegrunnelse er påkrevd.');return{...Amstar2AssessmentEngine.evaluate(i),adaptationType:'REVIEW_SPECIFIC_ADAPTATION' as const,customCriticalDomains:d,adaptationRationale:r.trim()};}public static validateInput(i:Record<number,string>,criticalDomains:number[]=this.STANDARD_CRITICAL_DOMAINS){const errors:string[]=[];if(Object.keys(i).length!==16)errors.push('AMSTAR 2 krever 16 items.');for(let n=1;n<=16;n++)if(!['Yes','Partial Yes','No','No meta-analysis conducted'].includes(i[n]))errors.push(`Ugyldig/manglende Item ${n}.`);if(criticalDomains.length!==7||criticalDomains.some((d,n)=>d!==this.STANDARD_CRITICAL_DOMAINS[n]))errors.push('Kritiske domener avviker fra standard.');return{isValid:errors.length===0,errors};}}
 export class Agree2ScoringService{public static readonly DOMAINS=Agree2AssessmentEngine.DOMAINS;public static evaluate(r:Record<number,number>){return Agree2AssessmentEngine.evaluateDomainScores(r);}public static calculateDomainScores(r:Record<number,number>){return Agree2AssessmentEngine.evaluateDomainScores(r).domainScores;}public static validateRatings(r:Record<number,number>){const errors:string[]=[];for(let n=1;n<=23;n++){const v=r[n];if(!Number.isInteger(v)||v<1||v>7)errors.push(`Ugyldig eller manglende AGREE II Item ${n}.`);}return{isValid:errors.length===0,errors};}}
-export class CaspValidationService{public static evaluateQualitative(r:Record<number,'Yes'|'Can’t tell'|'No'>){return CaspAssessmentEngine.evaluateQualitative(r);}public static validateQualitativeInput(r:Record<number,string>){const errors:string[]=[];for(let n=1;n<=10;n++)if(!['Yes','Can’t tell','No'].includes(r[n]))errors.push(`Ugyldig/manglende CASP Item ${n}.`);return{isValid:errors.length===0,errors};}public static getNonOfficialNumericIndicatorNotice(){return'CASP har ingen offisielt validert numerisk totalscore.';}}
+export class CaspValidationService {
+  public static evaluateQualitative(r: Record<number, string>) {
+    return CaspAssessmentEngine.evaluateQualitative(r);
+  }
+
+  public static validateQualitativeInput(r: Record<number, string>) {
+    const errors: string[] = [];
+    const ids = Object.keys(r).map(Number).sort((a, b) => a - b);
+    if (ids.length !== 10 || ids.some((id, index) => id !== index + 1)) {
+      errors.push('CASP Qualitative krever nøyaktig 10 vurderingspunkter.');
+      return { isValid: false, errors };
+    }
+    for (let n = 1; n <= 10; n += 1) {
+      if (!normalizeCaspAnswer(r[n])) {
+        errors.push(`Ugyldig/manglende CASP Item ${n}. Tillatte svar er Ja, Nei eller Kan ikke si det.`);
+      }
+    }
+    return { isValid: errors.length === 0, errors };
+  }
+
+  public static getNonOfficialNumericIndicatorNotice() {
+    return 'CASP har ingen offisiell numerisk totalscore. Resultatet skal rapporteres kvalitativt med synlige kriterier, evidens og begrunnelser.';
+  }
+}
+
 export class JbiValidationService{public static evaluate(i:{questionId:number;status:string;justification?:string}[]){return JbiQualitativeAssessmentEngine.evaluate(i);}public static validateInput(i:{questionId:number;status:string;justification?:string}[]){const errors:string[]=[];if(i.length!==10)errors.push('JBI Qualitative krever 10 items.');const ids=i.map(x=>x.questionId);if(new Set(ids).size!==10||ids.some(id=>id<1||id>10))errors.push('JBI question IDs må være unike 1-10.');return{isValid:errors.length===0,errors};}}
 export class Rob2ValidationService{public static evaluate(i:Parameters<typeof Rob2AssessmentEngine.evaluate>[0]){return Rob2AssessmentEngine.evaluate(i);}}
 export class GradeCertaintyService{public static evaluateOutcome(i:Parameters<typeof GradeAssessmentEngine.evaluateOutcome>[0]){return GradeAssessmentEngine.evaluateOutcome(i);}}
