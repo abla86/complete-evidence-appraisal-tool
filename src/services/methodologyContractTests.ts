@@ -247,7 +247,26 @@ export class MethodologyContractTests {
       details: 'CASP-sjekklister krever at spÃ¸rsmÃ¥l 1 og 2 besvares bekreftende fÃ¸r videre vurdering er meningsfull.'
     });
 
-    // 1.11 JBI Qualitative (2017) 10-item & Qualitative Verdict Validation
+    // 1.11 CASP Qualitative canonical contract: exactly 10 items and canonical Norwegian answers
+    const caspCanonical = CaspValidationService.validateQualitativeInput({
+      1: 'Ja', 2: 'Ja', 3: 'Ja', 4: 'Ja', 5: 'Ja',
+      6: 'Kan ikke si det', 7: 'Ja', 8: 'Ja', 9: 'Ja', 10: 'Ja'
+    });
+    const caspFiveItems = CaspValidationService.validateQualitativeInput({
+      1: 'Ja', 2: 'Ja', 3: 'Ja', 4: 'Ja', 5: 'Ja'
+    });
+    results.push({
+      ruleId: 'L1-CASP-02-CANONICAL-10-ITEM-CONTRACT',
+      ruleTitle: 'CASP Qualitative: Krever nøyaktig 10 originale kriterier og godtar norsk svarsett',
+      level: 'LEVEL_1_UNIT',
+      category: 'VERSIONS',
+      passed: caspCanonical.isValid && !caspFiveItems.isValid,
+      expected: '10/10 canonical items valid; 5-item appraisal rejected',
+      actual: `canonicalValid: ${caspCanonical.isValid}, fiveItemValid: ${caspFiveItems.isValid}`,
+      details: 'Forhindrer at en CASP-vurdering reduseres til en egen fempunktsmodell eller et uautorisert svarsett.'
+    });
+
+    // 1.12 JBI Qualitative (2017) 10-item & Qualitative Verdict Validation
     const jbiVal = JbiValidationService.validateInput([
       { questionId: 1, status: 'Ja' },
       { questionId: 2, status: 'Ja' },
