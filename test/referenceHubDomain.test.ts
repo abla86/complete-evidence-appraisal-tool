@@ -8,7 +8,7 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
     id: 'r1',
     type: 'JOURNAL_ARTICLE',
     title: 'Example',
-    authors: ['Doe, J.'],
+    authors: 'Doe, J.',
     year: 2025,
     doi: '10.1234/example',
     pmid: '12345678',
@@ -18,7 +18,8 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
     tags: [],
     collections: [],
     sourceSystems: ['pubmed'],
-    status: 'VALIDATION_REQUIRED',
+    importedFrom: ['MANUAL'],
+    verification: 'VALIDATION_REQUIRED',
     retraction: { detected: false, source: 'not-checked', checkedAt: new Date().toISOString() },
     attachments: [],
     annotations: [],
@@ -27,7 +28,7 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
   };
   assert.equal(record.pmid, '12345678');
   assert.equal(record.pmcid, 'PMC123456');
-  assert.equal(record.status, 'VALIDATION_REQUIRED');
+  assert.equal(record.verification, 'VALIDATION_REQUIRED');
 });
 
 test('reference library loader safely falls back when browser storage is unavailable', () => {
