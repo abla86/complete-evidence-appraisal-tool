@@ -1,11 +1,7 @@
 name: Dependency Review
 
 on:
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 jobs:
   dependency-review:
