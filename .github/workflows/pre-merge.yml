@@ -1,11 +1,7 @@
 name: Pre-Merge Validation
 
 on:
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 jobs:
   validate:
