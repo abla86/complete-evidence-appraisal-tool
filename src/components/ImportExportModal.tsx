@@ -89,7 +89,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       setImportResult(result);
       showToast(`Analyserte ${file.name}: Fant ${result.totalParsed} oppfÃ¸ringer.`);
     } catch (err: unknown) {
-      showToast(`Feil under filimport: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
+      showToast(`Feil under filimport: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Ukjent feil'}`, 'error');
     } finally {
       setIsProcessingImport(false);
     }
@@ -108,7 +108,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       setImportResult(result);
       showToast(`Fant ${result.totalParsed} oppfÃ¸ringer i teksten (${result.formatName}).`);
     } catch (err: unknown) {
-      showToast(`Feil under parsing: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
+      showToast(`Feil under parsing: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Ukjent feil'}`, 'error');
     } finally {
       setIsProcessingImport(false);
     }
@@ -176,7 +176,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       URL.revokeObjectURL(url);
       showToast(`Lastet ned fil: ${data.filename}`);
     } catch (err: unknown) {
-      showToast(`Feil under eksport: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
+      showToast(`Feil under eksport: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Ukjent feil'}`, 'error');
     }
   };
 
@@ -190,7 +190,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
       navigator.clipboard.writeText(data.content);
       showToast(`Innhold kopiert til utklippstavlen (${selectedExportFormat.toUpperCase()})!`);
     } catch (err: unknown) {
-      showToast(`Feil under kopiering: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
+      showToast(`Feil under kopiering: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Ukjent feil'}`, 'error');
     }
   };
 
