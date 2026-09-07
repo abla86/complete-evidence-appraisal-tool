@@ -170,7 +170,7 @@ export class ScreeningGateService {
     }
 
     const hasDocument = Boolean(
-      hasIdentity && 
+      hasIdentity && study && 
       (study.title?.trim() || study.rawContent?.trim() || study.fileName?.trim())
     );
     if (!hasDocument) {

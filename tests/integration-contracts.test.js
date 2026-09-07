@@ -8,6 +8,7 @@ import { CanonicalAppraisalService } from '../src/services/canonicalAppraisalSer
 import { RbacService } from '../src/services/rbacService.ts';
 import { DocumentParserService } from '../src/services/documentParserService.ts';
 import { MasterInstrumentRegistryService } from '../src/services/masterInstrumentRegistry.ts';
+import { buildSourceRecord } from '../src/services/sourceRecordService.ts';
 
 // Test Suite 1: Screening Gate & Decision Model
 test('Screening Gate: Blocker when no screening decision exists', () => {
@@ -300,3 +301,36 @@ test('Dev launcher: scripts/dev.mjs is structured to prevent Windows spawn EFTYP
   assert.ok(content.includes('shell: false'), 'Dev launcher må ikke bruke shell: true på Windows');
   assert.ok(content.includes('SIGINT') && content.includes('SIGTERM'), 'Dev launcher må håndtere ren terminering');
 });
+
+// Test Suite 7: Canonical SourceRecord Builder Contract
+test('SourceRecord Builder: Generates consistent IDs, parsed authors, defaults, and deterministic SHA-256', () => {
+  const record = buildSourceRecord({
+    projectId: 'proj-123',
+    sourceOrigin: 'PubMed',
+    sourceId: '38291024',
+    title: 'Digital Health Interventions in Clinical Practice',
+    authors: 'Lindqvist, Sarah; Hansen, Thomas',
+    year: '2024',
+    journal: 'Journal of Medical Internet Research',
+    doi: '10.2196/45120'
+  });
+
+  assert.ok(record.id.startsWith('src-'), 'ID skal genereres med sikker prefix');
+  assert.equal(record.projectId, 'proj-123');
+  assert.equal(record.sourceOrigin, 'PubMed');
+  assert.equal(record.sourceId, '38291024');
+  assert.equal(record.screeningStatus, 'UNSCREENED');
+  assert.deepEqual(record.authors, ['Lindqvist', 'Sarah', 'Hansen', 'Thomas']);
+  assert.ok(record.provenanceHashSha256 && record.provenanceHashSha256.length === 64, 'Skal generere gyldig 64-tegns SHA-256');
+
+  // Verify deterministic hash for identical content
+  const record2 = buildSourceRecord({
+    sourceOrigin: 'PubMed',
+    title: 'Digital Health Interventions in Clinical Practice',
+    authors: ['Lindqvist', 'Sarah', 'Hansen', 'Thomas'],
+    year: '2024',
+    doi: '10.2196/45120'
+  });
+  assert.equal(record.provenanceHashSha256, record2.provenanceHashSha256, 'Deterministisk hash må stemme for identisk innhold');
+});
+

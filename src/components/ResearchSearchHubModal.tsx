@@ -26,7 +26,8 @@ import {
   SourceRecord, 
   ReferenceItem 
 } from '../types';
-import { calculateSha256 } from '../utils/crypto';
+import { calculateSha256, generateSecureId } from '../utils/crypto';
+import { buildSourceRecord } from '../utils/sourceRecordBuilder';
 
 interface ResearchSearchHubModalProps {
   isOpen: boolean;
@@ -165,8 +166,7 @@ export const ResearchSearchHubModal: React.FC<ResearchSearchHubModalProps> = ({
     const hash = await calculateSha256(rawForHash);
 
     if (target === 'source_record') {
-      const newSource: SourceRecord = {
-        id: `SRC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      const newSource = buildSourceRecord({
         projectId: project.id,
         sourceOrigin: item.database as SourceRecord['sourceOrigin'],
         sourceId: item.pmid || item.doi,
@@ -179,13 +179,12 @@ export const ResearchSearchHubModal: React.FC<ResearchSearchHubModalProps> = ({
         publicationType: item.studyDesignSuggested,
         screeningStatus: 'UNSCREENED',
         provenanceHashSha256: hash,
-        importedAt: new Date().toISOString(),
         tags: ['PubMed / Database Search', 'Kandidat til screening']
-      };
+      });
       onImportToSourceRecords(newSource);
     } else {
       const newRef: ReferenceItem = {
-        id: `REF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        id: generateSecureId('REF'),
         projectId: project.id,
         title: item.title,
         authors: item.authors.map(a => {

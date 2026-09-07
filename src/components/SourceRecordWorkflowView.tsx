@@ -25,6 +25,7 @@ import {
   FolderPlus
 } from 'lucide-react';
 import { calculateSha256 } from '../utils/crypto';
+import { buildSourceRecord } from '../utils/sourceRecordBuilder';
 
 interface SourceRecordWorkflowViewProps {
   project: ResearchProject;
@@ -87,28 +88,25 @@ export const SourceRecordWorkflowView: React.FC<SourceRecordWorkflowViewProps> =
 
   const handleCreateRecord = async () => {
     if (!newTitle.trim()) return;
-    const id = `SRC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const authorsList = newAuthors.split(/;|,/).map(s => s.trim()).filter(Boolean);
     const rawForHash = `${newTitle}|${newAuthors}|${newYear}|${newDoi}|${newSourceOrigin}|${newAbstract}`;
     const hash = await calculateSha256(rawForHash);
 
-    const record: SourceRecord = {
-      id,
+    const record = buildSourceRecord({
       projectId: project.id,
       sourceOrigin: newSourceOrigin,
       title: newTitle.trim(),
-      authors: authorsList.length > 0 ? authorsList : ['Ukjent forfatter'],
+      authors: authorsList,
       year: newYear.trim() || undefined,
       journal: newJournal.trim() || undefined,
       doi: newDoi.trim() || undefined,
       abstract: newAbstract.trim() || undefined,
       screeningStatus: 'UNSCREENED',
-      provenanceHashSha256: hash,
-      importedAt: new Date().toISOString()
-    };
+      provenanceHashSha256: hash
+    });
 
     onAddSourceRecord(record);
-    setSelectedRecordId(id);
+    setSelectedRecordId(record.id);
     setShowAddModal(false);
 
     // Reset fields

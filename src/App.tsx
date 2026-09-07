@@ -46,7 +46,7 @@ import {
   getInitialSampleReferences,
   resetToDefaults 
 } from './utils/storage';
-import { createAuditEntry } from './utils/crypto';
+import { createAuditEntry, generateSecureId } from './utils/crypto';
 import { validateStudyAppraisalLock } from './utils/appraisalLockValidator';
 import { ScreeningGateService } from './services/screeningGateService';
 import { SafeBoundary } from './components/SafeBoundary';
@@ -241,7 +241,7 @@ export default function App() {
   };
 
   const handlePromoteToStudy = (sourceRecord: SourceRecord, targetInstrument?: AppraisalInstrument) => {
-    const newStudyId = `study-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const newStudyId = generateSecureId('study');
     const newStudy: StudyRecord = {
       id: newStudyId,
       projectId: project.id,
@@ -272,14 +272,14 @@ export default function App() {
     };
     handleUpdateSourceRecord(updatedSource);
     setActiveTab('appraisal');
-    logEvent('IMPORT_DOCUMENT', 'StudyRecord', newStudyId, `Kildepost ${sourceRecord.id} overført til ${targetInstrument}-arbeidsflate`);
+    logEvent('IMPORT_DOCUMENT', 'StudyRecord', newStudyId, `Kildepost ${sourceRecord.id} overført til ${targetInstrument || 'valgt'}-arbeidsflate`);
   };
 
   const handlePromoteReferenceToStudy = (study: StudyRecord) => {
     setStudies(prev => [study, ...prev]);
     setActiveStudyId(study.id);
     setActiveTab('appraisal');
-    logEvent('IMPORT_DOCUMENT', 'StudyRecord', study.id, `Referanse ${study.sourceRefId || study.id} overført til JBI-arbeidsflate`);
+    logEvent('IMPORT_DOCUMENT', 'StudyRecord', study.id, `Referanse ${study.sourceRefId || study.id} overført til metodisk arbeidsflate`);
   };
 
   const handleNavigateToAppraisal = (studyId?: string, instrument: AppraisalInstrument = 'JBI_QUALITATIVE') => {
