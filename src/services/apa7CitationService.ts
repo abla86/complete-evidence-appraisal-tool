@@ -994,14 +994,23 @@ export class Apa7CitationService {
         const authors: AuthorName[] = [];
         if (Array.isArray(csl.author)) {
           csl.author.forEach((a: unknown) => {
-            if (a.family) {
+            const author = a && typeof a === 'object' ? a as Record<string, unknown> : {};
+            const family = typeof author.family === 'string' ? author.family : undefined;
+            const given = typeof author.given === 'string' ? author.given : undefined;
+            const name = typeof author.name === 'string' ? author.name : undefined;
+            const author = a && typeof a === 'object' ? a as Record<string, unknown> : {};
+            const family = typeof author.family === 'string' ? author.family : undefined;
+            const given = typeof author.given === 'string' ? author.given : undefined;
+            const name = typeof author.name === 'string' ? author.name : undefined;
+            const literal = typeof author.literal === 'string' ? author.literal : undefined;
+            if (family) {
               authors.push({
-                family: a.family,
-                given: a.given || a['non-dropping-particle'] || undefined
+                family,
+                given: given || (typeof author['non-dropping-particle'] === 'string' ? author['non-dropping-particle'] : undefined)
               });
-            } else if (a.name || a.literal) {
+            } else if (name || literal) {
               authors.push({
-                family: a.name || a.literal,
+                family: name || literal,
                 isOrganization: true
               });
             }
@@ -1055,14 +1064,14 @@ export class Apa7CitationService {
         const authors: AuthorName[] = [];
         if (Array.isArray(msg.author)) {
           msg.author.forEach((a: unknown) => {
-            if (a.family) {
+            if (family) {
               authors.push({
-                family: a.family,
-                given: a.given
+                family,
+                given
               });
-            } else if (a.name) {
+            } else if (name) {
               authors.push({
-                family: a.name,
+                family: name,
                 isOrganization: true
               });
             }
@@ -1108,13 +1117,18 @@ export class Apa7CitationService {
           const authors: AuthorName[] = [];
           if (item.authorList?.author) {
             item.authorList.author.forEach((a: unknown) => {
-              if (a.lastName) {
+              const author = a && typeof a === 'object' ? a as Record<string, unknown> : {};
+              const lastName = typeof author.lastName === 'string' ? author.lastName : undefined;
+              const firstName = typeof author.firstName === 'string' ? author.firstName : undefined;
+              const initials = typeof author.initials === 'string' ? author.initials : undefined;
+              const fullName = typeof author.fullName === 'string' ? author.fullName : undefined;
+              if (lastName) {
                 authors.push({
-                  family: a.lastName,
-                  given: a.firstName || a.initials
+                  family: lastName,
+                  given: firstName || initials
                 });
-              } else if (a.fullName) {
-                authors.push({ family: a.fullName });
+              } else if (fullName) {
+                authors.push({ family: fullName });
               }
             });
           } else if (item.authorString) {
