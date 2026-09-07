@@ -35,7 +35,7 @@ export function runCitationAudit(
         recordId: item.sourceRecordId,
         identifiers: item.sourceIdentifiers,
         metadata: item.sourceMetadata,
-        referenceDraft: item.referenceDraft,
+        referenceDraft: item.referenceDraft ? { doi: item.referenceDraft } : undefined,
       }, references) ?? references.find(reference =>
         item.referenceId?.trim() === reference.id ||
         item.sourceRecordId?.trim() === reference.id
