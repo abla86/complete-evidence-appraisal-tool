@@ -29,6 +29,13 @@ async function startServer() {
   app.set('trust proxy', 1);
 
   app.use(express.json({ limit: '30mb' }));
+  app.disable('x-powered-by');
+  app.use((_req: Request, res: Response, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('X-Frame-Options', 'DENY');
+    next();
+  });
 
   const secureCookie = isProduction;
 
@@ -89,6 +96,7 @@ async function startServer() {
 
   app.get('/api/doi-lookup', async (req: Request, res: Response) => {
     const rawDoi = String(req.query.doi || '').trim();
+    if (rawDoi.length > 500) return res.status(400).json({ success: false, error: 'DOI er for lang.' });
     const cleanDoi = rawDoi
       .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
       .replace(/^doi:\s*/i, '')
@@ -179,6 +187,7 @@ async function startServer() {
     app.post('/api/meta-research/analyze', async (req: Request, res: Response) => {
     try {
       const { text, fileName } = req.body;
+      if (typeof text !== 'string' || text.length > 2_000_000) return res.status(400).json({ success: false, error: 'Dokumentteksten mangler eller er for stor.' });
       if (!text || typeof text !== 'string') return res.status(400).json({ success: false, error: 'Dokumenttekst eller forskningsartikkel er påkrevd.' });
       const baseReport = MetaResearchService.classifyAndAuditDocument(text, fileName || 'document.pdf');
       const ai = getGeminiClient();
@@ -226,7 +235,7 @@ async function startServer() {
   app.post('/api/evidence/verify-doi', async (req: Request, res: Response) => {
     try {
       const { doi } = req.body;
-      if (!doi || typeof doi !== 'string') return res.status(400).json({ success: false, error: 'DOI er påkrevd.' });
+      if (!doi || typeof doi !== 'string' || doi.length > 500) return res.status(400).json({ success: false, error: 'DOI er påkrevd.' });
       const verification = await EvidenceIntelligenceService.verifyPublicationByDoi(doi);
       if (!verification) return res.status(404).json({ success: false, status: 'NOT_FOUND', message: 'Ingen verifiserbar Crossref-post ble funnet.' });
       res.json({ success: true, verification, methodologicalNote: 'Crossref metadata kan ikke alene bekrefte fagfellevurdering.' });
@@ -238,6 +247,7 @@ async function startServer() {
   app.get('/api/evidence/search/europe-pmc', async (req: Request, res: Response) => {
     try {
       const query = String(req.query.q || '').trim();
+      if (query.length > 1000) return res.status(400).json({ success: false, error: 'Søketeksten er for lang.' });
       const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 25)));
       const page = Math.max(1, Number(req.query.page || 1));
       if (!query) return res.status(400).json({ success: false, error: 'Søketekst mangler.' });
