@@ -96,7 +96,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
       navigator.clipboard.writeText(content);
       showToast(`${label} validert mot MethodIntegrityGate og kopiert til utklippstavlen!`);
     } catch (err: unknown) {
-      showToast(`Eksport blokkert av MethodIntegrityGate: ${err.message}`, 'error');
+      showToast(`Eksport blokkert av MethodIntegrityGate: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     }
   };
 
@@ -112,7 +112,7 @@ export const ThesisReadyView: React.FC<ThesisReadyViewProps> = ({ articles, onOp
       document.body.removeChild(element);
       showToast(`Filen ${filename} ble validert mot MethodIntegrityGate og lastet ned!`);
     } catch (err: unknown) {
-      showToast(`Eksport blokkert av MethodIntegrityGate: ${err.message}`, 'error');
+      showToast(`Eksport blokkert av MethodIntegrityGate: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     }
   };
 
