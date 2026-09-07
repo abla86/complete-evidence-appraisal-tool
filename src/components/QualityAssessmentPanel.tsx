@@ -2,6 +2,7 @@
 import { assessGRADE, assessCERQual, lockQualityAssessment, type StoredQualityAssessment } from '../services/qualityAssessmentService';
 import { getQualityAssessmentsForSession } from '../services/appraisalSessionStore';
 import type { AppraisalSession } from '../services/universalAppraisalService';
+import type { CerqualConcernLevel } from '../types';
 
 interface Props {
   session: AppraisalSession;
@@ -22,7 +23,7 @@ export const QualityAssessmentPanel: React.FC<Props> = ({ session, evidenceId = 
   const [studyDesign, setStudyDesign] = useState<'RCT' | 'Observational'>('RCT');
   const [downgrades, setDowngrades] = useState<Record<GradeDomain, 0 | -1 | -2>>({ riskOfBias: 0, inconsistency: 0, indirectness: 0, imprecision: 0, publicationBias: 0 });
   const [finding, setFinding] = useState('');
-  const [cerqual, setCerqual] = useState({ methodologicalLimitations: 'No or very minor concerns', coherence: 'No or very minor concerns', adequacyOfData: 'No or very minor concerns', relevance: 'No or very minor concerns' });
+  const [cerqual, setCerqual] = useState<Record<'methodologicalLimitations' | 'coherence' | 'adequacyOfData' | 'relevance', CerqualConcernLevel>>({ methodologicalLimitations: 'No or very minor concerns', coherence: 'No or very minor concerns', adequacyOfData: 'No or very minor concerns', relevance: 'No or very minor concerns' });
   const [message, setMessage] = useState('');
 
   const save = () => {
