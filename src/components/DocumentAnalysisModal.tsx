@@ -122,12 +122,12 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
   if (!isOpen) return null;
 
   const performClassification = (rawText: string, name: string, parsedMeta?: unknown) => {
-    const meta = parsedMeta || DocumentParserService.extractMetadata(rawText, name);
+    const meta = (parsedMeta && typeof parsedMeta === 'object' ? parsedMeta as { title?: string; authors?: string; journal?: string; doi?: string } : DocumentParserService.extractMetadata(rawText, name));
     const classRes = DocumentClassifierService.classifyDocument(rawText, {
-      title: meta.title,
-      authors: meta.authors,
-      journal: meta.journal,
-      doi: meta.doi
+      title: meta.title || '',
+      authors: meta.authors || '',
+      journal: meta.journal || '',
+      doi: meta.doi || ''
     });
 
     setClassification(classRes);
