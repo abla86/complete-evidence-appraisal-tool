@@ -1,13 +1,7 @@
 name: Build and security self-test
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 jobs:
   validate:
