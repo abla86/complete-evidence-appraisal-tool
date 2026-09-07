@@ -107,16 +107,16 @@ export const SourceRecordWorkflowView: React.FC = () => {
 
   const verifyReferenceLocally = () => {
     if (!record) return;
-    const fields = record.metadata.fields;
+    const fields = record.metadata.fields ?? {};
     const result = validateReference({
       kind: 'JOURNAL_ARTICLE',
-      authors: fields.authors?.map(a => `${a.family}, ${a.given ?? ''}`.trim()).join('; '),
-      year: fields.publicationDate?.slice(0, 4),
-      title: fields.title ?? '',
-      journal: fields.journalTitle ?? '',
-      volume: fields.volume ?? undefined,
-      issue: fields.issue ?? undefined,
-      pages: [fields.firstPage, fields.lastPage].filter(Boolean).join('-'),
+      authors: (Array.isArray(fields.authors) ? fields.authors : []).map(a => { const author = a && typeof a === 'object' ? a as Record<string, unknown> : {}; return `${String(author.family ?? '')}, ${String(author.given ?? '')}`.trim(); }).join('; '),
+      year: typeof fields.publicationDate === 'string' ? fields.publicationDate.slice(0, 4) : undefined,
+      title: typeof fields.title === 'string' ? fields.title : '',
+      journal: typeof fields.journalTitle === 'string' ? fields.journalTitle : '',
+      volume: typeof fields.volume === 'string' ? fields.volume : undefined,
+      issue: typeof fields.issue === 'string' ? fields.issue : undefined,
+      pages: [fields.firstPage, fields.lastPage].filter((value): value is string => typeof value === 'string' && Boolean(value)).join('-'),
       doi: record.identifiers.doi?.normalized,
       url: record.source.url,
     });
