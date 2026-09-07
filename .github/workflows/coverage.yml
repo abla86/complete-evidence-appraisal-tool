@@ -1,18 +1,7 @@
 name: Evidence Tool Coverage
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
-
-concurrency:
-  group: coverage-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
 
 jobs:
   coverage:
