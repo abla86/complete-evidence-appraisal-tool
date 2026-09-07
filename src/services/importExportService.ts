@@ -37,6 +37,31 @@ export class ImportExportService{
   public static parsePubmed(text:string):ImportPreviewItem[]{return text.split(/(?=^PMID-?\s+)/m).filter(Boolean).map((entry,i)=>{let title='',journal='',doi='',abstract='';let year=new Date().getFullYear();const authors:string[]=[];for(const line of entry.split(/\r?\n/)){const m=line.match(/^([A-Z]{2,4})\s*-\s*(.*)$/);if(!m)continue;const tag=m[1],value=m[2].trim();if(tag==='TI')title=value;else if(tag==='AU'||tag==='FAU')authors.push(value);else if(tag==='DP'){const y=value.match(/\b(19\d{2}|20\d{2})\b/);if(y)year=Number(y[1]);}else if(tag==='JT'||tag==='TA')journal=value;else if(tag==='AID'&&/\[doi\]/i.test(value))doi=value.replace(/\s*\[doi\].*/i,'');else if(tag==='AB')abstract=value;}return{id:generateUniqueId('pubmed'),title:title||`PubMed #${i+1}`,authors:authors.join('; ')||'Ukjent forfatter',year,journal:journal||'Tidsskrift / Kilde',doi,design:'',abstract};});}
 
   public static createDefaultArticle(params:{id?:string;title:string;authors:string;year?:number;journal?:string;doi?:string;design?:string;studyContext?:string;sourceName?:string;verdict?:ArticleAppraisal['overallVerdict'];items?:JBIEvaluationItem[]}):ArticleAppraisal{const authors=normalize(params.authors)||'Ukjent forfatter';const title=normalize(params.title)||'Uten tittel';const year=params.year&&Number.isFinite(params.year)?params.year:new Date().getFullYear();const doi=normalize(params.doi).replace(/^https?:\/\/doi\.org\//i,'');const design=normalize(params.design)||'Ukjent / uavklart â€“ krever studiedesignklassifisering';return{id:params.id||generateArticleId('art'),instrumentId:undefined,instrumentVersion:undefined,lifecycleStatus:'DRAFT',title,authors,shortCitation:`${authors.split(';')[0]?.trim()||authors} (${year})`,year,journal:normalize(params.journal),doi,doiUrl:doi?`https://doi.org/${doi}`:'',sourceUrl:'',sourceName:params.sourceName||'Import',studyContext:params.studyContext||'',design,dataCollection:'Ikke oppgitt',participants:'Ikke oppgitt',analyticMethod:'Ikke oppgitt',summaryScore:{ja:0,uklart:0,nei:0,ikkeRelevant:0,total:0},overallVerdict:params.verdict||'Vurder videre',verdictNote:'Ikke forhÃ¥ndsvurdert. Human metodisk verifikasjon kreves fÃ¸r appraisal.',keyStrength:'Ikke forhÃ¥ndsvurdert',mainLimitation:'Studiedesign og fulltekst mÃ¥ kontrolleres',apaReference:`${authors} (${year}). ${title}.`,items:params.items||[],auditTrail:[]};}
+  public static exportData(articles: ArticleAppraisal[], format: SupportedExportFormat, options: ExportOptions): { content: string; mimeType: string; filename: string } {
+    const selected = options.scope === 'selected_only' && options.selectedArticleId
+      ? articles.filter(a => a.id === options.selectedArticleId)
+      : options.scope === 'included_only'
+        ? articles.filter(a => a.overallVerdict === 'Inkluder')
+        : articles;
+    if (format === 'csv' || format === 'excel') {
+      const rows = selected.map(a => ({ title: a.title, authors: a.authors, year: a.year, journal: a.journal, doi: a.doi, design: a.design, verdict: a.overallVerdict ?? '' }));
+      return { content: createCsvExport(rows, ['title','authors','year','journal','doi','design','verdict']), mimeType: 'text/csv;charset=utf-8', filename: 'evidence-appraisal.csv' };
+    }
+    if (format === 'markdown') {
+      const content = selected.map(a => `## ${a.shortCitation}\n\n**Tittel:** ${a.title}\n**Forfattere:** ${a.authors}\n**År:** ${a.year}\n**Tidsskrift:** ${a.journal}\n**DOI:** ${a.doi}\n**Beslutning:** ${a.overallVerdict ?? ''}\n`).join('\n');
+      return { content, mimeType: 'text/markdown;charset=utf-8', filename: 'evidence-appraisal.md' };
+    }
+    return { content: JSON.stringify({ version: '1.0', exportedAt: new Date().toISOString(), articles: selected }, null, 2), mimeType: 'application/json;charset=utf-8', filename: 'evidence-appraisal.json' };
+  }
+
+  public static async generateZipBundle(articles: ArticleAppraisal[], options: ExportOptions): Promise<{ blob: Blob; filename: string }> {
+    const json = this.exportData(articles, 'json', options);
+    const csv = this.exportData(articles, 'csv', options);
+    const markdown = this.exportData(articles, 'markdown', options);
+    const blob = await createZipBundle({ 'evidence-appraisal.json': json.content, 'evidence-appraisal.csv': csv.content, 'evidence-appraisal.md': markdown.content });
+    return { blob, filename: `evidence-appraisal-${new Date().toISOString().slice(0, 10)}.zip` };
+  }
+
 }
 export function createCsvExport(rows:Record<string,unknown>[],columns:string[]):string{return[columns.map(csvEscape).join(','),...rows.map(row=>columns.map(c=>csvEscape(row[c])).join(','))].join('\n');}
 export async function createZipBundle(files:Record<string,string>):Promise<Blob>{const zip=new JSZip();for(const [name,content] of Object.entries(files))zip.file(name,content);return zip.generateAsync({type:'blob'});}
