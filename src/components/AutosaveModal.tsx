@@ -21,7 +21,7 @@ export const AutosaveModal: React.FC<AutosaveModalProps> = ({ isOpen, onClose, a
     if (isOpen) setSnapshots(AutosaveService.getSnapshots());
   }, [isOpen]);
 
-  useEffect(() => AutosaveService.subscribe(setAutosaveStatus), []);
+  useEffect(() => { const unsubscribe = AutosaveService.subscribe(setAutosaveStatus); return () => { unsubscribe(); }; }, []);
 
   if (!isOpen) return null;
 
