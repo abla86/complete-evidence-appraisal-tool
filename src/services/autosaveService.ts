@@ -22,7 +22,7 @@ class AutosaveManager {
     if (lastSaved) this.currentStatus = { state: 'saved', lastSavedAt: new Date(lastSaved), message: 'Tidligere lagring funnet' };
   }
 
-  subscribe(listener: StatusListener) { this.listeners.add(listener); listener(this.currentStatus); return () => this.listeners.delete(listener); }
+  subscribe(listener: StatusListener): (() => void) { this.listeners.add(listener); listener(this.currentStatus); return () => { this.listeners.delete(listener); }; }
   private notify(status: Partial<AutosaveStatus>) { this.currentStatus = { ...this.currentStatus, ...status }; this.listeners.forEach(listener => listener(this.currentStatus)); }
 
   loadArticles(fallback: ArticleAppraisal[] = []) {
