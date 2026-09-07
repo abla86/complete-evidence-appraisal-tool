@@ -598,6 +598,13 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 onClick={() => {
                   const newItem: GradeSummaryOfFindingsItem = {
                     id: generateUniqueId('sof'),
+                    reviewFinding: 'Forskerens dokumenterte vurdering av utfallet.',
+                    methodologicalLimitations: 'No or very minor concerns',
+                    coherence: 'No or very minor concerns',
+                    adequacyOfData: 'No or very minor concerns',
+                    relevance: 'No or very minor concerns',
+                    contributingStudies: 2,
+                    overallConfidence: 'High confidence',
                     outcomeName: 'Nytt klinisk utfall (f.eks. Livskvalitet SF-36)',
                     outcomeType: 'Continuous',
                     assumedRisk: 'Kontrollgruppe',
