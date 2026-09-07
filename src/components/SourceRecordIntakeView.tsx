@@ -40,7 +40,7 @@ export const SourceRecordIntakeView: React.FC = () => {
         journal: 'Example Journal', publicationDate: '2026', volume: '1', issue: '1'
       },
       identifiers: { doi: null },
-      referenceDraft: { apa7: 'Doe, J. (2026). Eksempelstudie. Example Journal.', status: 'complete', note: 'Draft â€“ detected metadata, not verified against source' },
+      referenceDraft: { apa7: 'Doe, J. (2026). Eksempelstudie. Example Journal.', status: 'complete', note: 'Draft – detected metadata, not verified against source' },
       legalReference: null,
       privacy: { sourceUrl: 'https://example.org/article', analyzedAt: new Date().toISOString(), externalResourceCount: 0, externalHosts: [], trackingIndicatorCount: 0, trackingHosts: [], signals: [], localOnlyAnalysis: true, localOnly: true },
       provenance: { tool: 'superprogram-demo', toolVersion: '1.0.0', collectedLocally: true, externalRequestsMade: false, collectedAt: new Date().toISOString() }
