@@ -1,13 +1,7 @@
 name: Evidence Tool Container
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
-
-permissions:
-  contents: read
-  packages: write
 
 jobs:
   docker:
