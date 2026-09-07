@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Resolve tag
@@ -33,7 +33,7 @@ jobs:
             echo "tag=build-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
           fi
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
