@@ -1,438 +1,88 @@
-import { generateId } from '../utils/id';
-/**
- * Open Scientific Research Database API Service
- * 
- * Provides unified, open-access access to both Norwegian and international
- * free, open scientific databases, repositories, and archives:
- * 
- * 1. OpenAlex (250M+ works, global & Norwegian research, universities, full open access)
- * 2. Europe PMC (35M+ open biomedical and life science publications, full-text links)
- * 3. Crossref (150M+ open DOIs across medicine, humanities, social sciences, natural sciences)
- * 4. PubMed / NCBI (36M+ biomedical and clinical records via Entrez API)
- * 5. Semantic Scholar (200M+ academic papers with citation counts and OA PDF links)
- * 6. DOAJ (Directory of Open Access Journals, 20k+ peer-reviewed OA journals)
- * 7. Norske Åpne Forskningsarkiver (UiO, UiB, NTNU, UiT, Cristin / NVA via OpenAlex NO filter)
- * 8. Preprints & Open Science (arXiv, bioRxiv, medRxiv via OpenAlex / Crossref / Europe PMC)
- * 9. Multi-Database Universal Search (Parallel multi-database federated query & deduplication)
- */
-
 export interface OpenResearchRecord {
   id: string;
-  source: 
-    | 'OpenAlex (Global & Norsk)' 
-    | 'Europe PMC' 
-    | 'Crossref' 
-    | 'PubMed / NCBI' 
-    | 'Semantic Scholar' 
-    | 'DOAJ (Open Access)' 
-    | 'Norske Forskningsarkiv (NVA/Cristin)' 
-    | 'Preprints (arXiv/medRxiv)'
-    | 'Multi-Database Føderert';
-  title: string;
-  authors: string;
-  journal: string;
-  year: string;
-  doi?: string;
-  doiUrl?: string;
-  pmid?: string;
-  openAlexId?: string;
-  abstract?: string;
-  isOpenAccess?: boolean;
-  openAccessPdfUrl?: string;
-  landingPageUrl?: string;
-  citationCount?: number;
-  institutionAffiliation?: string;
-  isNorwegianResearch?: boolean;
-  studyTypeHint?: string;
-  isImported?: boolean;
+  source: 'OpenAlex (Global & Norsk)' | 'Europe PMC' | 'Crossref' | 'PubMed / NCBI' | 'Semantic Scholar' | 'DOAJ (Open Access)' | 'Norske Forskningsarkiv (NVA/Cristin)' | 'Preprints (arXiv/medRxiv)' | 'Multi-Database Føderert';
+  title: string; authors: string; journal: string; year: string;
+  doi?: string; doiUrl?: string; pmid?: string; openAlexId?: string; abstract?: string;
+  isOpenAccess?: boolean; openAccessPdfUrl?: string; landingPageUrl?: string;
+  citationCount?: number; institutionAffiliation?: string; isNorwegianResearch?: boolean;
+  studyTypeHint?: string; isImported?: boolean;
 }
-
-export interface SearchDatabaseOption {
-  id: string;
-  name: string;
-  description: string;
-  badge: string;
-  isNorwegianFocused?: boolean;
-  isOpenAccessGuaranteed?: boolean;
-}
-
+export interface SearchDatabaseOption { id: string; name: string; description: string; badge: string; isNorwegianFocused?: boolean; isOpenAccessGuaranteed?: boolean; }
 export const OPEN_DATABASES: SearchDatabaseOption[] = [
-  {
-    id: 'universal',
-    name: 'Føderert Multi-Søk (Alle åpne baser samtidig)',
-    description: 'Søker simultant i OpenAlex, Europe PMC, Crossref, PubMed, Semantic Scholar og Norske arkiver.',
-    badge: 'Universell'
-  },
-  {
-    id: 'openalex',
-    name: 'OpenAlex (Global & Åpen Vitenskap)',
-    description: 'Verdens største åpne bibliografiske database med 250M+ vitenskapelige artikler, forfattere og institusjoner.',
-    badge: '250M+ artikler'
-  },
-  {
-    id: 'norwegian',
-    name: 'Norske Åpne Forskningsarkiv (NVA / Cristin / Univ)',
-    description: 'Filtrert søk for norskprodusert helse-, samfunns- og naturvitenskapelig forskning (UiO, NTNU, UiB, UiT m.fl.).',
-    badge: 'Norsk Forskning',
-    isNorwegianFocused: true
-  },
-  {
-    id: 'europepmc',
-    name: 'Europe PMC (Åpen biomedisin & helse)',
-    description: 'Europeisk åpen kilde for 35M+ medisinske artikler, kliniske studier og systematiske oversikter.',
-    badge: 'Fulltekst & OA'
-  },
-  {
-    id: 'crossref',
-    name: 'Crossref (Global DOI-register)',
-    description: 'Det offisielle åpne DOI-registeret for vitenskapelige tidsskrifter over alle akademiske disipliner.',
-    badge: '150M+ DOIs'
-  },
-  {
-    id: 'pubmed',
-    name: 'PubMed / NCBI (Medisinsk litteratur)',
-    description: 'US National Library of Medicine med MEDLINE, kliniske studier og helseforskning.',
-    badge: 'MEDLINE'
-  },
-  {
-    id: 'semanticscholar',
-    name: 'Semantic Scholar (Akademisk siteringsgraf)',
-    description: 'Åpen akademisk søkemotor fra Allen AI med siteringstall og direkte lenker til åpne PDF-er.',
-    badge: 'AI-beriket'
-  },
-  {
-    id: 'doaj',
-    name: 'DOAJ (Directory of Open Access Journals)',
-    description: 'Kvalitetssikret register over gratis, åpne fagfellevurderte tidsskrifter globalt.',
-    badge: '100% Gull OA',
-    isOpenAccessGuaranteed: true
-  },
-  {
-    id: 'preprints',
-    name: 'Preprint-arkiver (medRxiv, bioRxiv, arXiv)',
-    description: 'Åpne preprints og forhåndspublikasjoner for rask tilgang til nyeste forskningsresultater.',
-    badge: 'Preprints'
-  }
+  { id:'universal', name:'Føderert Multi-Søk', description:'Søk i flere åpne bibliografiske baser samtidig.', badge:'Universell' },
+  { id:'openalex', name:'OpenAlex', description:'Åpen global bibliografisk database.', badge:'OpenAlex' },
+  { id:'norwegian', name:'Norske forskningsarkiv', description:'Norsk forskning via åpne metadata.', badge:'Norsk', isNorwegianFocused:true },
+  { id:'europepmc', name:'Europe PMC', description:'Åpen biomedisinsk litteratur.', badge:'Biomedisin' },
+  { id:'crossref', name:'Crossref', description:'Åpent DOI-register.', badge:'DOI' },
+  { id:'pubmed', name:'PubMed / NCBI', description:'Biomedisinsk bibliografisk database.', badge:'MEDLINE' },
+  { id:'semanticscholar', name:'Semantic Scholar', description:'Akademisk søk og siteringsdata.', badge:'Siteringer' },
+  { id:'doaj', name:'DOAJ', description:'Register over åpne tidsskrifter.', badge:'Open Access', isOpenAccessGuaranteed:true },
+  { id:'preprints', name:'Preprints', description:'Åpne preprint-kilder.', badge:'Preprints' }
 ];
 
+const clean = (value: unknown) => String(value ?? '').replace(/<[^>]*>/g, '').trim();
+const boundedLimit = (limit: number, max = 25) => Math.min(Math.max(Number.isFinite(limit) ? Math.floor(limit) : 1, 1), max);
+
 export class OpenResearchApiService {
-  /**
-   * Search OpenAlex API
-   */
-  public static async searchOpenAlex(query: string, norwegianOnly = false, limit = 15): Promise<OpenResearchRecord[]> {
+  static async searchOpenAlex(query: string, norwegianOnly = false, limit = 15): Promise<OpenResearchRecord[]> {
     try {
-      let url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&per_page=${limit}`;
-      
-      if (norwegianOnly) {
-        url = `https://api.openalex.org/works?filter=authorships.institutions.country_code:NO,default.search:${encodeURIComponent(query)}&per_page=${limit}`;
-      }
-
-      const res = await fetch(url, { headers: { 'User-Agent': 'EvidenceAppraisalTool/2.0 (mailto:researcher@evidenceappraisal.org)' } });
-      if (!res.ok) throw new Error(`OpenAlex svarte med status ${res.status}`);
-      const data = await res.json();
-
-      const results: OpenResearchRecord[] = (data.results || []).map((w: any) => {
-        const authors = (w.authorships || [])
-          .map((a: any) => a.author?.display_name)
-          .filter(Boolean)
-          .join(', ') || 'Ikke oppgitt';
-
-        const norwegianInstitutions = (w.authorships || [])
-          .flatMap((a: any) => a.institutions || [])
-          .filter((inst: any) => inst.country_code === 'NO')
-          .map((inst: any) => inst.display_name);
-
-        const isNorwegian = norwegianInstitutions.length > 0 || norwegianOnly;
-        const institutionAffiliation = norwegianInstitutions.length > 0
-          ? norwegianInstitutions.slice(0, 2).join(' / ')
-          : (w.authorships?.[0]?.institutions?.[0]?.display_name || '');
-
-        let abstractText = '';
-        if (w.abstract_inverted_index) {
-          try {
-            const index = w.abstract_inverted_index;
-            const positions: [number, string][] = [];
-            Object.entries(index).forEach(([word, posArr]) => {
-              (posArr as number[]).forEach(p => positions.push([p, word]));
-            });
-            positions.sort((a, b) => a[0] - b[0]);
-            abstractText = positions.map(p => p[1]).join(' ');
-          } catch (e) {
-            abstractText = 'Sammendrag tilgjengelig i kildeartikkel.';
-          }
-        }
-
-        const doiRaw = w.doi ? w.doi.replace(/^https?:\/\/doi\.org\//i, '') : undefined;
-
-        return {
-          id: `openalex-${w.id?.replace('https://openalex.org/', '') || generateId()}`,
-          source: norwegianOnly ? 'Norske Forskningsarkiv (NVA/Cristin)' : 'OpenAlex (Global & Norsk)',
-          title: (w.title || 'Uten tittel').replace(/<[^>]*>?/gm, '').trim(),
-          authors,
-          journal: w.primary_location?.source?.display_name || w.host_venue?.name || 'Fagfellevurdert tidsskrift',
-          year: w.publication_year ? String(w.publication_year) : 'Ukjent',
-          doi: doiRaw,
-          doiUrl: doiRaw ? `https://doi.org/${doiRaw}` : undefined,
-          openAlexId: w.id,
-          abstract: abstractText || 'Sammendrag indeksert i OpenAlex repository.',
-          isOpenAccess: !!w.open_access?.is_oa,
-          openAccessPdfUrl: w.open_access?.oa_url || w.primary_location?.pdf_url,
-          landingPageUrl: w.primary_location?.landing_page_url || (doiRaw ? `https://doi.org/${doiRaw}` : undefined),
-          citationCount: w.cited_by_count,
-          institutionAffiliation,
-          isNorwegianResearch: isNorwegian,
-          studyTypeHint: w.type || 'journal-article'
-        };
-      });
-
-      return results;
-    } catch (err) {
-      console.warn('OpenAlex search error:', err);
-      return [];
-    }
-  }
-
-  /**
-   * Search Europe PMC API
-   */
-  public static async searchEuropePmc(query: string, limit = 15): Promise<OpenResearchRecord[]> {
-    try {
-      const url = `https://api.europepmc.org/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}&resultType=core`;
+      const filter = norwegianOnly ? `&filter=authorships.institutions.country_code:NO` : '';
+      const url = `https://api.openalex.org/works?search=${encodeURIComponent(query.trim())}${filter}&per_page=${boundedLimit(limit)}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`Europe PMC svarte med status ${res.status}`);
-      const data = await res.json();
-      
-      const list = data.resultList?.result || [];
-      return list.map((item: any) => ({
-        id: `epmc-${item.id || item.doi || generateId()}`,
-        source: 'Europe PMC',
-        title: (item.title || 'Uten tittel').replace(/<[^>]*>?/gm, '').trim(),
-        authors: item.authorString || (item.authorList?.author?.map((a: any) => a.fullName).join(', ')) || 'Ikke oppgitt',
-        journal: item.journalTitle || item.journalInfo?.journal?.title || 'Vitenskapelig tidsskrift',
-        year: item.pubYear ? String(item.pubYear) : 'Ukjent',
-        doi: item.doi,
-        doiUrl: item.doi ? `https://doi.org/${item.doi}` : undefined,
-        pmid: item.pmid,
-        abstract: (item.abstractText || '').replace(/<[^>]*>?/gm, '') || 'Sammendrag ikke tilgjengelig via åpen indeks.',
-        isOpenAccess: item.isOpenAccess === 'Y',
-        landingPageUrl: item.doi ? `https://doi.org/${item.doi}` : `https://europepmc.org/article/MED/${item.pmid}`,
-        citationCount: item.citedByCount || 0,
-        studyTypeHint: item.pubType || 'Research publication; peer-review status not verified by this field'
-      }));
-    } catch (err) {
-      console.warn('Europe PMC search error:', err);
-      return [];
-    }
-  }
-
-  /**
-   * Search Crossref API
-   */
-  public static async searchCrossref(query: string, limit = 15): Promise<OpenResearchRecord[]> {
-    try {
-      const url = `https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=${limit}&select=DOI,title,author,container-title,published,abstract,is-referenced-by-count,URL`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Crossref svarte med status ${res.status}`);
-      const data = await res.json();
-      
-      const list = data.message?.items || [];
-      return list.map((item: any) => {
-        const title = Array.isArray(item.title) ? item.title[0] : (item.title || 'Uten tittel');
-        const authorStr = Array.isArray(item.author) 
-          ? item.author.map((a: any) => `${a.family || ''} ${a.given || ''}`.trim()).join(', ')
-          : 'Ikke oppgitt';
-        const journal = Array.isArray(item['container-title']) ? item['container-title'][0] : 'Vitenskapelig publikasjon';
-        const year = item.published?.['date-parts']?.[0]?.[0] ? String(item.published['date-parts'][0][0]) : 'Ukjent';
-        
-        return {
-          id: `cr-${item.DOI || generateId()}`,
-          source: 'Crossref',
-          title: title.replace(/<[^>]*>?/gm, '').trim(),
-          authors: authorStr,
-          journal,
-          year,
-          doi: item.DOI,
-          doiUrl: item.DOI ? `https://doi.org/${item.DOI}` : undefined,
-          abstract: item.abstract ? item.abstract.replace(/<[^>]*>?/gm, '') : 'Sammendrag tilgjengelig i kildeartikkel.',
-          landingPageUrl: item.URL || (item.DOI ? `https://doi.org/${item.DOI}` : undefined),
-          citationCount: item['is-referenced-by-count'] || 0,
-          studyTypeHint: item.type || 'journal-article'
-        };
+      if (!res.ok) throw new Error(`OpenAlex HTTP ${res.status}`);
+      const data = await res.json() as { results?: Array<Record<string, unknown>> };
+      return (data.results || []).map(w => {
+        const authorships = Array.isArray(w.authorships) ? w.authorships as Array<Record<string, unknown>> : [];
+        const names = authorships.map(a => {
+          const author = a.author as Record<string, unknown> | undefined;
+          return clean(author?.display_name);
+        }).filter(Boolean);
+        const institutions = authorships.flatMap(a => Array.isArray(a.institutions) ? a.institutions as Array<Record<string, unknown>> : []).filter(i => i.country_code === 'NO').map(i => clean(i.display_name));
+        const doi = clean(w.doi).replace(/^https?:\/\/doi\.org\//i, '') || undefined;
+        return { id:`openalex-${clean(w.id).split('/').pop() || crypto.randomUUID()}`, source:norwegianOnly?'Norske Forskningsarkiv (NVA/Cristin)':'OpenAlex (Global & Norsk)', title:clean(w.title)||'Uten tittel', authors:names.join(', ')||'Ikke oppgitt', journal:clean((w.primary_location as Record<string,unknown>)?.source && ((w.primary_location as Record<string,unknown>).source as Record<string,unknown>)?.display_name)||'Vitenskapelig tidsskrift', year:w.publication_year?String(w.publication_year):'Ukjent', doi, doiUrl:doi?`https://doi.org/${doi}`:undefined, openAlexId:clean(w.id)||undefined, isOpenAccess:Boolean((w.open_access as Record<string,unknown>)?.is_oa), citationCount:Number(w.cited_by_count||0), institutionAffiliation:institutions.slice(0,2).join(' / ')||undefined, isNorwegianResearch:norwegianOnly||institutions.length>0, studyTypeHint:clean(w.type)||'journal-article' };
       });
-    } catch (err) {
-      console.warn('Crossref search error:', err);
-      return [];
-    }
+    } catch { return []; }
   }
 
-  /**
-   * Search PubMed via Entrez eUtils
-   */
-  public static async searchPubMed(query: string, limit = 12): Promise<OpenResearchRecord[]> {
+  static async searchEuropePmc(query: string, limit = 15): Promise<OpenResearchRecord[]> {
     try {
-      const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmode=json&retmax=${limit}`;
-      const sRes = await fetch(searchUrl);
-      if (!sRes.ok) throw new Error(`PubMed søk feilet med status ${sRes.status}`);
-      const sData = await sRes.json();
-      const idList: string[] = sData.esearchresult?.idlist || [];
-
-      if (idList.length === 0) return [];
-
-      const sumUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${idList.join(',')}&retmode=json`;
-      const sumRes = await fetch(sumUrl);
-      const sumData = await sumRes.json();
-      const resultObj = sumData.result || {};
-
-      return idList.map(pmid => {
-        const doc = resultObj[pmid] || {};
-        const authorList = doc.authors?.map((a: any) => a.name).join(', ') || 'Ikke oppgitt';
-        const pubDate = doc.pubdate ? doc.pubdate.split(' ')[0] : 'Ukjent';
-        const doi = doc.articleids?.find((aid: any) => aid.idtype === 'doi')?.value;
-
-        return {
-          id: `pmid-${pmid}`,
-          source: 'PubMed / NCBI',
-          title: (doc.title || 'Uten tittel').replace(/<[^>]*>?/gm, '').trim(),
-          authors: authorList,
-          journal: doc.source || 'PubMed Journal',
-          year: pubDate,
-          doi,
-          doiUrl: doi ? `https://doi.org/${doi}` : undefined,
-          pmid,
-          abstract: 'Indeksert i PubMed / National Center for Biotechnology Information (NCBI).',
-          landingPageUrl: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
-          studyTypeHint: doc.pubtype?.[0] || 'Medical Research'
-        };
-      });
-    } catch (err) {
-      console.warn('PubMed search error:', err);
-      return [];
-    }
+      const url=`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query.trim())}&format=json&pageSize=${boundedLimit(limit)}&resultType=core`;
+      const res=await fetch(url); if(!res.ok) throw new Error(`Europe PMC HTTP ${res.status}`);
+      const data=await res.json() as { resultList?: { result?: Array<Record<string,unknown>> } };
+      return (data.resultList?.result||[]).map(i=>({id:`epmc-${clean(i.id)||crypto.randomUUID()}`,source:'Europe PMC',title:clean(i.title)||'Uten tittel',authors:clean(i.authorString)||'Ikke oppgitt',journal:clean(i.journalTitle)||'Vitenskapelig tidsskrift',year:i.pubYear?String(i.pubYear):'Ukjent',doi:clean(i.doi)||undefined,doiUrl:i.doi?`https://doi.org/${clean(i.doi)}`:undefined,pmid:clean(i.pmid)||undefined,abstract:clean(i.abstractText)||undefined,isOpenAccess:i.isOpenAccess==='Y',landingPageUrl:i.pmid?`https://pubmed.ncbi.nlm.nih.gov/${clean(i.pmid)}/`:undefined,citationCount:Number(i.citedByCount||0),studyTypeHint:clean(i.pubType)||undefined}));
+    } catch { return []; }
   }
 
-  /**
-   * Search Semantic Scholar API
-   */
-  public static async searchSemanticScholar(query: string, limit = 12): Promise<OpenResearchRecord[]> {
+  static async searchCrossref(query: string, limit = 15): Promise<OpenResearchRecord[]> {
     try {
-      const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=${limit}&fields=title,authors,year,journal,externalIds,abstract,citationCount,isOpenAccess,venue,openAccessPdf`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Semantic Scholar svarte med status ${res.status}`);
-      const data = await res.json();
-      const list = data.data || [];
-
-      return list.map((item: any) => {
-        const authors = (item.authors || []).map((a: any) => a.name).join(', ') || 'Ikke oppgitt';
-        const doi = item.externalIds?.DOI;
-
-        return {
-          id: `s2-${item.paperId || generateId()}`,
-          source: 'Semantic Scholar',
-          title: (item.title || 'Uten tittel').trim(),
-          authors,
-          journal: item.journal?.name || item.venue || 'Vitenskapelig tidsskrift',
-          year: item.year ? String(item.year) : 'Ukjent',
-          doi,
-          doiUrl: doi ? `https://doi.org/${doi}` : undefined,
-          abstract: item.abstract || 'Sammendrag indeksert i Semantic Scholar.',
-          isOpenAccess: !!item.isOpenAccess,
-          openAccessPdfUrl: item.openAccessPdf?.url,
-          landingPageUrl: doi ? `https://doi.org/${doi}` : undefined,
-          citationCount: item.citationCount || 0,
-          studyTypeHint: 'Academic Paper'
-        };
-      });
-    } catch (err) {
-      console.warn('Semantic Scholar search error:', err);
-      return [];
-    }
+      const url=`https://api.crossref.org/works?query=${encodeURIComponent(query.trim())}&rows=${boundedLimit(limit)}&select=DOI,title,author,container-title,published,abstract,is-referenced-by-count,URL,type`;
+      const res=await fetch(url); if(!res.ok) throw new Error(`Crossref HTTP ${res.status}`);
+      const data=await res.json() as { message?: { items?: Array<Record<string,unknown>> } };
+      return (data.message?.items||[]).map(i=>{const doi=clean(i.DOI)||undefined; const authors=Array.isArray(i.author)?(i.author as Array<Record<string,unknown>>).map(a=>[a.family,a.given].filter(Boolean).join(' ')).join(', '):'Ikke oppgitt'; return {id:`cr-${doi||crypto.randomUUID()}`,source:'Crossref',title:clean(Array.isArray(i.title)?i.title[0]:i.title)||'Uten tittel',authors:authors||'Ikke oppgitt',journal:clean(Array.isArray(i['container-title'])?i['container-title'][0]:i['container-title'])||'Vitenskapelig tidsskrift',year:String(((i.published as Record<string,unknown>)?.['date-parts'] as number[][]|undefined)?.[0]?.[0]||'Ukjent'),doi,doiUrl:doi?`https://doi.org/${doi}`:undefined,landingPageUrl:clean(i.URL)||undefined,citationCount:Number(i['is-referenced-by-count']||0),studyTypeHint:clean(i.type)||undefined};});
+    } catch { return []; }
   }
 
-  /**
-   * Search DOAJ (Directory of Open Access Journals)
-   */
-  public static async searchDOAJ(query: string, limit = 12): Promise<OpenResearchRecord[]> {
+  static async searchPubMed(query: string, limit = 12): Promise<OpenResearchRecord[]> {
     try {
-      const url = `https://doaj.org/api/v2/search/articles/${encodeURIComponent(query)}?pageSize=${limit}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`DOAJ svarte med status ${res.status}`);
-      const data = await res.json();
-      const list = data.results || [];
-
-      return list.map((item: any) => {
-        const bib = item.bibjson || {};
-        const authors = (bib.author || []).map((a: any) => a.name).join(', ') || 'Ikke oppgitt';
-        const doiId = (bib.identifier || []).find((id: any) => id.type === 'doi')?.id;
-
-        return {
-          id: `doaj-${item.id || generateId()}`,
-          source: 'DOAJ (Open Access)',
-          title: (bib.title || 'Uten tittel').trim(),
-          authors,
-          journal: bib.journal?.title || 'Open Access Journal',
-          year: bib.year ? String(bib.year) : 'Ukjent',
-          doi: doiId,
-          doiUrl: doiId ? `https://doi.org/${doiId}` : undefined,
-          abstract: bib.abstract || 'Artikkel i fagfellevurdert åpent tidsskrift registrert i DOAJ.',
-          isOpenAccess: true,
-          landingPageUrl: doiId ? `https://doi.org/${doiId}` : bib.link?.[0]?.url,
-          studyTypeHint: 'Gold Open Access'
-        };
-      });
-    } catch (err) {
-      console.warn('DOAJ search error:', err);
-      return [];
-    }
+      const n=boundedLimit(limit,50); const search=await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query.trim())}&retmode=json&retmax=${n}`);
+      if(!search.ok) throw new Error('PubMed search failed'); const sd=await search.json() as {esearchresult?:{idlist?:string[]}}; const ids=sd.esearchresult?.idlist||[]; if(!ids.length)return [];
+      const summary=await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`); if(!summary.ok)throw new Error('PubMed summary failed'); const d=await summary.json() as {result?:Record<string,Record<string,unknown>>}; const result=d.result||{};
+      return ids.map(pmid=>{const x=result[pmid]||{}; const doi=Array.isArray(x.articleids)?(x.articleids as Array<Record<string,unknown>>).find(a=>a.idtype==='doi')?.value:undefined; return {id:`pmid-${pmid}`,source:'PubMed / NCBI',title:clean(x.title)||'Uten tittel',authors:Array.isArray(x.authors)?(x.authors as Array<Record<string,unknown>>).map(a=>clean(a.name)).join(', '):'Ikke oppgitt',journal:clean(x.source)||'PubMed',year:clean(String(x.pubdate||'')).split(' ')[0]||'Ukjent',doi:clean(doi)||undefined,doiUrl:doi?`https://doi.org/${clean(doi)}`:undefined,pmid,landingPageUrl:`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,studyTypeHint:Array.isArray(x.pubtype)?clean((x.pubtype as unknown[])[0]):'Medical Research'};});
+    } catch { return []; }
   }
 
-  /**
-   * Universal Federated Search across all open databases simultaneously with deduplication
-   */
-  public static async searchUniversal(query: string): Promise<OpenResearchRecord[]> {
-    const promises = [
-      this.searchOpenAlex(query, false, 8),
-      this.searchEuropePmc(query, 8),
-      this.searchCrossref(query, 8),
-      this.searchPubMed(query, 6),
-      this.searchSemanticScholar(query, 6),
-      this.searchOpenAlex(query, true, 6), // Norwegian research query
-      this.searchDOAJ(query, 6)
-    ];
+  static async searchSemanticScholar(query: string, limit = 12): Promise<OpenResearchRecord[]> {
+    try { const url=`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query.trim())}&limit=${boundedLimit(limit)}&fields=title,authors,year,journal,externalIds,abstract,citationCount,isOpenAccess,venue,openAccessPdf`; const res=await fetch(url); if(!res.ok)throw new Error('Semantic Scholar failed'); const data=await res.json() as {data?:Array<Record<string,unknown>>}; return (data.data||[]).map(i=>{const ext=i.externalIds as Record<string,unknown>|undefined; const doi=clean(ext?.DOI)||undefined; const journal=i.journal as Record<string,unknown>|undefined; return {id:`s2-${clean(i.paperId)||crypto.randomUUID()}`,source:'Semantic Scholar',title:clean(i.title)||'Uten tittel',authors:Array.isArray(i.authors)?(i.authors as Array<Record<string,unknown>>).map(a=>clean(a.name)).join(', '):'Ikke oppgitt',journal:clean(journal?.name)||clean(i.venue)||'Vitenskapelig tidsskrift',year:i.year?String(i.year):'Ukjent',doi,doiUrl:doi?`https://doi.org/${doi}`:undefined,abstract:clean(i.abstract)||undefined,isOpenAccess:Boolean(i.isOpenAccess),openAccessPdfUrl:clean((i.openAccessPdf as Record<string,unknown>)?.url)||undefined,citationCount:Number(i.citationCount||0),landingPageUrl:doi?`https://doi.org/${doi}`:undefined,studyTypeHint:'Academic Paper'};}); } catch { return []; }
+  }
 
-    const allSettled = await Promise.allSettled(promises);
-    const combined: OpenResearchRecord[] = [];
+  static async searchDOAJ(query: string, limit = 12): Promise<OpenResearchRecord[]> {
+    try { const res=await fetch(`https://doaj.org/api/v2/search/articles/${encodeURIComponent(query.trim())}?pageSize=${boundedLimit(limit)}`); if(!res.ok)throw new Error('DOAJ failed'); const data=await res.json() as {results?:Array<Record<string,unknown>>}; return (data.results||[]).map(i=>{const bib=i.bibjson as Record<string,unknown>|undefined; const doi=Array.isArray(bib?.identifier)?(bib.identifier as Array<Record<string,unknown>>).find(x=>x.type==='doi')?.id:undefined; const journal=bib?.journal as Record<string,unknown>|undefined; return {id:`doaj-${clean(i.id)||crypto.randomUUID()}`,source:'DOAJ (Open Access)',title:clean(bib?.title)||'Uten tittel',authors:Array.isArray(bib?.author)?(bib.author as Array<Record<string,unknown>>).map(a=>clean(a.name)).join(', '):'Ikke oppgitt',journal:clean(journal?.title)||'Open Access Journal',year:clean(bib?.year)||'Ukjent',doi:clean(doi)||undefined,doiUrl:doi?`https://doi.org/${clean(doi)}`:undefined,isOpenAccess:true,landingPageUrl:doi?`https://doi.org/${clean(doi)}`:undefined,studyTypeHint:'Gold Open Access'};}); } catch { return []; }
+  }
 
-    allSettled.forEach(res => {
-      if (res.status === 'fulfilled' && Array.isArray(res.value)) {
-        combined.push(...res.value);
-      }
-    });
-
-    // Deduplicate by DOI or Normalized Title
-    const seenDois = new Set<string>();
-    const seenTitles = new Set<string>();
-    const deduplicated: OpenResearchRecord[] = [];
-
-    combined.forEach(rec => {
-      const normDoi = rec.doi?.toLowerCase().trim();
-      const normTitle = rec.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 50);
-
-      if (normDoi && seenDois.has(normDoi)) return;
-      if (normTitle && seenTitles.has(normTitle)) return;
-
-      if (normDoi) seenDois.add(normDoi);
-      if (normTitle) seenTitles.add(normTitle);
-
-      deduplicated.push(rec);
-    });
-
-    // Sort by: Norwegian research first, then citation count / relevance
-    deduplicated.sort((a, b) => {
-      if (a.isNorwegianResearch && !b.isNorwegianResearch) return -1;
-      if (!a.isNorwegianResearch && b.isNorwegianResearch) return 1;
-      return (b.citationCount || 0) - (a.citationCount || 0);
-    });
-
-    return deduplicated;
+  static async searchUniversal(query: string): Promise<OpenResearchRecord[]> {
+    const results=(await Promise.allSettled([this.searchOpenAlex(query,false,8),this.searchEuropePmc(query,8),this.searchCrossref(query,8),this.searchPubMed(query,6),this.searchSemanticScholar(query,6),this.searchOpenAlex(query,true,6),this.searchDOAJ(query,6)])).flatMap(r=>r.status==='fulfilled'?r.value:[]);
+    const seen=new Set<string>(); const output:OpenResearchRecord[]=[];
+    for(const record of results){const key=record.doi?.toLowerCase().trim()||record.title.toLowerCase().replace(/[^\p{L}\p{N}]/gu,'').slice(0,80); if(!key||seen.has(key))continue; seen.add(key); output.push(record);}
+    return output.sort((a,b)=>Number(Boolean(b.isNorwegianResearch))-Number(Boolean(a.isNorwegianResearch))||(b.citationCount||0)-(a.citationCount||0));
   }
 }
