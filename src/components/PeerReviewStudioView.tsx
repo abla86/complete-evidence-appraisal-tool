@@ -100,7 +100,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
   // Form state for evaluating current study
   const [evalFormItems, setEvalFormItems] = useState<Record<number, { status: AssessmentStatus; justification: string }>>({});
-  const [evalOverallVerdict, setEvalOverallVerdict] = useState<'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon'>('Inkluder');
+  const [evalOverallVerdict, setEvalOverallVerdict] = useState<NonNullable<PeerReviewSubmission['overallVerdict']>>('Inkluder');
   const [evalVerdictRationale, setEvalVerdictRationale] = useState('');
 
   // Sync form state when active reviewer or selected study changes
@@ -138,7 +138,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
   // Consensus drafting state
   const [consensusDraft, setConsensusDraft] = useState<{
     itemConsensus: Record<number, { status: AssessmentStatus; rationale: string }>;
-    overallVerdict: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'SÃ¸k mer informasjon';
+    overallVerdict: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon';
     verdictRationale: string;
     consensusNotes: string;
   }>({
@@ -862,7 +862,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               </h4>
 
               <div className="flex flex-wrap items-center gap-3">
-                {(['Inkluder', 'Vurder videre', 'SÃ¸k mer informasjon', 'Ekskluder'] as const).map(verdict => (
+                {(['Inkluder', 'Vurder videre', 'Søk mer informasjon', 'Ekskluder'] as const).map(verdict => (
                   <button
                     key={verdict}
                     type="button"
@@ -1187,7 +1187,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               </h4>
 
               <div className="flex flex-wrap items-center gap-3">
-                {(['Inkluder', 'Vurder videre', 'SÃ¸k mer informasjon', 'Ekskluder'] as const).map(v => (
+                {(['Inkluder', 'Vurder videre', 'Søk mer informasjon', 'Ekskluder'] as const).map(v => (
                   <button
                     key={v}
                     type="button"
