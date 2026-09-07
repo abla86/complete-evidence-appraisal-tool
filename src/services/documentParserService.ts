@@ -8,6 +8,8 @@ export function normalizeDoi(value: string): string { return String(value || '')
 
 export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*â€ â€¡Â§0-9Â¹Â²Â³â´âµâ¶â·â¸â¹]+/g, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
 
+export interface ParserInput { name: string; size: number; type?: string; content?: ArrayBuffer | string; text?: () => Promise<string>; arrayBuffer?: () => Promise<ArrayBuffer>; }
+
 export interface FileParseResult {
   fileName: string;
   fileSizeBytes: number;
@@ -76,7 +78,7 @@ export class DocumentParserService {
    * Parses raw file content (ArrayBuffer or string) into structured scientific text and metadata
    */
   public static async parseFile(
-    file: File | { name: string; size: number; content: ArrayBuffer | string }
+    file: ParserInput
   ): Promise<FileParseResult> {
     const validation = this.validateFile({
       name: file.name,
@@ -156,7 +158,7 @@ export class DocumentParserService {
   /**
    * Plain text extraction (UTF-8)
    */
-  private static async extractPlainText(file: File | { name: string; size: number; content: ArrayBuffer | string }): Promise<string> {
+  private static async extractPlainText(file: ParserInput): Promise<string> {
     if (typeof file.text === 'function') {
       return await file.text();
     }
@@ -174,7 +176,7 @@ export class DocumentParserService {
    * PDF text extraction engine
    * Detects embedded text streams, Tj/TJ operators, and flags scanned PDFs
    */
-  private static async extractPdfText(file: File | { name: string; size: number; content: ArrayBuffer | string }): Promise<{ text: string; isScanned: boolean; ocrNeeded: boolean }> {
+  private static async extractPdfText(file: ParserInput): Promise<{ text: string; isScanned: boolean; ocrNeeded: boolean }> {
     let buffer: ArrayBuffer;
     if (typeof file.arrayBuffer === 'function') {
       buffer = await file.arrayBuffer();
@@ -201,7 +203,7 @@ export class DocumentParserService {
         const page = await pdf.getPage(pageNumber);
         const content = await page.getTextContent();
         const pageText = content.items
-          .map((item: unknown) => typeof item.str === 'string' ? item.str : '')
+          .map((item: unknown) => { const record = item && typeof item === 'object' ? item as { str?: unknown } : {}; return typeof record.str === 'string' ? record.str : ''; })
           .join(' ')
           .replace(/\\s{2,}/g, ' ')
           .trim();
@@ -232,7 +234,7 @@ export class DocumentParserService {
    * Word DOCX text extraction
    * Extracts text from <w:t> tags
    */
-  private static async extractDocxText(file: File | { name: string; size: number; content: ArrayBuffer | string }): Promise<string> {
+  private static async extractDocxText(file: ParserInput): Promise<string> {
     let buffer: ArrayBuffer;
     if (typeof file.arrayBuffer === 'function') {
       buffer = await file.arrayBuffer();
