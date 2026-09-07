@@ -42,7 +42,7 @@ export function buildAppraisalResult(session: { instrumentId: string; instrument
         const qualitative = session.instrumentId === 'casp-qualitative';
         if (qualitative) {
           const mapped = Object.fromEntries(session.responses.map(r => [Number(r.itemId), String(r.answer)]));
-          const result = CaspValidationService.evaluateQualitative(mapped as Record<number, 'Yes' | 'Canâ€™t tell' | 'No'>);
+          const result = CaspValidationService.evaluateQualitative(mapped as Record<number, 'Yes' | 'Can't tell' | 'No'>);
           return { instrumentId: session.instrumentId, instrumentVersion: session.instrumentVersion, studyId: session.studyId, reviewerId: session.reviewerId, status, completionPercent, result };
         }
       }
