@@ -36,10 +36,13 @@ jobs:
         run: npm ci
 
       - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
         run: npm run lint
 
       - name: Test
-        run: npm test
+        run: npm test -- --test-concurrency=1
 
       - name: Production build
         run: npm run build
