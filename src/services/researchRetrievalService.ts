@@ -76,7 +76,7 @@ export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, '
   return ids.map(id => {
     const item = (summary?.result?.[id] ?? {}) as Record<string, unknown>;
     const authors = (Array.isArray(item.authors) ? item.authors : []).map(authorName).filter(Boolean);
-    const articleids = Array.isArray(item.articleids) ? item.articleids as Record<string, unknown>[] : [];
+    const articleids = Array.isArray(item.articleids) ? item.articleids.map(value => value && typeof value === 'object' ? value as { idtype?: unknown; value?: unknown } : {}) : [];
     const doi = articleids.find(x => x.idtype === 'doi')?.value;
     const pmcid = articleids.find(x => x.idtype === 'pmc')?.value;
     return {
