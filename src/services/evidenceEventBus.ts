@@ -20,6 +20,12 @@
     instrumentId: string;
     reviewerId: string;
   };
+  'appraisal.session.locked': {
+    studyId: string;
+    sessionId: string;
+    instrumentId: string;
+    reviewerId: string;
+  };
   'appraisal.session.finalized': {
     studyId: string;
     sessionId: string;
