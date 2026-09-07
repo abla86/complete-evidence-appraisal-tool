@@ -19,6 +19,9 @@ export interface GateCheckItem {
 }
 
 export interface MethodIntegrityGateResult {
+  isValid?: boolean;
+  errors?: string[];
+  isReady?: boolean;
   appraisalId: string;
   articleCitation: string;
   instrumentId: string;
