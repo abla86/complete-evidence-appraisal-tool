@@ -338,7 +338,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    {getAssessmentTypeBadge(activeRefArticle.referenceAssessmentType)}
+                    {getAssessmentTypeBadge(activeRefArticle.referenceAssessmentType as ReferenceAssessmentType)}
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
                       <ShieldCheck className="w-3 h-3 text-teal-600" />
                       Status: {activeRefArticle.verificationStatus}
