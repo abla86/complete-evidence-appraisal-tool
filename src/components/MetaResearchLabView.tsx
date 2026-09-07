@@ -196,9 +196,9 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
       onSelectInstrumentForAssessment(instId, {
         title: report.extractedTitle,
         authors: report.extractedAuthors,
-        year: report.extractedYear ? Number.parseInt(report.extractedYear, 10) : undefined,
+        year: report.extractedYear ? Number.parseInt(String(report.extractedYear), 10) : undefined,
         doi: report.extractedDoi || '',
-        studyDesign: report.classification.documentTypeName
+        studyDesign: report.classification.documentTypeName || ''
       });
       showToast(`Starter vurdering med ${instId.toUpperCase()}`, 'success');
     }
