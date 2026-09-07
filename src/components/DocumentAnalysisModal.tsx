@@ -172,7 +172,7 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
         showToast(`Dokument lastet opp og parset (${parsed.wordCount} ord).`);
       }
     } catch (err: unknown) {
-      showToast(`Feil under filparsing: ${err.message}`, 'error');
+      showToast(`Feil under filparsing: ${err instanceof Error ? err.message : 'Ukjent feil'}`, 'error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -222,7 +222,8 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
           estimatedPages: Math.max(1, Math.ceil(words.length / 500)),
           metadata: parsedMetadata,
           sections,
-          candidateEvidence: analysis.candidateEvidence
+          candidateEvidence: analysis.candidateEvidence,
+          imradAnalysis: analysis.imradAnalysis
         });
 
         performClassification(pastedText, fileName, parsedMetadata);
