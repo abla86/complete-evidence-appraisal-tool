@@ -130,7 +130,7 @@ export interface WorkflowState {
   studyDesign: string;
   screening: ScreeningRecord[];
   appraisalSessions: AppraisalSession[];
-  events: unknown[];
+  events: readonly unknown[];
   research?: ResearchWorkflowContext;
 }
 
