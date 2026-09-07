@@ -93,6 +93,11 @@ export class PrivacyAndSecurityService {
     try {
       localStorage.removeItem('evidence_appraisal_articles_vault_v2');
       localStorage.removeItem('evidence_appraisal_snapshots_vault_v2');
+      localStorage.removeItem('evidence-appraisal-appraisal-sessions-v1');
+      localStorage.removeItem('evidence-appraisal-quality-assessments-v1');
+      localStorage.removeItem('evidence-appraisal-reference-hub-v1');
+      localStorage.removeItem('complete-evidence-appraisal-tool:appraisal-workflows:v1');
+      localStorage.removeItem('evidence-appraisal-audit-trail-v1');
       localStorage.removeItem('jbi_research_group_workspace_v1');
       localStorage.removeItem('complete-evidence-appraisal-tool:research-workflows:v1');
       localStorage.removeItem('complete-evidence-appraisal-tool:appraisal-workflows:v1');
