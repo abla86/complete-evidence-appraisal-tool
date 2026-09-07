@@ -1,6 +1,5 @@
 ﻿import React, { useState } from 'react';
 import { ArticleAppraisal, AssessmentStatus, JBIEvaluationItem } from '../types';
-import { createId } from '../utils/id';
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { StatusBadge } from './StatusBadge';
 import { 
@@ -26,7 +25,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
 
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('');
-  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [year, setYear] = useState<number | undefined>(undefined);
   const [journal, setJournal] = useState('');
   const [doi, setDoi] = useState('');
   const [design, setDesign] = useState('');
@@ -62,7 +61,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
   const uklartCount = items.filter(i => i.status === 'Uklart').length;
   const neiCount = items.filter(i => i.status === 'Nei').length;
 
-  const shortCitation = authors ? `${authors.split(',')[0].trim()} et al. (${year})` : 'Ny artikkel';
+  const shortCitation = authors ? `${authors.split(',')[0].trim()} et al.${year ? ` (${year})` : ''}` : 'Ny artikkel';
 
   // Auto generated thesis paragraph
   const generatedParagraph = `${shortCitation} oppnÃ¥dde ${jaCount} Ã‚Â«JaÃ‚Â»${uklartCount > 0 ? `, ${uklartCount} Ã‚Â«UklartÃ‚Â»` : ''}${neiCount > 0 ? ` og ${neiCount} Ã‚Â«NeiÃ‚Â»` : ''}. Studien benyttet ${design.toLowerCase()} og samlet data via ${dataCollection.toLowerCase()}. Analysen ble gjennomfÃ¸rt ved hjelp av ${analyticMethod.toLowerCase()}. Samlet vurderes studien til Ã¥ holde ${jaCount >= 8 ? 'god metodisk kvalitet' : 'akseptabel metodisk kvalitet'}, og ${overallVerdict === 'Inkluder' ? 'inkluderes i kunnskapsgrunnlaget' : 'vurderes videre fÃ¸r eventuell inklusjon'}.`;
@@ -75,7 +74,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
     }
 
     const newArticle: ArticleAppraisal = {
-      id: createId('custom'),
+      id: `custom-${Date.now()}`,
       authors,
       shortCitation,
       year,
@@ -83,9 +82,9 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
       journal,
       doi: doi || '',
       doiUrl: doi ? `https://doi.org/${doi}` : undefined,
-      sourceUrl: doi ? `https://doi.org/${doi}` : '',
-      sourceName: journal || 'Manuell registrert',
-      studyContext: studyContext || '',
+      sourceUrl: undefined,
+      sourceName: journal || undefined,
+      studyContext: studyContext || undefined,
       design,
       dataCollection,
       participants,

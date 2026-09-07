@@ -4,7 +4,7 @@
 ![Methodology Integrity](https://img.shields.io/badge/Methodology%20Integrity-Source%20Controlled-teal)
 ![Version Locking](https://img.shields.io/badge/Version%20Locking-Immutable-emerald)
 ![Test Pyramid](https://img.shields.io/badge/Test%20Pyramid-Level%201%20%7C%202%20%7C%203-blue)
-![Distribution](https://img.shields.io/badge/Distribution-Private%20%2F%20Proprietary-slate)
+![License](https://img.shields.io/badge/License-Academic%20%2F%20Open%20Access-slate)
 
 ---
 
@@ -126,23 +126,9 @@ Systemet verifiseres i henhold til en 3-nivås testpyramide:
 
 ---
 
-## 7. LISENS, EIERSKAP OG DISTRIBUSJON
+## 7. LISENS OG RETTIGHETER
 
-Systemet er et privat og proprietært programvareprosjekt. Kildekoden skal ikke publiseres som åpen kildekode som del av ordinær produktdistribusjon. GitHub-repositoriet er et privat utviklings- og kildekodelager.
-
-Produktet kan senere distribueres som ferdig programvare eller som en kontrollert/hostet tjeneste uten at kildekoden gjøres tilgjengelig for sluttbrukeren.
-
-Dette endrer ikke lisensvilkårene for tredjepartskomponenter eller metodiske instrumenter. Programvaren skal respektere gjeldende opphavsrett, varemerker, databaserettigheter og lisensvilkår for alle eksterne biblioteker, metoder, manualer, datasett og API-er. At en metodisk kilde er åpent tilgjengelig betyr ikke automatisk at dens tekst, sjekkliste eller innhold kan redistribueres fritt.
-
-### Produktprinsipp
-
-- **Source code:** privat.
-- **Evidence data:** tilgangsstyrt og ikke offentliggjort.
-- **Research projects:** isolert per bruker/prosjekt.
-- **AI credentials:** server-side secrets; aldri i klientkode.
-- **Methodology sources:** versjonslåst og provenance-sporet.
-- **Distribution:** kan være lisensiert programvare eller kontrollert tjeneste.
-- **Public portfolio:** skal bruke separate demoer/eksempler og ikke eksponere proprietær kjernelogikk.
+Systemet respekterer alle opphavsrettslige rammer og Creative Commons-lisenser (f.eks. CC BY 4.0 for AMSTAR 2 og RoB 2, CC BY-NC-SA 4.0 for CASP UK, og åpen forskningsbruk for JBI og AGREE Research Trust).
 
 
 ## Google OAuth 2.0

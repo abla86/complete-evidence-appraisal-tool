@@ -1,5 +1,4 @@
-﻿import React
-import { createId } from '../utils/id';, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, Database, ExternalLink, Plus, Check, Clock, BookOpen, Filter, AlertCircle,
   Download, RefreshCw, Sparkles, FileText, BookmarkPlus, Globe2, Lock, Unlock,
@@ -23,27 +22,18 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
   const [filterOpenAccessOnly, setFilterOpenAccessOnly] = useState<boolean>(false);
   const [verificationByDoi, setVerificationByDoi] = useState<Record<string, any>>({});
   const [verifyingDoi, setVerifyingDoi] = useState<string | null>(null);
-  const [history, setHistory] = useState<SearchHistoryEntry[]>([]);
-  const LOCAL_SEARCH_HISTORY_ENABLED =
-    typeof import.meta !== 'undefined' &&
-    import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
-
-  useEffect(() => {
-    if (!LOCAL_SEARCH_HISTORY_ENABLED || typeof localStorage === 'undefined') return;
-    try {
-      const saved = localStorage.getItem('evidence_appraisal_search_history_v2');
-      if (saved) setHistory(JSON.parse(saved) as SearchHistoryEntry[]);
-    } catch {
-      setHistory([]);
-    }
-  }, []);
+  const [history, setHistory] = useState<SearchHistoryEntry[]>(() => {
+    const saved = localStorage.getItem('evidence_appraisal_search_history_v2');
+    if (saved) { try { return JSON.parse(saved); } catch { return []; } }
+    return [];
+  });
   const [importedIds, setImportedIds] = useState<Set<string>>(() => {
     const set = new Set<string>();
     existingArticles.forEach(a => { if (a.doi) set.add(a.doi.toLowerCase().trim()); if (a.title) set.add(a.title.toLowerCase().trim()); });
     return set;
   });
 
-  useEffect(() => { if (LOCAL_SEARCH_HISTORY_ENABLED && typeof localStorage !== 'undefined') localStorage.setItem('evidence_appraisal_search_history_v2', JSON.stringify(history)); }, [history]);
+  useEffect(() => { localStorage.setItem('evidence_appraisal_search_history_v2', JSON.stringify(history)); }, [history]);
 
   const handleSearch = async (overrideQuery?: string, overrideDb?: string) => {
     const q = (overrideQuery !== undefined ? overrideQuery : query).trim();
@@ -63,7 +53,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
       else if (db === 'doaj') fetched = await OpenResearchApiService.searchDOAJ(q, 15);
       else if (db === 'preprints') fetched = await OpenResearchApiService.searchEuropePmc(`${q} AND (SRC:PPR OR HAS_BOOK:N)`, 15);
       setResults(fetched);
-      const histItem: SearchHistoryEntry = { id: createId('hist'), query: q, source: dbConfig.name, timestamp: new Date().toISOString(), resultsCount: fetched.length };
+      const histItem: SearchHistoryEntry = { id: `hist-${Date.now()}`, query: q, source: dbConfig.name, timestamp: new Date().toISOString(), resultsCount: fetched.length };
       setHistory(prev => [histItem, ...prev.filter(h => h.query !== q).slice(0, 19)]);
       showToast(fetched.length === 0 ? `Ingen Ã¥pne artikler funnet i ${dbConfig.name} for "${q}"` : `Fant ${fetched.length} treff i ${dbConfig.name}. Treffene er ikke automatisk klassifisert som fagfellevurderte.`, fetched.length === 0 ? 'info' : 'success');
     } catch (err: unknown) { console.error('Search error:', err); showToast(`SÃ¸kefeil: ${err.message || 'Kunne ikke kontakte databasen'}`, 'error'); }

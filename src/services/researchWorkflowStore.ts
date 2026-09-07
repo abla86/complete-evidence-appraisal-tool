@@ -75,12 +75,12 @@ export class LocalStorageResearchWorkflowStore extends InMemoryResearchWorkflowS
   }
 
   private persist(): void {
-    if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(this.storageKey, JSON.stringify(this.list()));
   }
 
   private restore(): void {
-    if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
+    if (typeof localStorage === 'undefined') return;
     const raw = localStorage.getItem(this.storageKey);
     if (!raw) return;
     try {
@@ -95,12 +95,8 @@ export class LocalStorageResearchWorkflowStore extends InMemoryResearchWorkflowS
   }
 }
 
-const LOCAL_RESEARCH_PERSISTENCE_ENABLED =
-  typeof import.meta !== 'undefined' &&
-  import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
-
 export const researchWorkflowStore: ResearchWorkflowStore =
-  LOCAL_RESEARCH_PERSISTENCE_ENABLED && typeof localStorage !== 'undefined'
+  typeof localStorage !== 'undefined'
     ? new LocalStorageResearchWorkflowStore()
     : new InMemoryResearchWorkflowStore();
 

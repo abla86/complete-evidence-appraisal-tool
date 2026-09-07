@@ -30,7 +30,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
           Det Viktigste Metodiske Skillet i Kvalitativ Forskning
         </h2>
         <p className="text-sm text-slate-600 mt-2 max-w-3xl leading-relaxed">
-          Når man gjør en kunnskapsoppsummering i en masteroppgave eller vitenskapelig artikkel, er det avgjørende å forstå <strong>hvilken type kunnskap</strong> et forskningsdesign produserer, og hvor langt forfatterne kan trekke sine konklusjoner.
+          NÃ¥r man gjÃ¸r en kunnskapsoppsummering i en masteroppgave eller vitenskapelig artikkel, er det avgjÃ¸rende Ã¥ forstÃ¥ <strong>hvilken type kunnskap</strong> et forskningsdesign produserer, og hvor langt forfatterne kan trekke sine konklusjoner.
         </p>
       </div>
 
@@ -43,7 +43,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
           <div className="space-y-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                Avgjørende Feilslutning å Unngå
+                AvgjÃ¸rende Feilslutning Ã¥ UnngÃ¥
               </span>
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-serif mt-1">
                 Kvalitative studier kan IKKE alene etablere kausal effekt
@@ -51,8 +51,8 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
             </div>
 
             <p className="text-sm text-slate-800 leading-relaxed">
-              Det er en vanlig metodisk fallgruve å hevde at en kvalitativ studie Â«viser effekten av et tiltakÂ». 
-              Kvalitativ forskning undersøker <strong>opplevelser, meningsdanning, kontekstuelle nyanser og sosiale prosesser</strong>, ikke kontrollerte årsakssammenhenger (kausalitet).
+              Det er en vanlig metodisk fallgruve Ã¥ hevde at en kvalitativ studie Â«viser effekten av et tiltakÂ». 
+              Kvalitativ forskning undersÃ¸ker <strong>opplevelser, meningsdanning, kontekstuelle nyanser og sosiale prosesser</strong>, ikke kontrollerte Ã¥rsakssammenhenger (kausalitet).
             </p>
 
             {/* Two Column Case Comparison */}
@@ -60,7 +60,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
               <div className="bg-white p-5 rounded-lg border border-amber-200 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold text-slate-900 font-serif">
-                    Studie A – Kvalitativ Intervensjonsevaluering
+                    Studie A â€“ Kvalitativ Intervensjonsevaluering
                   </h4>
                   <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
                     Folkehelse / Framework
@@ -68,10 +68,10 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
                 </div>
                 <div className="text-xs text-slate-700 space-y-2">
                   <p>
-                    <strong className="text-rose-700">Feil konklusjon:</strong> Â«Kvalitative intervjuer dokumenterer at helseprogrammet beviselig forbedrer ernæringsstatus og reduserer sykdom.Â»
+                    <strong className="text-rose-700">Feil konklusjon:</strong> Â«Kvalitative intervjuer dokumenterer at helseprogrammet beviselig forbedrer ernÃ¦ringsstatus og reduserer sykdom.Â»
                   </p>
                   <p>
-                    <strong className="text-emerald-800">Riktig metodisk tolkning:</strong> Studien undersøker <em>hvordan deltakere, familier og helsearbeidere beskriver og erfarer</em> tiltaket og mulige barrierer for etterlevelse. Studien kan ikke isolere tiltakets kausale effekt fra andre samtidige sosiale, økonomiske eller kulturelle faktorer.
+                    <strong className="text-emerald-800">Riktig metodisk tolkning:</strong> Studien undersÃ¸ker <em>hvordan deltakere, familier og helsearbeidere beskriver og erfarer</em> tiltaket og mulige barrierer for etterlevelse. Studien kan ikke isolere tiltakets kausale effekt fra andre samtidige sosiale, Ã¸konomiske eller kulturelle faktorer.
                   </p>
                 </div>
               </div>
@@ -79,7 +79,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
               <div className="bg-white p-5 rounded-lg border border-amber-200 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold text-slate-900 font-serif">
-                    Studie B – Tverretatlig Samhandling
+                    Studie B â€“ Tverretatlig Samhandling
                   </h4>
                   <span className="text-[10px] font-bold uppercase bg-teal-100 text-teal-800 px-2 py-0.5 rounded">
                     Allmennmedisin / GT
@@ -90,7 +90,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
                     <strong className="text-rose-700">Feil konklusjon:</strong> Â«Studien viser hvilke tiltak som objektivt sett forbedrer samhandlingskvalitet i helse- og omsorgstjenesten.Â»
                   </p>
                   <p>
-                    <strong className="text-emerald-800">Riktig metodisk tolkning:</strong> Studien belyser <em>hvordan helsepersonell opplever, forstår og navigerer samhandlingsprosesser</em>. Siden kun Ã©n profesjonsgruppe ble intervjuet, reflekterer funnene denne gruppens erfaringer, ikke et objektivt målt samarbeidsresultat på tvers av etater.
+                    <strong className="text-emerald-800">Riktig metodisk tolkning:</strong> Studien belyser <em>hvordan helsepersonell opplever, forstÃ¥r og navigerer samhandlingsprosesser</em>. Siden kun Ã©n profesjonsgruppe ble intervjuet, reflekterer funnene denne gruppens erfaringer, ikke et objektivt mÃ¥lt samarbeidsresultat pÃ¥ tvers av etater.
                   </p>
                 </div>
               </div>
@@ -126,10 +126,10 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
               </span>
             </div>
             <ul className="text-xs text-slate-700 space-y-2 list-disc list-inside leading-relaxed">
-              <li><strong>Formål:</strong> Utvikle en begrepsmessig modell eller teori forankret i empiriske data om sosiale prosesser.</li>
+              <li><strong>FormÃ¥l:</strong> Utvikle en begrepsmessig modell eller teori forankret i empiriske data om sosiale prosesser.</li>
               <li><strong>Prosess:</strong> Konstant sammenligning (constant comparative method) og parallell datainnsamling og koding.</li>
               <li><strong>Resultat:</strong> En syntetisert modell med kjernekategori (f.eks. Â«relasjonell forhandlingÂ») som forklarer dynamikker i samhandling.</li>
-              <li><strong>Styrke:</strong> Dyp innsikt i sosiale interaksjonsmønstre og profesjonskultur.</li>
+              <li><strong>Styrke:</strong> Dyp innsikt i sosiale interaksjonsmÃ¸nstre og profesjonskultur.</li>
             </ul>
           </div>
 
@@ -144,10 +144,10 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
               </span>
             </div>
             <ul className="text-xs text-slate-700 space-y-2 list-disc list-inside leading-relaxed">
-              <li><strong>Formål:</strong> Gi systematisk og policy-relevant innsikt i spesifikke spørsmål, ofte i evalueringer og folkehelse.</li>
-              <li><strong>Prosess:</strong> Kombinerer forhåndsdefinerte (deduktive) tematiske rammeverk med nye (induktive) funn fra dataene.</li>
-              <li><strong>Resultat:</strong> En strukturert matrise på tvers av ulike informantgrupper (brukere, pårørende, helsepersonell).</li>
-              <li><strong>Styrke:</strong> Høy transparens, egnet for flerfaglig samarbeid og sammenligning på tvers av grupper.</li>
+              <li><strong>FormÃ¥l:</strong> Gi systematisk og policy-relevant innsikt i spesifikke spÃ¸rsmÃ¥l, ofte i evalueringer og folkehelse.</li>
+              <li><strong>Prosess:</strong> Kombinerer forhÃ¥ndsdefinerte (deduktive) tematiske rammeverk med nye (induktive) funn fra dataene.</li>
+              <li><strong>Resultat:</strong> En strukturert matrise pÃ¥ tvers av ulike informantgrupper (brukere, pÃ¥rÃ¸rende, helsepersonell).</li>
+              <li><strong>Styrke:</strong> HÃ¸y transparens, egnet for flerfaglig samarbeid og sammenligning pÃ¥ tvers av grupper.</li>
             </ul>
           </div>
         </div>
@@ -160,10 +160,10 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
           Metodisk Presisjon i JBI Sjekklisten
         </div>
         <h3 className="text-lg font-bold text-slate-900 font-serif">
-          Hvorfor bruke Â«UklartÂ» i stedet for å anta eller gjette?
+          Hvorfor bruke Â«UklartÂ» i stedet for Ã¥ anta eller gjette?
         </h3>
         <p className="text-sm text-slate-700 leading-relaxed">
-          I henhold til Joanna Briggs Institutes (2017) retningslinjer skal vurderingen <strong>kun baseres på den informasjonen som faktisk fremgår av den publiserte artikkelen</strong>.
+          I henhold til Joanna Briggs Institutes (2017) retningslinjer skal vurderingen <strong>kun baseres pÃ¥ den informasjonen som faktisk fremgÃ¥r av den publiserte artikkelen</strong>.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -181,7 +181,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
               <HelpCircle className="w-3.5 h-3.5 text-amber-700" /> Uklart
             </h4>
             <p className="text-xs text-amber-800">
-              Artikkelen gir utilstrekkelig eller mangelfull informasjon til å konkludere sikkert. Betyr ikke nødvendigvis at studien er dårlig, men at rapporteringen er ufullstendig.
+              Artikkelen gir utilstrekkelig eller mangelfull informasjon til Ã¥ konkludere sikkert. Betyr ikke nÃ¸dvendigvis at studien er dÃ¥rlig, men at rapporteringen er ufullstendig.
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
               <AlertTriangle className="w-3.5 h-3.5 text-rose-700" /> Nei
             </h4>
             <p className="text-xs text-rose-800">
-              Kriteriet er direkte fraværende, metodisk feilaktig gjennomført eller i direkte strid med god kvalitativ praksis.
+              Kriteriet er direkte fravÃ¦rende, metodisk feilaktig gjennomfÃ¸rt eller i direkte strid med god kvalitativ praksis.
             </p>
           </div>
         </div>
@@ -200,19 +200,19 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
       <div className="bg-slate-900 text-white rounded-xl p-6 sm:p-8 shadow-md space-y-4">
         <div className="flex items-center gap-2 text-teal-300 text-xs font-bold uppercase tracking-wider">
           <GraduationCap className="w-4 h-4 text-teal-400" />
-          Råd til Masteroppgaven
+          RÃ¥d til Masteroppgaven
         </div>
         <h3 className="text-lg font-bold font-serif text-white">
-          Hvordan formulere kritisk vurdering og drøfting i oppgaven
+          Hvordan formulere kritisk vurdering og drÃ¸fting i oppgaven
         </h3>
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-          Sensorer legger stor vekt på at studenten forstår <strong>kunnskapens rekkevidde</strong>. 
-          Bruk gjerne følgende formuleringer i drøftingskapitlet:
+          Sensorer legger stor vekt pÃ¥ at studenten forstÃ¥r <strong>kunnskapens rekkevidde</strong>. 
+          Bruk gjerne fÃ¸lgende formuleringer i drÃ¸ftingskapitlet:
         </p>
 
         <div className="bg-slate-800/90 p-4 rounded-lg border border-slate-700 text-xs sm:text-sm text-slate-200 space-y-2 font-mono">
           <p className="text-teal-200">
-            Â«Funnene fra de kvalitative studiene gir verdifull dybdeinnsikt i deltakernes erfaringer og sosiale prosesser, men må tolkes med forbehold om at kvalitativ metodologi ikke kan dokumentere kausale intervensjonseffekter (Joanna Briggs Institute, 2017).Â»
+            Â«Funnene fra de kvalitative studiene gir verdifull dybdeinnsikt i deltakernes erfaringer og sosiale prosesser, men mÃ¥ tolkes med forbehold om at kvalitativ metodologi ikke kan dokumentere kausale intervensjonseffekter (Joanna Briggs Institute, 2017).Â»
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export const MethodologyView: React.FC<MethodologyViewProps> = ({ onGoToThesis }
             onClick={onGoToThesis}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-900 bg-teal-300 hover:bg-teal-200 rounded-md transition-colors"
           >
-            <span>Gå til ferdig konklusjonstekst</span>
+            <span>GÃ¥ til ferdig konklusjonstekst</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

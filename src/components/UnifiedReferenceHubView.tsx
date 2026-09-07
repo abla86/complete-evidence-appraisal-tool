@@ -1,5 +1,4 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
-import { createId } from '../utils/id';
 import { BookOpen, Download, FileUp, Search, ShieldCheck, Tag } from 'lucide-react';
 import type { ArticleAppraisal } from '../types';
 import {
@@ -124,7 +123,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
         return;
       }
       const newArticles = result.references.map((record, index) => ({
-        id: record.id || createId(`ref-import-${index}`),
+        id: record.id || `ref-import-${Date.now()}-${index}`,
         instrumentId: 'UNKNOWN',
         instrumentVersion: 'UNKNOWN',
         lifecycleStatus: 'DRAFT',

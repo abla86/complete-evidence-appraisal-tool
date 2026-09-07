@@ -12,7 +12,7 @@ export const GoogleAuthButton: React.FC = () => {
 
   const load = async () => {
     try {
-      const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      const response = await fetch('/api/auth/session', { credentials: 'same-origin' });
       if (response.ok) setSession(await response.json());
     } finally {
       setLoading(false);

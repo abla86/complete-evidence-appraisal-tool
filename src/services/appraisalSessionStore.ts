@@ -4,12 +4,8 @@ import type { StoredQualityAssessment } from './qualityAssessmentService';
 const STORAGE_KEY = 'evidence-appraisal-appraisal-sessions-v1';
 const QUALITY_KEY = 'evidence-appraisal-quality-assessments-v1';
 
-const LOCAL_RESEARCH_PERSISTENCE_ENABLED =
-  typeof import.meta !== 'undefined' &&
-  import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
-
 function read(): AppraisalSession[] {
-  if (typeof window === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return [];
+  if (typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
@@ -21,12 +17,12 @@ function read(): AppraisalSession[] {
 }
 
 function write(sessions: AppraisalSession[]): void {
-  if (typeof window === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
+  if (typeof window === 'undefined') return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
 }
 
 function readQuality(): StoredQualityAssessment[] {
-  if (typeof window === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return [];
+  if (typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(QUALITY_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
@@ -38,7 +34,7 @@ function readQuality(): StoredQualityAssessment[] {
 }
 
 function writeQuality(items: StoredQualityAssessment[]): void {
-  if (typeof window === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
+  if (typeof window === 'undefined') return;
   window.localStorage.setItem(QUALITY_KEY, JSON.stringify(items));
 }
 

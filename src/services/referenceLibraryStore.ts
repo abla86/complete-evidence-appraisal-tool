@@ -2,10 +2,6 @@
 
 const STORAGE_KEY = 'evidence-appraisal-reference-hub-v1';
 
-const LOCAL_RESEARCH_PERSISTENCE_ENABLED =
-  typeof import.meta !== 'undefined' &&
-  import.meta.env?.VITE_ENABLE_LOCAL_RESEARCH_PERSISTENCE === 'true';
-
 export interface ReferenceLibrarySnapshot {
   schemaVersion: 1;
   updatedAt: string;
@@ -13,7 +9,7 @@ export interface ReferenceLibrarySnapshot {
 }
 
 export function loadReferenceLibrary(fallback: ReferenceRecord[] = []): ReferenceRecord[] {
-  if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return fallback;
+  if (typeof localStorage === 'undefined') return fallback;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fallback;
@@ -25,7 +21,7 @@ export function loadReferenceLibrary(fallback: ReferenceRecord[] = []): Referenc
 }
 
 export function saveReferenceLibrary(records: ReferenceRecord[]): void {
-  if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
+  if (typeof localStorage === 'undefined') return;
   const snapshot: ReferenceLibrarySnapshot = {
     schemaVersion: 1,
     updatedAt: new Date().toISOString(),
@@ -35,7 +31,7 @@ export function saveReferenceLibrary(records: ReferenceRecord[]): void {
 }
 
 export function clearReferenceLibrary(): void {
-  if (typeof localStorage === 'undefined' || !LOCAL_RESEARCH_PERSISTENCE_ENABLED) return;
+  if (typeof localStorage === 'undefined') return;
   localStorage.removeItem(STORAGE_KEY);
 }
 

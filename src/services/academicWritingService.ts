@@ -1,5 +1,4 @@
 ﻿import type { ReferenceRecord } from './referenceHubService.ts';
-import { createId } from '../utils/id';
 
 export type AcademicLevel = 'MASTER' | 'PHD' | 'ARTICLE' | 'REVIEW' | 'PROTOCOL' | 'REPORT';
 export type WritingMode =
@@ -80,11 +79,11 @@ export function canDraftAsFact(claim: ClaimLedgerEntry): boolean {
 export function buildGroundedParagraph(claims: ClaimLedgerEntry[], references: ReferenceRecord[]): string {
   const known = usableReferenceIds(references);
   return claims.map(claim => {
-    if (!canDraftAsFact(claim)) return `[IKKE GODKJENT FOR FAKTAPÅSTAND – ${claim.id}] ${claim.text}`;
+    if (!canDraftAsFact(claim)) return `[IKKE GODKJENT FOR FAKTAPÃ…STAND â€“ ${claim.id}] ${claim.text}`;
     const linked = claim.sourceRecordIds.filter(id => known.has(id));
-    if (linked.length === 0) return `[MANGLER VERIFISERT KILDE – ${claim.id}] ${claim.text}`;
+    if (linked.length === 0) return `[MANGLER VERIFISERT KILDE â€“ ${claim.id}] ${claim.text}`;
     if (claim.evidenceLocations.length === 0 && claim.supportState !== 'RESEARCHER_INPUT') {
-      return `[MANGLER EVIDENSSPORING – ${claim.id}] ${claim.text}`;
+      return `[MANGLER EVIDENSSPORING â€“ ${claim.id}] ${claim.text}`;
     }
     return `${claim.text} [KILDE:${linked.join(',')}]`;
   }).join('\n\n');
@@ -130,7 +129,7 @@ export function createAcademicWritingProject(
   input: Partial<AcademicWritingProject> & Pick<AcademicWritingProject, 'title'>,
 ): AcademicWritingProject {
   return {
-    id: input.id ?? createId('writing'),
+    id: input.id ?? `writing-${Date.now()}`,
     title: input.title,
     academicLevel: input.academicLevel ?? 'MASTER',
     writingMode: input.writingMode ?? 'WRITE_FROM_SOURCES',
@@ -144,8 +143,8 @@ export function createAcademicWritingProject(
 }
 
 export const MASTER_SECTIONS = [
-  'Innledning', 'Bakgrunn og kunnskapshull', 'Problemstilling og mål', 'Teoretisk rammeverk',
-  'Metode', 'Søkestrategi', 'Inklusjon og eksklusjon', 'Kritisk vurdering', 'Resultater',
+  'Innledning', 'Bakgrunn og kunnskapshull', 'Problemstilling og mÃ¥l', 'Teoretisk rammeverk',
+  'Metode', 'SÃ¸kestrategi', 'Inklusjon og eksklusjon', 'Kritisk vurdering', 'Resultater',
   'Analyse og syntese', 'Diskusjon', 'Styrker og begrensninger', 'Etikk', 'Implikasjoner', 'Konklusjon', 'Abstract',
 ] as const;
 

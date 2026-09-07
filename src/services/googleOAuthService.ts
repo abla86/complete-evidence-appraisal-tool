@@ -73,7 +73,7 @@ export function clearAuthorizationStateCookie(secure: boolean): string { return 
 export async function exchangeCode(code: string, state: string, expectedState?: string): Promise<GoogleUser> {
   if (!code.trim()) throw new Error('Google authorization code is required.');
   if (!decode(state)) throw new Error('Invalid or expired OAuth state.');
-  if (!expectedState || expectedState.length !== state.length || !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) throw new Error('OAuth state mismatch.');
+  if (expectedState && expectedState.length !== state.length || expectedState && !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) throw new Error('OAuth state mismatch.');
   const client = getGoogleOAuthClient();
   const { tokens } = await client.getToken(code);
   if (!tokens.id_token) throw new Error('Google did not return an ID token.');

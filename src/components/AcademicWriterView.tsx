@@ -1,5 +1,4 @@
 ﻿import React, { useMemo, useState } from 'react';
-import { createId } from '../utils/id';
 import type { ReferenceRecord } from '../services/referenceHubService.ts';
 import {
   auditAcademicProject,
@@ -53,7 +52,7 @@ export const AcademicWriterView: React.FC<AcademicWriterViewProps> = ({ referenc
   const addClaim = () => {
     const text = draftClaim.trim();
     if (!text) return;
-    const id = createId('claim');
+    const id = `claim-${Date.now()}`;
     setClaims(current => [...current, {
       id,
       text,

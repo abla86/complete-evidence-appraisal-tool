@@ -12,10 +12,9 @@
 - Temporary patch-record files that did not participate in runtime behavior.
 
 ### Verification
-- `package-lock.json` is present and suitable for `npm ci`.
+- CI and Docker require `package-lock.json` because they use `npm ci`.
+- The release remains blocked until the lockfile is generated from the current dependency manifest and CI passes on `main`.
 - No React Router audit paths were added; the application continues to use its existing tab-based navigation.
 
-### Current verification state
-- GitHub status data available to this integration does not expose a completed CI result for the latest `main` revision.
-- Runtime success of `npm test` and `npm run build` is therefore not asserted.
-- Release remains blocked until CI produces a successful verification result on the release candidate.
+### Not claimed as complete
+- A successful `npm test` / `npm run build` run has not been established from the current `main` revision through the available GitHub status data.

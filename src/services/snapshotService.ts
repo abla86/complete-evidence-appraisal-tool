@@ -5,7 +5,6 @@
   AppraisalInstrument 
 } from '../types';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
-import { createId } from '../utils/id';
 
 export class SnapshotService {
   /**
@@ -41,7 +40,7 @@ export class SnapshotService {
     const lockHash = this.generateLockHash(appraisal, inst);
 
     return {
-      assessmentId: `SNAP-${appraisal.id}-${createId('snapshot')}`,
+      assessmentId: `SNAP-${appraisal.id}-${Date.now().toString(36)}`,
       studyId: appraisal.id,
       instrumentId: inst.id,
       instrumentName: inst.name,
@@ -92,7 +91,7 @@ export class SnapshotService {
     };
 
     const newAuditEntry = {
-      id: createId('AUD'),
+      id: `AUD-${Date.now()}`,
       studyId: appraisal.id,
       reviewer: reopenedBy,
       instrumentId: currentSnapshot.instrumentId,
@@ -132,7 +131,7 @@ export class SnapshotService {
     };
 
     const newAuditEntry = {
-      id: createId('AUD'),
+      id: `AUD-${Date.now()}`,
       studyId: appraisal.id,
       reviewer: finalizedBy,
       instrumentId: currentSnapshot.instrumentId,

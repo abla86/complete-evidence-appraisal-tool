@@ -11,7 +11,6 @@ import { EvidenceIntelligenceService } from './src/services/evidenceIntelligence
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
-import { authorizationStateCookieHeader, clearAuthorizationStateCookie, clearSessionCookie, createAuthorizationRequest, createSessionCookie, googleOAuthConfigured, readAuthorizationStateCookie, readSessionCookie, sessionCookieHeader, exchangeCode } from './src/services/googleOAuthService';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -24,60 +23,8 @@ function getGeminiClient(): GoogleGenAI | null {
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 10000);
-  const isProduction = process.env.NODE_ENV === 'production';
-  const requireAuth = isProduction || process.env.REQUIRE_AUTH === 'true';
-  app.set('trust proxy', 1);
 
   app.use(express.json({ limit: '30mb' }));
-  app.disable('x-powered-by');
-  app.use((_req: Request, res: Response, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('X-Frame-Options', 'DENY');
-    next();
-  });
-
-  const secureCookie = isProduction;
-
-  app.get('/auth/google', (_req: Request, res: Response) => {
-    if (!googleOAuthConfigured()) return res.status(503).send('Google OAuth is not configured.');
-    const { url, state } = createAuthorizationRequest();
-    res.setHeader('Set-Cookie', authorizationStateCookieHeader(state, secureCookie));
-    res.redirect(url);
-  });
-
-  app.get('/auth/google/callback', async (req: Request, res: Response) => {
-    const code = String(req.query.code || '');
-    const state = String(req.query.state || '');
-    const expectedState = readAuthorizationStateCookie(req.headers.cookie);
-    res.setHeader('Set-Cookie', clearAuthorizationStateCookie(secureCookie));
-    try {
-      if (!code || !state || !expectedState) return res.status(400).send('OAuth authorization response is incomplete.');
-      const user = await exchangeCode(code, state, expectedState);
-      res.setHeader('Set-Cookie', sessionCookieHeader(createSessionCookie(user), secureCookie));
-      res.redirect('/');
-    } catch (_error) {
-      res.status(401).send('Google authentication failed.');
-    }
-  });
-
-  app.post('/auth/logout', (_req: Request, res: Response) => {
-    res.setHeader('Set-Cookie', clearSessionCookie(secureCookie));
-    res.status(204).end();
-  });
-
-  app.get('/api/auth/me', (req: Request, res: Response) => {
-    const user = readSessionCookie(req.headers.cookie);
-    res.json({ authenticated: Boolean(user), user: user ? { sub: user.sub, email: user.email, name: user.name, picture: user.picture } : null });
-  });
-
-  if (requireAuth) {
-    app.use((req: Request, res: Response, next) => {
-      if (req.path.startsWith('/auth/google') || req.path === '/auth/logout' || req.path === '/api/auth/me' || req.path === '/api/health') return next();
-      if (readSessionCookie(req.headers.cookie)) return next();
-      return res.status(401).json({ success: false, error: 'Authentication required.' });
-    });
-  }
 
   registerResearchEngineIntegration(app);
   registerResearchWorkflowApi(app);
@@ -96,7 +43,6 @@ async function startServer() {
 
   app.get('/api/doi-lookup', async (req: Request, res: Response) => {
     const rawDoi = String(req.query.doi || '').trim();
-    if (rawDoi.length > 500) return res.status(400).json({ success: false, error: 'DOI er for lang.' });
     const cleanDoi = rawDoi
       .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
       .replace(/^doi:\s*/i, '')
@@ -187,7 +133,6 @@ async function startServer() {
     app.post('/api/meta-research/analyze', async (req: Request, res: Response) => {
     try {
       const { text, fileName } = req.body;
-      if (typeof text !== 'string' || text.length > 2_000_000) return res.status(400).json({ success: false, error: 'Dokumentteksten mangler eller er for stor.' });
       if (!text || typeof text !== 'string') return res.status(400).json({ success: false, error: 'Dokumenttekst eller forskningsartikkel er påkrevd.' });
       const baseReport = MetaResearchService.classifyAndAuditDocument(text, fileName || 'document.pdf');
       const ai = getGeminiClient();
@@ -235,7 +180,7 @@ async function startServer() {
   app.post('/api/evidence/verify-doi', async (req: Request, res: Response) => {
     try {
       const { doi } = req.body;
-      if (!doi || typeof doi !== 'string' || doi.length > 500) return res.status(400).json({ success: false, error: 'DOI er påkrevd.' });
+      if (!doi || typeof doi !== 'string') return res.status(400).json({ success: false, error: 'DOI er påkrevd.' });
       const verification = await EvidenceIntelligenceService.verifyPublicationByDoi(doi);
       if (!verification) return res.status(404).json({ success: false, status: 'NOT_FOUND', message: 'Ingen verifiserbar Crossref-post ble funnet.' });
       res.json({ success: true, verification, methodologicalNote: 'Crossref metadata kan ikke alene bekrefte fagfellevurdering.' });
@@ -247,7 +192,6 @@ async function startServer() {
   app.get('/api/evidence/search/europe-pmc', async (req: Request, res: Response) => {
     try {
       const query = String(req.query.q || '').trim();
-      if (query.length > 1000) return res.status(400).json({ success: false, error: 'Søketeksten er for lang.' });
       const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 25)));
       const page = Math.max(1, Number(req.query.page || 1));
       if (!query) return res.status(400).json({ success: false, error: 'Søketekst mangler.' });

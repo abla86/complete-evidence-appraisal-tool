@@ -1,5 +1,4 @@
-﻿import DOMPurify from 'dompurify';
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { ArticleAppraisal } from '../types';
 import { 
   Apa7CitationService, 
@@ -369,7 +368,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
             {/* Academic Hanging Indent Reference */}
             <div 
               className="pl-8 -indent-8 text-sm sm:text-base font-serif text-slate-900 leading-relaxed break-words bg-white p-4 rounded-xl border border-slate-200 shadow-2xs"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentStyleOutput.htmlFormatted) }}
+              dangerouslySetInnerHTML={{ __html: currentStyleOutput.htmlFormatted }}
             />
 
             {/* Action Bar */}
@@ -648,7 +647,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 <div 
                   key={item.id || idx} 
                   className="pl-6 -indent-6 leading-relaxed border-b border-slate-100 last:border-0 pb-2"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.citation.htmlFormatted) }}
+                  dangerouslySetInnerHTML={{ __html: item.citation.htmlFormatted }}
                 />
               ))}
             </div>
