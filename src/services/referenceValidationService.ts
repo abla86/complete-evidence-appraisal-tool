@@ -194,7 +194,7 @@ export class ReferenceValidationService {
         calculatedVerdict = evalRes.overallRecommendation;
         isPass = calculatedVerdict === art.expectedOverallScoreOrVerdict;
       } else if (art.instrumentId === 'rob-2') {
-        const domainMap: unknown = {
+        const domainMap: { d1Randomisation: 'Low risk' | 'Some concerns' | 'High risk'; d2Deviations: 'Low risk' | 'Some concerns' | 'High risk'; d3MissingData: 'Low risk' | 'Some concerns' | 'High risk'; d4Measurement: 'Low risk' | 'Some concerns' | 'High risk'; d5Selection: 'Low risk' | 'Some concerns' | 'High risk' } = {
           d1Randomisation: 'Low risk',
           d2Deviations: 'Low risk',
           d3MissingData: 'Low risk',
