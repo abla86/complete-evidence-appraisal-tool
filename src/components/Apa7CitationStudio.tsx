@@ -148,7 +148,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
         showToast(res.errorMessage || 'Fant ikke DOI i internasjonale registre.', 'warning');
       }
     } catch (err: unknown) {
-      showToast(`DOI-oppslag feilet: ${err instanceof Error ? err.message : 'Nettverksfeil'}`, 'error');
+      showToast(`DOI-oppslag feilet: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Nettverksfeil'}`, 'error');
     } finally {
       setIsLookingUp(false);
     }
