@@ -27,7 +27,7 @@ import {
   ReferenceItem 
 } from '../types';
 import { calculateSha256, generateSecureId } from '../utils/crypto';
-import { buildSourceRecord } from '../utils/sourceRecordBuilder';
+import { buildSourceRecord } from '../services/sourceRecordService';
 
 interface ResearchSearchHubModalProps {
   isOpen: boolean;

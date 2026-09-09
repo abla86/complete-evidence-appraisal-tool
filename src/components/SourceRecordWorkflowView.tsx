@@ -25,7 +25,7 @@ import {
   FolderPlus
 } from 'lucide-react';
 import { calculateSha256 } from '../utils/crypto';
-import { buildSourceRecord } from '../utils/sourceRecordBuilder';
+import { buildSourceRecord } from '../services/sourceRecordService';
 
 interface SourceRecordWorkflowViewProps {
   project: ResearchProject;

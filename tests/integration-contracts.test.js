@@ -315,22 +315,36 @@ test('SourceRecord Builder: Generates consistent IDs, parsed authors, defaults, 
     doi: '10.2196/45120'
   });
 
-  assert.ok(record.id.startsWith('src-'), 'ID skal genereres med sikker prefix');
+  assert.ok(record.id.startsWith('SRC'), 'ID skal genereres med sikker SRC-prefix');
   assert.equal(record.projectId, 'proj-123');
   assert.equal(record.sourceOrigin, 'PubMed');
   assert.equal(record.sourceId, '38291024');
   assert.equal(record.screeningStatus, 'UNSCREENED');
-  assert.deepEqual(record.authors, ['Lindqvist', 'Sarah', 'Hansen', 'Thomas']);
+  assert.deepEqual(record.authors, ['Lindqvist, Sarah', 'Hansen, Thomas']);
   assert.ok(record.provenanceHashSha256 && record.provenanceHashSha256.length === 64, 'Skal generere gyldig 64-tegns SHA-256');
 
-  // Verify deterministic hash for identical content
-  const record2 = buildSourceRecord({
+  // Verify deterministic hash for identical content and provenance baseline
+  const fixedImportedAt = '2026-09-01T12:00:00.000Z';
+  const baselineA = buildSourceRecord({
+    id: 'SRC-fixed-01',
+    projectId: 'proj-123',
     sourceOrigin: 'PubMed',
     title: 'Digital Health Interventions in Clinical Practice',
-    authors: ['Lindqvist', 'Sarah', 'Hansen', 'Thomas'],
+    authors: ['Lindqvist, Sarah', 'Hansen, Thomas'],
     year: '2024',
-    doi: '10.2196/45120'
+    doi: '10.2196/45120',
+    importedAt: fixedImportedAt
   });
-  assert.equal(record.provenanceHashSha256, record2.provenanceHashSha256, 'Deterministisk hash må stemme for identisk innhold');
+  const baselineB = buildSourceRecord({
+    id: 'SRC-fixed-01',
+    projectId: 'proj-123',
+    sourceOrigin: 'PubMed',
+    title: 'Digital Health Interventions in Clinical Practice',
+    authors: 'Lindqvist, Sarah; Hansen, Thomas',
+    year: '2024',
+    doi: '10.2196/45120',
+    importedAt: fixedImportedAt
+  });
+  assert.equal(baselineA.provenanceHashSha256, baselineB.provenanceHashSha256, 'Deterministisk hash må stemme for identisk innhold');
 });
 
