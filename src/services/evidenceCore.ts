@@ -29,7 +29,7 @@ export function validateAssessment(a: Assessment): string[] {
     seen.add(item.itemId);
     if (!item.answer.trim()) errors.push(`Item ${item.itemId} mangler svar.`);
     if (!item.rationale.trim()) errors.push(`Item ${item.itemId} mangler begrunnelse.`);
-    if (item.aiSuggested && !item.aiVerified && a.lifecycle === 'FINALIZED') errors.push(`AI-forslag ${item.itemId} kan ikke finaliseres uten menneskelig verifikasjon.`);
+    if (item.aiSuggested && !item.aiVerified) errors.push(`AI-forslag ${item.itemId} krever menneskelig verifikasjon før finalisering.`);
   }
   return errors;
 }
