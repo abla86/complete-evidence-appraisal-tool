@@ -9,6 +9,7 @@ import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
 import { GoogleGenAI } from '@google/genai';
 import { EvidenceIntelligenceService } from './src/services/evidenceIntelligenceService';
 import { buildSafeResearchContext, guardAIOutput } from './src/services/aiGuardrails';
+import { registerAuthApi } from './src/services/authApi';
 import { registerResearchEngineIntegration } from './src/services/researchEngineIntegration';
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
@@ -34,13 +35,14 @@ async function startServer() {
   });
   app.use(express.json({ limit: '10mb' }));
 
+  registerAuthApi(app);
   registerResearchEngineIntegration(app);
   registerResearchWorkflowApi(app);
   registerAppraisalWorkflowApi(app);
   registerIntegrityApi(app);
 
   app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: '2026.1', integrity: { status: 'integrated', immutableAssessments: true, auditChain: true, aiBoundary: true }, researchEngine: { status: 'integrated', contractVersion: '1.0.0' }, workflow: { status: 'integrated', researchToAppraisal: true }, appraisal: { status: 'integrated', sessionApi: true } });
+    res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: '2026.1', integrity: { status: 'integrated', immutableAssessments: true, auditChain: true, aiBoundary: true }, researchEngine: { status: 'integrated', contractVersion: '1.0.0' }, workflow: { status: 'integrated', researchToAppraisal: true }, appraisal: { status: 'integrated', sessionApi: true }, authentication: { status: 'integrated', provider: 'google-oauth' } });
   });
 
   app.get('/api/doi-lookup', async (req: Request, res: Response) => {
