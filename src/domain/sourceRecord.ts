@@ -1,5 +1,4 @@
 import type { AccessibilityInspectionResult, PrivacyInspectionResult, ResearchMetadataRecord } from '../shared/moduleContracts';
-import { createId } from '../utils/id';
 
 export const SOURCE_RECORD_SCHEMA_VERSION = '1.0.0' as const;
 
@@ -55,5 +54,5 @@ export interface SourceRecord {
 }
 
 export function createRecordId(): string {
-  return createId('record');
+  return crypto.randomUUID();
 }

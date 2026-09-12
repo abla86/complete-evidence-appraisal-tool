@@ -121,7 +121,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
       summaryScore: {
         ja: currentExample.criteria.filter(c => c.status === 'Ja' || c.status === 'Lav risiko' || c.status === 'Tilfredsstilt').length,
         uklart: currentExample.criteria.filter(c => c.status === 'Uklart' || c.status === 'Noe bekymring').length,
-        nei: currentExample.criteria.filter(c => c.status === 'Nei' || c.status === 'HÃ¸y risiko').length,
+        nei: currentExample.criteria.filter(c => c.status === 'Nei' || c.status === 'Høy risiko').length,
         ikkeRelevant: 0,
         total: currentExample.criteria.length
       },
@@ -132,7 +132,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
       apaReference: `${currentExample.article.authors} (${currentExample.article.year}). ${currentExample.article.title}. ${currentExample.article.journal}. https://doi.org/${currentExample.article.doi}`,
       items: currentExample.criteria.map((c, idx) => ({
         questionId: typeof c.id === 'number' ? c.id : (idx + 1),
-        status: (c.status === 'Ja' || c.status === 'Lav risiko' || c.status === 'Tilfredsstilt') ? 'Ja' : (c.status === 'Nei' || c.status === 'HÃ¸y risiko') ? 'Nei' : 'Uklart',
+        status: (c.status === 'Ja' || c.status === 'Lav risiko' || c.status === 'Tilfredsstilt') ? 'Ja' : (c.status === 'Nei' || c.status === 'Høy risiko') ? 'Nei' : 'Uklart',
         justification: `${c.whyAssessedAsSuch} (Sidetall i artikkel: ${c.pageLocation})`,
         evidenceText: c.evidenceQuote,
         location: {
@@ -518,7 +518,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                           {/* Status Badge + Page Number Comment */}
                           <div className="flex flex-col items-end shrink-0">
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
-                              criterion.status === 'Ja' || criterion.status === 'Lav risiko' || criterion.status === 'Tilfredsstilt' || criterion.status === 'HÃ¸y kvalitet'
+                              criterion.status === 'Ja' || criterion.status === 'Lav risiko' || criterion.status === 'Tilfredsstilt' || criterion.status === 'Høy kvalitet'
                                 ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
                                 : criterion.status === 'Uklart' || criterion.status === 'Noe bekymring'
                                   ? 'bg-amber-100 text-amber-950 border border-amber-300'

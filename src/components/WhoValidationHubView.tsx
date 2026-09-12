@@ -116,6 +116,9 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
   const [cerqualFindings, setCerqualFindings] = useState<GradeCerqualSummaryItem[]>([
     {
       id: 'cerq-1',
+      finding: 'Pasienter opplever tverrfaglig oppfølging som avgjørende for mestringstro og trygghet i hverdagen.',
+      confidence: 'High confidence',
+      rationale: 'Gjenfinnbart på tvers av 5 uavhengige kvalitative studier med rik empiri og solid forskerrefleksivitet.',
       reviewFinding: 'Pasienter opplever tverrfaglig oppfÃ¸lging som avgjÃ¸rende for mestringstro og trygghet i hverdagen.',
       methodologicalLimitations: 'No or very minor concerns',
       coherence: 'No or very minor concerns',
@@ -127,6 +130,9 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
     },
     {
       id: 'cerq-2',
+      finding: 'Kulturelle barrierer og språkutfordringer forsinker tidlig oppstart av rehabiliteringstiltak.',
+      confidence: 'Moderate confidence',
+      rationale: 'Moderat tillit pga begrenset antall informanter fra minoritetsgrupper (Adequacy of data).',
       reviewFinding: 'Kulturelle barrierer og sprÃ¥kutfordringer forsinker tidlig oppstart av rehabiliteringstiltak.',
       methodologicalLimitations: 'Minor concerns',
       coherence: 'No or very minor concerns',
@@ -804,6 +810,9 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 onClick={() => {
                   const newFinding: GradeCerqualSummaryItem = {
                     id: generateUniqueId('cerq'),
+                    finding: 'Nytt kvalitativt syntesefunn (tematisk funn)',
+                    confidence: 'High confidence',
+                    rationale: 'Eksplisitt begrunnelse for tillitsvurderingen',
                     reviewFinding: 'Nytt kvalitativt syntesefunn (tematisk funn)',
                     methodologicalLimitations: 'No or very minor concerns',
                     coherence: 'No or very minor concerns',
@@ -1264,5 +1273,4 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
     </div>
   );
 };
-
 

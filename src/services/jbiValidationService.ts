@@ -149,7 +149,7 @@ export class JbiQualitativeValidationService {
       return {
         verdict: 'Inkluder',
         riskOfBias: 'Lav',
-        rationale: 'HÃ¸y metodisk stringens: Samtlige 10 JBI-kriterier er vurdert som oppfylt (Â«JaÂ») med dokumentert begrunnelse.',
+        rationale: 'Høy metodisk stringens: Samtlige 10 JBI-kriterier er vurdert som oppfylt (Â«JaÂ») med dokumentert begrunnelse.',
         criticalFlaws: [],
         suggestedAction: 'Inkluder studien i kunnskapsgrunnlaget og tematisk syntese.'
       };
@@ -157,8 +157,8 @@ export class JbiQualitativeValidationService {
 
     if (score.nei > 0 || score.uklart > 0) {
       const hasManyUnclear = score.uklart >= 3;
-      const suggestedVerdict = hasManyUnclear ? 'SÃ¸k mer informasjon' : (score.ja >= 7 ? 'Inkluder' : 'Vurder videre');
-      const biasLevel = score.nei >= 3 ? 'HÃ¸y' : (score.nei >= 1 || score.uklart >= 2 ? 'Moderat' : 'Lav');
+      const suggestedVerdict = hasManyUnclear ? 'Søk mer informasjon' : (score.ja >= 7 ? 'Inkluder' : 'Vurder videre');
+      const biasLevel = score.nei >= 3 ? 'Høy' : (score.nei >= 1 || score.uklart >= 2 ? 'Moderat' : 'Lav');
 
       return {
         verdict: suggestedVerdict,
@@ -240,12 +240,12 @@ export class JbiQualitativeValidationService {
       cohensKappa = Math.max(-1, Math.min(1, Number(((pObserved - pExpected) / (1 - pExpected)).toFixed(3))));
     }
 
-    let kappaInterpretation: InterRaterAgreementResult['kappaInterpretation'] = 'SvÃ¦rt god (Almost perfect)';
-    if (cohensKappa < 0.20) kappaInterpretation = 'DÃ¥rlig (Poor)';
+    let kappaInterpretation: InterRaterAgreementResult['kappaInterpretation'] = 'Svært god (Almost perfect)';
+    if (cohensKappa < 0.20) kappaInterpretation = 'Dårlig (Poor)';
     else if (cohensKappa <= 0.40) kappaInterpretation = 'Middels (Fair)';
     else if (cohensKappa <= 0.60) kappaInterpretation = 'Moderat (Moderate)';
     else if (cohensKappa <= 0.80) kappaInterpretation = 'Betydelig (Substantial)';
-    else kappaInterpretation = 'SvÃ¦rt god (Almost perfect)';
+    else kappaInterpretation = 'Svært god (Almost perfect)';
 
     return {
       totalItems,

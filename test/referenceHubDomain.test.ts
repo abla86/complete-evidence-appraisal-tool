@@ -6,7 +6,7 @@ import { loadReferenceLibrary, saveReferenceLibrary } from '../src/services/refe
 test('canonical ReferenceRecord supports research identifiers and integrity metadata', () => {
   const record: ReferenceRecord = {
     id: 'r1',
-    type: 'JOURNAL_ARTICLE',
+    kind: 'JOURNAL_ARTICLE',
     title: 'Example',
     authors: 'Doe, J.',
     year: 2025,
@@ -17,7 +17,6 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
     issn: '1234-5678',
     tags: [],
     collections: [],
-    sourceSystems: ['pubmed'],
     importedFrom: ['MANUAL'],
     verification: 'VALIDATION_REQUIRED',
     retraction: { detected: false, source: 'not-checked', checkedAt: new Date().toISOString() },

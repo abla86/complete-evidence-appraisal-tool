@@ -16,6 +16,9 @@ import {
 } from './assessmentEngines';
 
 export class ReferenceValidationService {
+  private static isRob2Risk(value: string): value is 'Low risk' | 'Some concerns' | 'High risk' {
+    return value === 'Low risk' || value === 'Some concerns' || value === 'High risk';
+  }
   public static getAllReferenceArticles(): ReferenceValidationArticle[] {
     return REFERENCE_VALIDATION_ARTICLES;
   }
@@ -190,7 +193,7 @@ export class ReferenceValidationService {
         for (let i = 1; i <= 23; i++) {
           if (ratings[i] === undefined) ratings[i] = 7;
         }
-        const evalRes = Agree2AssessmentEngine.evaluateDomainScores(ratings, 1);
+        const evalRes = Agree2AssessmentEngine.evaluateDomainScores(ratings);
         calculatedVerdict = evalRes.overallRecommendation;
         isPass = calculatedVerdict === art.expectedOverallScoreOrVerdict;
       } else if (art.instrumentId === 'rob-2') {
@@ -202,11 +205,11 @@ export class ReferenceValidationService {
           d5Selection: 'Low risk'
         };
         art.itemData.forEach(it => {
-          if (it.itemNumber === 1) domainMap.d1Randomisation = it.referenceResponse;
-          if (it.itemNumber === 2) domainMap.d2Deviations = it.referenceResponse;
-          if (it.itemNumber === 3) domainMap.d3MissingData = it.referenceResponse;
-          if (it.itemNumber === 4) domainMap.d4Measurement = it.referenceResponse;
-          if (it.itemNumber === 5) domainMap.d5Selection = it.referenceResponse;
+          if (it.itemNumber === 1 && this.isRob2Risk(it.referenceResponse)) domainMap.d1Randomisation = it.referenceResponse;
+          if (it.itemNumber === 2 && this.isRob2Risk(it.referenceResponse)) domainMap.d2Deviations = it.referenceResponse;
+          if (it.itemNumber === 3 && this.isRob2Risk(it.referenceResponse)) domainMap.d3MissingData = it.referenceResponse;
+          if (it.itemNumber === 4 && this.isRob2Risk(it.referenceResponse)) domainMap.d4Measurement = it.referenceResponse;
+          if (it.itemNumber === 5 && this.isRob2Risk(it.referenceResponse)) domainMap.d5Selection = it.referenceResponse;
         });
         const evalRes = Rob2AssessmentEngine.evaluate(domainMap);
         calculatedVerdict = evalRes.overallRiskOfBias;
@@ -256,5 +259,4 @@ export class ReferenceValidationService {
       (nb === 'neutral' && (na === 'positive' || na === 'negative'));
   }
 }
-
 

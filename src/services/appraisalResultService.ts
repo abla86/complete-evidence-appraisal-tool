@@ -68,7 +68,7 @@ export function buildAppraisalResult(session: AppraisalSession) {
       const numericRatings = Object.fromEntries(
         session.responses.map(r => [Number(r.itemId), typeof r.answer === 'number' ? r.answer : Number(r.answer)]),
       ) as Record<number, number>;
-      const result = Agree2AssessmentEngine.evaluateDomainScores(numericRatings, 1);
+      const result = Agree2AssessmentEngine.evaluateDomainScores(numericRatings);
       return {
         instrumentId: session.instrumentId,
         instrumentVersion: session.instrumentVersion,

@@ -119,7 +119,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
         setReopenReason('');
         showToast('Vurderingen er gjenÃ¥pnet for redigering. Endringen er loggfÃ¸rt i audit trail.', 'success');
       } catch (err: unknown) {
-        showToast(err instanceof Error ? err.message : 'Ukjent feil' || 'Kunne ikke gjenÃ¥pne', 'error');
+        showToast(err instanceof Error ? err.message : 'Kunne ikke gjenÃ¥pne', 'error');
       }
     }
   };
@@ -917,5 +917,4 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     </div>
   );
 };
-
 

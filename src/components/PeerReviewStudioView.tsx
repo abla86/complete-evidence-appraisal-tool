@@ -52,6 +52,19 @@ interface PeerReviewStudioViewProps {
   onNavigateToStudy?: (studyId: string) => void;
 }
 
+type OverallVerdict = NonNullable<PeerReviewSubmission['overallVerdict']>;
+const DEFAULT_VERDICT: OverallVerdict = 'Inkluder';
+
+function normalizeOverallVerdict(value: string | undefined): OverallVerdict {
+  return value === 'Inkluder'
+    || value === 'Ekskluder'
+    || value === 'Vurder videre'
+    || value === 'Søk mer informasjon'
+    || value === 'Ufullstendig'
+    ? value
+    : DEFAULT_VERDICT;
+}
+
 export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
   articles,
   onUpdateArticles,
@@ -100,7 +113,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
   // Form state for evaluating current study
   const [evalFormItems, setEvalFormItems] = useState<Record<number, { status: AssessmentStatus; justification: string }>>({});
-  const [evalOverallVerdict, setEvalOverallVerdict] = useState<NonNullable<PeerReviewSubmission['overallVerdict']>>('Inkluder');
+  const [evalOverallVerdict, setEvalOverallVerdict] = useState<OverallVerdict>(DEFAULT_VERDICT);
   const [evalVerdictRationale, setEvalVerdictRationale] = useState('');
 
   // Sync form state when active reviewer or selected study changes
@@ -120,7 +133,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
         itemsMap[it.questionId] = { status: it.status, justification: it.justification || '' };
       });
       setEvalFormItems(itemsMap);
-      setEvalOverallVerdict(selectedArticle?.overallVerdict || 'Inkluder');
+      setEvalOverallVerdict(normalizeOverallVerdict(selectedArticle?.overallVerdict));
       setEvalVerdictRationale(selectedArticle?.verdictNote || '');
     }
   }, [selectedStudyId, workspace.activeReviewerId, mySubmission, selectedArticle]);
@@ -138,7 +151,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
   // Consensus drafting state
   const [consensusDraft, setConsensusDraft] = useState<{
     itemConsensus: Record<number, { status: AssessmentStatus; rationale: string }>;
-    overallVerdict: 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon';
+    overallVerdict: OverallVerdict;
     verdictRationale: string;
     consensusNotes: string;
   }>({
@@ -158,9 +171,9 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       });
       setConsensusDraft({
         itemConsensus: itemMap,
-        overallVerdict: currentConsensus.overallVerdict,
-        verdictRationale: currentConsensus.verdictRationale,
-        consensusNotes: currentConsensus.consensusNotes
+        overallVerdict: normalizeOverallVerdict(currentConsensus.overallVerdict),
+        verdictRationale: currentConsensus.verdictRationale ?? '',
+        consensusNotes: currentConsensus.consensusNotes ?? ''
       });
     } else {
       // Default from submissions or article
@@ -174,7 +187,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       });
       setConsensusDraft({
         itemConsensus: itemMap,
-        overallVerdict: selectedArticle?.overallVerdict || 'Inkluder',
+        overallVerdict: normalizeOverallVerdict(selectedArticle?.overallVerdict),
         verdictRationale: selectedArticle?.verdictNote || '',
         consensusNotes: ''
       });
@@ -272,7 +285,11 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
     });
 
     const consensusRecord: StudyConsensusRecord = {
+      id: `consensus-${selectedArticle.id}`,
       studyId: selectedArticle.id,
+      reviewerIds: workspace.members.map(member => member.id),
+      consensusStatus: null,
+      rationale: consensusDraft.verdictRationale || consensusDraft.consensusNotes || 'Konsensus etablert i møte.',
       meetingDate: new Date().toISOString().split('T')[0],
       status: 'CONSENSUS_REACHED',
       assignedReviewerIds: workspace.members.slice(0, 2).map(m => m.id),
@@ -1594,5 +1611,3 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
     </div>
   );
 };
-
-

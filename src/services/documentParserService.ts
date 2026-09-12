@@ -6,7 +6,15 @@ import mammoth from 'mammoth';
 
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
 
-export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*â€ â€¡Â§0-9Â¹Â²Â³â´âµâ¶â·â¸â¹]+/g, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
+export function parseAuthorList(value: string): string[] {
+  const sanitized = String(value || '')
+    .replace(/["*†‡§0-9¹²³⁴⁵⁶⁷⁸⁹]+/g, '')
+    .replace(/\band\b/gi, ',');
+  return sanitized
+    .split(',')
+    .map(name => name.trim())
+    .filter(Boolean);
+}
 
 export interface ParserInput { name: string; size: number; type?: string; content?: ArrayBuffer | string; text?: () => Promise<string>; arrayBuffer?: () => Promise<ArrayBuffer>; }
 
@@ -436,5 +444,3 @@ export class DocumentParserService {
     return out.join('\n').trim();
   }
 }
-
-

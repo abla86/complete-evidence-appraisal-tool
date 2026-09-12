@@ -43,18 +43,33 @@ export async function searchCrossref({ query, limit = 10 }: Omit<RetrievalQuery,
   url.searchParams.set('query.bibliographic', query);
   url.searchParams.set('rows', String(Math.min(Math.max(limit, 1), 50)));
   const data = await fetchJson(url.toString()) as { message?: { items?: unknown[] } };
-  return (data?.message?.items ?? []).map((item: unknown) => ({
+  return (data?.message?.items ?? []).map((item: unknown) => {
+    const record = item && typeof item === 'object' ? item as Record<string, unknown> : {};
+    const titles = Array.isArray(record.title) ? record.title : [];
+    const containerTitles = Array.isArray(record['container-title']) ? record['container-title'] : [];
+    const authors = Array.isArray(record.author) ? record.author : [];
+    const published = record.published && typeof record.published === 'object' ? record.published as Record<string, unknown> : {};
+    const publishedPrint = record.publishedPrint && typeof record.publishedPrint === 'object' ? record.publishedPrint as Record<string, unknown> : {};
+    const publishedParts = Array.isArray(published['date-parts']) ? published['date-parts'] as unknown[] : [];
+    const publishedPrintParts = Array.isArray(publishedPrint['date-parts']) ? publishedPrint['date-parts'] as unknown[] : [];
+    const yearFromParts = (parts: unknown[]) => {
+      const first = parts[0];
+      if (!Array.isArray(first)) return undefined;
+      const year = first[0];
+      return typeof year === 'number' ? year : undefined;
+    };
+    return {
     provider: 'CROSSREF' as const,
-    externalId: text(item?.DOI),
-    doi: text(item?.DOI),
-    title: text(item?.title?.[0]) ?? '',
-    authors: (item?.author ?? []).map(authorName).filter(Boolean),
-    journal: text(item?.['container-title']?.[0]),
-    year: item?.published?.['date-parts']?.[0]?.[0] ?? item?.publishedPrint?.['date-parts']?.[0]?.[0],
-    abstract: text(item?.abstract),
-    url: text(item?.URL),
+    externalId: text(record.DOI),
+    doi: text(record.DOI),
+    title: text(titles[0]) ?? '',
+    authors: authors.map(authorName).filter(Boolean),
+    journal: text(containerTitles[0]),
+    year: yearFromParts(publishedParts) ?? yearFromParts(publishedPrintParts),
+    abstract: text(record.abstract),
+    url: text(record.URL),
     raw: item,
-  }));
+  };});
 }
 
 export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, 'provider'>): Promise<RetrievedReferenceCandidate[]> {
@@ -98,5 +113,4 @@ export async function searchPubMed({ query, limit = 10 }: Omit<RetrievalQuery, '
 export async function searchResearch(query: RetrievalQuery): Promise<RetrievedReferenceCandidate[]> {
   return query.provider === 'PUBMED' ? searchPubMed(query) : searchCrossref(query);
 }
-
 
