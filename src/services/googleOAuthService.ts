@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 import crypto from 'node:crypto';
 import { OAuth2Client } from 'google-auth-library';
 
@@ -73,7 +73,11 @@ export function clearAuthorizationStateCookie(secure: boolean): string { return 
 export async function exchangeCode(code: string, state: string, expectedState?: string): Promise<GoogleUser> {
   if (!code.trim()) throw new Error('Google authorization code is required.');
   if (!decode(state)) throw new Error('Invalid or expired OAuth state.');
-  if (expectedState && expectedState.length !== state.length || expectedState && !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) throw new Error('OAuth state mismatch.');
+  if (expectedState !== undefined) {
+    const stateBytes = Buffer.from(state, 'utf8');
+    const expectedBytes = Buffer.from(expectedState, 'utf8');
+    if (stateBytes.length !== expectedBytes.length || !crypto.timingSafeEqual(stateBytes, expectedBytes)) throw new Error('OAuth state mismatch.');
+  }
   const client = getGoogleOAuthClient();
   const { tokens } = await client.getToken(code);
   if (!tokens.id_token) throw new Error('Google did not return an ID token.');
@@ -92,5 +96,3 @@ export function readSessionCookie(cookieHeader?: string): GoogleUser | null {
 export function sessionCookieHeader(value: string, secure: boolean): string { return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure ? '; Secure' : ''}`; }
 export function clearSessionCookie(secure: boolean): string { return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
 export function publicAuthConfig() { return { configured: googleOAuthConfigured(), clientId: CLIENT_ID || null, redirectUri: GOOGLE_REDIRECT_URI, scopes: scopes() }; }
-
-
