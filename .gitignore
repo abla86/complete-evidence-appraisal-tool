@@ -2,6 +2,7 @@ node_modules/
 build/
 dist/
 coverage/
+data/
 .DS_Store
 *.log
 .env*
@@ -14,6 +15,3 @@ FINAL-typescript.txt
 build-output.txt
 test-output.txt
 typescript-errors.txt
-
-# Temporary local files
-t 
