@@ -22,21 +22,30 @@ function canonical(value: unknown): string {
 const sha256 = (value: unknown): string => createHash('sha256').update(canonical(value), 'utf8').digest('hex');
 
 export function createAssessment(input: Omit<Assessment, 'id'|'createdAt'|'updatedAt'|'lifecycle'>): Assessment {
-  if (!input.studyId.trim() || !input.studyTitle.trim() || !input.instrumentId.trim() || !input.instrumentVersion.trim() || !input.reviewerId.trim()) throw new Error('studyId, studyTitle, instrumentId, instrumentVersion og reviewerId er påkrevd.');
+  if (!input.studyId.trim() || !input.studyTitle.trim() || !input.instrumentId.trim() || !input.instrumentVersion.trim() || !input.instrumentChecksum.trim() || !input.reviewerId.trim()) {
+    throw new Error('studyId, studyTitle, instrumentId, instrumentVersion, instrumentChecksum og reviewerId er påkrevd.');
+  }
   return { ...input, id: randomUUID(), lifecycle: 'DRAFT', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
 
 export function validateAssessment(a: Assessment): string[] {
   const errors: string[] = [];
   if (!a.id || !a.studyId || !a.instrumentId || !a.instrumentVersion || !a.instrumentChecksum) errors.push('Assessment mangler identifikator eller versjonsbinding.');
-  if (!a.reviewerId) errors.push('Reviewer er påkrevd.');
+  if (!a.reviewerId?.trim()) errors.push('Reviewer er påkrevd.');
+  if (!Array.isArray(a.items) || a.items.length === 0) errors.push('Assessment må inneholde minst ett vurderingspunkt.');
+
   const seen = new Set<string>();
-  for (const item of a.items) {
-    if (seen.has(item.itemId)) errors.push(`Duplikat item: ${item.itemId}`);
-    seen.add(item.itemId);
-    if (!item.answer.trim()) errors.push(`Item ${item.itemId} mangler svar.`);
-    if (!item.rationale.trim()) errors.push(`Item ${item.itemId} mangler begrunnelse.`);
-    if (item.aiSuggested && !item.aiVerified) errors.push(`AI-forslag ${item.itemId} krever menneskelig verifikasjon før finalisering.`);
+  for (const item of a.items ?? []) {
+    const itemId = item.itemId?.trim();
+    if (!itemId) errors.push('Vurderingspunkt mangler ID.');
+    else if (seen.has(itemId)) errors.push(`Duplikat item: ${itemId}`);
+    else seen.add(itemId);
+
+    if (!item.reviewerId?.trim()) errors.push(`Item ${itemId || '[ukjent]'} mangler reviewerId.`);
+    else if (item.reviewerId.trim() !== a.reviewerId.trim()) errors.push(`Item ${itemId || '[ukjent]'} har annen reviewer enn assessment.`);
+    if (!item.answer?.trim()) errors.push(`Item ${itemId || '[ukjent]'} mangler svar.`);
+    if (!item.rationale?.trim()) errors.push(`Item ${itemId || '[ukjent]'} mangler begrunnelse.`);
+    if (item.aiSuggested && !item.aiVerified) errors.push(`AI-forslag ${itemId || '[ukjent]'} krever menneskelig verifikasjon før finalisering.`);
   }
   return errors;
 }
@@ -44,9 +53,10 @@ export function validateAssessment(a: Assessment): string[] {
 export function finalizeAssessment(a: Assessment, actorId: string): Assessment {
   if (a.lifecycle === 'FINALIZED') throw new Error('Assessment er allerede finalisert.');
   if (!actorId.trim()) throw new Error('Finaliserende bruker er påkrevd.');
+  if (actorId.trim() !== a.reviewerId.trim()) throw new Error('Finaliserende bruker må være samme reviewer som eier assessmenten.');
   const errors = validateAssessment(a);
   if (errors.length) throw new Error(errors.join(' '));
-  const finalized: Assessment = { ...a, lifecycle: 'FINALIZED', finalizedAt: new Date().toISOString(), finalizedBy: actorId, updatedAt: new Date().toISOString() };
+  const finalized: Assessment = { ...a, lifecycle: 'FINALIZED', finalizedAt: new Date().toISOString(), finalizedBy: actorId.trim(), updatedAt: new Date().toISOString() };
   finalized.immutableHash = sha256({ ...finalized, immutableHash: undefined });
   return finalized;
 }
