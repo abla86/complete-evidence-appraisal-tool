@@ -3,13 +3,14 @@ import type { AppraisalInstrument, DocumentClassificationResult, EvidenceLocatio
 export type AppraisalAnswer = string | number | boolean | null;
 
 export interface AppraisalEvidenceLink {
+  /** Canonical ResearchEvidenceRecord id. Evidence text is never duplicated here. */
+  sourceId?: string;
   quote?: string;
   page?: string;
   section?: string;
   table?: string;
   figure?: string;
   url?: string;
-  sourceId?: string;
 }
 
 export interface AppraisalItemResponse {
