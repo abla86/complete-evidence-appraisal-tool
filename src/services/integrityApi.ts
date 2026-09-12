@@ -7,11 +7,10 @@ import {
   verifyAuditChain,
   verifyImmutableAssessment,
   type Assessment,
-  type AuditEvent,
 } from './evidenceCore';
+import { EvidenceStore } from './evidenceStore';
 
-const assessments = new Map<string, Assessment>();
-const audit = new Map<string, AuditEvent[]>();
+const store = new EvidenceStore();
 
 function actor(req: Request): string {
   const value = String(req.header('x-reviewer-id') || '').trim();
@@ -24,43 +23,54 @@ function sendError(res: Response, error: unknown, status = 400) {
 }
 
 export function registerIntegrityApi(app: Express) {
-  app.get('/api/integrity/health', (_req, res) => {
-    res.json({ success: true, assessments: assessments.size, auditChains: audit.size });
+  app.get('/api/integrity/health', async (_req, res) => {
+    try {
+      res.json({ success: true, assessments: await store.countAssessments(), auditChains: await store.countAuditChains(), persistence: 'durable-local-store' });
+    } catch (e) { sendError(res, e, 503); }
   });
 
-  app.post('/api/integrity/assessments', (req, res) => {
+  app.post('/api/integrity/assessments', async (req, res) => {
     try {
       const reviewerId = actor(req);
       const assessment = createAssessment({ ...req.body, reviewerId });
-      assessments.set(assessment.id, assessment);
-      audit.set(assessment.id, []);
-      appendAuditEvent(audit.get(assessment.id)!, assessment.id, reviewerId, 'ASSESSMENT_CREATED', { instrumentId: assessment.instrumentId, instrumentVersion: assessment.instrumentVersion });
+      await store.saveAssessment(assessment);
+      const events = await store.getAudit(assessment.id) || [];
+      const event = appendAuditEvent(events, assessment.id, reviewerId, 'ASSESSMENT_CREATED', { instrumentId: assessment.instrumentId, instrumentVersion: assessment.instrumentVersion });
+      await store.appendAudit(assessment.id, event);
       res.status(201).json({ success: true, assessment });
     } catch (e) { sendError(res, e); }
   });
 
-  app.get('/api/integrity/assessments/:id', (req, res) => {
-    const assessment = assessments.get(req.params.id);
-    if (!assessment) return res.status(404).json({ success: false, error: 'Assessment ikke funnet.' });
-    res.json({ success: true, assessment, immutableVerified: verifyImmutableAssessment(assessment), auditChainVerified: verifyAuditChain(audit.get(assessment.id) || []) });
+  app.get('/api/integrity/assessments/:id', async (req, res) => {
+    try {
+      const assessment = await store.getAssessment(req.params.id);
+      if (!assessment) return res.status(404).json({ success: false, error: 'Assessment ikke funnet.' });
+      const events = await store.getAudit(assessment.id) || [];
+      res.json({ success: true, assessment, immutableVerified: verifyImmutableAssessment(assessment), auditChainVerified: verifyAuditChain(events) });
+    } catch (e) { sendError(res, e, 503); }
   });
 
-  app.post('/api/integrity/assessments/:id/finalize', (req, res) => {
+  app.post('/api/integrity/assessments/:id/finalize', async (req, res) => {
     try {
-      const current = assessments.get(req.params.id);
+      const current = await store.getAssessment(req.params.id);
       if (!current) return res.status(404).json({ success: false, error: 'Assessment ikke funnet.' });
       const reviewerId = actor(req);
       const finalized = finalizeAssessment(current, reviewerId);
-      assessments.set(finalized.id, finalized);
-      appendAuditEvent(audit.get(finalized.id)!, finalized.id, reviewerId, 'ASSESSMENT_FINALIZED', { immutableHash: finalized.immutableHash });
+      await store.saveAssessment(finalized);
+      const events = await store.getAudit(finalized.id) || [];
+      const event = appendAuditEvent(events, finalized.id, reviewerId, 'ASSESSMENT_FINALIZED', { immutableHash: finalized.immutableHash });
+      await store.appendAudit(finalized.id, event);
       res.json({ success: true, assessment: finalized, immutableVerified: verifyImmutableAssessment(finalized) });
     } catch (e) { sendError(res, e); }
   });
 
-  app.get('/api/integrity/assessments/:id/audit', (req, res) => {
-    const events = audit.get(req.params.id);
-    if (!events) return res.status(404).json({ success: false, error: 'Assessment ikke funnet.' });
-    res.json({ success: true, valid: verifyAuditChain(events), events });
+  app.get('/api/integrity/assessments/:id/audit', async (req, res) => {
+    try {
+      const assessment = await store.getAssessment(req.params.id);
+      if (!assessment) return res.status(404).json({ success: false, error: 'Assessment ikke funnet.' });
+      const events = await store.getAudit(req.params.id) || [];
+      res.json({ success: true, valid: verifyAuditChain(events), events });
+    } catch (e) { sendError(res, e, 503); }
   });
 
   app.post('/api/integrity/ai-candidate', (req, res) => {
