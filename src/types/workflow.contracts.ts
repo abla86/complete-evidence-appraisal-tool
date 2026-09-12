@@ -128,6 +128,8 @@ export interface ResearchWorkflowContext {
 
 export interface WorkflowState {
   studyId: string;
+  /** Authenticated account that created/owns this research workflow. */
+  ownerId?: string;
   studyDesign: string;
   screening: ScreeningRecord[];
   appraisalSessions: AppraisalSession[];
