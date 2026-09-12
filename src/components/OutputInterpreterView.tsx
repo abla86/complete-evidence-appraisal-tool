@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { OutputInterpretation } from "../types";
+import { statisticalTests } from "../data/testsLibrary";
+import { ExportButtonGroup } from "./ExportButtonGroup";
 import {
   Sparkles,
   FileText,
@@ -145,6 +147,15 @@ Cramer's V = .338, Approx. Sig. = .009`,
     }
   };
 
+  const matchingTest =
+    statisticalTests.find(
+      (t) =>
+        t.name.toLowerCase().includes(selectedType.toLowerCase()) ||
+        selectedType.toLowerCase().includes(t.name.toLowerCase()) ||
+        (result?.extractedStatistics?.testName &&
+          t.name.toLowerCase().includes(result.extractedStatistics.testName.toLowerCase()))
+    ) || statisticalTests[0];
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
@@ -221,25 +232,35 @@ Cramer's V = .338, Approx. Sig. = .009`,
       {/* Result Display */}
       {result && (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm space-y-6 animate-in fade-in duration-300">
-          {/* Top Banner with Extracted Metrics */}
-          <div className="bg-slate-900 text-white p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span
-                  className={`w-3 h-3 rounded-full ${
-                    result.isSignificant ? "bg-emerald-400" : "bg-amber-400"
-                  }`}
+            {/* Top Banner with Extracted Metrics */}
+            <div className="bg-slate-900 text-white p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span
+                      className={`w-3 h-3 rounded-full ${
+                        result.isSignificant ? "bg-emerald-400" : "bg-amber-400"
+                      }`}
+                    />
+                    <h2 className="text-base font-bold">
+                      {result.isSignificant
+                        ? "Statistisk signifikant resultat (p < .05)"
+                        : "Ikke-signifikant resultat (p ≥ .05)"}
+                    </h2>
+                  </div>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {result.extractedStatistics?.testName || selectedType}
+                  </span>
+                </div>
+
+                <ExportButtonGroup
+                  testInfo={matchingTest}
+                  results={result.extractedStatistics}
+                  datasetName="SPSS Output Tolkning"
+                  apaNarrative={result.apaCitationProposal}
+                  interpretation={result}
                 />
-                <h2 className="text-base font-bold">
-                  {result.isSignificant
-                    ? "Statistisk signifikant resultat (p < .05)"
-                    : "Ikke-signifikant resultat (p ≥ .05)"}
-                </h2>
               </div>
-              <span className="text-xs text-slate-400 font-mono">
-                {result.extractedStatistics?.testName || selectedType}
-              </span>
-            </div>
 
             {/* Metric badges */}
             {result.extractedStatistics && (

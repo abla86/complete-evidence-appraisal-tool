@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { Dataset } from "../types";
 import { testsLibrary } from "../data/testsLibrary";
 import { TabId } from "./Navigation";
+import { VisualDecisionTree } from "./VisualDecisionTree";
 import {
   HelpCircle,
   ArrowRight,
@@ -9,18 +11,35 @@ import {
   AlertTriangle,
   Play,
   BookOpen,
+  GitFork,
+  ListOrdered,
+  FileText,
+  FileSpreadsheet,
+  Printer,
 } from "lucide-react";
+import {
+  exportDecisionTreeToWord,
+  exportDecisionTreeToExcel,
+  triggerPrint,
+} from "../utils/exportUtils";
 
 interface WizardViewProps {
+  dataset?: Dataset;
   onSelectTest: (testId: string) => void;
   onNavigate: (tab: TabId) => void;
 }
 
 export const WizardView: React.FC<WizardViewProps> = ({
+  dataset,
   onSelectTest,
   onNavigate,
 }) => {
-  // Wizard State
+  // Mode switcher: 'visual_tree' vs 'step_by_step'
+  const [viewMode, setViewMode] = useState<"visual_tree" | "step_by_step">(
+    "visual_tree"
+  );
+
+  // Wizard State for step-by-step
   const [goal, setGoal] = useState<string>("");
   const [numGroups, setNumGroups] = useState<string>("");
   const [outcomeType, setOutcomeType] = useState<string>("");
@@ -100,33 +119,101 @@ export const WizardView: React.FC<WizardViewProps> = ({
   const recommendedTestId = getRecommendation();
   const testInfo = testsLibrary.find((t) => t.id === recommendedTestId);
 
+  const handleExportWord = () => {
+    if (!testInfo) return;
+    exportDecisionTreeToWord({
+      goal: goal || "Forskningsproblemstilling",
+      designType: designType || "Uavhengige grupper",
+      outcomeType: outcomeType || "Skala",
+      isNormal: isNormal === "yes" ? "Normalfordelt" : "Skjevfordelt",
+      recommendedTest: testInfo,
+    });
+  };
+
+  const handleExportExcel = () => {
+    if (!testInfo) return;
+    exportDecisionTreeToExcel({
+      goal: goal || "Forskningsproblemstilling",
+      designType: designType || "Uavhengig",
+      outcomeType: outcomeType || "Skala",
+      isNormal: isNormal === "yes" ? "Normalfordelt" : "Skjevfordelt",
+      recommendedTest: testInfo.name,
+      justification: testInfo.whenToUse,
+      spssMenuPath: testInfo.spssMenuPath,
+    });
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-              Stegvis beslutningstre
-            </span>
-            <h1 className="text-xl font-bold text-slate-900">
-              Analyseveilederen: «Hvilken test skal jeg velge?»
-            </h1>
-            <p className="text-sm text-slate-600">
-              Svar på 3–4 enkle metodiske spørsmål for å finne nøyaktig riktig statistisk test for din problemstilling og dine data.
-            </p>
-          </div>
-          {(goal || numGroups || outcomeType || designType || isNormal) && (
-            <button
-              onClick={resetWizard}
-              className="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Nullstill</span>
-            </button>
-          )}
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Mode Navigation Tabs */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setViewMode("visual_tree")}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              viewMode === "visual_tree"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <GitFork className="w-4 h-4 text-emerald-400" />
+            <span>Visuelt Beslutningstre (Diagram)</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode("step_by_step")}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              viewMode === "step_by_step"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <ListOrdered className="w-4 h-4 text-emerald-400" />
+            <span>Stegvis Veileder (Spørsmål)</span>
+          </button>
         </div>
+
+        {dataset && (
+          <span className="text-xs text-slate-500 font-mono hidden sm:inline-block">
+            Aktivt datasett: <strong className="text-slate-700">{dataset.name}</strong>
+          </span>
+        )}
       </div>
+
+      {/* Render View Mode */}
+      {viewMode === "visual_tree" ? (
+        <VisualDecisionTree
+          dataset={dataset}
+          onSelectTest={onSelectTest}
+          onNavigate={onNavigate}
+        />
+      ) : (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                  Stegvis spørreveileder
+                </span>
+                <h1 className="text-xl font-bold text-slate-900">
+                  «Hvilken test skal jeg velge?»
+                </h1>
+                <p className="text-sm text-slate-600">
+                  Svar på spørsmålene under for å navigere stegvis til anbefalt analyse.
+                </p>
+              </div>
+              {(goal || numGroups || outcomeType || designType || isNormal) && (
+                <button
+                  onClick={resetWizard}
+                  className="flex items-center space-x-1 text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors border border-slate-200"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Start på nytt</span>
+                </button>
+              )}
+            </div>
+          </div>
 
       {/* Step 1: Research Goal */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
@@ -346,7 +433,34 @@ export const WizardView: React.FC<WizardViewProps> = ({
                 {testInfo.name}
               </h2>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+              <button
+                onClick={handleExportWord}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                title="Last ned metodebegrunnelse i Word (.doc)"
+              >
+                <FileText className="w-3.5 h-3.5 text-blue-400" />
+                <span>Word (.doc)</span>
+              </button>
+
+              <button
+                onClick={handleExportExcel}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                title="Last ned beslutningsmatrise i Excel (.xlsx)"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Excel (.xlsx)</span>
+              </button>
+
+              <button
+                onClick={triggerPrint}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                title="Skriv ut eller lagre som PDF"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-300" />
+                <span>Skriv ut / PDF</span>
+              </button>
+
               <button
                 onClick={() => {
                   onSelectTest(testInfo.id);
@@ -399,6 +513,8 @@ export const WizardView: React.FC<WizardViewProps> = ({
             <div className="text-slate-300 font-mono text-xs">{testInfo.h0}</div>
             <div className="text-emerald-300 font-mono text-xs">{testInfo.h1}</div>
           </div>
+        </div>
+      )}
         </div>
       )}
     </div>

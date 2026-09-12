@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Dataset, VariableMeta, MeasurementLevel } from "../types";
+import React, { useState, useRef, useMemo } from "react";
+import { Dataset, VariableMeta, MeasurementLevel, VariableValidationReport } from "../types";
 import { defaultDatasets } from "../data/defaultDatasets";
 import {
   Upload,
@@ -10,7 +10,23 @@ import {
   FileSpreadsheet,
   Plus,
   RefreshCw,
+  Printer,
+  Download,
+  ShieldCheck,
+  ShieldAlert,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  Activity,
+  Info,
 } from "lucide-react";
+import {
+  exportDatasetToExcel,
+  triggerPrint,
+  exportValidationReportToExcel,
+  exportValidationReportToWord,
+} from "../utils/exportUtils";
+import { validateDatasetHealth } from "../utils/validationEngine";
 
 interface DatasetViewProps {
   currentDataset: Dataset;
@@ -25,7 +41,23 @@ export const DatasetView: React.FC<DatasetViewProps> = ({
 }) => {
   const [subTab, setSubTab] = useState<"data" | "variable" | "quality">("data");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [issueFilter, setIssueFilter] = useState<"all" | "error" | "warning">("all");
+  const [selectedVarQuality, setSelectedVarQuality] = useState<string>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Compute dataset health report via validation engine
+  const healthReport = useMemo(
+    () => validateDatasetHealth(currentDataset),
+    [currentDataset]
+  );
+
+  const variableReportsList = useMemo(
+    () =>
+      Object.values(
+        healthReport.variableReports
+      ) as VariableValidationReport[],
+    [healthReport]
+  );
 
   // Parse CSV/TSV helper
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,6 +196,24 @@ export const DatasetView: React.FC<DatasetViewProps> = ({
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Last opp CSV/Excel</span>
+            </button>
+
+            <button
+              onClick={() => exportDatasetToExcel(currentDataset)}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-300"
+              title="Last ned rådata og variabeloversikt som Excel (.xlsx)"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Eksporter Excel (.xlsx)</span>
+            </button>
+
+            <button
+              onClick={triggerPrint}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-300"
+              title="Skriv ut eller lagre som PDF"
+            >
+              <Printer className="w-3.5 h-3.5 text-slate-700" />
+              <span>Skriv ut / PDF</span>
             </button>
           </div>
         </div>
@@ -342,61 +392,389 @@ export const DatasetView: React.FC<DatasetViewProps> = ({
 
       {/* Sub-tab 3: Datakontroll & Kvalitetssjekk */}
       {subTab === "quality" && (
-        <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 mb-2">
-              Datakontroll: Screening for tastefeil og missing data
-            </h2>
-            <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
-              Før du kjører en t-test, ANOVA eller regresjon må du alltid verifisere at minimums- og maksimumsverdier er logiske (f.eks. at ingen har alder 999 eller skår utenfor skalaen 0–30), og at manglende data ikke er konsentrert i én gruppe.
-            </p>
+        <div className="space-y-6">
+          {/* Health Score Overview Hero */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start space-x-4">
+                <div
+                  className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center font-bold font-mono text-lg shrink-0 border ${
+                    healthReport.healthScore >= 80
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : healthReport.healthScore >= 60
+                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                      : "bg-rose-50 text-rose-700 border-rose-200"
+                  }`}
+                >
+                  <span>{healthReport.healthScore}</span>
+                  <span className="text-[9px] uppercase tracking-wider font-sans font-normal text-slate-500">
+                    /100
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-base font-bold text-slate-900">
+                      Datakvalitet & Valideringsscore
+                    </h2>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        healthReport.healthScore >= 80
+                          ? "bg-emerald-100 text-emerald-800"
+                          : healthReport.healthScore >= 60
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-rose-100 text-rose-800"
+                      }`}
+                    >
+                      {healthReport.healthScore >= 80
+                        ? "Høy datakvalitet (Klar for analyse)"
+                        : healthReport.healthScore >= 60
+                        ? "Moderat kvalitet (Advarsler identifisert)"
+                        : "Kritiske feil (Må renses før analyse)"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                    Systematisk screening basert på anbefalingene i <em>SPSS Survival Manual</em> (Pallant, 2020) og Tabachnick & Fidell. Kontrollerer for ulogiske verdier, missing-mønstre, uteliggere og brudd på normalfordeling.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons: Export Validation Report */}
+              <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+                <button
+                  onClick={() => exportValidationReportToWord(healthReport)}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-300"
+                  title="Last ned valideringsrapport i Word (.doc)"
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Word (.doc)</span>
+                </button>
+
+                <button
+                  onClick={() => exportValidationReportToExcel(healthReport)}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-300"
+                  title="Last ned fullstendig datakontroll i Excel (.xlsx)"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Excel (.xlsx)</span>
+                </button>
+
+                <button
+                  onClick={triggerPrint}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors border border-slate-300"
+                  title="Skriv ut eller lagre som PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-700" />
+                  <span>Skriv ut / PDF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Metric counters */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-slate-100 text-xs">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <span className="text-slate-500 text-[11px]">Totale observasjoner</span>
+                <div className="font-bold text-slate-900 text-base font-mono mt-0.5">
+                  N = {healthReport.totalRows}
+                </div>
+              </div>
+              <div className="p-3 bg-emerald-50/60 rounded-lg border border-emerald-100">
+                <span className="text-emerald-700 text-[11px] flex items-center space-x-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Godkjente sjekker</span>
+                </span>
+                <div className="font-bold text-emerald-800 text-base font-mono mt-0.5">
+                  {healthReport.passedChecksCount}
+                </div>
+              </div>
+              <div className="p-3 bg-amber-50/60 rounded-lg border border-amber-100">
+                <span className="text-amber-700 text-[11px] flex items-center space-x-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Metodiske advarsler</span>
+                </span>
+                <div className="font-bold text-amber-800 text-base font-mono mt-0.5">
+                  {healthReport.warningsCount}
+                </div>
+              </div>
+              <div className="p-3 bg-rose-50/60 rounded-lg border border-rose-100">
+                <span className="text-rose-700 text-[11px] flex items-center space-x-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>Kritiske feil</span>
+                </span>
+                <div className="font-bold text-rose-800 text-base font-mono mt-0.5">
+                  {healthReport.errorsCount}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {currentDataset.variables
-              .filter((v) => v.type === "numeric")
-              .map((v) => {
-                const nums = currentDataset.rows
-                  .map((r) => Number(r[v.name] ?? r[v.id]))
-                  .filter((n) => !isNaN(n));
-                const min = Math.min(...nums);
-                const max = Math.max(...nums);
-                const avg = nums.reduce((a, b) => a + b, 0) / (nums.length || 1);
+          {/* Validation Issues Center */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  Valideringsavvik & Tiltak ({healthReport.issues.length})
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Filtrer etter alvorlighetsgrad for å inspisere spesifikke metodiske utfordringer.
+                </p>
+              </div>
 
-                return (
-                  <div
-                    key={v.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-2"
-                  >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="font-semibold text-xs text-slate-900">{v.name}</span>
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                        {v.level}
-                      </span>
-                    </div>
+              {/* Filter Pills */}
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => setIssueFilter("all")}
+                  className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    issueFilter === "all"
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  Alle ({healthReport.issues.length})
+                </button>
+                <button
+                  onClick={() => setIssueFilter("error")}
+                  className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    issueFilter === "error"
+                      ? "bg-rose-600 text-white"
+                      : "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                  }`}
+                >
+                  Feil ({healthReport.errorsCount})
+                </button>
+                <button
+                  onClick={() => setIssueFilter("warning")}
+                  className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    issueFilter === "warning"
+                      ? "bg-amber-600 text-white"
+                      : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                  }`}
+                >
+                  Advarsler ({healthReport.warningsCount})
+                </button>
+              </div>
+            </div>
 
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1">
-                      <div className="bg-slate-50 p-2 rounded">
-                        <div className="text-slate-400 text-[10px]">Min</div>
-                        <div className="font-semibold text-slate-800 font-mono">{min}</div>
+            {healthReport.issues.length === 0 ? (
+              <div className="p-6 text-center space-y-2 bg-emerald-50/50 rounded-lg border border-emerald-100">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                <h4 className="text-sm font-bold text-emerald-900">
+                  Ingen dataproblemer funnet!
+                </h4>
+                <p className="text-xs text-emerald-700 max-w-md mx-auto">
+                  Datasettet har ingen manglende data, urealistiske tastefeil eller ekstreme uteliggere. Du kan trygt fortsette til testvalg og analyse.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {healthReport.issues
+                  .filter((iss) => (issueFilter === "all" ? true : iss.severity === issueFilter))
+                  .map((issue) => (
+                    <div
+                      key={issue.id}
+                      className={`p-4 rounded-xl border text-xs space-y-2 transition-all ${
+                        issue.severity === "error"
+                          ? "bg-rose-50/60 border-rose-200 text-rose-950"
+                          : "bg-amber-50/60 border-amber-200 text-amber-950"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                              issue.severity === "error"
+                                ? "bg-rose-200 text-rose-900"
+                                : "bg-amber-200 text-amber-900"
+                            }`}
+                          >
+                            {issue.severity === "error" ? "Kritisk feil" : "Metodisk advarsel"}
+                          </span>
+                          <span className="font-semibold text-slate-900 font-mono">
+                            {issue.variableName}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-sans">
+                            ({issue.type})
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-slate-50 p-2 rounded">
-                        <div className="text-slate-400 text-[10px]">Maks</div>
-                        <div className="font-semibold text-slate-800 font-mono">{max}</div>
-                      </div>
-                      <div className="bg-slate-50 p-2 rounded">
-                        <div className="text-slate-400 text-[10px]">Gj.snitt</div>
-                        <div className="font-semibold text-slate-800 font-mono">{avg.toFixed(1)}</div>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                      <span>Gyldige observasjoner: {nums.length}</span>
-                      <span className="text-emerald-700 font-medium">✓ Innenfor normalområde</span>
+                      <p className="font-semibold text-slate-900 text-xs">
+                        {issue.message}
+                      </p>
+
+                      <p className="text-slate-700 text-xs leading-relaxed">
+                        {issue.details}
+                      </p>
+
+                      <div className="pt-2 border-t border-slate-200/60 flex items-start space-x-1.5 text-xs text-slate-900">
+                        <span className="font-bold text-emerald-800 shrink-0">
+                          SPSS Anbefaling:
+                        </span>
+                        <span className="text-slate-800">{issue.recommendation}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Statistical Distribution & Normality Validation Table */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs space-y-3">
+            <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-semibold">
+                  Deskriptiv & Normalfordelingsscreening (Pallant Kap. 6)
+                </h3>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Kriterium: |Z_skjev| ≤ 2.58 (p &gt; .01)
+              </span>
+            </div>
+
+            <div className="p-4 overflow-x-auto">
+              <table className="w-full text-xs text-left border border-slate-200 font-mono">
+                <thead className="bg-slate-100 text-slate-700 border-b border-slate-300 font-sans">
+                  <tr>
+                    <th className="p-2.5 border-r border-slate-200">Variabel</th>
+                    <th className="p-2.5 border-r border-slate-200">Nivå</th>
+                    <th className="p-2.5 border-r border-slate-200">Gyldig N</th>
+                    <th className="p-2.5 border-r border-slate-200">Missing</th>
+                    <th className="p-2.5 border-r border-slate-200">Min – Maks</th>
+                    <th className="p-2.5 border-r border-slate-200">Gj.snitt (SD)</th>
+                    <th className="p-2.5 border-r border-slate-200">Skjevhet (z)</th>
+                    <th className="p-2.5 border-r border-slate-200">Kurtose (z)</th>
+                    <th className="p-2.5 border-r border-slate-200">Normalfordeling</th>
+                    <th className="p-2.5">Uteliggere</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {variableReportsList.map((vr) => (
+                    <tr key={vr.variableName} className="hover:bg-slate-50/80">
+                      <td className="p-2.5 border-r border-slate-200 font-semibold font-sans text-slate-900">
+                        {vr.variableName}
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200 font-sans uppercase text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                          {vr.level}
+                        </span>
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200">{vr.n}</td>
+                      <td className="p-2.5 border-r border-slate-200">
+                        {vr.missingCount > 0 ? (
+                          <span className="text-amber-600 font-medium font-sans">
+                            {vr.missingCount} ({vr.missingPercentage}%)
+                          </span>
+                        ) : (
+                          <span className="text-emerald-700 font-sans">0 (0%)</span>
+                        )}
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200">
+                        {vr.min !== undefined ? `${vr.min} – ${vr.max}` : "–"}
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200">
+                        {vr.mean !== undefined ? `${vr.mean} (${vr.sd})` : "–"}
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200">
+                        {vr.skewness !== undefined ? (
+                          <span
+                            className={
+                              Math.abs(vr.zSkew || 0) > 2.58
+                                ? "text-amber-700 font-bold"
+                                : "text-slate-700"
+                            }
+                          >
+                            {vr.skewness} (z={vr.zSkew})
+                          </span>
+                        ) : (
+                          "–"
+                        )}
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200">
+                        {vr.kurtosis !== undefined ? (
+                          <span
+                            className={
+                              Math.abs(vr.zKurtosis || 0) > 2.58
+                                ? "text-amber-700 font-bold"
+                                : "text-slate-700"
+                            }
+                          >
+                            {vr.kurtosis} (z={vr.zKurtosis})
+                          </span>
+                        ) : (
+                          "–"
+                        )}
+                      </td>
+                      <td className="p-2.5 border-r border-slate-200 font-sans">
+                        {vr.level === "scale" ? (
+                          vr.isNormallyDistributed ? (
+                            <span className="inline-flex items-center space-x-1 text-emerald-700 text-[11px] font-medium">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Tilfredsstillende</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center space-x-1 text-amber-700 text-[11px] font-medium">
+                              <AlertTriangle className="w-3.5 h-3.5" />
+                              <span>Skjev (|z| &gt; 2.58)</span>
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-slate-400 text-[11px]">Kategorisk</span>
+                        )}
+                      </td>
+                      <td className="p-2.5 font-sans">
+                        {vr.outliersCount > 0 ? (
+                          <span className="text-amber-700 font-bold font-mono">
+                            {vr.outliersCount} (|z| &gt; 2.58)
+                          </span>
+                        ) : (
+                          <span className="text-emerald-700 text-[11px]">0</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Outlier Drilldown */}
+            {variableReportsList.some(
+              (vr) => vr.outliersCount > 0
+            ) && (
+              <div className="p-4 bg-amber-50/70 border-t border-amber-200 space-y-2 text-xs">
+                <div className="flex items-center space-x-1.5 font-semibold text-amber-900">
+                  <AlertTriangle className="w-4 h-4 text-amber-700" />
+                  <span>Detaljer om identifiserte uteliggere (Outliers)</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  {variableReportsList
+                    .filter((vr) => vr.outliersCount > 0)
+                    .map((vr) => (
+                      <div
+                        key={vr.variableName}
+                        className="bg-white p-3 rounded-lg border border-amber-200 space-y-1 font-mono text-[11px]"
+                      >
+                        <div className="font-sans font-semibold text-slate-900 text-xs">
+                          {vr.variableName}: {vr.outliersCount} uteliggere
+                        </div>
+                        <ul className="divide-y divide-slate-100">
+                          {vr.outlierIndices?.map((outl, oIdx) => (
+                            <li
+                              key={oIdx}
+                              className="py-1 flex items-center justify-between text-slate-700"
+                            >
+                              <span>Rad #{outl.row} (SPSS ID)</span>
+                              <span className="font-bold">
+                                Verdi: {outl.value} (z = {outl.zScore})
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

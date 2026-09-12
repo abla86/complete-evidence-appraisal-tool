@@ -10,6 +10,7 @@ import {
   Workflow,
   Sparkles,
   Layers,
+  Download,
 } from "lucide-react";
 
 export type TabId =
@@ -28,12 +29,14 @@ interface NavigationProps {
   activeTab: TabId;
   setActiveTab: (tab: TabId) => void;
   datasetName: string;
+  onOpenExport?: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   activeTab,
   setActiveTab,
   datasetName,
+  onOpenExport,
 }) => {
   const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: "flow", label: "Hovedflyt", icon: Layers },
@@ -72,10 +75,22 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="text-right text-xs">
+            <div className="text-right text-xs hidden sm:block">
               <span className="text-slate-400">Aktivt datasett:</span>{" "}
               <span className="font-medium text-slate-200">{datasetName}</span>
             </div>
+
+            {onOpenExport && (
+              <button
+                id="global-export-button"
+                onClick={onOpenExport}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                title="Eksporter resultat og rapporter i PDF, Word (.docx) eller CSV etter APA 7"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Eksporter (APA 7)</span>
+              </button>
+            )}
           </div>
         </div>
 

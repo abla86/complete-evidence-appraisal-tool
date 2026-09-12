@@ -20,7 +20,20 @@ import {
   Copy,
   FileText,
   ChevronDown,
+  FileSpreadsheet,
+  Printer,
+  ShieldCheck,
+  ShieldAlert,
+  ArrowRightCircle,
+  Sparkles,
 } from "lucide-react";
+import {
+  exportAnalysisToWord,
+  exportAnalysisToExcel,
+  triggerPrint,
+} from "../utils/exportUtils";
+import { validateTestAssumptions } from "../utils/validationEngine";
+import { ExportButtonGroup } from "./ExportButtonGroup";
 
 interface AnalysisRunnerViewProps {
   dataset: Dataset;
@@ -43,6 +56,39 @@ export const AnalysisRunnerView: React.FC<AnalysisRunnerViewProps> = ({
   const [selectedVarY, setSelectedVarY] = useState<string>("post_kognitiv");
 
   const currentTest = testsLibrary.find((t) => t.id === activeTestId) || testsLibrary[0];
+
+  // Live Assumption Validation against current dataset and selected variables
+  const assumptionValidation = useMemo(() => {
+    return validateTestAssumptions(activeTestId, dataset, {
+      ivName:
+        activeTestId.includes("t-test") ||
+        activeTestId.includes("anova") ||
+        activeTestId.includes("mann-whitney") ||
+        activeTestId.includes("kruskal")
+          ? selectedGroupVar
+          : undefined,
+      dvName:
+        activeTestId.includes("t-test") ||
+        activeTestId.includes("anova") ||
+        activeTestId.includes("mann-whitney") ||
+        activeTestId.includes("kruskal")
+          ? selectedOutcomeVar
+          : undefined,
+      pairPre: selectedPairPre,
+      pairPost: selectedPairPost,
+      varX: selectedVarX,
+      varY: selectedVarY,
+    });
+  }, [
+    activeTestId,
+    dataset,
+    selectedGroupVar,
+    selectedOutcomeVar,
+    selectedPairPre,
+    selectedPairPost,
+    selectedVarX,
+    selectedVarY,
+  ]);
 
   // Helpers to get column data from dataset
   const getColumnData = (colName: string): any[] => {
@@ -401,6 +447,136 @@ export const AnalysisRunnerView: React.FC<AnalysisRunnerViewProps> = ({
         </div>
       </div>
 
+      {/* Live Assumption Validation Card */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center space-x-2">
+            {assumptionValidation.overallStatus === "valid" ? (
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            ) : assumptionValidation.overallStatus === "warning" ? (
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            ) : (
+              <ShieldAlert className="w-5 h-5 text-rose-600" />
+            )}
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">
+                Live forutsetningskontroll for {currentTest.name}
+              </h2>
+              <p className="text-xs text-slate-500">
+                Sanntidskontroll av metodiske forutsetninger basert på valgte variabler i datasettet.
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+              assumptionValidation.overallStatus === "valid"
+                ? "bg-emerald-100 text-emerald-800"
+                : assumptionValidation.overallStatus === "warning"
+                ? "bg-amber-100 text-amber-800"
+                : "bg-rose-100 text-rose-800"
+            }`}
+          >
+            {assumptionValidation.overallStatus === "valid"
+              ? "✓ Forutsetninger oppfylt"
+              : assumptionValidation.overallStatus === "warning"
+              ? "⚠️ Forutsetningsadvarsel"
+              : "🛑 Kriteriebrudd"}
+          </span>
+        </div>
+
+        {/* Alternative Test Suggestion Banner */}
+        {assumptionValidation.alternativeTestSuggestion && (
+          <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-1.5 font-bold text-amber-900">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>Anbefalt alternativ: {assumptionValidation.alternativeTestSuggestion.name}</span>
+              </div>
+              <p className="text-amber-800 leading-relaxed max-w-xl">
+                {assumptionValidation.alternativeTestSuggestion.reason}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                if (assumptionValidation.alternativeTestSuggestion) {
+                  setActiveTestId(assumptionValidation.alternativeTestSuggestion.testId);
+                }
+              }}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-lg transition-colors shrink-0 shadow-xs"
+            >
+              <span>Bytt til anbefalt test</span>
+              <ArrowRightCircle className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Assumptions Checklist Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          {assumptionValidation.assumptions.map((assump) => (
+            <div
+              key={assump.id}
+              className={`p-3.5 rounded-lg border space-y-2 ${
+                assump.status === "passed"
+                  ? "bg-slate-50/70 border-slate-200"
+                  : assump.status === "warning"
+                  ? "bg-amber-50/50 border-amber-200"
+                  : "bg-rose-50/50 border-rose-200"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5 font-semibold text-slate-900">
+                  {assump.status === "passed" ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : assump.status === "warning" ? (
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  ) : (
+                    <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+                  )}
+                  <span>{assump.name}</span>
+                </div>
+                <span
+                  className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded font-bold ${
+                    assump.status === "passed"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : assump.status === "warning"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-rose-100 text-rose-800"
+                  }`}
+                >
+                  {assump.status === "passed"
+                    ? "Oppfylt"
+                    : assump.status === "warning"
+                    ? "Advarsel"
+                    : "Brudd"}
+                </span>
+              </div>
+
+              <div className="font-mono text-[11px] text-slate-600 bg-white/70 p-2 rounded border border-slate-200/60 space-y-0.5">
+                <div>
+                  <span className="text-slate-400 font-sans">Målt verdi: </span>
+                  <span className="font-semibold text-slate-800">{assump.measuredValue}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-sans">Kriterium: </span>
+                  <span className="text-slate-700">{assump.threshold}</span>
+                </div>
+              </div>
+
+              <p className="text-slate-600 text-xs leading-relaxed">
+                {assump.explanation}
+              </p>
+
+              <div className="text-[11px] text-emerald-800 font-medium pt-1 border-t border-slate-200/50">
+                <span className="font-semibold">SPSS råd: </span>
+                {assump.recommendation}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Module 4: «Hvorfor denne testen?» Card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
         <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
@@ -438,7 +614,7 @@ export const AnalysisRunnerView: React.FC<AnalysisRunnerViewProps> = ({
       {/* Module 6 & Output: SPSS Output Table Display */}
       {testResults && (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs space-y-4">
-          <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+          <div className="p-4 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
               <span className="text-xs uppercase font-mono px-2 py-0.5 rounded bg-emerald-800 text-emerald-200">
                 SPSS Output
@@ -447,9 +623,22 @@ export const AnalysisRunnerView: React.FC<AnalysisRunnerViewProps> = ({
                 Beregnet resultat for {currentTest.name}
               </h3>
             </div>
-            <span className="text-xs text-slate-400 font-mono">
-              Konfidensintervall: 95%
-            </span>
+            
+            <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+              <ExportButtonGroup
+                testInfo={currentTest}
+                results={testResults}
+                datasetName={dataset.name}
+                apaNarrative={apaText}
+                assumptions={assumptionValidation.assumptions.map((a) => ({
+                  name: a.name,
+                  status: (a.status === "passed" ? "met" : a.status) as "met" | "warning" | "violated",
+                  measuredValue: a.measuredValue,
+                  threshold: a.threshold,
+                  explanation: a.description,
+                }))}
+              />
+            </div>
           </div>
 
           {/* Render specific test table */}
@@ -637,13 +826,23 @@ export const AnalysisRunnerView: React.FC<AnalysisRunnerViewProps> = ({
                     Forslag til resultattekst (APA 7)
                   </span>
                 </div>
-                <button
-                  onClick={copyApaText}
-                  className="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded transition-colors"
-                >
-                  <Copy className="w-3 h-3" />
-                  <span>{copied ? "Kopiert!" : "Kopier tekst"}</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => exportAnalysisToWord(currentTest, testResults, apaText, dataset.name)}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded border border-slate-700 transition-colors"
+                    title="Last ned APA 7 rapport i Word (.doc)"
+                  >
+                    <FileText className="w-3 h-3 text-blue-400" />
+                    <span>Word (.doc)</span>
+                  </button>
+                  <button
+                    onClick={copyApaText}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded transition-colors"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>{copied ? "Kopiert!" : "Kopier tekst"}</span>
+                  </button>
+                </div>
               </div>
 
               <div className="p-2.5 bg-amber-950/40 border border-amber-800/60 rounded text-[11px] font-semibold text-amber-300">

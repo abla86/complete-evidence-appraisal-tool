@@ -1,1 +1,71 @@
 @import "tailwindcss";
+
+@media print {
+  /* Hide interactive web UI components */
+  nav,
+  header,
+  footer,
+  button,
+  .no-print,
+  input,
+  select {
+    display: none !important;
+  }
+
+  /* Reset layout for printable document */
+  body,
+  html,
+  #root,
+  main {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Clean cards and containers */
+  .shadow-xs,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .border,
+  .border-slate-200,
+  .border-slate-300 {
+    border-color: #d1d5db !important;
+  }
+
+  /* Prevent awkward page breaks */
+  table,
+  tr,
+  .card-print,
+  .bg-white {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Force print tables to show borders cleanly */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    padding: 4pt 6pt !important;
+  }
+
+  /* Print header watermark/title */
+  .print-only {
+    display: block !important;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}

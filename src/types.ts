@@ -163,3 +163,69 @@ export interface OutputInterpretation {
   apaCitationProposal: string;
   clinicalChecklist?: string[];
 }
+
+export type ValidationSeverity = "pass" | "info" | "warning" | "error";
+
+export interface DataValidationIssue {
+  id: string;
+  variableName: string;
+  type: "missing" | "range" | "outlier" | "normality" | "level_mismatch" | "duplicate_id";
+  severity: ValidationSeverity;
+  message: string;
+  details: string;
+  affectedRows?: number[];
+  recommendation: string;
+}
+
+export interface VariableValidationReport {
+  variableName: string;
+  level: MeasurementLevel;
+  type: "numeric" | "string";
+  n: number;
+  missingCount: number;
+  missingPercentage: number;
+  min?: number;
+  max?: number;
+  mean?: number;
+  sd?: number;
+  skewness?: number;
+  kurtosis?: number;
+  zSkew?: number;
+  zKurtosis?: number;
+  isNormallyDistributed?: boolean;
+  outliersCount: number;
+  outlierIndices?: { row: number; value: any; zScore: number }[];
+  issues: DataValidationIssue[];
+}
+
+export interface DatasetHealthReport {
+  datasetName: string;
+  totalRows: number;
+  totalVariables: number;
+  healthScore: number; // 0 - 100
+  passedChecksCount: number;
+  warningsCount: number;
+  errorsCount: number;
+  issues: DataValidationIssue[];
+  variableReports: Record<string, VariableValidationReport>;
+}
+
+export interface TestAssumptionValidation {
+  testId: string;
+  testName: string;
+  overallStatus: "valid" | "warning" | "violation";
+  assumptions: {
+    name: string;
+    description: string;
+    status: "met" | "warning" | "violated";
+    measuredValue?: string;
+    threshold?: string;
+    explanation: string;
+    remedy?: string;
+  }[];
+  alternativeTestSuggestion?: {
+    testId: string;
+    name: string;
+    reason: string;
+  };
+}

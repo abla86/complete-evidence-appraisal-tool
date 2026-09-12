@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { Copy, CheckCircle2, FileText, AlertTriangle, BookCheck } from "lucide-react";
+import { Copy, CheckCircle2, FileText, AlertTriangle, BookCheck, Printer } from "lucide-react";
+import { triggerPrint } from "../utils/exportUtils";
+import { statisticalTests } from "../data/testsLibrary";
+import { ExportButtonGroup } from "./ExportButtonGroup";
 
 interface ApaTemplateItem {
   id: string;
@@ -88,6 +91,46 @@ export const ApaReportView: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleExportWord = () => {
+    const htmlBody = `
+      <h1>APA 7 Rapporteringsmal: ${current.name}</h1>
+      <p style="text-align: center; color: #64748b; font-size: 10pt;">
+        SPSS Survival Manual Digital • Akademisk rapportering (APA 7)
+      </p>
+
+      <div style="border: 1px solid #b45309; background-color: #fef3c7; color: #78350f; padding: 8pt; font-size: 10pt; font-weight: bold; margin: 12pt 0; text-align: center;">
+        GENERERT FORSLAG – MÅ KONTROLLERES AV FORSKER
+      </div>
+
+      <h2>1. Eksempel på ferdig resultattekst</h2>
+      <p style="font-style: italic; background-color: #f8fafc; padding: 10pt; border: 1px solid #cbd5e1;">
+        «${current.exampleFilled}»
+      </p>
+
+      <h2>2. Fyll-inn mal</h2>
+      <p style="font-family: monospace; font-size: 10pt; background-color: #f1f5f9; padding: 10pt;">
+        ${current.templateNarrative}
+      </p>
+
+      <h2>3. Kritiske APA 7 notisregler</h2>
+      <ul>
+        ${current.rules.map((r) => `<li>${r}</li>`).join("")}
+      </ul>
+    `;
+
+    const blob = new Blob(["\ufeff", `<!DOCTYPE html><html><head><meta charset='utf-8'><title>APA7_${current.id}</title><style>body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; padding: 2cm; }</style></head><body>${htmlBody}</body></html>`], {
+      type: "application/msword;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `APA7_${current.id}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
@@ -139,17 +182,36 @@ export const ApaReportView: React.FC = () => {
 
       {/* Main Reporting Showcase */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="text-base font-bold text-slate-900">
             {current.name}
           </h2>
-          <button
-            onClick={handleCopy}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            <span>{copied ? "Kopiert til utklipp!" : "Kopier APA-eksempel"}</span>
-          </button>
+          <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+            {(() => {
+              const matchingTest = statisticalTests.find(
+                (t) =>
+                  t.id === selectedId ||
+                  t.name.toLowerCase().includes(current.name.toLowerCase()) ||
+                  current.name.toLowerCase().includes(t.name.toLowerCase())
+              ) || statisticalTests[0];
+
+              return (
+                <ExportButtonGroup
+                  testInfo={matchingTest}
+                  datasetName="APA 7 Malbibliotek"
+                  apaNarrative={current.exampleFilled}
+                />
+              );
+            })()}
+
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors border border-slate-300 shadow-xs"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>{copied ? "Kopiert til utklipp!" : "Kopier tekst"}</span>
+            </button>
+          </div>
         </div>
 
         {/* Narrative Example */}

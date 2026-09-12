@@ -341,3 +341,6 @@ export const testsLibrary: StatisticalTestInfo[] = [
       "Logistisk regresjonsanalyse indikerte at [prediktor] var en [signifikant / ikke-signifikant] prediktor for [utfall], OR = [or], 95% CI [[ci_l], [ci_u]], p = [p].",
   },
 ];
+
+export const statisticalTests = testsLibrary;
+

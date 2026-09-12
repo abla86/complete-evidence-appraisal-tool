@@ -17,16 +17,22 @@ import { EffectSizeView } from "./components/EffectSizeView";
 import { ApaReportView } from "./components/ApaReportView";
 import { PicoWorkflowView } from "./components/PicoWorkflowView";
 import { AiAdvisorView } from "./components/AiAdvisorView";
+import { DataExportModal } from "./components/DataExportModal";
+import { statisticalTests } from "./data/testsLibrary";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("flow");
   const [currentDataset, setCurrentDataset] = useState<Dataset>(defaultDatasets[0]);
   const [selectedTestId, setSelectedTestId] = useState<string>("independent-t-test");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const handleSelectTestAndNavigate = (testId: string) => {
     setSelectedTestId(testId);
     setActiveTab("analysis");
   };
+
+  const currentTestInfo =
+    statisticalTests.find((t) => t.id === selectedTestId) || statisticalTests[0];
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col antialiased">
@@ -35,6 +41,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         datasetName={currentDataset.name}
+        onOpenExport={() => setIsExportModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -49,6 +56,7 @@ export default function App() {
 
         {activeTab === "wizard" && (
           <WizardView
+            dataset={currentDataset}
             onSelectTest={handleSelectTestAndNavigate}
             onNavigate={(tab) => setActiveTab(tab)}
           />
@@ -71,7 +79,12 @@ export default function App() {
 
         {activeTab === "interpreter" && <OutputInterpreterView />}
 
-        {activeTab === "assumptions" && <AssumptionsView />}
+        {activeTab === "assumptions" && (
+          <AssumptionsView
+            dataset={currentDataset}
+            onSelectTest={handleSelectTestAndNavigate}
+          />
+        )}
 
         {activeTab === "effect-size" && <EffectSizeView />}
 
@@ -99,6 +112,14 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Global APA 7 Data Export Modal */}
+      <DataExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        testInfo={currentTestInfo}
+        datasetName={currentDataset.name}
+      />
     </div>
   );
 }
