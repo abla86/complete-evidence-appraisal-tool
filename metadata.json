@@ -1,0 +1,6 @@
+{
+  "name": "SPSS Survival Manual – Digital",
+  "description": "En komplett webapp for å lære, gjennomføre og forstå statistiske analyser, forutsetningskontroll, SPSS-outputtolkning og APA 7-rapportering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
