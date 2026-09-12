@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
-import { DocumentAnalysisService } from './src/services/documentAnalysisService';
 import { DocumentParserService } from './src/services/documentParserService';
 import { MetaResearchService } from './src/services/metaResearchService';
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
@@ -24,6 +23,7 @@ function getGeminiClient(): GoogleGenAI | null {
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 10000);
+  const production = process.env.NODE_ENV === 'production';
 
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -31,6 +31,8 @@ async function startServer() {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    res.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.crossref.org https://api.openalex.org https://www.ebi.ac.uk https://accounts.google.com https://oauth2.googleapis.com https://generativelanguage.googleapis.com");
+    if (production) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
   });
   app.use(express.json({ limit: '10mb' }));
