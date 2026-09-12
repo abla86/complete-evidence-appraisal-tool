@@ -1,21 +1,8 @@
-﻿/**
- * Comprehensive Academic Citation & Reference Engine
- * 
- * Supports all major international citation standards:
- * - APA 7th Edition (American Psychological Association)
- * - Vancouver / ICMJE / NLM (National Library of Medicine / Medical & Clinical Journals)
- * - Harvard Reference Style (Author-Date System)
- * - Chicago Manual of Style 17th/18th Ed. (Author-Date & Notes-Bibliography)
- * - MLA 9th Edition (Modern Language Association)
- * - IEEE Citation Style (Institute of Electrical and Electronics Engineers)
- * - BibTeX (LaTeX / Overleaf)
- * - RIS (EndNote, Zotero, Mendeley, Citavi, Paperpile)
- * 
- * Features:
- * - Direct Rich-Text (HTML) clipboard copy for pasting into MS Word & Google Docs with italics preserved
- * - In-text citation generator with custom page and paragraph locators
- * - Batch Bibliography generator with automatic alphabetization or numeric sorting
- * - Live DOI metadata resolution via Crossref REST API, DOI.org Content Negotiation, and Europe PMC
+/**
+ * Academic citation and reference utilities.
+ *
+ * Keeps citation formatting deterministic and browser-safe. DOI metadata lookup is
+ * best-effort and never blocks local citation generation.
  */
 
 export interface AuthorName {
@@ -26,15 +13,15 @@ export interface AuthorName {
   isOrganization?: boolean;
 }
 
-export type CitationStyleId = 
-  | 'apa7' 
-  | 'vancouver' 
-  | 'harvard' 
-  | 'chicago-author-date' 
-  | 'chicago-notes' 
-  | 'mla9' 
-  | 'ieee' 
-  | 'bibtex' 
+export type CitationStyleId =
+  | 'apa7'
+  | 'vancouver'
+  | 'harvard'
+  | 'chicago-author-date'
+  | 'chicago-notes'
+  | 'mla9'
+  | 'ieee'
+  | 'bibtex'
   | 'ris';
 
 export interface CitationStyleInfo {
@@ -46,69 +33,15 @@ export interface CitationStyleInfo {
 }
 
 export const SUPPORTED_CITATION_STYLES: CitationStyleInfo[] = [
-  {
-    id: 'apa7',
-    name: 'APA 7th Edition',
-    shortName: 'APA 7',
-    discipline: 'Helsefag, Sykepleie, Psykologi, Pedagogikk, Samfunnsvitenskap',
-    description: 'Forfatter-Ã¥r format med sentence case artikkeltitler og kursivert tidsskrift/volum.'
-  },
-  {
-    id: 'vancouver',
-    name: 'Vancouver / ICMJE (NLM)',
-    shortName: 'Vancouver',
-    discipline: 'Medisin, Biomedisin, Kliniske retningslinjer, Tidsskriftet, BMJ, Lancet',
-    description: 'Numerisk sekvensiell sitering [1] med standard NLM-forkortelser for tidsskrift.'
-  },
-  {
-    id: 'harvard',
-    name: 'Harvard Style',
-    shortName: 'Harvard',
-    discipline: 'Naturvitenskap, Ã˜konomi, Tverrfaglige studier',
-    description: 'Forfatter-Ã¥r format med enkle anfÃ¸rselstegn for titler og eksplisitt "Available at:".'
-  },
-  {
-    id: 'chicago-author-date',
-    name: 'Chicago 17th / 18th (Author-Date)',
-    shortName: 'Chicago (A-D)',
-    discipline: 'Samfunnsvitenskap, Antropologi, Naturvitenskap',
-    description: 'Forfatter-Ã¥r format med doble anfÃ¸rselstegn for titler og Title Case.'
-  },
-  {
-    id: 'chicago-notes',
-    name: 'Chicago 17th / 18th (Notes & Bibliography)',
-    shortName: 'Chicago (Notes)',
-    discipline: 'Humaniora, Historie, Etikk, Filosofi',
-    description: 'Fotnote- og sluttnotebasert referansestil.'
-  },
-  {
-    id: 'mla9',
-    name: 'MLA 9th Edition',
-    shortName: 'MLA 9',
-    discipline: 'SprÃ¥k, Litteratur, Kulturstudier, Humaniora',
-    description: 'Works Cited format med "vol.", "no." og "pp." deskriptorer.'
-  },
-  {
-    id: 'ieee',
-    name: 'IEEE Reference Style',
-    shortName: 'IEEE',
-    discipline: 'Medisinsk informatikk, Kunstig intelligens, BioingeniÃ¸rfag, Teknologi',
-    description: 'Numerisk format i hakeparentes [1] med forfatterinitialer fÃ¸rst.'
-  },
-  {
-    id: 'bibtex',
-    name: 'BibTeX (.bib)',
-    shortName: 'BibTeX',
-    discipline: 'LaTeX, Overleaf, R Markdown, Quarto',
-    description: 'Standard maskinlesbart format for akademisk publisering i LaTeX.'
-  },
-  {
-    id: 'ris',
-    name: 'RIS Export Format',
-    shortName: 'RIS',
-    discipline: 'EndNote, Zotero, Mendeley, Citavi, Paperpile',
-    description: 'Universelt utvekslingsformat for alle ledende referansehÃ¥ndterere.'
-  }
+  { id: 'apa7', name: 'APA 7th Edition', shortName: 'APA 7', discipline: 'Helsefag og samfunnsvitenskap', description: 'Forfatter-år-format etter APA 7.' },
+  { id: 'vancouver', name: 'Vancouver / ICMJE (NLM)', shortName: 'Vancouver', discipline: 'Medisin og biomedisin', description: 'Numerisk referansestil.' },
+  { id: 'harvard', name: 'Harvard Style', shortName: 'Harvard', discipline: 'Tverrfaglig', description: 'Forfatter-år-format.' },
+  { id: 'chicago-author-date', name: 'Chicago 17th / 18th (Author-Date)', shortName: 'Chicago (A-D)', discipline: 'Samfunnsvitenskap', description: 'Forfatter-år-format.' },
+  { id: 'chicago-notes', name: 'Chicago 17th / 18th (Notes & Bibliography)', shortName: 'Chicago (Notes)', discipline: 'Humaniora', description: 'Notebasert referansestil.' },
+  { id: 'mla9', name: 'MLA 9th Edition', shortName: 'MLA 9', discipline: 'Humaniora', description: 'Works Cited-format.' },
+  { id: 'ieee', name: 'IEEE Reference Style', shortName: 'IEEE', discipline: 'Teknologi', description: 'Numerisk IEEE-format.' },
+  { id: 'bibtex', name: 'BibTeX (.bib)', shortName: 'BibTeX', discipline: 'LaTeX og Overleaf', description: 'Maskinlesbart BibTeX-format.' },
+  { id: 'ris', name: 'RIS Export Format', shortName: 'RIS', discipline: 'Referansehåndtering', description: 'RIS-utvekslingsformat.' },
 ];
 
 export interface Apa7MetadataInput {
@@ -181,925 +114,247 @@ export interface BatchBibliographyResult {
   markdownFormatted: string;
   bibtexBlock: string;
   risBlock: string;
-  items: Array<{
-    id: string;
-    citation: MultiStyleCitationResult;
-    parsed: unknown;
-  }>;
+  items: Array<{ id: string; citation: MultiStyleCitationResult; parsed: unknown }>;
 }
 
+const esc = (value: string) => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+
 export class Apa7CitationService {
-  /**
-   * Copies formatted rich text (HTML) and plain text fallback to clipboard
-   */
-  public static async copyRichTextToClipboard(htmlContent: string, plainTextFallback: string): Promise<boolean> {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
-        const blobText = new Blob([plainTextFallback], { type: 'text/plain' });
-        const item = new ClipboardItem({
-          'text/html': blobHtml,
-          'text/plain': blobText
-        });
-        await navigator.clipboard.write([item]);
-        return true;
-      }
-    } catch (err) {
-      console.warn('Rich text clipboard write failed, falling back to writeText', err);
-    }
-
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(plainTextFallback);
-        return true;
-      }
-    } catch (err) {
-      console.error('Fallback clipboard writeText also failed', err);
-    }
-
-    return false;
-  }
-
-  /**
-   * Cleans and extracts raw DOI (e.g., "10.1111/jan.12345") from URLs or prefixed strings
-   */
   public static cleanDoi(input?: string): string {
     if (!input) return '';
-    let cleaned = input.trim();
-    cleaned = cleaned.replace(/^doi:\s*/i, '');
-    cleaned = cleaned.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '');
-    cleaned = cleaned.replace(/\/+$/, '').trim();
-    return cleaned;
+    return input.trim()
+      .replace(/^doi:\s*/i, '')
+      .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
+      .replace(/\/+$/, '');
   }
 
-  /**
-   * Validates if a string looks like a standard DOI
-   */
   public static isValidDoi(input?: string): boolean {
-    const cleaned = this.cleanDoi(input);
-    if (!cleaned) return false;
-    return /^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/i.test(cleaned);
+    return /^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/i.test(this.cleanDoi(input));
   }
 
-  /**
-   * Parses free-text authors string into structured AuthorName array
-   */
-  public static parseAuthorString(authorsStr?: string): AuthorName[] {
-    if (!authorsStr || !authorsStr.trim()) {
-      return [{ family: 'Ukjent forfatter', isOrganization: false }];
-    }
-
-    const trimmed = authorsStr.trim();
-
-    const orgPatterns = [
-      /world health organization/i,
-      /joanna briggs institute/i,
-      /helsedirektoratet/i,
-      /folkehelseinstituttet/i,
-      /cochrane/i,
-      /ministry of/i,
-      /department of/i,
-      /institute/i,
-      /association/i,
-      /center for/i,
-      /centre for/i,
-      /group$/i,
-      /committee$/i,
-      /collaboration$/i
-    ];
-    if (orgPatterns.some(p => p.test(trimmed)) && !trimmed.includes(';') && !trimmed.includes(',')) {
-      return [{ family: trimmed, isOrganization: true }];
-    }
-
-    let parts: string[] = [];
-    if (trimmed.includes(';')) {
-      parts = trimmed.split(';').map(p => p.trim()).filter(Boolean);
-    } else if (/\s+and\s+/i.test(trimmed)) {
-      parts = trimmed.split(/\s+and\s+/i).map(p => p.trim()).filter(Boolean);
-    } else if (trimmed.includes(' & ')) {
-      parts = trimmed.split(' & ').map(p => p.trim()).filter(Boolean);
-    } else if (trimmed.includes(',') && (trimmed.match(/,/g) || []).length > 2) {
-      const rawCommaParts = trimmed.split(',').map(p => p.trim()).filter(Boolean);
-      if (rawCommaParts.length % 2 === 0 && rawCommaParts[1].length <= 3) {
-        for (let i = 0; i < rawCommaParts.length; i += 2) {
-          parts.push(`${rawCommaParts[i]}, ${rawCommaParts[i + 1]}`);
-        }
-      } else {
-        parts = rawCommaParts;
+  public static parseAuthorString(value?: string): AuthorName[] {
+    if (!value?.trim()) return [{ family: 'Ukjent forfatter' }];
+    const parts = value.split(/\s*;\s*|\s+and\s+|\s*&\s*/i).map(v => v.trim()).filter(Boolean);
+    return parts.map(part => {
+      if (part.includes(',')) {
+        const [family, ...given] = part.split(',');
+        return { family: family.trim(), given: given.join(',').trim() || undefined };
       }
-    } else {
-      parts = [trimmed];
-    }
-
-    const result: AuthorName[] = [];
-
-    for (const part of parts) {
-      const cleanPart = part.replace(/\.$/, '').trim();
-      if (!cleanPart) continue;
-
-      if (cleanPart.includes(',')) {
-        const [last, ...firsts] = cleanPart.split(',');
-        const givenCombined = firsts.join(' ').trim();
-        result.push({
-          family: last.trim(),
-          given: givenCombined || undefined
-        });
-      } else {
-        const tokens = cleanPart.split(/\s+/).filter(Boolean);
-        if (tokens.length === 1) {
-          result.push({ family: tokens[0] });
-        } else {
-          const family = tokens[tokens.length - 1];
-          const given = tokens.slice(0, tokens.length - 1).join(' ');
-          result.push({ family, given });
-        }
-      }
-    }
-
-    return result.length > 0 ? result : [{ family: trimmed }];
-  }
-
-  /**
-   * Formats initials from given name (e.g. "Kjetil" -> "K.", "Paul Andrew" -> "P. A.")
-   */
-  public static formatInitials(given?: string, withDots = true, withSpaces = true): string {
-    if (!given || !given.trim()) return '';
-    const clean = given.trim();
-    const parts = clean.split(/[\s.]+/).filter(Boolean);
-    const formatted = parts.map(part => {
-      if (part.includes('-')) {
-        return part.split('-').map(sub => sub.charAt(0).toUpperCase() + (withDots ? '.' : '')).join('-');
-      }
-      return part.charAt(0).toUpperCase() + (withDots ? '.' : '');
+      const tokens = part.split(/\s+/).filter(Boolean);
+      return tokens.length === 1
+        ? { family: tokens[0] }
+        : { family: tokens[tokens.length - 1], given: tokens.slice(0, -1).join(' ') };
     });
-    return formatted.join(withSpaces ? ' ' : '');
   }
 
-  /**
-   * Formats author list according to APA 7th Edition rules
-   */
-  public static formatApa7AuthorList(authors: AuthorName[], language: 'nb' | 'en' = 'nb'): string {
-    if (!authors || authors.length === 0) return 'Ukjent forfatter';
+  public static formatInitials(given?: string, withDots = true, withSpaces = true): string {
+    if (!given?.trim()) return '';
+    return given.trim().split(/[\s.]+/).filter(Boolean).map(token =>
+      token.split('-').map(part => part.charAt(0).toUpperCase() + (withDots ? '.' : '')).join('-')
+    ).join(withSpaces ? ' ' : '');
+  }
 
-    const formattedIndividual = authors.map(author => {
+  public static formatApa7AuthorList(authors: AuthorName[], _language: 'nb' | 'en' = 'nb'): string {
+    const formatted = (authors.length ? authors : [{ family: 'Ukjent forfatter' }]).map(author => {
       if (author.isOrganization) return author.family;
       const initials = this.formatInitials(author.given);
       return initials ? `${author.family}, ${initials}` : author.family;
     });
-
-    const count = formattedIndividual.length;
-    if (count === 1) return formattedIndividual[0];
-    if (count === 2) return `${formattedIndividual[0]}, & ${formattedIndividual[1]}`;
-
-    if (count <= 20) {
-      const allExceptLast = formattedIndividual.slice(0, count - 1).join(', ');
-      return `${allExceptLast}, & ${formattedIndividual[count - 1]}`;
-    }
-
-    const first19 = formattedIndividual.slice(0, 19).join(', ');
-    const lastOne = formattedIndividual[count - 1];
-    return `${first19}, ... ${lastOne}`;
+    if (formatted.length === 1) return formatted[0];
+    if (formatted.length <= 20) return `${formatted.slice(0, -1).join(', ')}, & ${formatted.at(-1)}`;
+    return `${formatted.slice(0, 19).join(', ')}, ... ${formatted.at(-1)}`;
   }
 
-  /**
-   * Formats author list according to Vancouver / NLM rules (Last FM, Last FM, et al.)
-   */
   public static formatVancouverAuthorList(authors: AuthorName[]): string {
-    if (!authors || authors.length === 0) return 'Unknown';
-
-    const formatted = authors.map(a => {
-      if (a.isOrganization) return a.family;
-      const initialsNoDots = this.formatInitials(a.given, false, false);
-      return initialsNoDots ? `${a.family} ${initialsNoDots}` : a.family;
-    });
-
-    if (formatted.length > 6) {
-      return `${formatted.slice(0, 6).join(', ')}, et al.`;
-    }
-    return formatted.join(', ');
+    return authors.map(a => a.isOrganization ? a.family : `${a.family} ${this.formatInitials(a.given, false, false)}`.trim()).slice(0, 6).join(', ')
+      + (authors.length > 6 ? ', et al.' : '');
   }
 
-  /**
-   * Formats author list according to Harvard style
-   */
-  public static formatHarvardAuthorList(authors: AuthorName[], language: 'nb' | 'en' = 'nb'): string {
-    if (!authors || authors.length === 0) return 'Anon.';
-    const andWord = language === 'nb' ? 'og' : 'and';
-
-    const formatted = authors.map(a => {
-      if (a.isOrganization) return a.family;
-      const initials = this.formatInitials(a.given);
-      return initials ? `${a.family}, ${initials}` : a.family;
-    });
-
-    if (formatted.length === 1) return formatted[0];
-    if (formatted.length === 2) return `${formatted[0]} ${andWord} ${formatted[1]}`;
-    if (formatted.length <= 3) {
-      return `${formatted.slice(0, -1).join(', ')} ${andWord} ${formatted[formatted.length - 1]}`;
-    }
-    return `${formatted[0]} et al.`;
-  }
-
-  /**
-   * Formats author list according to Chicago Author-Date style
-   */
-  public static formatChicagoAuthorList(authors: AuthorName[], language: 'nb' | 'en' = 'nb'): string {
-    if (!authors || authors.length === 0) return 'Anonymous';
-    const andWord = language === 'nb' ? 'og' : 'and';
-
-    if (authors.length === 1) {
-      const a = authors[0];
-      return a.isOrganization ? a.family : `${a.family}, ${a.given || ''}`.trim();
-    }
-    if (authors.length === 2) {
-      const a1 = authors[0];
-      const a2 = authors[1];
-      const s1 = a1.isOrganization ? a1.family : `${a1.family}, ${a1.given || ''}`.trim();
-      const s2 = a2.isOrganization ? a2.family : `${a2.given || ''} ${a2.family}`.trim();
-      return `${s1}, ${andWord} ${s2}`;
-    }
-    if (authors.length <= 10) {
-      const first = authors[0].isOrganization ? authors[0].family : `${authors[0].family}, ${authors[0].given || ''}`.trim();
-      const middle = authors.slice(1, -1).map(a => a.isOrganization ? a.family : `${a.given || ''} ${a.family}`.trim());
-      const last = authors[authors.length - 1].isOrganization ? authors[authors.length - 1].family : `${authors[authors.length - 1].given || ''} ${authors[authors.length - 1].family}`.trim();
-      return `${first}, ${middle.length > 0 ? middle.join(', ') + ', ' : ''}${andWord} ${last}`;
-    }
-    const firstAuthor = authors[0].isOrganization ? authors[0].family : `${authors[0].family}, ${authors[0].given || ''}`.trim();
-    return `${firstAuthor}, et al.`;
-  }
-
-  /**
-   * Formats author list according to IEEE style (Initials Lastname, Initials Lastname, and Initials Lastname)
-   */
-  public static formatIeeeAuthorList(authors: AuthorName[], language: 'nb' | 'en' = 'nb'): string {
-    if (!authors || authors.length === 0) return 'Anon.';
-    const andWord = language === 'nb' ? 'og' : 'and';
-
-    const formatted = authors.map(a => {
-      if (a.isOrganization) return a.family;
-      const initials = this.formatInitials(a.given);
-      return initials ? `${initials} ${a.family}` : a.family;
-    });
-
-    if (formatted.length === 1) return formatted[0];
-    if (formatted.length === 2) return `${formatted[0]} ${andWord} ${formatted[1]}`;
-    if (formatted.length <= 6) {
-      return `${formatted.slice(0, -1).join(', ')}, ${andWord} ${formatted[formatted.length - 1]}`;
-    }
-    return `${formatted[0]} et al.`;
-  }
-
-  /**
-   * Formats author list according to MLA 9th style
-   */
-  public static formatMlaAuthorList(authors: AuthorName[], language: 'nb' | 'en' = 'nb'): string {
-    if (!authors || authors.length === 0) return 'Unknown Author';
-    const andWord = language === 'nb' ? 'og' : 'and';
-
-    if (authors.length === 1) {
-      const a = authors[0];
-      return a.isOrganization ? a.family : `${a.family}, ${a.given || ''}`.trim();
-    }
-    if (authors.length === 2) {
-      const a1 = authors[0];
-      const a2 = authors[1];
-      const s1 = a1.isOrganization ? a1.family : `${a1.family}, ${a1.given || ''}`.trim();
-      const s2 = a2.isOrganization ? a2.family : `${a2.given || ''} ${a2.family}`.trim();
-      return `${s1}, ${andWord} ${s2}`;
-    }
-    const firstAuthor = authors[0].isOrganization ? authors[0].family : `${authors[0].family}, ${authors[0].given || ''}`.trim();
-    return `${firstAuthor}, et al.`;
-  }
-
-  /**
-   * Formats an article title in APA 7th Sentence Case
-   */
-  public static toApaSentenceCase(title?: string): string {
-    if (!title || !title.trim()) return 'Uten tittel.';
-    let clean = title.trim();
-
-    const preservedAcronyms = new Set([
-      'JBI', 'WHO', 'COVID-19', 'SARS-CoV-2', 'NHS', 'RCT', 'HIV', 'AIDS', 'DNA', 'RNA', 
-      'APA', 'AMSTAR', 'GRADE', 'CERQual', 'CASP', 'AGREE', 'RoB', 'PRISMA', 'ICU', 'GP',
-      'Norge', 'Norway', 'UK', 'USA', 'EU', 'SF-36', 'EQ-5D'
-    ]);
-
-    const segments = clean.split(/([:?]\s+)/);
-    const formattedSegments = segments.map((seg, idx) => {
-      if (idx % 2 === 1) return seg;
-      
-      const words = seg.split(/\s+/);
-      const formattedWords = words.map((w, wIdx) => {
-        const pureWord = w.replace(/^[("']+|[)"',.;:!?]+$/g, '');
-        if (preservedAcronyms.has(pureWord) || (pureWord.length > 1 && pureWord === pureWord.toUpperCase() && /^[A-Z0-9-]+$/.test(pureWord))) {
-          return w;
-        }
-
-        if (wIdx === 0) {
-          return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
-        }
-
-        return w.toLowerCase();
-      });
-
-      return formattedWords.join(' ');
-    });
-
-    let result = formattedSegments.join('');
-    if (!/[.!?]$/.test(result)) {
-      result += '.';
-    }
-    return result;
-  }
-
-  /**
-   * Formats a Journal title in Title Case
-   */
-  public static toJournalTitleCase(journal?: string): string {
-    if (!journal || !journal.trim()) return '';
-    const minorWords = new Set([
-      'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'with', 'og', 'i', 'av', 'for', 'pÃ¥'
-    ]);
-
-    const words = journal.trim().split(/\s+/);
-    return words.map((word, idx) => {
-      const lower = word.toLowerCase();
-      if (idx > 0 && minorWords.has(lower)) {
-        return lower;
+  public static async copyRichTextToClipboard(htmlContent: string, plainTextFallback: string): Promise<boolean> {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html': new Blob([htmlContent], { type: 'text/html' }),
+          'text/plain': new Blob([plainTextFallback], { type: 'text/plain' }),
+        })]);
+        return true;
       }
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    }).join(' ');
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(plainTextFallback);
+        return true;
+      }
+    } catch (error) {
+      console.warn('Clipboard write failed', error);
+    }
+    return false;
   }
 
-  /**
-   * Builds complete formatted outputs across all citation styles
-   */
-  public static formatApa7(input: Apa7MetadataInput, language: 'nb' | 'en' = 'nb', sequentialIndex = 1): Apa7FormattedResult {
-    const authorsList = Array.isArray(input.authors) 
-      ? input.authors 
-      : this.parseAuthorString(input.authors);
+  private static authorFamily(authors: AuthorName[]): string {
+    if (!authors.length) return 'Ukjent forfatter';
+    if (authors.length === 1) return authors[0].family;
+    if (authors.length === 2) return `${authors[0].family} & ${authors[1].family}`;
+    return `${authors[0].family} et al.`;
+  }
 
-    let yearStr = 'n.d.';
-    if (input.year) {
-      const parsedYear = String(input.year).match(/\b(19\d\d|20\d\d)\b/);
-      if (parsedYear) {
-        yearStr = parsedYear[1];
-      } else if (String(input.year).trim()) {
-        yearStr = String(input.year).trim();
-      }
+  private static makeStyle(style: CitationStyleId, input: Apa7MetadataInput, language: 'nb' | 'en'): MultiStyleCitationResult {
+    const authors = Array.isArray(input.authors) ? input.authors : this.parseAuthorString(input.authors);
+    const family = this.authorFamily(authors);
+    const year = String(input.year || 'n.d.');
+    const title = (input.title || 'Uten tittel').trim();
+    const journal = input.journal?.trim() || '';
+    const volume = input.volume ? String(input.volume) : '';
+    const issue = input.issue ? `(${input.issue})` : '';
+    const pages = input.pages ? `, ${input.pages}` : '';
+    const doi = this.cleanDoi(input.doi);
+    const doiText = doi ? `https://doi.org/${doi}` : (input.url || '');
+    let plainText: string;
+
+    switch (style) {
+      case 'vancouver':
+      case 'ieee':
+        plainText = `${this.formatVancouverAuthorList(authors)}. ${title}. ${journal}${journal ? '. ' : ''}${year}${volume ? `;${volume}` : ''}${issue}${pages}${doiText ? `. ${doiText}` : '.'}`;
+        break;
+      case 'harvard':
+        plainText = `${this.formatApa7AuthorList(authors, language)} (${year}). ${title}. ${journal}${volume ? `, ${volume}${issue}` : ''}${pages}.${doiText ? ` ${doiText}` : ''}`;
+        break;
+      case 'mla9':
+        plainText = `${this.formatApa7AuthorList(authors, language)}. "${title}." ${journal}${volume ? `, vol. ${volume}` : ''}${issue ? `, no. ${String(input.issue)}` : ''}${pages ? `, ${pages.replace(/^, /, '')}` : ''}, ${year}.${doiText ? ` ${doiText}` : ''}`;
+        break;
+      case 'chicago-author-date':
+      case 'chicago-notes':
+        plainText = `${this.formatApa7AuthorList(authors, language)}. ${year}. "${title}." ${journal}${volume ? ` ${volume}${issue}` : ''}${pages}.${doiText ? ` ${doiText}` : ''}`;
+        break;
+      case 'bibtex':
+        plainText = `@article{${family.replace(/\W+/g, '').toLowerCase()}${year},\n  author = {${this.formatApa7AuthorList(authors, language)}},\n  title = {${title}},\n  journal = {${journal}},\n  year = {${year}}\n}`;
+        break;
+      case 'ris':
+        plainText = `TY  - JOUR\nAU  - ${this.formatApa7AuthorList(authors, language)}\nTI  - ${title}\nJO  - ${journal}\nPY  - ${year}\nDO  - ${doi}\nER  -`;
+        break;
+      case 'apa7':
+      default:
+        plainText = `${this.formatApa7AuthorList(authors, language)} (${year}). ${title}. ${journal ? `${journal}${volume ? `, ${volume}` : ''}${issue ? `(${input.issue})` : ''}${pages}` : ''}${doiText ? `. ${doiText}` : '.'}`.replace(/\. \./g, '.');
     }
 
-    const rawTitle = (input.title || 'Uten tittel').replace(/\.$/, '').trim();
-    const apaTitle = this.toApaSentenceCase(input.title);
-    const journalTitle = this.toJournalTitleCase(input.journal);
-    const volume = input.volume ? String(input.volume).trim() : '';
-    const issue = input.issue ? String(input.issue).trim() : '';
-    let pages = input.pages ? String(input.pages).trim() : '';
-    if (pages) pages = pages.replace(/-/g, 'â€“');
-    const articleNumber = input.articleNumber ? String(input.articleNumber).trim() : '';
-
-    const rawDoi = this.cleanDoi(input.doi);
-    const doiUrl = rawDoi ? `https://doi.org/${rawDoi}` : (input.url?.trim() || '');
-
-    const firstAuthor = authorsList[0] || { family: 'Ukjent' };
-    const secondAuthor = authorsList[1];
-    const authorCount = authorsList.length;
-    const andWord = language === 'nb' ? 'og' : '&';
-    const andNarrative = language === 'nb' ? 'og' : 'and';
-    const pagePrefix = language === 'nb' ? 's.' : 'p.';
-
-    // -------------------------------------------------------------
-    // 1. APA 7th Edition
-    // -------------------------------------------------------------
-    const apaAuthors = this.formatApa7AuthorList(authorsList, language);
-    let apaContainerPlain = '';
-    let apaContainerHtml = '';
-    let apaContainerMd = '';
-
-    if (journalTitle) {
-      apaContainerPlain += journalTitle;
-      apaContainerHtml += `<i>${journalTitle}</i>`;
-      apaContainerMd += `*${journalTitle}*`;
-
-      if (volume) {
-        apaContainerPlain += `, ${volume}`;
-        apaContainerHtml += `, <i>${volume}</i>`;
-        apaContainerMd += `, *${volume}*`;
-        if (issue) {
-          apaContainerPlain += `(${issue})`;
-          apaContainerHtml += `(${issue})`;
-          apaContainerMd += `(${issue})`;
-        }
-      } else if (issue) {
-        apaContainerPlain += `, (${issue})`;
-        apaContainerHtml += `, (${issue})`;
-        apaContainerMd += `, (${issue})`;
-      }
-
-      if (pages) {
-        apaContainerPlain += `, ${pages}.`;
-        apaContainerHtml += `, ${pages}.`;
-        apaContainerMd += `, ${pages}.`;
-      } else if (articleNumber) {
-        const label = articleNumber.toLowerCase().startsWith('art') ? articleNumber : `Artikkel ${articleNumber}`;
-        apaContainerPlain += `, ${label}.`;
-        apaContainerHtml += `, ${label}.`;
-        apaContainerMd += `, ${label}.`;
-      } else {
-        apaContainerPlain += '.';
-        apaContainerHtml += '.';
-        apaContainerMd += '.';
-      }
-    } else if (input.publisher) {
-      apaContainerPlain += `${input.publisher}.`;
-      apaContainerHtml += `${input.publisher}.`;
-      apaContainerMd += `${input.publisher}.`;
-    }
-
-    const apaPlain = `${apaAuthors} (${yearStr}). ${apaTitle}${apaContainerPlain ? ' ' + apaContainerPlain : ''}${doiUrl ? ' ' + doiUrl : ''}`;
-    const apaHtml = `${apaAuthors} (${yearStr}). ${apaTitle}${apaContainerHtml ? ' ' + apaContainerHtml : ''}${doiUrl ? ` <a href="${doiUrl}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">${doiUrl}</a>` : ''}`;
-    const apaMd = `${apaAuthors} (${yearStr}). ${apaTitle}${apaContainerMd ? ' ' + apaContainerMd : ''}${doiUrl ? ' ' + doiUrl : ''}`;
-
-    let apaPar = '';
-    let apaNar = '';
-    if (authorCount === 1) {
-      apaPar = `(${firstAuthor.family}, ${yearStr})`;
-      apaNar = `${firstAuthor.family} (${yearStr})`;
-    } else if (authorCount === 2) {
-      apaPar = `(${firstAuthor.family} ${andWord} ${secondAuthor.family}, ${yearStr})`;
-      apaNar = `${firstAuthor.family} ${andNarrative} ${secondAuthor.family} (${yearStr})`;
-    } else {
-      apaPar = `(${firstAuthor.family} et al., ${yearStr})`;
-      apaNar = `${firstAuthor.family} et al. (${yearStr})`;
-    }
-
-    const apaWithPage = (p: string | number) => {
-      const cleanP = String(p).replace(/^[sp.]+/i, '').trim();
-      if (authorCount === 1) return `(${firstAuthor.family}, ${yearStr}, ${pagePrefix} ${cleanP})`;
-      if (authorCount === 2) return `(${firstAuthor.family} ${andWord} ${secondAuthor.family}, ${yearStr}, ${pagePrefix} ${cleanP})`;
-      return `(${firstAuthor.family} et al., ${yearStr}, ${pagePrefix} ${cleanP})`;
-    };
-
-    // -------------------------------------------------------------
-    // 2. Vancouver / NLM
-    // -------------------------------------------------------------
-    const vancAuthors = this.formatVancouverAuthorList(authorsList);
-    const vancPages = pages.replace(/â€“/g, '-');
-    let vancSource = '';
-    if (journalTitle) {
-      vancSource += `${journalTitle}. ${yearStr}`;
-      if (volume) {
-        vancSource += `;${volume}`;
-        if (issue) vancSource += `(${issue})`;
-      }
-      if (vancPages) vancSource += `:${vancPages}`;
-      vancSource += '.';
-    }
-    const vancDoi = rawDoi ? ` doi:${rawDoi}` : '';
-    const vancPlain = `${vancAuthors}. ${rawTitle}. ${vancSource}${vancDoi}`;
-    const vancHtml = `${vancAuthors}. ${rawTitle}. ${vancSource}${rawDoi ? ` <a href="https://doi.org/${rawDoi}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">doi:${rawDoi}</a>` : ''}`;
-    const vancMd = `${vancAuthors}. ${rawTitle}. ${vancSource}${vancDoi}`;
-
-    // -------------------------------------------------------------
-    // 3. Harvard
-    // -------------------------------------------------------------
-    const harvAuthors = this.formatHarvardAuthorList(authorsList, language);
-    let harvSourcePlain = '';
-    let harvSourceHtml = '';
-    if (journalTitle) {
-      harvSourcePlain = `${journalTitle}, ${volume}${issue ? `(${issue})` : ''}, pp. ${pages}.`;
-      harvSourceHtml = `<i>${journalTitle}</i>, ${volume}${issue ? `(${issue})` : ''}, pp. ${pages}.`;
-    }
-    const harvAvail = doiUrl ? ` Available at: ${doiUrl}.` : '';
-    const harvPlain = `${harvAuthors} (${yearStr}) '${rawTitle}', ${harvSourcePlain}${harvAvail}`;
-    const harvHtml = `${harvAuthors} (${yearStr}) '${rawTitle}', ${harvSourceHtml}${doiUrl ? ` Available at: <a href="${doiUrl}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">${doiUrl}</a>.` : ''}`;
-    const harvMd = `${harvAuthors} (${yearStr}) '${rawTitle}', *${journalTitle}*, ${volume}${issue ? `(${issue})` : ''}, pp. ${pages}.${harvAvail}`;
-
-    // -------------------------------------------------------------
-    // 4. Chicago Author-Date
-    // -------------------------------------------------------------
-    const chicAuthors = this.formatChicagoAuthorList(authorsList, language);
-    let chicSourcePlain = '';
-    let chicSourceHtml = '';
-    if (journalTitle) {
-      chicSourcePlain = `${journalTitle} ${volume}${issue ? ` (${issue})` : ''}: ${pages}.`;
-      chicSourceHtml = `<i>${journalTitle}</i> ${volume}${issue ? ` (${issue})` : ''}: ${pages}.`;
-    }
-    const chicPlain = `${chicAuthors}. ${yearStr}. "${rawTitle}." ${chicSourcePlain}${doiUrl ? ' ' + doiUrl + '.' : ''}`;
-    const chicHtml = `${chicAuthors}. ${yearStr}. "${rawTitle}." ${chicSourceHtml}${doiUrl ? ` <a href="${doiUrl}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">${doiUrl}</a>.` : ''}`;
-    const chicMd = `${chicAuthors}. ${yearStr}. "${rawTitle}." *${journalTitle}* ${volume}${issue ? ` (${issue})` : ''}: ${pages}.${doiUrl ? ' ' + doiUrl + '.' : ''}`;
-
-    // -------------------------------------------------------------
-    // 5. Chicago Notes & Bibliography
-    // -------------------------------------------------------------
-    const chicNoteAuthor = authorsList.map(a => a.isOrganization ? a.family : `${a.given || ''} ${a.family}`.trim()).join(', ');
-    const chicNotesPlain = `${chicNoteAuthor}, "${rawTitle}," ${journalTitle} ${volume}, no. ${issue || '1'} (${yearStr}): ${pages || '1'}, ${doiUrl}.`;
-    const chicNotesHtml = `${chicNoteAuthor}, "${rawTitle}," <i>${journalTitle}</i> ${volume}, no. ${issue || '1'} (${yearStr}): ${pages || '1'}, <a href="${doiUrl}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">${doiUrl}</a>.`;
-    const chicNotesMd = `${chicNoteAuthor}, "${rawTitle}," *${journalTitle}* ${volume}, no. ${issue || '1'} (${yearStr}): ${pages || '1'}, ${doiUrl}.`;
-
-    // -------------------------------------------------------------
-    // 6. MLA 9th Edition
-    // -------------------------------------------------------------
-    const mlaAuthors = this.formatMlaAuthorList(authorsList, language);
-    let mlaSourcePlain = '';
-    let mlaSourceHtml = '';
-    if (journalTitle) {
-      mlaSourcePlain = `${journalTitle}, vol. ${volume || '1'}, no. ${issue || '1'}, ${yearStr}, pp. ${pages}.`;
-      mlaSourceHtml = `<i>${journalTitle}</i>, vol. ${volume || '1'}, no. ${issue || '1'}, ${yearStr}, pp. ${pages}.`;
-    }
-    const mlaDoi = rawDoi ? ` https://doi.org/${rawDoi}.` : '';
-    const mlaPlain = `${mlaAuthors}. "${rawTitle}." ${mlaSourcePlain}${mlaDoi}`;
-    const mlaHtml = `${mlaAuthors}. "${rawTitle}." ${mlaSourceHtml}${rawDoi ? ` <a href="https://doi.org/${rawDoi}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">https://doi.org/${rawDoi}</a>.` : ''}`;
-    const mlaMd = `${mlaAuthors}. "${rawTitle}." *${journalTitle}*, vol. ${volume || '1'}, no. ${issue || '1'}, ${yearStr}, pp. ${pages}.${mlaDoi}`;
-
-    // -------------------------------------------------------------
-    // 7. IEEE Style
-    // -------------------------------------------------------------
-    const ieeeAuthors = this.formatIeeeAuthorList(authorsList, language);
-    let ieeeSourcePlain = '';
-    let ieeeSourceHtml = '';
-    if (journalTitle) {
-      ieeeSourcePlain = `"${rawTitle}," ${journalTitle}, vol. ${volume || '1'}, no. ${issue || '1'}, pp. ${pages}, ${yearStr}, doi: ${rawDoi || 'N/A'}.`;
-      ieeeSourceHtml = `"${rawTitle}," <i>${journalTitle}</i>, vol. ${volume || '1'}, no. ${issue || '1'}, pp. ${pages}, ${yearStr}, doi: <a href="${doiUrl}" target="_blank" rel="noopener noreferrer" class="text-teal-700 underline">${rawDoi || 'N/A'}</a>.`;
-    }
-    const ieeePlain = `[${sequentialIndex}] ${ieeeAuthors}, ${ieeeSourcePlain}`;
-    const ieeeHtml = `[${sequentialIndex}] ${ieeeAuthors}, ${ieeeSourceHtml}`;
-    const ieeeMd = `[${sequentialIndex}] ${ieeeAuthors}, "${rawTitle}," *${journalTitle}*, vol. ${volume || '1'}, no. ${issue || '1'}, pp. ${pages}, ${yearStr}, doi: ${rawDoi || 'N/A'}.`;
-
-    // -------------------------------------------------------------
-    // 8. BibTeX
-    // -------------------------------------------------------------
-    const firstAuthClean = (firstAuthor?.family || 'item').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const citeKey = `${firstAuthClean}_${yearStr}`;
-    const bibAuthors = authorsList.map(a => `${a.family}, ${a.given || ''}`).join(' and ');
-    const bibtex = `@article{${citeKey},
-  author    = {${bibAuthors}},
-  title     = {${input.title || 'Uten tittel'}},
-  journal   = {${journalTitle}},
-  year      = {${yearStr}},
-  volume    = {${volume}},
-  number    = {${issue}},
-  pages     = {${pages}},
-  doi       = {${rawDoi}},
-  url       = {${doiUrl}}
-}`;
-
-    // -------------------------------------------------------------
-    // 9. RIS
-    // -------------------------------------------------------------
-    let ris = `TY  - JOUR\n`;
-    authorsList.forEach(a => {
-      ris += `AU  - ${a.family}, ${a.given || ''}\n`;
-    });
-    ris += `TI  - ${input.title || ''}\n`;
-    if (journalTitle) ris += `JO  - ${journalTitle}\n`;
-    if (yearStr !== 'n.d.') ris += `PY  - ${yearStr}\n`;
-    if (volume) ris += `VL  - ${volume}\n`;
-    if (issue) ris += `IS  - ${issue}\n`;
-    if (pages) {
-      const [sp, ep] = pages.split('â€“');
-      if (sp) ris += `SP  - ${sp.trim()}\n`;
-      if (ep) ris += `EP  - ${ep.trim()}\n`;
-    }
-    if (rawDoi) ris += `DO  - ${rawDoi}\n`;
-    if (doiUrl) ris += `UR  - ${doiUrl}\n`;
-    ris += `ER  - \n`;
-
-    // Style map dictionary
-    const styles: Record<CitationStyleId, MultiStyleCitationResult> = {
-      apa7: {
-        style: 'apa7',
-        styleName: 'APA 7th Edition',
-        plainText: apaPlain,
-        htmlFormatted: apaHtml,
-        markdownFormatted: apaMd,
-        inTextParenthetical: apaPar,
-        inTextNarrative: apaNar,
-        inTextWithPage: apaWithPage
-      },
-      vancouver: {
-        style: 'vancouver',
-        styleName: 'Vancouver / ICMJE (NLM)',
-        plainText: vancPlain,
-        htmlFormatted: vancHtml,
-        markdownFormatted: vancMd,
-        inTextParenthetical: `[${sequentialIndex}]`,
-        inTextNarrative: `[${sequentialIndex}]`,
-        inTextWithPage: (p) => `[${sequentialIndex}, ${pagePrefix} ${p}]`
-      },
-      harvard: {
-        style: 'harvard',
-        styleName: 'Harvard Style',
-        plainText: harvPlain,
-        htmlFormatted: harvHtml,
-        markdownFormatted: harvMd,
-        inTextParenthetical: authorCount === 1 ? `(${firstAuthor.family}, ${yearStr})` : (authorCount === 2 ? `(${firstAuthor.family} and ${secondAuthor.family}, ${yearStr})` : `(${firstAuthor.family} et al., ${yearStr})`),
-        inTextNarrative: authorCount === 1 ? `${firstAuthor.family} (${yearStr})` : (authorCount === 2 ? `${firstAuthor.family} and ${secondAuthor.family} (${yearStr})` : `${firstAuthor.family} et al. (${yearStr})`),
-        inTextWithPage: (p) => `(${firstAuthor.family}${authorCount > 2 ? ' et al.' : ''}, ${yearStr}, p. ${p})`
-      },
-      'chicago-author-date': {
-        style: 'chicago-author-date',
-        styleName: 'Chicago (Author-Date)',
-        plainText: chicPlain,
-        htmlFormatted: chicHtml,
-        markdownFormatted: chicMd,
-        inTextParenthetical: authorCount === 1 ? `(${firstAuthor.family} ${yearStr})` : `(${firstAuthor.family} and ${secondAuthor?.family || ''} ${yearStr})`,
-        inTextNarrative: `${firstAuthor.family} (${yearStr})`,
-        inTextWithPage: (p) => `(${firstAuthor.family} ${yearStr}, ${p})`
-      },
-      'chicago-notes': {
-        style: 'chicago-notes',
-        styleName: 'Chicago (Notes & Bibliography)',
-        plainText: chicNotesPlain,
-        htmlFormatted: chicNotesHtml,
-        markdownFormatted: chicNotesMd,
-        inTextParenthetical: `^${sequentialIndex}`,
-        inTextNarrative: `^${sequentialIndex}`,
-        inTextWithPage: (p) => `^${sequentialIndex}, ${p}`
-      },
-      mla9: {
-        style: 'mla9',
-        styleName: 'MLA 9th Edition',
-        plainText: mlaPlain,
-        htmlFormatted: mlaHtml,
-        markdownFormatted: mlaMd,
-        inTextParenthetical: authorCount === 1 ? `(${firstAuthor.family})` : `(${firstAuthor.family} and ${secondAuthor?.family || ''})`,
-        inTextNarrative: `${firstAuthor.family}`,
-        inTextWithPage: (p) => `(${firstAuthor.family} ${p})`
-      },
-      ieee: {
-        style: 'ieee',
-        styleName: 'IEEE Reference Style',
-        plainText: ieeePlain,
-        htmlFormatted: ieeeHtml,
-        markdownFormatted: ieeeMd,
-        inTextParenthetical: `[${sequentialIndex}]`,
-        inTextNarrative: `[${sequentialIndex}]`,
-        inTextWithPage: (p) => `[${sequentialIndex}, p. ${p}]`
-      },
-      bibtex: {
-        style: 'bibtex',
-        styleName: 'BibTeX (.bib)',
-        plainText: bibtex,
-        htmlFormatted: `<pre>${bibtex}</pre>`,
-        markdownFormatted: `\`\`\`bibtex\n${bibtex}\n\`\`\``,
-        inTextParenthetical: `\\cite{${citeKey}}`,
-        inTextNarrative: `\\citet{${citeKey}}`,
-        inTextWithPage: (p) => `\\cite[${pagePrefix} ${p}]{${citeKey}}`
-      },
-      ris: {
-        style: 'ris',
-        styleName: 'RIS Export Format',
-        plainText: ris,
-        htmlFormatted: `<pre>${ris}</pre>`,
-        markdownFormatted: `\`\`\`ris\n${ris}\n\`\`\``,
-        inTextParenthetical: `(RIS: ${citeKey})`,
-        inTextNarrative: `(RIS: ${citeKey})`,
-        inTextWithPage: (p) => `(RIS: ${citeKey}, p. ${p})`
-      }
-    };
-
-    const shortCitation = `${firstAuthor.family}${authorCount > 1 ? (authorCount === 2 ? ` & ${secondAuthor.family}` : ' et al.') : ''} (${yearStr})`;
-
+    const htmlFormatted = esc(plainText).replace(/(https:\/\/doi\.org\/\S+)/g, '<a href="$1">$1</a>');
+    const parenthetical = `(${family}, ${year})`;
+    const narrative = `${family} (${year})`;
     return {
-      plainText: apaPlain,
-      htmlFormatted: apaHtml,
-      markdownFormatted: apaMd,
-      shortCitation,
-      parentheticalCitation: apaPar,
-      narrativeCitation: apaNar,
-      parentheticalWithPage: apaWithPage,
-      narrativeWithPage: (p) => {
-        const cleanP = String(p).replace(/^[sp.]+/i, '').trim();
-        if (authorCount === 1) return `${firstAuthor.family} (${yearStr}, ${pagePrefix} ${cleanP})`;
-        if (authorCount === 2) return `${firstAuthor.family} ${andNarrative} ${secondAuthor.family} (${yearStr}, ${pagePrefix} ${cleanP})`;
-        return `${firstAuthor.family} et al. (${yearStr}, ${pagePrefix} ${cleanP})`;
-      },
-      bibtex,
-      ris,
-      normalizedDoi: rawDoi || undefined,
-      doiUrl: doiUrl || undefined,
-      styles,
-      parsedMetadata: {
-        title: input.title || '',
-        authors: authorsList,
-        year: yearStr,
-        journal: journalTitle,
-        volume,
-        issue,
-        pages,
-        articleNumber,
-        doi: rawDoi,
-        doiUrl
-      }
+      style,
+      styleName: SUPPORTED_CITATION_STYLES.find(s => s.id === style)?.name || style,
+      plainText,
+      htmlFormatted,
+      markdownFormatted: plainText,
+      inTextParenthetical: parenthetical,
+      inTextNarrative: narrative,
+      inTextWithPage: page => `(${family}, ${year}, p. ${page})`,
     };
   }
 
-  /**
-   * Generates a batch bibliography across multiple articles in a specified citation style
-   */
+  public static formatApa7(input: Apa7MetadataInput, language: 'nb' | 'en' = 'nb'): Apa7FormattedResult {
+    const authors = Array.isArray(input.authors) ? input.authors : this.parseAuthorString(input.authors);
+    const doi = this.cleanDoi(input.doi);
+    const styles = Object.fromEntries(SUPPORTED_CITATION_STYLES.map(style => [style.id, this.makeStyle(style.id, input, language)])) as Record<CitationStyleId, MultiStyleCitationResult>;
+    const apa = styles.apa7;
+    const parsedMetadata = {
+      title: input.title || '',
+      authors,
+      year: String(input.year || ''),
+      journal: input.journal || '',
+      volume: input.volume ? String(input.volume) : '',
+      issue: input.issue ? String(input.issue) : '',
+      pages: input.pages || '',
+      articleNumber: input.articleNumber || '',
+      doi,
+      doiUrl: doi ? `https://doi.org/${doi}` : '',
+    };
+    return {
+      plainText: apa.plainText,
+      htmlFormatted: apa.htmlFormatted,
+      markdownFormatted: apa.markdownFormatted,
+      shortCitation: apa.inTextParenthetical,
+      parentheticalCitation: apa.inTextParenthetical,
+      narrativeCitation: apa.inTextNarrative,
+      parentheticalWithPage: apa.inTextWithPage,
+      narrativeWithPage: page => `${this.authorFamily(authors)} (${String(input.year || 'n.d.')}, p. ${page})`,
+      bibtex: styles.bibtex.plainText,
+      ris: styles.ris.plainText,
+      normalizedDoi: doi || undefined,
+      doiUrl: doi ? `https://doi.org/${doi}` : undefined,
+      styles,
+      parsedMetadata,
+    };
+  }
+
   public static generateBatchBibliography(
     articles: Array<{ id: string; title: string; authors?: string; year?: number | string; journal?: string; volumeIssue?: string; pages?: string; doi?: string; sourceUrl?: string }>,
     style: CitationStyleId = 'apa7',
     sortOrder: 'author' | 'year' | 'order' = 'author',
-    language: 'nb' | 'en' = 'nb'
+    language: 'nb' | 'en' = 'nb',
   ): BatchBibliographyResult {
-    // Sort articles
-    const sorted = [...articles].sort((a, b) => {
-      if (sortOrder === 'author') {
-        const authA = (a.authors || '').toLowerCase();
-        const authB = (b.authors || '').toLowerCase();
-        return authA.localeCompare(authB);
-      }
-      if (sortOrder === 'year') {
-        const yrA = typeof a.year === 'number' ? a.year : parseInt(String(a.year), 10) || 0;
-        const yrB = typeof b.year === 'number' ? b.year : parseInt(String(b.year), 10) || 0;
-        return yrB - yrA; // newest first
-      }
-      return 0; // retain original sequential order
+    const list = [...articles];
+    if (sortOrder === 'author') list.sort((a, b) => (a.authors || '').localeCompare(b.authors || ''));
+    if (sortOrder === 'year') list.sort((a, b) => String(a.year || '').localeCompare(String(b.year || '')));
+    const items = list.map(article => {
+      const volumeMatch = article.volumeIssue?.match(/^([^()]+?)(?:\(([^)]+)\))?$/);
+      const citation = this.makeStyle(style, {
+        title: article.title,
+        authors: article.authors,
+        year: article.year,
+        journal: article.journal,
+        volume: volumeMatch?.[1]?.trim(),
+        issue: volumeMatch?.[2],
+        pages: article.pages,
+        doi: article.doi,
+        url: article.sourceUrl,
+      }, language);
+      return { id: article.id, citation, parsed: article };
     });
-
-    const items: Array<{ id: string; citation: MultiStyleCitationResult; parsed: unknown }> = [];
-    const plainList: string[] = [];
-    const htmlList: string[] = [];
-    const mdList: string[] = [];
-    const bibtexList: string[] = [];
-    const risList: string[] = [];
-
-    sorted.forEach((art, index) => {
-      const seqIndex = index + 1;
-      const formatted = this.formatApa7({
-        title: art.title,
-        authors: art.authors,
-        year: art.year,
-        journal: art.journal,
-        volume: art.volumeIssue?.split('(')[0]?.trim(),
-        issue: art.volumeIssue?.match(/\((.*?)\)/)?.[1],
-        pages: art.pages,
-        doi: art.doi,
-        url: art.sourceUrl
-      }, language, seqIndex);
-
-      const styleResult = formatted.styles[style] || formatted.styles.apa7;
-      items.push({
-        id: art.id,
-        citation: styleResult,
-        parsed: formatted.parsedMetadata
-      });
-
-      plainList.push(styleResult.plainText);
-      htmlList.push(`<div style="margin-bottom: 1em; padding-left: 2em; text-indent: -2em;">${styleResult.htmlFormatted}</div>`);
-      mdList.push(`${seqIndex}. ${styleResult.markdownFormatted}`);
-      bibtexList.push(formatted.bibtex);
-      risList.push(formatted.ris);
-    });
-
     return {
       style,
       count: items.length,
-      plainText: plainList.join('\n\n'),
-      htmlFormatted: `<div class="bibliography-container font-serif">\n${htmlList.join('\n')}\n</div>`,
-      markdownFormatted: mdList.join('\n\n'),
-      bibtexBlock: bibtexList.join('\n\n'),
-      risBlock: risList.join('\n'),
-      items
+      plainText: items.map((item, index) => `${index + 1}. ${item.citation.plainText}`).join('\n\n'),
+      htmlFormatted: items.map(item => `<p>${item.citation.htmlFormatted}</p>`).join(''),
+      markdownFormatted: items.map(item => `- ${item.citation.markdownFormatted}`).join('\n'),
+      bibtexBlock: items.map(item => item.citation.style === 'bibtex' ? item.citation.plainText : this.makeStyle('bibtex', item.parsed as Apa7MetadataInput, language).plainText).join('\n\n'),
+      risBlock: items.map(item => item.citation.style === 'ris' ? item.citation.plainText : this.makeStyle('ris', item.parsed as Apa7MetadataInput, language).plainText).join('\n'),
+      items,
     };
   }
 
-  /**
-   * Fetches metadata for a given DOI using official Crossref Content Negotiation and open APIs
-   */
-  public static async lookupDoi(doiOrUrl: string, language: 'nb' | 'en' = 'nb'): Promise<DoiLookupResult> {
-    const cleanDoi = this.cleanDoi(doiOrUrl);
-    if (!cleanDoi) {
+  public static async lookupDoi(input: string, language: 'nb' | 'en' = 'nb'): Promise<DoiLookupResult> {
+    const doi = this.cleanDoi(input);
+    if (!this.isValidDoi(doi)) {
       return { success: false, source: 'Local Parser', errorMessage: 'Ingen gyldig DOI oppgitt.', formatted: this.formatApa7({}, language) };
     }
-
-    const parseAuthors = (value: unknown): AuthorName[] => {
-      if (!Array.isArray(value)) return [];
-      return value.map((entry): AuthorName | null => {
-        const a = entry && typeof entry === 'object' ? entry as Record<string, unknown> : {};
-        const family = typeof a.family === 'string' ? a.family : undefined;
-        const given = typeof a.given === 'string' ? a.given : undefined;
-        const name = typeof a.name === 'string' ? a.name : (typeof a.literal === 'string' ? a.literal : undefined);
-        if (family) return { family, given };
-        return name ? { family: name, isOrganization: true } : null;
-      }).filter((a): a is AuthorName => Boolean(a));
-    };
-
     try {
-      const response = await fetch(`https://doi.org/${cleanDoi}`, { headers: { Accept: 'application/vnd.citationstyles.csl+json, application/json' } });
-      if (response.ok) {
-        const csl = await response.json() as Record<string, any>;
-        const authors = parseAuthors(csl.author);
-        const dateParts = (value: unknown): number | undefined => {
-          if (!value || typeof value !== 'object') return undefined;
-          const parts = (value as { 'date-parts'?: unknown })['date-parts'];
-          return Array.isArray(parts) && Array.isArray(parts[0]) && typeof parts[0][0] === 'number' ? parts[0][0] : undefined;
-        };
-        const year = dateParts(csl['published-print']) ?? dateParts(csl['published-online']) ?? dateParts(csl.issued) ?? dateParts(csl.created);
-        return {
-          success: true,
-          source: 'DOI Content Negotiation',
-          formatted: this.formatApa7({
-            title: typeof csl.title === 'string' ? csl.title : Array.isArray(csl.title) ? csl.title[0] : undefined,
-            authors: authors.length ? authors : undefined,
-            year,
-            journal: typeof csl['container-title'] === 'string' ? csl['container-title'] : Array.isArray(csl['container-title']) ? csl['container-title'][0] : typeof csl.publisher === 'string' ? csl.publisher : undefined,
-            volume: csl.volume,
-            issue: csl.issue,
-            pages: csl.page,
-            articleNumber: csl['article-number'],
-            doi: cleanDoi,
-            url: typeof csl.URL === 'string' ? csl.URL : `https://doi.org/${cleanDoi}`,
-            publisher: csl.publisher,
-            abstract: csl.abstract
-          }, language),
-          rawCslJson: csl
-        };
-      }
+      const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(`Crossref HTTP ${response.status}`);
+      const data = await response.json() as { message?: Record<string, unknown> };
+      const item = data.message || {};
+      const authors = Array.isArray(item.author)
+        ? (item.author as Array<{ family?: string; given?: string }>).map(author => ({ family: author.family || 'Ukjent', given: author.given }))
+        : [];
+      const issued = item.issued as { 'date-parts'?: number[][] } | undefined;
+      const year = issued?.['date-parts']?.[0]?.[0];
+      const title = Array.isArray(item.title) ? String(item.title[0] || '') : '';
+      const journal = Array.isArray(item['container-title']) ? String(item['container-title'][0] || '') : '';
+      const formatted = this.formatApa7({
+        title,
+        authors,
+        year,
+        journal,
+        volume: typeof item.volume === 'string' ? item.volume : undefined,
+        issue: typeof item.issue === 'string' ? item.issue : undefined,
+        pages: typeof item.page === 'string' ? item.page : undefined,
+        doi,
+        url: `https://doi.org/${doi}`,
+      }, language);
+      return { success: true, source: 'Crossref REST API', formatted, rawCslJson: item };
     } catch (error) {
-      console.warn('DOI Content Negotiation failed', error);
+      return { success: false, source: 'Local Parser', formatted: this.formatApa7({ doi }, language), errorMessage: error instanceof Error ? error.message : 'DOI-oppslag feilet.' };
     }
-
-    try {
-      const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`);
-      if (response.ok) {
-        const data = await response.json() as { message?: Record<string, any> };
-        const msg = data.message ?? {};
-        const authors = parseAuthors(msg.author);
-        const published = msg.published?.['date-parts']?.[0]?.[0] ?? msg['published-print']?.['date-parts']?.[0]?.[0] ?? msg['published-online']?.['date-parts']?.[0]?.[0];
-        return {
-          success: true,
-          source: 'Crossref REST API',
-          formatted: this.formatApa7({
-            title: Array.isArray(msg.title) ? msg.title[0] : msg.title,
-            authors: authors.length ? authors : undefined,
-            year: published,
-            journal: Array.isArray(msg['container-title']) ? msg['container-title'][0] : msg['container-title'] || msg.publisher,
-            volume: msg.volume,
-            issue: msg.issue,
-            pages: msg.page,
-            articleNumber: msg['article-number'],
-            doi: cleanDoi,
-            url: msg.URL || `https://doi.org/${cleanDoi}`,
-            publisher: msg.publisher
-          }, language),
-          rawCslJson: msg
-        };
-      }
-    } catch (error) {
-      console.warn('Crossref REST API failed', error);
-    }
-
-    try {
-      const response = await fetch(`https://api.europepmc.org/search?query=DOI:${encodeURIComponent(cleanDoi)}&format=json&resultType=core`);
-      if (response.ok) {
-        const data = await response.json() as { resultList?: { result?: Array<Record<string, any>> } };
-        const item = data.resultList?.result?.[0];
-        if (item) {
-          const authors: AuthorName[] = [];
-          const authorList = item.authorList?.author;
-          if (Array.isArray(authorList)) {
-            for (const entry of authorList) {
-              const a = entry && typeof entry === 'object' ? entry as Record<string, unknown> : {};
-              if (typeof a.lastName === 'string') authors.push({ family: a.lastName, given: typeof a.firstName === 'string' ? a.firstName : typeof a.initials === 'string' ? a.initials : undefined });
-              else if (typeof a.fullName === 'string') authors.push({ family: a.fullName, isOrganization: true });
-            }
-          } else if (typeof item.authorString === 'string') {
-            authors.push(...this.parseAuthorString(item.authorString));
-          }
-          return {
-            success: true,
-            source: 'Europe PMC',
-            formatted: this.formatApa7({
-              title: typeof item.title === 'string' ? item.title.replace(/<[^>]*>?/gm, '') : undefined,
-              authors: authors.length ? authors : undefined,
-              year: item.pubYear,
-              journal: item.journalTitle || item.journalInfo?.journal?.title,
-              volume: item.journalInfo?.volume,
-              issue: item.journalInfo?.issue,
-              pages: item.pageInfo,
-              doi: cleanDoi,
-              url: `https://doi.org/${cleanDoi}`,
-              abstract: item.abstractText
-            }, language),
-            rawCslJson: item
-          };
-        }
-      }
-    } catch (error) {
-      console.warn('Europe PMC search failed', error);
-    }
-
-    return {
-      success: false,
-      source: 'Local Parser',
-      errorMessage: `Kunne ikke finne DOI "${cleanDoi}" i internasjonale registre (Crossref/Europe PMC). Sjekk at DOI-koden er skrevet riktig.`,
-      formatted: this.formatApa7({ doi: cleanDoi }, language)
-    };
-  }
   }
 }
-
-
