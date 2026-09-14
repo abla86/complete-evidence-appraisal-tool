@@ -13,8 +13,13 @@ permissions:
 jobs:
   source-integrity:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
       - name: Reject empty source files and implementation placeholders
         shell: bash
         run: |
@@ -22,6 +27,9 @@ jobs:
           failed=0
           while IFS= read -r -d '' file; do
             [ -s "$file" ] || { echo "EMPTY SOURCE: $file"; failed=1; }
-            if grep -EIn '^[[:space:]]*(//|#|/\*|<!--)[[:space:]]*(TODO|FIXME|XXX|HACK|NOT IMPLEMENTED|COMING SOON|PLACEHOLDER)\b' "$file" >/dev/null 2>&1; then echo "PLACEHOLDER SOURCE: $file"; failed=1; fi
+            if grep -EIn '^[[:space:]]*(//|#|/\*|<!--)[[:space:]]*(TODO|FIXME|XXX|HACK|NOT IMPLEMENTED|COMING SOON|PLACEHOLDER)\b' "$file" >/dev/null 2>&1; then
+              echo "PLACEHOLDER SOURCE: $file"
+              failed=1
+            fi
           done < <(find . -type f \( -name '*.js' -o -name '*.jsx' -o -name '*.ts' -o -name '*.tsx' -o -name '*.py' -o -name '*.cs' -o -name '*.html' -o -name '*.css' -o -name '*.scss' -o -name '*.sql' -o -name '*.sh' -o -name '*.ps1' \) -not -path './.git/*' -print0)
           exit "$failed"
