@@ -1,2 +1,34 @@
-﻿import React from 'react';import {gradeEvidence,type GradeJudgement} from '../services/gradeMatrixService';export default function GradeSoFView({judgement}:{judgement:GradeJudgement}){const r=gradeEvidence('High',judgement);return <section><h2>GRADE Summary of Findings</h2><strong>{r.level}</strong>{r.recommendations.map(x=><p key={x}>{x}</p>)}</section>}
+import React from 'react';
+import {
+  gradeEvidence,
+  type GradeJudgement,
+  type GradeLevel,
+} from '../services/gradeMatrixService';
 
+type Props = {
+  judgement: GradeJudgement;
+  initialLevel?: Extract<GradeLevel, 'High' | 'Low'>;
+};
+
+export default function GradeSoFView({ judgement, initialLevel = 'High' }: Props) {
+  const result = gradeEvidence(initialLevel, judgement);
+
+  return (
+    <section aria-labelledby="grade-title">
+      <h2 id="grade-title">GRADE Summary of Findings</h2>
+      <p>
+        Evidensnivå: <strong>{result.level}</strong>
+      </p>
+      <p>Antall nedgraderinger: {result.totalDowngrades}</p>
+      {result.recommendations.length > 0 ? (
+        <ul>
+          {result.recommendations.map((recommendation) => (
+            <li key={recommendation}>{recommendation}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>Ingen nedgraderingsdomener er registrert.</p>
+      )}
+    </section>
+  );
+}
