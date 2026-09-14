@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -28,13 +28,13 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          package-manager-cache: false
+          cache: npm
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
       - name: Typecheck
-        run: npx tsc --noEmit --pretty false
+        run: npm run lint
 
       - name: Test
         run: npm test -- --test-concurrency=1
@@ -42,5 +42,20 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Docker build
+      - name: Build production container
         run: docker build --progress=plain -t complete-evidence-appraisal-tool:${GITHUB_SHA} .
+
+      - name: Verify production container health
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --rm --name evidence-app-ci -p 18080:10000 complete-evidence-appraisal-tool:${GITHUB_SHA}
+          trap 'docker rm -f evidence-app-ci >/dev/null 2>&1 || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:18080/api/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs evidence-app-ci
+          exit 1
