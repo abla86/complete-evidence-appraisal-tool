@@ -1,5 +1,7 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { beforeEach, describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import {
+  DEFAULT_STAGES,
   addCaseNote,
   assignCase,
   createCase,
@@ -27,33 +29,30 @@ describe('caseWorkflowService', () => {
   });
 
   it('creates a case at intake with an audit entry', () => {
-    const created = createCase({ title: 'Test appraisal case', type: 'Evidence appraisal', priority: 'NORMAL', description: 'Workflow test', tags: ['test'] });
-    expect(created.status).toBe('NEW');
-    expect(created.stageId).toBe('intake');
-    expect(created.audit).toHaveLength(1);
-    expect(loadCases()[0]?.id).toBe(created.id);
+    const created = createCase({ title: 'Test appraisal case', type: 'Evidence appraisal', priority: 'NORMAL', description: 'Workflow test' });
+    assert.equal(created.status, 'NEW');
+    assert.equal(created.stageId, 'intake');
+    assert.equal(created.audit.length, 1);
+    assert.equal(loadCases().length, 0);
   });
 
   it('records assignment and notes without losing the case history', () => {
-    const created = createCase({ title: 'Audit case', type: 'Peer review', priority: 'HIGH', description: '', tags: [] });
-    const assigned = assignCase(created.id, 'Methodologist');
-    const noted = addCaseNote(assigned!.id, 'Initial review completed');
-    expect(noted?.assignee).toBe('Methodologist');
-    expect(noted?.audit.some(entry => entry.action === 'ASSIGNED')).toBe(true);
-    expect(noted?.audit.some(entry => entry.action === 'NOTE_ADDED')).toBe(true);
+    const created = createCase({ title: 'Audit case', type: 'Peer review', priority: 'HIGH', description: '' });
+    const assigned = assignCase(created, 'Methodologist', 'Reviewer');
+    const noted = addCaseNote(assigned, 'Initial review completed', 'Reviewer');
+    assert.equal(noted.assignee, 'Methodologist');
+    assert.ok(noted.audit.some(entry => entry.action === 'ASSIGNMENT_CHANGED'));
+    assert.ok(noted.audit.some(entry => entry.action === 'NOTE_ADDED'));
   });
 
   it('moves a case through controlled workflow stages and closes it', () => {
-    let current = createCase({ title: 'Lifecycle case', type: 'Research screening', priority: 'NORMAL', description: '', tags: [] });
-    const stages = ['triage', 'assessment', 'review', 'decision', 'closure'] as const;
-    for (const stageId of stages) {
-      const next = transitionCase(current.id, stageId);
-      expect(next).not.toBeNull();
-      current = next as WorkflowCase;
+    let current = createCase({ title: 'Lifecycle case', type: 'Research screening', priority: 'NORMAL', description: '' });
+    for (const stage of DEFAULT_STAGES.slice(1)) {
+      current = transitionCase(current, stage, 'Reviewer');
     }
-    expect(current.stageId).toBe('closure');
-    expect(current.status).toBe('CLOSED');
-    expect(current.audit.filter(entry => entry.action === 'STAGE_CHANGED')).toHaveLength(5);
+    assert.equal(current.stageId, 'closure');
+    assert.equal(current.status, 'CLOSED');
+    assert.equal(current.audit.filter(entry => entry.action === 'STAGE_CHANGED').length, 5);
   });
 
   it('persists and restores cases using the workflow store contract', () => {
@@ -63,6 +62,6 @@ describe('caseWorkflowService', () => {
       description: 'Persistence contract', tags: ['persistence'], audit: [],
     };
     saveCases([sample]);
-    expect(loadCases()).toEqual([sample]);
+    assert.deepEqual(loadCases(), [sample]);
   });
 });
