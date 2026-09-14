@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   security:
@@ -20,15 +21,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.x'
-
-      - name: Microsoft Security DevOps
+      - name: Run Microsoft Security DevOps
         uses: microsoft/security-devops-action@v1.12.0
-        with:
-          tools: 'bandit,eslint,templateanalyzer,terrascan,trivy'
 
       - name: Upload results to Security tab
         uses: github/codeql-action/upload-sarif@v3
