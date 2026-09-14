@@ -1,0 +1,36 @@
+name: Microsoft Defender For DevOps
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.x'
+
+      - name: Microsoft Security DevOps
+        uses: microsoft/security-devops-action@v1.12.0
+        with:
+          tools: 'bandit,eslint,templateanalyzer,terrascan,trivy'
+
+      - name: Upload results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
