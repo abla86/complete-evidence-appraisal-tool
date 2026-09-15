@@ -1,36 +1,20 @@
-# Research Privacy Inspector
+# LEGACY — Research Privacy Inspector
 
-Local-first Firefox WebExtension for research workflows.
+This repository is retained as historical work only.
 
-## What it does
+## Canonical destination
 
-- Detects DOI and common scholarly metadata locally.
-- Inspects basic privacy and accessibility signals.
-- Separates metadata detection from bibliographic verification.
-- Generates deterministic citation drafts without claiming source truth.
-- Keeps Norwegian legal references separate from ordinary journal APA formatting.
-- Uses a fail-closed model: incomplete metadata is not treated as a verified reference.
+Research/evidence functionality belongs in [`complete-evidence-appraisal-tool`](https://github.com/abla86/complete-evidence-appraisal-tool).
 
-## Architecture
+The prototype contains useful research-reference utilities, but it is not maintained as a separate flagship product.
 
-The `lib/` modules are pure ES modules with no DOM, browser, storage or network dependencies. The extension UI consumes the same deterministic logic that is tested independently.
+### Historical scope
 
-Online lookup is intentionally not part of the local inspection step. Future DOI/Crossref verification can be introduced as a separate explicit action with its own disclosure and permissions.
+- Local DOI and scholarly metadata detection
+- Deterministic APA 7 and Norwegian legal citation helpers
+- Privacy/accessibility inspection
+- Fail-closed reference verification model
 
-## Firefox permissions
+New development should target the canonical evidence platform and preserve human verification and provenance boundaries.
 
-The extension currently requests only `activeTab` and `scripting`, used for user-initiated inspection of the active page.
-
-## Quality gates
-
-```text
-npm test
-npm run lint
-npm run web-ext:lint
-```
-
-## Status
-
-Prototype / MVP progressing toward a research-grade utility.
-
-Not an official Mozilla product and not yet a Mozilla contribution.
+> Repository consolidation status: LEGACY — 2026-09-15
