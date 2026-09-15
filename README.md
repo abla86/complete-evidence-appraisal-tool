@@ -1,5 +1,13 @@
 # Evidence Appraisal Tool
 
+> **LEGACY REPOSITORY — CONSOLIDATED INTO `abla86/complete-evidence-appraisal-tool`.**
+>
+> This repository is retained as a historical source snapshot. New development belongs in the canonical repository. The canonical platform supersedes this repository and contains the consolidated research, appraisal, evidence-traceability, methodology, workflow, testing and integrity functionality.
+>
+> Canonical repository: https://github.com/abla86/complete-evidence-appraisal-tool
+>
+> The separate `abla86/complete-evidence-appraisal-tool-` repository is retained only for browser-extension/collector-specific functionality and is not treated as the same application repository.
+
 ## Status
 
 **Advanced research-support application.**
