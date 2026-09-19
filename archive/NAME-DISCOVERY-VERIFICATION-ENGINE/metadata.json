@@ -1,0 +1,6 @@
+{
+  "name": "NavneKlar - Navnegransking & Foretaksverifisering",
+  "description": "Foretaks- og merkevaregransker med automatisk kollisjonssjekk mot Brønnøysundregistrene, varemerker (EUIPO/WIPO/USPTO), domener og programvarekataloger.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
