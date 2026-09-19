@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Evidence Practice Proof tests</title></head>
+<body><pre id="out">Running…</pre>
+<script>
+function assert(condition, message){if(!condition)throw new Error(message);}
+</script>
+<script src="../app.js"></script>
+<script>
+const {compareSequence}=window.EvidencePracticeProof;
+const expected=["Assessment","Intervention","FollowUp"];
+const tests=[
+["C001 complete",["Assessment","Intervention","FollowUp"],r=>r.structurallyPass&&r.presenceRate===100],
+["C002 missing",["Assessment","FollowUp"],r=>!r.structurallyPass&&r.missing.includes("Intervention")],
+["C004 order",["Intervention","Assessment","FollowUp"],r=>!r.structurallyPass&&r.orderViolations.length>0],
+["C005 duplicate",["Assessment","Intervention","Intervention","FollowUp"],r=>!r.structurallyPass&&r.duplicateExpected.includes("Intervention")],
+["C006 unexpected",["Assessment","Documentation"],r=>!r.structurallyPass&&r.unexpected.includes("Documentation")]
+];
+const results=[];
+for(const [name,actual,check] of tests){const r=compareSequence(expected,actual);check(r)?results.push("PASS "+name):results.push("FAIL "+name);}
+document.getElementById("out").textContent=results.join("\n");
+if(results.some(x=>x.startsWith("FAIL"))) throw new Error("One or more tests failed.");
+</script></body></html>
