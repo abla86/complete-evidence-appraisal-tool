@@ -1,0 +1,17 @@
+﻿{
+  "manifest_version": 3,
+  "name": "Research Privacy Inspector",
+  "version": "0.2.0",
+  "description": "Local-first research page inspector for metadata, privacy signals and accessibility checks.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "research-privacy-inspector@abla86.dev",
+      "strict_min_version": "128.0"
+    }
+  },
+  "action": {
+    "default_title": "Research Privacy Inspector",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "scripting"]
+}
