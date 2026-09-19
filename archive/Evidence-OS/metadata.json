@@ -1,0 +1,6 @@
+{
+  "name": "EvidenceOS",
+  "description": "En komplett plattform for forskningsarbeid fra spørsmål til dokumentert konklusjon, med PICO, søk, screening, RoB, syntese, GRADE og reproduserbar rapport.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
