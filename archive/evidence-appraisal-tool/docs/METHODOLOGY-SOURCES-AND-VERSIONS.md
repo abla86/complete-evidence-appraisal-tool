@@ -1,0 +1,94 @@
+# Methodology source and version policy
+
+This repository treats methodological instruments as versioned research dependencies.
+
+## Rules
+
+1. An instrument must have an identifiable authoritative source.
+2. A study-design-specific checklist is a separate instrument from a generic family name.
+3. Publication year and instrument version are separate fields.
+4. A historical assessment must retain the exact instrument version used at the time.
+5. "Latest" must never silently replace the version specified by an existing protocol or assessment.
+6. The application must not invent numerical scores where the source methodology does not define one.
+7. AI/document analysis may propose candidate evidence, but it does not make the final methodological judgement.
+8. "Evidence not located" must never be converted automatically into "No".
+9. Methodological frameworks such as KTA or CFIR must not be represented as validated numerical appraisal scores unless the authoritative methodology explicitly supports that use.
+10. Instrument content must not be reproduced in the application unless licensing/copyright conditions permit it.
+
+## Currently verified registry entries
+
+| ID | Method | Version / date | Publication year | Primary use | Verification |
+|---|---|---|---:|---|---|
+| amstar2 | AMSTAR 2 | 2017 | 2017 | Critical appraisal of systematic reviews | Verified |
+| agree2 | AGREE II | No separate version number in registry | 2010 | Appraisal of clinical practice guidelines | Verified |
+| rob2 | Cochrane RoB 2 | 22 Aug 2019 (individual parallel-group RCTs) | 2019 | Risk of bias | Prototype — implementation incomplete |
+| prisma2020 | PRISMA 2020 | 2020 update | 2021 | Reporting guideline | Verified |
+| grade | GRADE | No single version field | — | Certainty of evidence | Verified |
+| cfir2 | CFIR 2.0 | 2022 | 2022 | Implementation determinant framework | Verified |
+| kta | Knowledge-to-Action Framework | Original framework | 2006 | Knowledge translation / implementation framework | Verified |
+| jbi-qualitative-2017 | JBI Critical Appraisal Checklist for Qualitative Research | 2017 | 2017 | Critical appraisal of qualitative research | Verified historical instrument |
+| casp-qualitative-2024 | CASP Qualitative Studies Checklist | 2024 | 2024 | Critical appraisal of qualitative studies | Verified |
+
+## Important version notes
+
+### AMSTAR 2
+
+AMSTAR 2 has 16 items. Its overall confidence is based on weaknesses in critical and non-critical domains; it is not intended to generate an overall numerical score.
+
+### AGREE II
+
+AGREE II is a 23-item instrument organised into six domains. The registry deliberately does not label AGREE II as a 2017 version. The principal publication is from 2010.
+
+### RoB 2
+
+RoB 2 has design-specific variants. The current individually-randomised parallel-group version is dated 22 August 2019. Cluster-randomised and crossover versions have separate dates and must not be mixed.
+
+### PRISMA 2020
+
+PRISMA 2020 is the name of the update. The statement was published in 2021. The application must not confuse the update name with publication year.
+
+### CFIR 2.0
+
+The updated CFIR was published in 2022. CFIR is an implementation determinant framework and requires project-level operationalisation; it is not a generic quality score.
+
+### KTA
+
+The Knowledge-to-Action Framework originates from Graham et al. (2006). It is a conceptual implementation/knowledge-translation framework, not a validated numerical appraisal scale.
+
+### JBI
+
+The repository keeps the 2017 JBI qualitative checklist as a historical instrument. Current JBI guidance in the 2024 JBI Manual states that the ten qualitative appraisal questions remain the same while the accompanying explanations have been revised/clarified. Therefore the current 2024 guidance is registered separately and marked Prototype until the application implementation is independently checked against the current source. Historical 2017 assessments must never be silently migrated to a newer registry entry.
+
+### CASP
+
+CASP publishes different checklists for different study designs. Its current referencing page identifies the qualitative checklist as a 2024 checklist. Historical versions must remain separate from the current checklist. "CASP" alone is not sufficiently specific to identify the instrument used.
+
+## Required release gate
+
+Before an instrument can be labelled Verified, the implementation must be checked for:
+
+- authoritative source
+- exact version/date
+- publication year
+- study-design compatibility
+- item count
+- response options
+- scoring/interpretation model
+- licensing/copyright constraints
+- implementation fidelity
+- tests
+- provenance metadata
+
+If any critical element is unknown, the status must not be Verified.
+
+## Authoritative sources
+
+- AMSTAR: https://amstar.ca/Amstar-2.php
+- AGREE Trust: https://www.agreetrust.org/
+- Cochrane RoB 2: https://www.riskofbias.info/welcome/rob-2-0-tool/current-version-of-rob-2
+- PRISMA: https://www.prisma-statement.org/prisma-2020
+- CFIR: https://cfirguide.org/
+- CASP: https://casp-uk.net/casp-tools-checklists/
+- CASP referencing/version information: https://casp-uk.net/referencing/
+- GRADE/Cochrane Handbook: https://training.cochrane.org/handbook/current/chapter-14
+- JBI: https://jbi.global/critical-appraisal-tools

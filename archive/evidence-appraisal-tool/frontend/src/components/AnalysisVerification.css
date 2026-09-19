@@ -1,0 +1,30 @@
+.verification-card {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #9fb5cd;
+  border-left: 4px solid #315b8a;
+  border-radius: 12px;
+  background: #f7faff;
+}
+
+.system-suggestion h4 {
+  margin-bottom: 0.5rem;
+}
+
+.researcher-action {
+  margin-top: 1rem;
+}
+
+.researcher-action textarea {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #aeb9c8;
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.researcher-action textarea:focus {
+  outline: 3px solid rgb(49 91 138 / 20%);
+  border-color: #315b8a;
+}

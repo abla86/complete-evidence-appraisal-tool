@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: evidence-appraisal-tool
+    runtime: docker
+    plan: free
+    branch: main
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
