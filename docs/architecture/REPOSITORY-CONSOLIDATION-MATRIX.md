@@ -1,3 +1,5 @@
+> **Update 2026-09-19:** all repositories listed below (including academic-research-engine and research-privacy-inspector) were merged with full history into `archive/<name>/` in this repository and the old repositories were deleted. Extract a folder with `git subtree split` if an independent repo is needed again.
+
 # Repository consolidation and migration matrix
 
 **Canonical repository:** `abla86/complete-evidence-appraisal-tool`
