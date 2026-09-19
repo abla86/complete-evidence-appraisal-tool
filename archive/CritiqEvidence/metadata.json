@@ -1,0 +1,6 @@
+{
+  "name": "CritiqEvidence",
+  "description": "Evidensvurderingsverktøy for kritisk vurdering av forskningsartikler med IMRaD-segmentering, CASP, AMSTAR 2, AGREE II og Cochrane RoB 2, sjekkliste-state engine og sitatforankring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

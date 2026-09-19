@@ -1,0 +1,88 @@
+import { ChecklistCriterion } from '@/types/frameworks';
+
+export const AGREE_II_CRITERIA: ChecklistCriterion[] = [
+  {
+    id: 'agree_d1_q1',
+    code: 'AGREE_D1_1',
+    questionText: 'Retningslinjens overordnede målsetting er spesifikt beskrevet.',
+    helpText: 'Domene 1: Mål og formål. Helsespørsmålet og forventet helsegevinst må fremgå klart.',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d1_q2',
+    code: 'AGREE_D1_2',
+    questionText: 'Helsespørsmålene som dekkes av retningslinjen er spesifikt beskrevet.',
+    helpText: 'Konkrete kliniske problemstillinger og målgrupper for tiltakene.',
+    mandatory: false,
+  },
+  {
+    id: 'agree_d1_q3',
+    code: 'AGREE_D1_3',
+    questionText: 'Målgruppen (pasienter, populasjon) er klart beskrevet.',
+    helpText: 'Inklusjonskriterier, alder, kjønn, alvorlighetsgrad eller klinisk setting.',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d2_q4',
+    code: 'AGREE_D2_4',
+    questionText: 'Retningslinjegruppen omfatter representanter fra alle relevante faggrupper.',
+    helpText: 'Domene 2: Interessentenes deltakelse. Tverrfaglighet og nøkkelprofesjoner.',
+    mandatory: false,
+  },
+  {
+    id: 'agree_d2_q5',
+    code: 'AGREE_D2_5',
+    questionText: 'Målgruppens (pasienters/brukeres) synspunkter og preferanser er innhentet.',
+    helpText: 'Brukermedvirkning i arbeidsgruppen, høringer eller pasientundersøkelser.',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d3_q7',
+    code: 'AGREE_D3_7',
+    questionText: 'Systematiske metoder ble brukt til å søke etter evidens.',
+    helpText: 'Domene 3: Metodisk nøyaktighet. Søkestrategier, databaser, tidsrammer oppgitt.',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d3_q8',
+    code: 'AGREE_D3_8',
+    questionText: 'Kriteriene for seleksjon av evidens er tydelig beskrevet.',
+    helpText: 'Inklusjons- og eksklusjonskriterier for primærlitteratur.',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d3_q9',
+    code: 'AGREE_D3_9',
+    questionText: 'Styrker og begrensninger ved evidensgrunnlaget er tydelig beskrevet.',
+    helpText: 'Kvalitetsvurdering av evidensen (f.eks. GRADE-vurderinger).',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d3_q10',
+    code: 'AGREE_D3_10',
+    questionText: 'Metodene for utforming av anbefalingene er tydelig beskrevet.',
+    helpText: 'Konsensusprosesser og hvordan evidens ble omsatt til konkrete anbefalinger.',
+    mandatory: false,
+  },
+  {
+    id: 'agree_d4_q15',
+    code: 'AGREE_D4_15',
+    questionText: 'Anbefalingene er spesifikke og utvetydige.',
+    helpText: 'Domene 4: Klarhet og presentasjon. Tydelig hvem som skal gjøre hva i hvilken situasjon.',
+    mandatory: true,
+  },
+  {
+    id: 'agree_d5_q18',
+    code: 'AGREE_D5_18',
+    questionText: 'Tilretteleggende faktorer og barrierer for implementering er beskrevet.',
+    helpText: 'Domene 5: Anvendbarhet. Organisatoriske og ressursmessige forutsetninger.',
+    mandatory: false,
+  },
+  {
+    id: 'agree_d6_q22',
+    code: 'AGREE_D6_22',
+    questionText: 'Finansierende instansers synspunkter har ikke påvirket retningslinjens innhold.',
+    helpText: 'Domene 6: Redaksjonell uavhengighet. Uavhengighet fra finansieringskilder.',
+    mandatory: true,
+  },
+];
