@@ -1,0 +1,6 @@
+{
+  "name": "Artikkelanalysator Pro",
+  "description": "Et solid verktøy for kritisk vurdering, klassifisering og sjekklistebasert analyse av forskningsartikler, faglitteratur og teoretiske studier med AI-støtte.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
