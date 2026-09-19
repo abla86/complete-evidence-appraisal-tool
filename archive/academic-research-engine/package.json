@@ -1,0 +1,46 @@
+{
+  "name": "@abla86/academic-research-engine",
+  "version": "2.0.1",
+  "description": "Standalone reusable academic research engine for source-grounded research, evidence provenance and integration with evidence-appraisal applications.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "README.md", "LICENSE"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abla86/academic-research-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/abla86/academic-research-engine/issues"
+  },
+  "homepage": "https://github.com/abla86/academic-research-engine",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mammoth": "^1.12.2",
+    "pdfjs-dist": "^6.3.289"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^26.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^7.0.2"
+  }
+}

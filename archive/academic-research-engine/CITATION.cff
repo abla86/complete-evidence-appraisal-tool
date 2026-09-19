@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use Academic Research Engine in research or software, please cite this project."
+title: "Academic Research Engine"
+type: software
+version: 2.0.1
+authors:
+  - family-names: Andersen
+    given-names: "Anne Beth"
+repository-code: "https://github.com/abla86/academic-research-engine"
+license: MIT
+abstract: "Reusable TypeScript engine for source-grounded academic research, evidence provenance, document extraction and citation workflows."
+keywords:
+  - academic research
+  - evidence provenance
+  - evidence synthesis
+  - TypeScript
+  - research software

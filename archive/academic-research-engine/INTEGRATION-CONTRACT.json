@@ -1,0 +1,37 @@
+{
+  "name": "Academic Research Engine",
+  "version": "1.0",
+  "primaryConsumer": "abla86/complete-evidence-appraisal-tool",
+  "modes": ["standalone", "embedded", "http", "typescript"],
+  "handoff": {
+    "document": ["id", "fileName", "sourceType", "text", "verification"],
+    "evidence": ["documentId", "location", "quote"],
+    "claim": ["claim", "documentId", "location", "quote", "status"],
+    "citation": ["doi", "pmid", "title", "authors", "year", "journal", "verification"]
+  },
+  "responsibilities": {
+    "researchEngine": [
+      "document-ingestion",
+      "pdf-docx-txt-extraction",
+      "source-search",
+      "source-grounded-ai",
+      "evidence-provenance",
+      "citation-formatting"
+    ],
+    "evidenceSuperApp": [
+      "study-design-gating",
+      "AMSTAR-2",
+      "JBI",
+      "CASP",
+      "AGREE-II",
+      "RoB-2",
+      "GRADE",
+      "GRADE-CERQual",
+      "dual-review",
+      "consensus",
+      "audit-trail",
+      "methodology-validation"
+    ]
+  },
+  "integrityRule": "AI output is candidate evidence/context and never an automatic appraisal decision."
+}
