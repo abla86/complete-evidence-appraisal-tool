@@ -1,3 +1,5 @@
+> **Status 2026-09-19:** the repositories listed here have been merged, with full git history, into `archive/<name>/` of the canonical repository and the standalone repositories were removed after every file was verified.
+
 # Repository Consolidation
 
 This repository is the canonical public implementation for the Evidence & Research system.

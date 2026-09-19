@@ -6,7 +6,7 @@
 
 ## Shared Research Engine
 
-`academic-research-engine` is the reusable research subsystem. It can run standalone and can also be embedded in this superprogram.
+`academic-research-engine` is the reusable research subsystem (source preserved in `archive/academic-research-engine/`). It can run standalone and can also be embedded in this superprogram.
 
 The Research Engine owns:
 - document ingestion/extraction
