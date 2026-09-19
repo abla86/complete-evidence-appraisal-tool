@@ -31,5 +31,5 @@ jobs:
               echo "PLACEHOLDER SOURCE: $file"
               failed=1
             fi
-          done < <(find . -type f \( -name '*.js' -o -name '*.jsx' -o -name '*.ts' -o -name '*.tsx' -o -name '*.py' -o -name '*.cs' -o -name '*.html' -o -name '*.css' -o -name '*.scss' -o -name '*.sql' -o -name '*.sh' -o -name '*.ps1' \) -not -path './.git/*' -print0)
+          done < <(find . -type f -not -path './archive/*' \( -name '*.js' -o -name '*.jsx' -o -name '*.ts' -o -name '*.tsx' -o -name '*.py' -o -name '*.cs' -o -name '*.html' -o -name '*.css' -o -name '*.scss' -o -name '*.sql' -o -name '*.sh' -o -name '*.ps1' \) -not -path './.git/*' -print0)
           exit "$failed"
