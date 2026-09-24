@@ -16,6 +16,9 @@ export const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
 export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${APP_URL}${GOOGLE_CALLBACK_PATH}`;
 const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || '';
 const COOKIE_NAME = 'evidence_google_session';
+if (process.env.NODE_ENV === 'production' && SESSION_SECRET.length < 32) {
+  throw new Error('AUTH_SESSION_SECRET must be at least 32 characters in production.');
+}
 
 export function googleOAuthConfigured(): boolean {
   return Boolean(CLIENT_ID && CLIENT_SECRET && SESSION_SECRET);
@@ -68,7 +71,7 @@ export function readAuthorizationStateCookie(cookieHeader?: string): string | nu
   const match = cookieHeader.split(';').map(value => value.trim()).find(value => value.startsWith('evidence_google_oauth_state='));
   return match ? decodeURIComponent(match.slice('evidence_google_oauth_state='.length)) : null;
 }
-export function clearAuthorizationStateCookie(secure: boolean): string { return `evidence_google_oauth_state=; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
+export function clearAuthorizationStateCookie(secure: boolean): string { return `evidence_google_oauth_state=; Path=/auth/google; HttpOnly; SameSite=Strict; Max-Age=0${secure ? '; Secure' : ''}`; }
 
 export async function exchangeCode(code: string, state: string, expectedState?: string): Promise<GoogleUser> {
   if (!code.trim()) throw new Error('Google authorization code is required.');
@@ -93,6 +96,6 @@ export function readSessionCookie(cookieHeader?: string): GoogleUser | null {
   const match = cookieHeader.split(';').map(value => value.trim()).find(value => value.startsWith(`${COOKIE_NAME}=`));
   return match ? decode<GoogleUser>(match.slice(COOKIE_NAME.length + 1)) : null;
 }
-export function sessionCookieHeader(value: string, secure: boolean): string { return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure ? '; Secure' : ''}`; }
+export function sessionCookieHeader(value: string, secure: boolean): string { return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800${secure ? '; Secure' : ''}`; }
 export function clearSessionCookie(secure: boolean): string { return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`; }
 export function publicAuthConfig() { return { configured: googleOAuthConfigured(), clientId: CLIENT_ID || null, redirectUri: GOOGLE_REDIRECT_URI, scopes: scopes() }; }
