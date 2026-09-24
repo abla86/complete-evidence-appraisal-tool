@@ -13,6 +13,7 @@ import { registerResearchEngineIntegration } from './src/services/researchEngine
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
 import { registerIntegrityApi } from './src/services/integrityApi';
+import { requireAuthenticatedUser } from './src/services/authApi';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -96,6 +97,19 @@ async function startServer() {
   });
 
   app.get('/api/instruments', (_req: Request, res: Response) => res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY }));
+
+  app.use('/api/documents', (req, res, next) => {
+    try { requireAuthenticatedUser(req); next(); }
+    catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
+  });
+  app.use('/api/meta-research', (req, res, next) => {
+    try { requireAuthenticatedUser(req); next(); }
+    catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
+  });
+  app.use('/api/evidence', (req, res, next) => {
+    try { requireAuthenticatedUser(req); next(); }
+    catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
+  });
 
   app.post('/api/documents/parse-file', async (req: Request, res: Response) => {
     try {
