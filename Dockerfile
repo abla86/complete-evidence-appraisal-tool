@@ -12,6 +12,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=10000
+ENV NODE_OPTIONS=--disable-proto=throw
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
