@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { ArticleAppraisal } from '../types';
 import { 
   Apa7CitationService, 
@@ -31,6 +32,12 @@ import {
   FileCheck2,
   Share2
 } from 'lucide-react';
+
+const sanitizeCitationHtml = (html: string): string => DOMPurify.sanitize(html, {
+  USE_PROFILES: { html: true },
+  ALLOWED_TAGS: ['a', 'b', 'br', 'em', 'i', 'span', 'strong'],
+  ALLOWED_ATTR: ['href', 'target', 'rel']
+});
 
 interface Apa7CitationStudioProps {
   article: ArticleAppraisal;
@@ -368,7 +375,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
             {/* Academic Hanging Indent Reference */}
             <div 
               className="pl-8 -indent-8 text-sm sm:text-base font-serif text-slate-900 leading-relaxed break-words bg-white p-4 rounded-xl border border-slate-200 shadow-2xs"
-              dangerouslySetInnerHTML={{ __html: currentStyleOutput.htmlFormatted }}
+              dangerouslySetInnerHTML={{ __html: sanitizeCitationHtml(currentStyleOutput.htmlFormatted) }}
             />
 
             {/* Action Bar */}
@@ -647,7 +654,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 <div 
                   key={item.id || idx} 
                   className="pl-6 -indent-6 leading-relaxed border-b border-slate-100 last:border-0 pb-2"
-                  dangerouslySetInnerHTML={{ __html: item.citation.htmlFormatted }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeCitationHtml(item.citation.htmlFormatted) }}
                 />
               ))}
             </div>
