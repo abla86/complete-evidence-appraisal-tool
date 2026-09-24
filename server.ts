@@ -39,8 +39,7 @@ async function startServer() {
 
   const rateBuckets = new Map<string, { count: number; resetAt: number }>();
   const rateLimit = (req: Request, limit: number, windowMs: number): boolean => {
-    const forwarded = req.headers['x-forwarded-for'];
-    const client = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.ip) || 'unknown';
+    const client = req.ip || 'unknown';
     const key = \`${client}:${limit}:${windowMs}\`;
     const now = Date.now();
     const current = rateBuckets.get(key);
