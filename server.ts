@@ -37,6 +37,32 @@ async function startServer() {
   });
   app.use(express.json({ limit: '10mb' }));
 
+  const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+  const rateLimit = (req: Request, limit: number, windowMs: number): boolean => {
+    const forwarded = req.headers['x-forwarded-for'];
+    const client = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.ip) || 'unknown';
+    const key = \`${client}:${limit}:${windowMs}\`;
+    const now = Date.now();
+    const current = rateBuckets.get(key);
+    if (!current || current.resetAt <= now) {
+      rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
+      return false;
+    }
+    current.count += 1;
+    return current.count > limit;
+  };
+
+  app.use('/api', (req, res, next) => {
+    const expensive = req.path.startsWith('/documents/parse-file')
+      || req.path.startsWith('/meta-research/')
+      || req.path.startsWith('/evidence/verify-doi')
+      || req.path.startsWith('/evidence/search/');
+    if (rateLimit(req, expensive ? 10 : 120, 60_000)) {
+      return res.status(429).json({ success: false, error: 'For mange forespørsler. Prøv igjen senere.' });
+    }
+    next();
+  });
+
   registerAuthApi(app);
   registerResearchEngineIntegration(app);
   registerResearchWorkflowApi(app);
