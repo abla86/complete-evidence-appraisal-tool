@@ -19,8 +19,9 @@ function sendError(res: Response, error: unknown, status = 400) {
 }
 
 export function registerIntegrityApi(app: Express) {
-  app.get('/api/integrity/health', async (_req, res) => {
-    try { res.json({ success: true, assessments: await store.countAssessments(), auditChains: await store.countAuditChains(), persistence: 'durable-local-store' }); }
+  app.get('/api/integrity/health', async (req, res) => {
+    try {
+      reviewerIdForRequest(req); res.json({ success: true, assessments: await store.countAssessments(), auditChains: await store.countAuditChains(), persistence: 'durable-local-store' }); }
     catch (e) { sendError(res, e, 503); }
   });
 
