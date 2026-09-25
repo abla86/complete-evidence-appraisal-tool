@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run -d --name evidence-app-ci -p 18080:10000 complete-evidence-appraisal-tool:${GITHUB_SHA}
+          docker run -d --name evidence-app-ci -e AUTH_SESSION_SECRET="$(openssl rand -hex 32)" -p 18080:10000 complete-evidence-appraisal-tool:${GITHUB_SHA}
           trap 'docker rm -f evidence-app-ci >/dev/null 2>&1 || true' EXIT
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:18080/api/health; then
