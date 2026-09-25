@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { DocumentParserService } from './src/services/documentParserService';
 import { MetaResearchService } from './src/services/metaResearchService';
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
@@ -194,7 +193,7 @@ async function startServer() {
   });
 
   const viteDev = process.env.NODE_ENV !== 'production';
-  if (viteDev) { const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
+  if (viteDev) { const { createServer: createViteServer } = await import('vite'); const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
   else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath)); app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
   app.listen(PORT, '0.0.0.0', () => console.log(`Evidence Appraisal Tool running on http://0.0.0.0:${PORT}`));
 }
