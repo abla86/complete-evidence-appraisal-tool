@@ -1,5 +1,6 @@
 ﻿import { Request, Response } from 'express';
 import ResearchEngineGateway from './researchEngineGateway';
+import { requireAuthenticatedUser } from './authApi';
 
 export function registerResearchEngineIntegration(app: { get: Function; post: Function }): void {
   app.get('/api/research-engine/health', (_req: Request, res: Response) => {
@@ -14,6 +15,7 @@ export function registerResearchEngineIntegration(app: { get: Function; post: Fu
 
   app.post('/api/research-engine/analyze-text', (req: Request, res: Response) => {
     try {
+      requireAuthenticatedUser(req);
       const { text, fileName } = req.body ?? {};
       if (typeof text !== 'string' || !text.trim()) {
         return res.status(400).json({ success: false, error: 'text is required' });
