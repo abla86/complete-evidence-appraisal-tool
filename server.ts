@@ -49,14 +49,11 @@ async function startServer() {
     const key = \`\${client}:\${limit}:\${windowMs}\`;
     const now = Date.now();
 
-    // Bound memory usage even when an attacker rotates source IPs.
-    if (rateBuckets.size >= MAX_RATE_BUCKETS) {
-      for (const [bucketKey, bucket] of rateBuckets) {
-        if (bucket.resetAt <= now) rateBuckets.delete(bucketKey);
-        if (rateBuckets.size < MAX_RATE_BUCKETS) break;
-      }
-      if (rateBuckets.size >= MAX_RATE_BUCKETS) return true;
+    // Prune expired buckets on every request before enforcing the hard bound.
+    for (const [bucketKey, bucket] of rateBuckets) {
+      if (bucket.resetAt <= now) rateBuckets.delete(bucketKey);
     }
+    if (rateBuckets.size >= MAX_RATE_BUCKETS) return true;
 
     const current = rateBuckets.get(key);
     if (!current || current.resetAt <= now) {
