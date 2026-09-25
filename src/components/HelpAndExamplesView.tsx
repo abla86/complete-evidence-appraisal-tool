@@ -79,10 +79,10 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
     md += `|---|---|---|---|\n`;
 
     currentExample.criteria.forEach(c => {
-      const qTitle = c.criterionTitle.replace(/\|/g, '\\|');
+      const qTitle = c.criterionTitle.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
       const st = `${c.status} ${c.pageComment}`;
-      const why = c.whyAssessedAsSuch.replace(/\|/g, '\\|');
-      const ev = `«${c.evidenceQuote}»`.replace(/\|/g, '\\|');
+      const why = c.whyAssessedAsSuch.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+      const ev = `«${c.evidenceQuote}»`.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
       md += `| **${qTitle}** | **${st}** | ${why} | ${ev} |\n`;
     });
 
