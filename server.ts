@@ -69,6 +69,7 @@ async function startServer() {
       || req.path.startsWith('/evidence/verify-doi')
       || req.path.startsWith('/evidence/search/');
     if (rateLimit(req, expensive ? 10 : 120, 60_000)) {
+      res.setHeader('Retry-After', '60');
       return res.status(429).json({ success: false, error: 'For mange forespørsler. Prøv igjen senere.' });
     }
     next();
