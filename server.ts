@@ -39,10 +39,21 @@ async function startServer() {
   app.use(express.json({ limit: '10mb' }));
 
   const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+  const MAX_RATE_BUCKETS = 10_000;
   const rateLimit = (req: Request, limit: number, windowMs: number): boolean => {
     const client = req.ip || 'unknown';
-    const key = \`${client}:${limit}:${windowMs}\`;
+    const key = \`\${client}:\${limit}:\${windowMs}\`;
     const now = Date.now();
+
+    // Bound memory usage even when an attacker rotates source IPs.
+    if (rateBuckets.size >= MAX_RATE_BUCKETS) {
+      for (const [bucketKey, bucket] of rateBuckets) {
+        if (bucket.resetAt <= now) rateBuckets.delete(bucketKey);
+        if (rateBuckets.size < MAX_RATE_BUCKETS) break;
+      }
+      if (rateBuckets.size >= MAX_RATE_BUCKETS) return true;
+    }
+
     const current = rateBuckets.get(key);
     if (!current || current.resetAt <= now) {
       rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
