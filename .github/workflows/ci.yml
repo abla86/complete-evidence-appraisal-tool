@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run -d --rm --name evidence-app-ci -p 18080:10000 complete-evidence-appraisal-tool:${GITHUB_SHA}
+          docker run -d --name evidence-app-ci -p 18080:10000 complete-evidence-appraisal-tool:${GITHUB_SHA}
           trap 'docker rm -f evidence-app-ci >/dev/null 2>&1 || true' EXIT
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:18080/api/health; then
@@ -68,5 +68,10 @@ jobs:
             fi
             sleep 2
           done
-          docker logs evidence-app-ci
+          echo '--- container status ---'
+          docker ps -a --filter name=evidence-app-ci
+          echo '--- container logs ---'
+          docker logs evidence-app-ci || true
+          echo '--- container inspect ---'
+          docker inspect --format='status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' evidence-app-ci || true
           exit 1
