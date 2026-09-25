@@ -47,7 +47,7 @@ jobs:
         with:
           name: v8-coverage
           path: coverage/
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: Production build
