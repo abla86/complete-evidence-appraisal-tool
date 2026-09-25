@@ -6,7 +6,6 @@ import { loadReferenceLibrary, saveReferenceLibrary } from '../src/services/refe
 test('canonical ReferenceRecord supports research identifiers and integrity metadata', () => {
   const record: ReferenceRecord = {
     id: 'r1',
-    type: 'JOURNAL_ARTICLE',
     title: 'Example',
     authors: 'Doe, J.',
     year: 2025,
