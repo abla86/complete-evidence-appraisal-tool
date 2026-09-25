@@ -45,6 +45,7 @@ import { GroupCollaborationService, DEFAULT_MEMBERS } from '../services/groupCol
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { useToast } from './Toast';
 import { StatusBadge } from './StatusBadge';
+import { generateUniqueId } from '../services/idGenerator';
 
 interface PeerReviewStudioViewProps {
   articles: ArticleAppraisal[];
@@ -274,7 +275,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
     const consensusRecord: StudyConsensusRecord = {
       id: generateUniqueId('consensus'),
       reviewerIds: workspace.members.slice(0, 2).map(m => m.id),
-      consensusStatus: 'CONSENSUS_REACHED',
+      consensusStatus: null,
       rationale: consensusDraft.verdictRationale,
       studyId: selectedArticle.id,
       meetingDate: new Date().toISOString().split('T')[0],
