@@ -12,6 +12,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=10000
+ENV HOST=0.0.0.0
 ENV NODE_OPTIONS=--disable-proto=throw
 
 COPY package.json package-lock.json ./
