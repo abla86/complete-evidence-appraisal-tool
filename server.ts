@@ -195,6 +195,7 @@ async function startServer() {
   const viteDev = process.env.NODE_ENV !== 'production';
   if (viteDev) { const { createServer: createViteServer } = await import('vite'); const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
   else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath)); app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
-  app.listen(PORT, '0.0.0.0', () => console.log(`Evidence Appraisal Tool running on http://0.0.0.0:${PORT}`));
+  const host = process.env.HOST || '127.0.0.1';
+  app.listen(PORT, host, () => console.log(`Evidence Appraisal Tool running on http://${host}:${PORT}`));
 }
 startServer().catch((error) => { console.error('Server startup failed:', error); process.exit(1); });
