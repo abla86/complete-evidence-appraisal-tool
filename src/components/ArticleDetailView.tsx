@@ -143,8 +143,8 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     article.items.forEach(item => {
       const q = JBI_QUESTIONS.find(q => q.id === item.questionId);
       const locStr = item.location?.page ? `s. ${item.location.page}` : (item.sourceQuoteOrRef || '-');
-      const evidStr = (item.evidenceText || item.sourceQuoteOrRef || '-').replace(/\|/g, '\\|');
-      const justStr = item.justification.replace(/\|/g, '\\|');
+      const evidStr = (item.evidenceText || item.sourceQuoteOrRef || '-').replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+      const justStr = item.justification.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
       md += `| ${item.questionId} | **${q?.shortTitle || item.questionId}** | **${item.status}** | ${justStr} | ${evidStr} | ${locStr} |\n`;
     });
     
