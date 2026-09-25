@@ -46,7 +46,7 @@ async function startServer() {
   const MAX_RATE_BUCKETS = 10_000;
   const rateLimit = (req: Request, limit: number, windowMs: number): boolean => {
     const client = req.ip || 'unknown';
-    const key = \`\${client}:\${limit}:\${windowMs}\`;
+    const key = `${client}:${limit}:${windowMs}`;
     const now = Date.now();
 
     // Prune expired buckets on every request before enforcing the hard bound.
