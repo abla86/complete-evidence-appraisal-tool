@@ -23,7 +23,11 @@ function getGeminiClient(): GoogleGenAI | null {
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT || 10000);
+  const parsedPort = Number(process.env.PORT || 10000);
+  if (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+    throw new Error('PORT must be an integer between 1 and 65535.');
+  }
+  const PORT = parsedPort;
   const production = process.env.NODE_ENV === 'production';
 
   app.disable('x-powered-by');
@@ -36,7 +40,7 @@ async function startServer() {
     if (production) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
   });
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: '10mb', strict: true, type: 'application/json' }));
 
   const rateBuckets = new Map<string, { count: number; resetAt: number }>();
   const MAX_RATE_BUCKETS = 10_000;
@@ -45,14 +49,11 @@ async function startServer() {
     const key = \`\${client}:\${limit}:\${windowMs}\`;
     const now = Date.now();
 
-    // Bound memory usage even when an attacker rotates source IPs.
-    if (rateBuckets.size >= MAX_RATE_BUCKETS) {
-      for (const [bucketKey, bucket] of rateBuckets) {
-        if (bucket.resetAt <= now) rateBuckets.delete(bucketKey);
-        if (rateBuckets.size < MAX_RATE_BUCKETS) break;
-      }
-      if (rateBuckets.size >= MAX_RATE_BUCKETS) return true;
+    // Prune expired buckets on every request before enforcing the hard bound.
+    for (const [bucketKey, bucket] of rateBuckets) {
+      if (bucket.resetAt <= now) rateBuckets.delete(bucketKey);
     }
+    if (rateBuckets.size >= MAX_RATE_BUCKETS) return true;
 
     const current = rateBuckets.get(key);
     if (!current || current.resetAt <= now) {
@@ -126,10 +127,21 @@ async function startServer() {
   app.post('/api/documents/parse-file', async (req: Request, res: Response) => {
     try {
       const { fileName, fileSizeBytes, mimeType, base64Content, textContent } = req.body;
-      if (!fileName) return res.status(400).json({ success: false, error: 'Filnavn mangler.' });
+      if (!fileName || typeof fileName !== 'string') return res.status(400).json({ success: false, error: 'Filnavn mangler.' });
+      if (fileName.length > 255) return res.status(400).json({ success: false, error: 'Filnavnet er for langt.' });
+      if (mimeType !== undefined && typeof mimeType !== 'string') return res.status(400).json({ success: false, error: 'Ugyldig MIME-type.' });
+      if (textContent !== undefined && typeof textContent !== 'string') return res.status(400).json({ success: false, error: 'Ugyldig tekstinnhold.' });
+      if (base64Content !== undefined && typeof base64Content !== 'string') return res.status(400).json({ success: false, error: 'Ugyldig binært innhold.' });
       let contentBuffer: ArrayBuffer | string = textContent || '';
-      if (base64Content) { const binString = Buffer.from(base64Content, 'base64'); contentBuffer = binString.buffer.slice(binString.byteOffset, binString.byteOffset + binString.byteLength); }
-      const parseResult = await DocumentParserService.parseFile({ name: fileName, size: fileSizeBytes || (typeof contentBuffer === 'string' ? Buffer.byteLength(contentBuffer) : contentBuffer.byteLength), type: mimeType, content: contentBuffer });
+      if (base64Content) {
+        if (!/^[A-Za-z0-9+/=\s]+$/.test(base64Content)) return res.status(400).json({ success: false, error: 'Ugyldig base64-innhold.' });
+        const binString = Buffer.from(base64Content, 'base64');
+        if (binString.length > 8 * 1024 * 1024) return res.status(413).json({ success: false, error: 'Filen er for stor.' });
+        contentBuffer = binString.buffer.slice(binString.byteOffset, binString.byteOffset + binString.byteLength);
+      }
+      const effectiveSize = typeof contentBuffer === 'string' ? Buffer.byteLength(contentBuffer, 'utf8') : contentBuffer.byteLength;
+      if (effectiveSize > 8 * 1024 * 1024) return res.status(413).json({ success: false, error: 'Filen er for stor.' });
+      const parseResult = await DocumentParserService.parseFile({ name: fileName, size: effectiveSize, type: mimeType, content: contentBuffer });
       res.json({ success: true, data: parseResult, integration: { contractVersion: '1.0.0', evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0, humanVerificationRequired: true, appraisalGateRequired: true } });
     } catch (err: unknown) { res.status(400).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil under dokumentbehandling og tekstraksjon.' }); }
   });
@@ -165,7 +177,10 @@ async function startServer() {
         } else baseReport.engineUsed = 'DETERMINISTIC_FALLBACK';
       } else baseReport.engineUsed = 'DETERMINISTIC_FALLBACK';
       res.json({ success: true, report: baseReport });
-    } catch (err: unknown) { res.status(500).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil ved metaundersøkelse av dokument' }); }
+    } catch (err: unknown) {
+      console.error('Meta-research request failed:', err);
+      res.status(500).json({ success: false, error: 'Feil ved metaundersøkelse av dokument.' });
+    }
   });
 
   app.post('/api/evidence/verify-doi', async (req: Request, res: Response) => {
