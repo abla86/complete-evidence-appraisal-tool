@@ -158,7 +158,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       });
       setConsensusDraft({
         itemConsensus: itemMap,
-        overallVerdict: currentConsensus.overallVerdict,
+        overallVerdict: (['Inkluder', 'Ekskluder', 'Vurder videre', 'Søk mer informasjon'].includes(currentConsensus.overallVerdict ?? '') ? currentConsensus.overallVerdict : 'Inkluder') as 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon',
         verdictRationale: currentConsensus.verdictRationale,
         consensusNotes: currentConsensus.consensusNotes
       });
@@ -174,7 +174,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       });
       setConsensusDraft({
         itemConsensus: itemMap,
-        overallVerdict: selectedArticle?.overallVerdict || 'Inkluder',
+        overallVerdict: (selectedArticle?.overallVerdict === 'Ekskluder' || selectedArticle?.overallVerdict === 'Vurder videre' || selectedArticle?.overallVerdict === 'Søk mer informasjon' ? selectedArticle.overallVerdict : 'Inkluder'),
         verdictRationale: selectedArticle?.verdictNote || '',
         consensusNotes: ''
       });
