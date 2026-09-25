@@ -16,7 +16,6 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
     issn: '1234-5678',
     tags: [],
     collections: [],
-    sourceSystems: ['pubmed'],
     importedFrom: ['MANUAL'],
     verification: 'VALIDATION_REQUIRED',
     retraction: { detected: false, source: 'not-checked', checkedAt: new Date().toISOString() },
