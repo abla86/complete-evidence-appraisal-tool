@@ -1,0 +1,7 @@
+# Archived applications are not deployed and are maintained as historical snapshots.
+# They are excluded from production CodeQL analysis so stale vulnerabilities in retired
+# code do not obscure the security state of the active application.
+archive/**
+dist/**
+coverage/**
+node_modules/**
