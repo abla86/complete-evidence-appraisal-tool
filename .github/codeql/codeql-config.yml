@@ -1,0 +1,13 @@
+name: "CodeQL"
+
+paths:
+  - src
+  - server.ts
+  - scripts
+
+paths-ignore:
+  - archive/**
+  - node_modules/**
+  - dist/**
+  - coverage/**
+  - test/**
