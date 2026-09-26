@@ -45,6 +45,7 @@ import { GroupCollaborationService, DEFAULT_MEMBERS } from '../services/groupCol
 import { JBI_QUESTIONS } from '../data/jbiData';
 import { useToast } from './Toast';
 import { StatusBadge } from './StatusBadge';
+import { generateUniqueId } from '../services/idGenerator';
 
 interface PeerReviewStudioViewProps {
   articles: ArticleAppraisal[];
@@ -120,7 +121,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
         itemsMap[it.questionId] = { status: it.status, justification: it.justification || '' };
       });
       setEvalFormItems(itemsMap);
-      setEvalOverallVerdict(selectedArticle?.overallVerdict || 'Inkluder');
+      setEvalOverallVerdict(selectedArticle?.overallVerdict === 'Ekskluder' || selectedArticle?.overallVerdict === 'Vurder videre' || selectedArticle?.overallVerdict === 'Søk mer informasjon' || selectedArticle?.overallVerdict === 'Ufullstendig' ? selectedArticle.overallVerdict : 'Inkluder');
       setEvalVerdictRationale(selectedArticle?.verdictNote || '');
     }
   }, [selectedStudyId, workspace.activeReviewerId, mySubmission, selectedArticle]);
@@ -158,7 +159,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       });
       setConsensusDraft({
         itemConsensus: itemMap,
-        overallVerdict: currentConsensus.overallVerdict,
+        overallVerdict: (['Inkluder', 'Ekskluder', 'Vurder videre', 'Søk mer informasjon'].includes(currentConsensus.overallVerdict ?? '') ? currentConsensus.overallVerdict : 'Inkluder') as 'Inkluder' | 'Ekskluder' | 'Vurder videre' | 'Søk mer informasjon',
         verdictRationale: currentConsensus.verdictRationale,
         consensusNotes: currentConsensus.consensusNotes
       });
@@ -174,7 +175,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
       });
       setConsensusDraft({
         itemConsensus: itemMap,
-        overallVerdict: selectedArticle?.overallVerdict || 'Inkluder',
+        overallVerdict: (selectedArticle?.overallVerdict === 'Ekskluder' || selectedArticle?.overallVerdict === 'Vurder videre' || selectedArticle?.overallVerdict === 'Søk mer informasjon' ? selectedArticle.overallVerdict : 'Inkluder'),
         verdictRationale: selectedArticle?.verdictNote || '',
         consensusNotes: ''
       });
@@ -272,6 +273,10 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
     });
 
     const consensusRecord: StudyConsensusRecord = {
+      id: generateUniqueId('consensus'),
+      reviewerIds: workspace.members.slice(0, 2).map(m => m.id),
+      consensusStatus: null,
+      rationale: consensusDraft.verdictRationale,
       studyId: selectedArticle.id,
       meetingDate: new Date().toISOString().split('T')[0],
       status: 'CONSENSUS_REACHED',

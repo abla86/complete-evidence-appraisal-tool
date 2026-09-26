@@ -192,7 +192,7 @@ export class MethodologyContractTests {
     });
 
     // 1.7 AGREE II Standardized Formula: All ratings = 7 -> 100%
-    const agreeMax = Agree2ScoringService.evaluate({ 1: 7, 2: 7, 3: 7 }, 1);
+    const agreeMax = Agree2ScoringService.evaluate({ 1: 7, 2: 7, 3: 7 });
     const domain1Max = agreeMax.domainScores.find(d => d.domainId === 1);
     results.push({
       ruleId: 'L1-AGREE-01-MAX-SCORE-100',
@@ -206,7 +206,7 @@ export class MethodologyContractTests {
     });
 
     // 1.8 AGREE II Standardized Formula: All ratings = 1 -> 0%
-    const agreeMin = Agree2ScoringService.evaluate({ 1: 1, 2: 1, 3: 1 }, 1);
+    const agreeMin = Agree2ScoringService.evaluate({ 1: 1, 2: 1, 3: 1 });
     const domain1Min = agreeMin.domainScores.find(d => d.domainId === 1);
     results.push({
       ruleId: 'L1-AGREE-02-MIN-SCORE-0',
@@ -313,11 +313,12 @@ export class MethodologyContractTests {
 
     // 1.13 ROBIS Phase 2 to Phase 3 Synthesis Test (High Risk in Domain 2)
     const robisEval = RobisValidationService.evaluate({
-      phase1PicoAddressed: true,
-      domain1Eligibility: 'Low risk',
-      domain2Identification: 'High risk',
-      domain3DataCollection: 'Low risk',
-      domain4Synthesis: 'Low risk'
+      phase2Domains: {
+        domain1Eligibility: 'Low risk',
+        domain2Identification: 'High risk',
+        domain3DataCollection: 'Low risk',
+        domain4Synthesis: 'Low risk'
+      }
     });
     results.push({
       ruleId: 'L1-ROBIS-01-PHASE2-TO-PHASE3-HIGH',

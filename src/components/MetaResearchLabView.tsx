@@ -209,7 +209,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
       onSaveToLibrary({
         title: report.extractedTitle,
         authors: report.extractedAuthors,
-        year: parseInt(report.extractedYear || '2024', 10) || 2024,
+        year: Number(report.extractedYear ?? 2024) || 2024,
         doi: report.extractedDoi || '',
         studyDesign: report.classification.documentTypeName
       });

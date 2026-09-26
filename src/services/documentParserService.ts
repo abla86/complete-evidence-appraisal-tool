@@ -297,6 +297,7 @@ export class DocumentParserService {
     // 3. Authors â€” preserve Unicode names and remove BMC footnote markers.
     let authors = '';
     const authorsExplicit = text.match(/authors?\s*[:\-]\s*([^\n]+)/i);
+    // codeql[js/user-controlled-bypass] This branch only selects a document-author parsing heuristic; it is not an authorization or permission check.
     if (authorsExplicit && authorsExplicit[1].length > 5) {
       authors = parseAuthorList(authorsExplicit[1]).join('; ');
     } else {

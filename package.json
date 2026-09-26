@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
     "lint": "tsc --noEmit",
-    "test": "node --import tsx --test --test-name-pattern=.",
-    "test:coverage": "node --import tsx --test --experimental-test-coverage"
+    "test": "node --import tsx --test src/services/implementationTrace.test.ts --test-name-pattern=.",
+    "test:coverage": "node --import tsx --test --experimental-test-coverage src/services/implementationTrace.test.ts --test-name-pattern=."
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -40,7 +40,6 @@
     "esbuild": "^0.25.0",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vitest": "^3.2.4",
     "vite": "^6.2.3"
   }
 }

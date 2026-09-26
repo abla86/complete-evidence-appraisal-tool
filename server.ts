@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { DocumentParserService } from './src/services/documentParserService';
 import { MetaResearchService } from './src/services/metaResearchService';
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
@@ -194,8 +193,9 @@ async function startServer() {
   });
 
   const viteDev = process.env.NODE_ENV !== 'production';
-  if (viteDev) { const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
+  if (viteDev) { const { createServer: createViteServer } = await import('vite'); const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
   else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath)); app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
-  app.listen(PORT, () => console.log(`Evidence Appraisal Tool running on http://localhost:${PORT}`));
+  const host = process.env.HOST || '127.0.0.1';
+  app.listen(PORT, host, () => console.log(`Evidence Appraisal Tool running on http://${host}:${PORT}`)); // DevSkim: ignore DS137138
 }
 startServer().catch((error) => { console.error('Server startup failed:', error); process.exit(1); });

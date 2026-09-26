@@ -119,7 +119,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
         setReopenReason('');
         showToast('Vurderingen er gjenÃ¥pnet for redigering. Endringen er loggfÃ¸rt i audit trail.', 'success');
       } catch (err: unknown) {
-        showToast(err instanceof Error ? err.message : 'Ukjent feil' || 'Kunne ikke gjenÃ¥pne', 'error');
+        showToast(err instanceof Error ? err.message : 'Kunne ikke gjenåpne', 'error');
       }
     }
   };
@@ -143,8 +143,8 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     article.items.forEach(item => {
       const q = JBI_QUESTIONS.find(q => q.id === item.questionId);
       const locStr = item.location?.page ? `s. ${item.location.page}` : (item.sourceQuoteOrRef || '-');
-      const evidStr = (item.evidenceText || item.sourceQuoteOrRef || '-').replace(/\|/g, '\\|');
-      const justStr = item.justification.replace(/\|/g, '\\|');
+      const evidStr = (item.evidenceText || item.sourceQuoteOrRef || '-').replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+      const justStr = item.justification.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
       md += `| ${item.questionId} | **${q?.shortTitle || item.questionId}** | **${item.status}** | ${justStr} | ${evidStr} | ${locStr} |\n`;
     });
     
