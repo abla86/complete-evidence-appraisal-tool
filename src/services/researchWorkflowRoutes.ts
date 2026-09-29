@@ -14,6 +14,8 @@ import { createAndAttachAppraisal } from './appraisalWorkflowBridge';
 import type { DocumentClassificationResult } from '../types';
 import { reviewerIdForRequest } from './authApi';
 
+function param(req: Request, name: string): string { const value = req.params[name]; return Array.isArray(value) ? value[0] ?? '' : value; }
+
 function sendError(res: Response, status: number, error: unknown) {
   return res.status(status).json({ success: false, error: error instanceof Error ? error.message : String(error) });
 }
@@ -75,7 +77,7 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
   app.get('/api/research-workflows/:studyId', (req: Request, res: Response) => {
     try {
       const reviewerId = reviewerIdForRequest(req);
-      const workflow = requireWorkflow(req.params.studyId, typeof req.query?.projectId === 'string' ? req.query.projectId : undefined);
+      const workflow = requireWorkflow(param(req, 'studyId'), typeof req.query?.projectId === 'string' ? req.query.projectId : undefined);
       assertWorkflowAccess(workflow, reviewerId);
       return res.json({ success: true, workflow, evidenceSummary: getResearchEvidenceSummary(workflow) });
     } catch (error) { return sendError(res, error instanceof Error && error.message === 'Research workflow access denied.' ? 403 : 401, error); }
@@ -86,7 +88,7 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
       const reviewerId = reviewerIdForRequest(req);
       const classification = req.body?.classification as DocumentClassificationResult | undefined;
       if (!classification) return sendError(res, 400, 'classification is required');
-      const workflow = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
+      const workflow = requireWorkflow(param(req, 'studyId'), typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
       assertWorkflowAccess(workflow, reviewerId);
       const updated = save(updateResearchClassification(workflow, classification));
       return res.json({ success: true, workflow: updated });
@@ -99,7 +101,7 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
   app.post('/api/research-workflows/:studyId/classification/verify', (req: Request, res: Response) => {
     try {
       const reviewerId = reviewerIdForRequest(req);
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(param(req, 'studyId'));
       assertWorkflowAccess(workflow, reviewerId);
       const updated = save(verifyResearchClassification(workflow, reviewerId, req.body?.approved === true));
       return res.json({ success: true, workflow: updated });
@@ -112,9 +114,9 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
   app.post('/api/research-workflows/:studyId/evidence/:evidenceId/verify', (req: Request, res: Response) => {
     try {
       const reviewerId = reviewerIdForRequest(req);
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(param(req, 'studyId'));
       assertWorkflowAccess(workflow, reviewerId);
-      const updated = save(verifyResearchEvidence(workflow, req.params.evidenceId, req.body?.approved === true, reviewerId));
+      const updated = save(verifyResearchEvidence(workflow, param(req, 'evidenceId'), req.body?.approved === true, reviewerId));
       return res.json({ success: true, workflow: updated, evidenceSummary: getResearchEvidenceSummary(updated) });
     } catch (error) {
       const status = error instanceof Error && error.message === 'Research workflow access denied.' ? 403 : 401;
@@ -127,7 +129,7 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
       const reviewerId = reviewerIdForRequest(req);
       const instrumentId = String(req.body?.instrumentId ?? '').trim();
       if (!instrumentId) return sendError(res, 400, 'instrumentId is required');
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(param(req, 'studyId'));
       assertWorkflowAccess(workflow, reviewerId);
       const updated = save(selectResearchInstrument(workflow, instrumentId));
       return res.json({ success: true, workflow: updated });
@@ -140,7 +142,7 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
   app.post('/api/research-workflows/:studyId/appraisal/ready', (req: Request, res: Response) => {
     try {
       const reviewerId = reviewerIdForRequest(req);
-      const workflow = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
+      const workflow = requireWorkflow(param(req, 'studyId'), typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
       assertWorkflowAccess(workflow, reviewerId);
       const payload = buildResearchAppraisalPayload(workflow);
       return res.json({ success: true, ready: true, instrumentId: payload.instrumentId, evidence: payload.evidence });
@@ -150,13 +152,13 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
   app.post('/api/research-workflows/:studyId/appraisal/start', async (req: Request, res: Response) => {
     try {
       const reviewerId = reviewerIdForRequest(req);
-      const workflow = requireWorkflow(req.params.studyId);
+      const workflow = requireWorkflow(param(req, 'studyId'));
       assertWorkflowAccess(workflow, reviewerId);
       const payload = buildResearchAppraisalPayload(workflow);
       const requestedInstrument = String(req.body?.instrumentId ?? '').trim();
       if (requestedInstrument && requestedInstrument !== payload.instrumentId) return sendError(res, 409, 'instrumentId does not match the selected research workflow instrument');
       const attached = await createAndAttachAppraisal(payload, reviewerId, session => {
-        const current = requireWorkflow(req.params.studyId, typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
+        const current = requireWorkflow(param(req, 'studyId'), typeof req.body?.projectId === 'string' ? req.body.projectId : undefined);
         assertWorkflowAccess(current, reviewerId);
         return save({ ...current, appraisalSessions: current.appraisalSessions.some(item => item.id === session.id) ? current.appraisalSessions.map(item => item.id === session.id ? session : item) : [...current.appraisalSessions, session] });
       });

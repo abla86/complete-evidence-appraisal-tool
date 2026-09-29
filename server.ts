@@ -194,7 +194,7 @@ async function startServer() {
 
   const viteDev = process.env.NODE_ENV !== 'production';
   if (viteDev) { const { createServer: createViteServer } = await import('vite'); const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
-  else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath)); app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
+  else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath)); app.get('/{*splat}', (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
   const host = process.env.HOST || '127.0.0.1';
   app.listen(PORT, host, () => console.log(`Evidence Appraisal Tool running on http://${host}:${PORT}`)); // DevSkim: ignore DS137138
 }

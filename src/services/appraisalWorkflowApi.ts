@@ -23,6 +23,9 @@ function sameResponse(a: AppraisalItemResponse, b: AppraisalItemResponse): boole
 
 function requireReviewer(req: Request): string { return reviewerIdForRequest(req); }
 
+function param(req: Request, name: string): string { const value = req.params[name]; return Array.isArray(value) ? value[0] ?? '' : value; }
+
+
 function assertSessionReviewer(session: AppraisalSession, reviewerId: string): void {
   if (session.reviewerId !== reviewerId.trim()) throw new Error('Reviewer stemmer ikke med appraisal-sesjonen.');
 }
@@ -30,12 +33,12 @@ function assertSessionReviewer(session: AppraisalSession, reviewerId: string): v
 export function registerAppraisalWorkflowApi(app: { get: Function; post: Function }): void {
   app.post('/api/research-workflow/:studyId/appraisal/session', async (req: Request, res: Response) => {
     try {
-      const workflow = getWorkflowOrNull(req.params.studyId);
+      const workflow = getWorkflowOrNull(param(req, 'studyId'));
       if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
       const reviewerId = requireReviewer(req);
       const payload = buildResearchAppraisalPayload(workflow);
       const attached = await createAndAttachAppraisal(payload, reviewerId, session => {
-        const current = getWorkflowOrNull(req.params.studyId);
+        const current = getWorkflowOrNull(param(req, 'studyId'));
         if (!current) throw new Error('Workflow not found');
         const appraisalSessions = current.appraisalSessions.some(item => item.id === session.id)
           ? current.appraisalSessions.map(item => item.id === session.id ? session : item)
@@ -52,7 +55,7 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
   app.get('/api/research-workflow/:studyId/appraisal/sessions', (req: Request, res: Response) => {
     try {
       const reviewerId = requireReviewer(req);
-      const studyId = req.params.studyId.trim();
+      const studyId = param(req, 'studyId').trim();
       const workflow = getWorkflowOrNull(studyId);
       if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
       const sessions = appraisalWorkflowStore.listByStudy(studyId).filter(record => record.session.reviewerId === reviewerId);
@@ -63,7 +66,7 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
   app.get('/api/appraisal/:sessionId', (req: Request, res: Response) => {
     try {
       const reviewerId = requireReviewer(req);
-      const response = sessionResponse(req.params.sessionId);
+      const response = sessionResponse(param(req, 'sessionId'));
       if (!response) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       assertSessionReviewer(response.session, reviewerId);
       return res.json({ success: true, ...response });
@@ -75,7 +78,7 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
       const reviewerId = requireReviewer(req);
       const instrumentId = String(req.body?.instrumentId ?? '').trim();
       if (!instrumentId) return res.status(400).json({ success: false, error: 'instrumentId is required' });
-      const record = await changeAppraisalInstrument(req.params.sessionId.trim(), instrumentId, reviewerId);
+      const record = await changeAppraisalInstrument(param(req, 'sessionId').trim(), instrumentId, reviewerId);
       const response = sessionResponse(record.session.id);
       return res.json({ success: true, ...(response ?? { record, session: record.session }) });
     } catch (error) {
@@ -86,7 +89,7 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
 
   app.post('/api/appraisal/:sessionId/sync', async (req: Request, res: Response) => {
     try {
-      const sessionId = req.params.sessionId.trim();
+      const sessionId = param(req, 'sessionId').trim();
       const record = appraisalWorkflowStore.get(sessionId);
       if (!record) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       const reviewerId = requireReviewer(req);
@@ -118,26 +121,26 @@ export function registerAppraisalWorkflowApi(app: { get: Function; post: Functio
       const reviewerId = requireReviewer(req);
       const response = req.body?.response as AppraisalItemResponse | undefined;
       if (!response || response.itemId === undefined) return res.status(400).json({ success: false, error: 'response.itemId is required' });
-      await recordAppraisalResponse(req.params.sessionId.trim(), response, reviewerId);
-      const updated = sessionResponse(req.params.sessionId.trim());
+      await recordAppraisalResponse(param(req, 'sessionId').trim(), response, reviewerId);
+      const updated = sessionResponse(param(req, 'sessionId').trim());
       if (!updated) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       return res.json({ success: true, ...updated });
     } catch (error) { return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not record appraisal response' }); }
   });
 
   app.get('/api/appraisal/:sessionId/validation', (req: Request, res: Response) => {
-    try { const reviewerId = requireReviewer(req); const record = appraisalWorkflowStore.get(req.params.sessionId.trim()); if (!record) return res.status(404).json({ success: false, error: 'Appraisal session not found' }); assertSessionReviewer(record.session, reviewerId); return res.json({ success: true, validation: validateAppraisal(req.params.sessionId.trim()) }); }
+    try { const reviewerId = requireReviewer(req); const record = appraisalWorkflowStore.get(param(req, 'sessionId').trim()); if (!record) return res.status(404).json({ success: false, error: 'Appraisal session not found' }); assertSessionReviewer(record.session, reviewerId); return res.json({ success: true, validation: validateAppraisal(param(req, 'sessionId').trim()) }); }
     catch (error) { return res.status(401).json({ success: false, error: error instanceof Error ? error.message : 'Authentication required' }); }
   });
 
   app.post('/api/appraisal/:sessionId/finalize', async (req: Request, res: Response) => {
     try {
       const reviewerId = requireReviewer(req);
-      const record = appraisalWorkflowStore.get(req.params.sessionId.trim());
+      const record = appraisalWorkflowStore.get(param(req, 'sessionId').trim());
       if (!record) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       assertSessionReviewer(record.session, reviewerId);
-      await finalizeAppraisal(req.params.sessionId.trim());
-      const finalized = sessionResponse(req.params.sessionId.trim());
+      await finalizeAppraisal(param(req, 'sessionId').trim());
+      const finalized = sessionResponse(param(req, 'sessionId').trim());
       if (!finalized) return res.status(404).json({ success: false, error: 'Appraisal session not found' });
       return res.json({ success: true, finalized: true, ...finalized });
     } catch (error) { return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Could not finalize appraisal' }); }
