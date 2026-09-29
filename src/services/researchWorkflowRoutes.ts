@@ -14,6 +14,8 @@ import { createAndAttachAppraisal } from './appraisalWorkflowBridge';
 import type { DocumentClassificationResult } from '../types';
 import { reviewerIdForRequest } from './authApi';
 
+function param(req: Request, name: string): string { const value = req.params[name]; return Array.isArray(value) ? value[0] ?? '' : value; }
+
 function sendError(res: Response, status: number, error: unknown) {
   return res.status(status).json({ success: false, error: error instanceof Error ? error.message : String(error) });
 }
