@@ -11,6 +11,7 @@ import {
 } from '../types';
 import { DocumentAnalysisService } from '../services/documentAnalysisService';
 import { DocumentParserService, FileParseResult } from '../services/documentParserService';
+import { createPdfEvidenceAnnotation, upsertPdfEvidenceAnnotation } from '../services/evidenceLinkService';
 import { DocumentClassifierService } from './../services/documentClassifierService';
 import { StudyDesignGateService, SUPPORTED_STUDY_DESIGNS } from '../services/studyDesignGateService';
 import { JBI_QUESTIONS } from '../data/jbiData';
@@ -49,6 +50,7 @@ interface DocumentAnalysisModalProps {
   onClose: () => void;
   onApplyEvidenceToItem?: (questionId: number, evidenceText: string, location: { page?: string; section?: string }) => void;
   onStartAssessmentWithArticle?: (article: Partial<ArticleAppraisal>) => void;
+  sourceRecordId?: string;
 }
 
 export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
@@ -70,6 +72,8 @@ export const DocumentAnalysisModal: React.FC<DocumentAnalysisModalProps> = ({
   const [classification, setClassification] = useState<DocumentClassificationResult | null>(null);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isCustomizingClassification, setIsCustomizingClassification] = useState(false);
+  const [selectedPdfPage, setSelectedPdfPage] = useState<number>(1);
+  const [pdfEvidenceQuote, setPdfEvidenceQuote] = useState('');
 
   // Manual classification edits
   const [manualDocType, setManualDocType] = useState<StandardDocumentType | undefined>(undefined);
@@ -220,6 +224,7 @@ function isStandardDocumentType(value: string): value is StandardDocumentType {
           extractedText: pastedText,
           wordCount: words.length,
           estimatedPages: Math.max(1, Math.ceil(words.length / 500)),
+          pages: [],
           metadata: parsedMetadata,
           sections,
           candidateEvidence: analysis.candidateEvidence,
@@ -903,6 +908,66 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                 )}
               </div>
             </div>
+          )}
+
+          {parseResult?.fileType === 'pdf' && parseResult.pages.length > 0 && (
+            <section className="space-y-3 pt-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 font-serif">PDF-evidens: sidebevis</h3>
+                  <p className="text-xs text-slate-500">Sidegrensen fra PDF-parseren beholdes. Velg en side og marker et konkret tekstutdrag før det overføres til appraisal.</p>
+                </div>
+                <select
+                  value={selectedPdfPage}
+                  onChange={e => setSelectedPdfPage(Number(e.target.value))}
+                  className="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white"
+                >
+                  {parseResult.pages.map(page => <option key={page.pageNumber} value={page.pageNumber}>Side {page.pageNumber}</option>)}
+                </select>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {parseResult.pages.find(page => page.pageNumber === selectedPdfPage)?.text || 'Ingen tekst på valgt side.'}
+                </p>
+              </div>
+              <textarea
+                value={pdfEvidenceQuote}
+                onChange={e => setPdfEvidenceQuote(e.target.value)}
+                rows={3}
+                placeholder="Lim inn eller skriv nøyaktig kildeutdrag som skal brukes som evidens."
+                className="w-full text-xs p-3 bg-white border border-slate-300 rounded-xl"
+              />
+              <div className="flex flex-wrap gap-2 justify-end">
+                {onApplyEvidenceToItem && (
+                  <span className="text-[11px] text-slate-500 self-center mr-auto">
+                    Utdraget kan kobles til appraisal etter at forskeren har valgt riktig kriterium.
+                  </span>
+                )}
+                {sourceRecordId ? (
+                  <button
+                    type="button"
+                    disabled={!pdfEvidenceQuote.trim()}
+                    onClick={() => {
+                      const annotation = createPdfEvidenceAnnotation({
+                        sourceRecordId,
+                        page: selectedPdfPage,
+                        quote: pdfEvidenceQuote,
+                        coordinates: [{ x: 0, y: 0, width: 1, height: 1 }],
+                        createdBy: 'current-researcher',
+                        researcherVerified: false,
+                      });
+                      upsertPdfEvidenceAnnotation(annotation);
+                      showToast('PDF-evidensannotasjonen er lagret med kilde og sidetall.', 'success');
+                    }}
+                    className="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 text-white disabled:opacity-40"
+                  >
+                    Lagre PDF-annotasjon
+                  </button>
+                ) : (
+                  <span className="text-[11px] text-amber-700 self-center">PDF-annotasjon aktiveres når dokumentet har en ekte SourceRecord-ID.</span>
+                )}
+              </div>
+            </section>
           )}
 
           {/* Candidate Evidence Extraction (if qualitative) */}
