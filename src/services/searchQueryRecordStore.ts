@@ -12,6 +12,13 @@ export function loadSearchQueryRecords(): SearchQueryRecord[] {
   }
 }
 
+export function updateSearchQuerySelection(recordId: string, selectedCount: number): SearchQueryRecord[] {
+  const current = loadSearchQueryRecords();
+  const next = current.map(record => record.id === recordId ? { ...record, selectedCount: Math.max(0, selectedCount) } : record);
+  if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  return next;
+}
+
 export function saveSearchQueryRecord(record: SearchQueryRecord): SearchQueryRecord[] {
   const current = loadSearchQueryRecords();
   const next = [record, ...current.filter(item => item.id !== record.id)].slice(0, 200);
