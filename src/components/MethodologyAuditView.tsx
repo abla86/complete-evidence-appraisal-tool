@@ -193,7 +193,7 @@ export const MethodologyAuditView: React.FC = () => {
           <span className={`text-[9px] px-1 py-0.2 rounded font-sans font-bold ${
             isCurrent ? 'bg-emerald-200/70 text-emerald-950' : 'bg-slate-200 text-slate-700'
           }`}>
-            {isCurrent ? 'AKTIV LÃ…S' : 'LÃ…ST'}
+            {isCurrent ? 'AKTIV LÅS' : 'LÅST'}
           </span>
         </span>
         {instrument.latestUpdateYear && instrument.latestUpdateYear !== instrument.year && (
@@ -711,7 +711,7 @@ export const MethodologyAuditView: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-teal-400/20 text-teal-200 text-[11px] font-mono font-bold">
-                  AKADEMISK METODISK INTEGRITET & ETTERPRÃ˜VBARHET
+                  AKADEMISK METODISK INTEGRITET & ETTERPRØVBARHET
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold font-serif text-white">
                   9 Uavhengige Metodiske Funksjoner â€“ Forbud mot Universell Skårflating
@@ -846,14 +846,14 @@ export const MethodologyAuditView: React.FC = () => {
                       <p className="text-emerald-400">=== AMSTAR 2 DOMENEBASERT KONFIDENS-EVALUERING ===</p>
                       <p>Kritiske svakheter (Critical Flaws): 0 / 7 kritiske domener (Items 2, 4, 7, 9, 11, 13, 15)</p>
                       <p>Ikke-kritiske svakheter: 1 (Item 10: kilder til finansiering)</p>
-                      <p className="text-teal-300 font-bold">Overordnet tillit til oversikten: HÃ˜Y (High Confidence)</p>
+                      <p className="text-teal-300 font-bold">Overordnet tillit til oversikten: HØY (High Confidence)</p>
                       <p className="text-amber-400 text-[10px]">ADVARSEL: Ingen numerisk sumskår tillates beregnet eller rapportert.</p>
                     </div>
                   )}
 
                   {currentInst.id === 'agree-ii' && (
                     <div className="space-y-1.5 text-slate-300">
-                      <p className="text-emerald-400">=== AGREE II 6 STANDARDISERTE DOMENESKÃ…RER ===</p>
+                      <p className="text-emerald-400">=== AGREE II 6 STANDARDISERTE DOMENESKÅRER ===</p>
                       <p>Domene 1 (Omfang & Formål): 89% | Domene 2 (Interessenter): 83%</p>
                       <p>Domene 3 (Metodisk nøyaktighet): 92% | Domene 4 (Klarhet): 95%</p>
                       <p>Domene 5 (Anvendelighet): 78% | Domene 6 (Redaksjonell uavhengighet): 100%</p>
@@ -897,9 +897,9 @@ export const MethodologyAuditView: React.FC = () => {
                   {currentInst.id === 'casp-qualitative' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== CASP KVALITATIV PEDAGOGISK EVALUERING ===</p>
-                      <p>Seksjon A (Screening-spørsmål 1 & 2): BESTÃ…TT (Klart formål og hensiktsmessig design)</p>
+                      <p>Seksjon A (Screening-spørsmål 1 & 2): BESTÅTT (Klart formål og hensiktsmessig design)</p>
                       <p>Seksjon B (Metodisk stringens & refleksivitet): VURDERT MED NARRATIV BEGRUNNELSE</p>
-                      <p>Seksjon C (Lokal overførbarhet og nytteverdi): HÃ˜Y RELEVANS</p>
+                      <p>Seksjon C (Lokal overførbarhet og nytteverdi): HØY RELEVANS</p>
                       <p className="text-teal-300 font-bold">CASP Konklusjon: Kvalitativ studie med høy pedagogisk stringens</p>
                     </div>
                   )}
@@ -909,7 +909,7 @@ export const MethodologyAuditView: React.FC = () => {
                       <p className="text-emerald-400">=== GRADE-CERQual TILLIT TIL KVALITATIVT SYNTESEFUNN ===</p>
                       <p>Syntesefunn: Â«Fastleger opplever tidspress og manglende felles arenaer som hovedbarriereÂ»</p>
                       <p>Komponenter: Metodiske begrensninger (Mindre), Koherens (Ingen), Tilstrekkelighet (Ingen), Relevans (Ingen)</p>
-                      <p className="text-teal-300 font-bold">Samlet CERQual-tillit: HÃ˜Y TILLIT (High Confidence)</p>
+                      <p className="text-teal-300 font-bold">Samlet CERQual-tillit: HØY TILLIT (High Confidence)</p>
                     </div>
                   )}
 
@@ -1071,7 +1071,7 @@ export const MethodologyAuditView: React.FC = () => {
                           <span>Kildeopprinnelse & Nivå</span>
                         </span>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-200 text-teal-950">
-                          {selectedInstrument.authorityLevel === 'original-source' ? 'NIVÃ… 1 (PRIMÃ†R)' : 'NIVÃ… 2 (MANUAL)'}
+                          {selectedInstrument.authorityLevel === 'original-source' ? 'NIVÅ 1 (PRIMÆR)' : 'NIVÅ 2 (MANUAL)'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-800 font-serif italic">
@@ -1335,7 +1335,7 @@ export const MethodologyAuditView: React.FC = () => {
                   {contractTestsResult.allPassed ? (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>{contractTestsResult.passedTests} / {contractTestsResult.totalTests} TESTER BESTÃ…TT</span>
+                      <span>{contractTestsResult.passedTests} / {contractTestsResult.totalTests} TESTER BESTÅTT</span>
                     </>
                   ) : (
                     <>
