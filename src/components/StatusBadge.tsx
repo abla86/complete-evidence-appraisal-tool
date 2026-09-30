@@ -4,7 +4,7 @@ import { CheckCircle2, HelpCircle, XCircle, AlertCircle, MinusCircle } from 'luc
 
 interface StatusBadgeProps {
   status?: AssessmentStatus | string;
-  verdict?: 'Inkluder' | 'Ekskluder' | 'SÃ¸k mer informasjon' | 'Vurder videre' | string;
+  verdict?: 'Inkluder' | 'Ekskluder' | 'Søk mer informasjon' | 'Vurder videre' | string;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
@@ -36,7 +36,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       );
     case 'Ja, med forbehold':
     case 'Vurder videre':
-    case 'SÃ¸k mer informasjon':
+    case 'Søk mer informasjon':
       return (
         <span
           className={`inline-flex items-center gap-1.5 font-medium rounded-md bg-teal-50 text-teal-800 border border-teal-200 ${
