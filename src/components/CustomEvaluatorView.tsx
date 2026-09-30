@@ -64,7 +64,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
   const shortCitation = authors ? `${authors.split(',')[0].trim()} et al.${year ? ` (${year})` : ''}` : 'Ny artikkel';
 
   // Auto generated thesis paragraph
-  const generatedParagraph = `${shortCitation} oppnådde ${jaCount} Ã‚Â«JaÃ‚Â»${uklartCount > 0 ? `, ${uklartCount} Ã‚Â«UklartÃ‚Â»` : ''}${neiCount > 0 ? ` og ${neiCount} Ã‚Â«NeiÃ‚Â»` : ''}. Studien benyttet ${design.toLowerCase()} og samlet data via ${dataCollection.toLowerCase()}. Analysen ble gjennomført ved hjelp av ${analyticMethod.toLowerCase()}. Samlet vurderes studien til å holde ${jaCount >= 8 ? 'god metodisk kvalitet' : 'akseptabel metodisk kvalitet'}, og ${overallVerdict === 'Inkluder' ? 'inkluderes i kunnskapsgrunnlaget' : 'vurderes videre før eventuell inklusjon'}.`;
+  const generatedParagraph = `${shortCitation} oppnådde ${jaCount} «Ja»${uklartCount > 0 ? `, ${uklartCount} «Uklart»` : ''}${neiCount > 0 ? ` og ${neiCount} «Nei»` : ''}. Studien benyttet ${design.toLowerCase()} og samlet data via ${dataCollection.toLowerCase()}. Analysen ble gjennomført ved hjelp av ${analyticMethod.toLowerCase()}. Samlet vurderes studien til å holde ${jaCount >= 8 ? 'god metodisk kvalitet' : 'akseptabel metodisk kvalitet'}, og ${overallVerdict === 'Inkluder' ? 'inkluderes i kunnskapsgrunnlaget' : 'vurderes videre før eventuell inklusjon'}.`;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +105,7 @@ export const CustomEvaluatorView: React.FC<CustomEvaluatorViewProps> = ({ onSave
     };
 
     onSaveNewArticle(newArticle);
-    showToast(`Artikkelen Ã‚Â«${shortCitation}Ã‚Â» ble lagret i listen!`, 'success');
+    showToast(`Artikkelen «${shortCitation}» ble lagret i listen!`, 'success');
   };
 
   const copyParagraph = () => {
