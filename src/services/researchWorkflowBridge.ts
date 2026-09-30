@@ -2,6 +2,7 @@
 import type { PICO, ScreeningDecision, ReviewComparison, ReviewInstance, ResolvedAppraisal, DualReviewConfig, PRISMAFlow } from '../types/researchWorkflow';
 import { AuditTrailService } from './auditTrailService.ts';
 import type { Actor } from './sourceIntakeService';
+import type { SourceRecord } from '../domain/sourceRecord';
 
 export interface AppraisalWorkflowLookup {
   listByStudy(studyId: string): Array<{ instrumentId: string; session: AppraisalSession }>;
@@ -14,6 +15,28 @@ export interface AppraisalInstrumentResolver {
 export interface ScreeningToAppraisalResult { studyId:string; decision:ScreeningDecision; appraisalSession:AppraisalSession; instrumentId:string; auditEntryId?:string; }
 export function inferInstrumentId(studyDesign:string):string { const d=studyDesign.trim().toLowerCase(); if(/(systematisk oversikt|systematic review|meta-analyse|meta analysis)/i.test(d))return'amstar-2'; if(/(retningslinje|guideline|clinical practice guideline)/i.test(d))return'agree-ii'; if(/(rct|randomisert|randomized)/i.test(d))return'casp-rct'; if(/(ikke-randomisert intervensjon|non-randomized intervention|quasi-experimental)/i.test(d))return'robins-i'; if(/(kvalitativ|qualitative)/i.test(d))return'casp-qualitative'; throw new Error(`Studiedesignet Â«${studyDesign||'ukjent'}Â» kan ikke kobles sikkert til et appraisal-instrument. Manuell metodisk avklaring kreves.`); }
 export function createScreeningDecision(input:Omit<ScreeningDecision,'timestamp'>):ScreeningDecision{return{...input,timestamp:new Date().toISOString()};}
+export function createScreeningDecisionFromSourceRecord(args:{record:SourceRecord;studyId?:string;reviewerId?:string}):ScreeningDecision {
+  const studyId=(args.studyId?.trim()||args.record.recordId.trim());
+  if(!studyId) throw new Error('studyId is required.');
+  const reviewerId=(args.reviewerId?.trim()||args.record.intake.reviewerId?.trim()||'');
+  if(!reviewerId) throw new Error('Reviewer ID is required for SourceRecord screening.');
+  const decision=args.record.intake.screeningDecision;
+  const reason=args.record.intake.screeningReason?.trim();
+  const fullTextDecision=args.record.intake.fullTextDecision;
+  if(decision==='include' && fullTextDecision!=='include') throw new Error('SourceRecord cannot enter appraisal screening as included before explicit full-text inclusion.');
+  if(decision==='exclude' && !reason) throw new Error('Excluded SourceRecord screening requires a documented reason.');
+  const eligibilityDecision=fullTextDecision==='include'?'include':fullTextDecision==='exclude'?'exclude':undefined;
+  const eligibilityReason=args.record.intake.fullTextExclusionReason?.trim();
+  return createScreeningDecision({
+    studyId,
+    decision:decision==='include'?'include':decision==='exclude'?'exclude':'uncertain',
+    reason,
+    eligibilityDecision,
+    eligibilityReason,
+    picoMatches:{},
+    reviewerId,
+  });
+}
 export function assertEligibleForAppraisal(args:{studyId:string;screening:{studyId:string;decision:string};reviewerId:string}):void{if(args.screening.studyId!==args.studyId)throw new Error('Screening og studie-ID samsvarer ikke.');if(args.screening.decision!=='include'&&args.screening.decision!=='INCLUDED')throw new Error('Kun inkluderte studier kan sendes til appraisal.');if(!args.reviewerId.trim())throw new Error('Reviewer ID er pÃ¥krevd.');}
 export async function triggerAppraisalForIncludedStudy(args:{studyId:string;studyDesign:string;screening:ScreeningDecision;reviewerId:string;appraisalStore:AppraisalWorkflowLookup;instrumentResolver:AppraisalInstrumentResolver;audit?:AuditTrailService;actor?:Actor;}):Promise<ScreeningToAppraisalResult>{assertEligibleForAppraisal({studyId:args.studyId,screening:args.screening,reviewerId:args.reviewerId});const instrumentId=inferInstrumentId(args.studyDesign);const instrument=args.instrumentResolver.getInstrumentOrNull(instrumentId);if(!instrument)throw new Error(`Ingen appraisal-instrument funnet for design: ${args.studyDesign}`);const existing=args.appraisalStore.listByStudy(args.studyId).find(item=>item.instrumentId===instrumentId&&item.session.reviewerId===args.reviewerId&&!item.session.locked);if(existing)return{studyId:args.studyId,decision:args.screening,appraisalSession:existing.session,instrumentId};throw new Error('Studien mÃ¥ sendes gjennom canonical research-to-appraisal workflow fÃ¸r appraisal-session kan opprettes.');}
 export function compareReviewInstances(first:ReviewInstance,second:ReviewInstance,threshold=0.3):ReviewComparison{if(first.studyId!==second.studyId||first.instrumentId!==second.instrumentId)throw new Error('Reviewerinstansene mÃ¥ gjelde samme studie og instrument.');if(first.reviewerId===second.reviewerId)throw new Error('Dual review krever to forskjellige reviewere.');if(!Number.isFinite(threshold)||threshold<0||threshold>1)throw new Error('Disagreement threshold mÃ¥ vÃ¦re mellom 0 og 1.');if(first.status!=='completed'||second.status!=='completed')throw new Error('Begge reviewerinstanser mÃ¥ vÃ¦re completed fÃ¸r sammenligning.');const itemIds=[...new Set([...Object.keys(first.responses),...Object.keys(second.responses)])];const items=itemIds.map(itemId=>({itemId,reviewer1Score:first.responses[itemId]??null,reviewer2Score:second.responses[itemId]??null,disagreement:first.responses[itemId]!==second.responses[itemId]}));const disagreements=items.filter(i=>i.disagreement).length;const overallDisagreement=itemIds.length?disagreements/itemIds.length:0;return{overallDisagreement,items,requiresArbitration:overallDisagreement>=threshold};}
