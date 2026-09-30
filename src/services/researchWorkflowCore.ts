@@ -17,6 +17,8 @@ export {
   handoffWorkflow,
 } from './researchWorkflowService';
 
+export { createScreeningDecisionFromSourceRecord, applySourceRecordScreeningToWorkflow } from './researchWorkflowBridge';
+
 export type {
   ScreeningDecision,
   ScreeningRecord,
