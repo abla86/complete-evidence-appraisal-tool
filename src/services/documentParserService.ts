@@ -6,7 +6,7 @@ import mammoth from 'mammoth';
 
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
 
-export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*â€ â€¡Â§0-9Â¹Â²Â³â´âµâ¶â·â¸â¹]+/g, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
+export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*†‡§0-9¹²³â´âµâ¶â·â¸â¹]+/g, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
 
 export interface ParserInput { name: string; size: number; type?: string; content?: ArrayBuffer | string; text?: () => Promise<string>; arrayBuffer?: () => Promise<ArrayBuffer>; }
 
@@ -59,7 +59,7 @@ export class DocumentParserService {
 
     if (file.size > this.MAX_FILE_SIZE_BYTES) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-      return { valid: false, error: `Filen er for stor (${sizeMB} MB). Maksimal tillatt filstÃ¸rrelse er 25 MB.` };
+      return { valid: false, error: `Filen er for stor (${sizeMB} MB). Maksimal tillatt filstørrelse er 25 MB.` };
     }
 
     const lowerName = file.name.toLowerCase();
@@ -67,7 +67,7 @@ export class DocumentParserService {
     if (!isAllowed) {
       return { 
         valid: false, 
-        error: `Filformatet stÃ¸ttes ikke. Vennligst last opp PDF (.pdf), Word (.docx) eller ren tekst (.txt / .md).` 
+        error: `Filformatet støttes ikke. Vennligst last opp PDF (.pdf), Word (.docx) eller ren tekst (.txt / .md).` 
       };
     }
 
@@ -111,7 +111,7 @@ export class DocumentParserService {
     }
 
     if (!extractedText.trim() && isScannedOrImageOnly) {
-      extractedText = `[SKANNET DOKUMENT IDENTIFISERT - ${file.name}]\n\nDokumentet fremstÃ¥r som en skannet bilde-PDF eller inneholder ikke et tilgjengelig tekstlag.\nSystemet har registrert filen for videre manuell gjennomgang eller OCR-behandling.\nForfattere og tittel bÃ¸r kontrolleres manuelt.`;
+      extractedText = `[SKANNET DOKUMENT IDENTIFISERT - ${file.name}]\n\nDokumentet fremstår som en skannet bilde-PDF eller inneholder ikke et tilgjengelig tekstlag.\nSystemet har registrert filen for videre manuell gjennomgang eller OCR-behandling.\nForfattere og tittel bør kontrolleres manuelt.`;
     }
 
     const words = extractedText.trim().split(/\s+/).filter(Boolean);
@@ -294,7 +294,7 @@ export class DocumentParserService {
       title = fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
     }
 
-    // 3. Authors â€” preserve Unicode names and remove BMC footnote markers.
+    // 3. Authors — preserve Unicode names and remove BMC footnote markers.
     let authors = '';
     const authorsExplicit = text.match(/authors?\s*[:\-]\s*([^\n]+)/i);
     // codeql[js/user-controlled-bypass] This branch only selects a document-author parsing heuristic; it is not an authorization or permission check.
@@ -309,7 +309,7 @@ export class DocumentParserService {
       );
       const authorLine = candidateLines.find(line =>
         (/,/.test(line) || /\band\b/i.test(line)) &&
-        /[A-ZÃ†Ã˜Ã…][\p{L}'â€™-]+/u.test(line) &&
+        /[A-ZÆØÅ][\p{L}'’-]+/u.test(line) &&
         !/:/.test(line)
       );
       authors = authorLine ? parseAuthorList(authorLine).join('; ') : 'Forfattere ikke entydig identifisert';
@@ -347,13 +347,13 @@ export class DocumentParserService {
 
     // 6. Abstract
     let abstract = '';
-    const abstractMatch = text.match(/abstract\s*[:\-]?\s*([\s\S]{80,1200}?)(?=\n\s*(?:introduction|background|methods|bakgrunn|formÃ¥l)|\n\n\n)/i);
+    const abstractMatch = text.match(/abstract\s*[:\-]?\s*([\s\S]{80,1200}?)(?=\n\s*(?:introduction|background|methods|bakgrunn|formål)|\n\n\n)/i);
     if (abstractMatch) {
       abstract = abstractMatch[1].trim().replace(/\s{2,}/g, ' ');
     }
 
     // 7. Study Design & Instrument Recommendation
-    let studyDesignDetected = 'Ukjent / kan ikke fastslÃ¥s sikkert';
+    let studyDesignDetected = 'Ukjent / kan ikke fastslås sikkert';
     let recommendedInstrumentId = 'UNKNOWN';
 
     if (textLower.includes('systematic review') || textLower.includes('meta-analysis') || textLower.includes('systematisk oversikt')) {
@@ -375,7 +375,7 @@ export class DocumentParserService {
       studyDesignDetected = 'Tverrsnittsstudie';
       recommendedInstrumentId = 'jbi-cross-sectional';
     } else if (textLower.includes('diagnostic') || textLower.includes('sensitivitet') || textLower.includes('spesifisitet')) {
-      studyDesignDetected = 'Diagnostisk nÃ¸yaktighetsstudie';
+      studyDesignDetected = 'Diagnostisk nøyaktighetsstudie';
       recommendedInstrumentId = 'jbi-diagnostic-accuracy';
     } else if (textLower.includes('mixed methods') || textLower.includes('flermetode')) {
       studyDesignDetected = 'Mixed Methods (Kombinert design)';
@@ -413,7 +413,7 @@ export class DocumentParserService {
       .filter(section => section.content.trim())
       .map(section => ({ title: labels[section.key], content: section.content, characterCount: section.content.length }));
     return sections.length ? sections : [{
-      title: 'Hovedtekst â€“ manuell gjennomgang',
+      title: 'Hovedtekst – manuell gjennomgang',
       content: text.trim(),
       characterCount: text.length
     }];
@@ -422,10 +422,10 @@ export class DocumentParserService {
   private static extractImradContent(text: string, key: 'introduction'|'methods'|'results'|'discussion'): string {
     const lines = text.replace(/\r\n/g, '\n').split('\n');
     const headings: Record<string, RegExp[]> = {
-      introduction: [/^\s*(?:1[.)\s-]*)?(?:introduction|background|bakgrunn|innledning)\s*$/i, /^\s*(?:aim|objectives|purpose|formÃ¥l|hensikt)\s*$/i],
+      introduction: [/^\s*(?:1[.)\s-]*)?(?:introduction|background|bakgrunn|innledning)\s*$/i, /^\s*(?:aim|objectives|purpose|formål|hensikt)\s*$/i],
       methods: [/^\s*(?:2[.)\s-]*)?(?:methods?|methodology|materials and methods|metode|metodologi|materiale og metode)\s*$/i, /^\s*(?:study design|research design|studiedesign)\s*$/i],
       results: [/^\s*(?:3[.)\s-]*)?(?:results?|findings?|resultater|funn)\s*$/i],
-      discussion: [/^\s*(?:4[.)\s-]*)?(?:discussion|interpretation|drÃ¸fting|diskusjon)\s*$/i, /^\s*(?:strengths and limitations|limitations|styrker og begrensninger|begrensninger)\s*$/i]
+      discussion: [/^\s*(?:4[.)\s-]*)?(?:discussion|interpretation|drøfting|diskusjon)\s*$/i, /^\s*(?:strengths and limitations|limitations|styrker og begrensninger|begrensninger)\s*$/i]
     };
     let active: string|null=null; const out:string[]=[];
     for(const line of lines){
