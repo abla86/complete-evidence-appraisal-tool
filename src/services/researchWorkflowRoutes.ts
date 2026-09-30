@@ -13,6 +13,8 @@ import { researchWorkflowStore } from './researchWorkflowStore';
 import { createAndAttachAppraisal } from './appraisalWorkflowBridge';
 import type { DocumentClassificationResult } from '../types';
 import { reviewerIdForRequest } from './authApi';
+import { applySourceRecordScreeningToWorkflow } from './researchWorkflowBridge';
+import type { SourceRecord } from '../domain/sourceRecord';
 
 function param(req: Request, name: string): string { const value = req.params[name]; return Array.isArray(value) ? value[0] ?? '' : value; }
 
@@ -120,6 +122,22 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
       return res.json({ success: true, workflow: updated, evidenceSummary: getResearchEvidenceSummary(updated) });
     } catch (error) {
       const status = error instanceof Error && error.message === 'Research workflow access denied.' ? 403 : 401;
+      return sendError(res, status, error);
+    }
+  });
+
+  app.post('/api/research-workflows/:studyId/screening/source-record', (req: Request, res: Response) => {
+    try {
+      const reviewerId = reviewerIdForRequest(req);
+      const workflow = requireWorkflow(param(req, 'studyId'));
+      assertWorkflowAccess(workflow, reviewerId);
+      const record = req.body?.record as SourceRecord | undefined;
+      if (!record || typeof record !== 'object') return sendError(res, 400, 'SourceRecord is required');
+      if (typeof record.recordId !== 'string' || record.recordId.trim() === '') return sendError(res, 400, 'SourceRecord recordId is required');
+      const updated = save(applySourceRecordScreeningToWorkflow(workflow, record, reviewerId));
+      return res.json({ success: true, workflow: updated, studyId: updated.studyId, screening: updated.screening.filter(item => item.studyId === updated.studyId && item.reviewerId === reviewerId) });
+    } catch (error) {
+      const status = error instanceof Error && error.message === 'Research workflow access denied.' ? 403 : 400;
       return sendError(res, status, error);
     }
   });
