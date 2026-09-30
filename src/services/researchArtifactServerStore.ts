@@ -16,11 +16,11 @@ function validSearchRecord(value: unknown): value is SearchQueryRecord {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const item = value as Partial<SearchQueryRecord>;
   return typeof item.id === 'string' && item.id.trim() !== ''
-    && typeof item.query === 'string'
+    && typeof item.searchString === 'string'
     && typeof item.database === 'string'
     && typeof item.dateSearched === 'string'
-    && typeof item.resultsCount === 'number'
-    && Array.isArray(item.results);
+    && typeof item.totalResults === 'number'
+    && Array.isArray(item.records);
 }
 
 function normalizeSearch(records: unknown[]): SearchQueryRecord[] {
