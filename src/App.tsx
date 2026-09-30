@@ -84,10 +84,45 @@ export default function App() {
   const [isAutosaveModalOpen, setIsAutosaveModalOpen] = useState(false);
   const [importExportInitialTab, setImportExportInitialTab] = useState<'import' | 'export'>('export');
   const [referenceRecords, setReferenceRecords] = useState<ReferenceRecord[]>(() => loadReferenceLibrary([]));
+  const [referenceServerSyncReady, setReferenceServerSyncReady] = useState(false);
   const [appraisalSessions, setAppraisalSessions] = useState<AppraisalSession[]>(() => loadAppraisalSessions());
   const [pipelineState, setPipelineState] = useState<EvidencePipelineState>(() => new EvidencePipelineService().create('workspace'));
   useEffect(() => { AutosaveService.saveArticles(articles); }, [articles]);
-  useEffect(() => { saveReferenceLibrary(referenceRecords); }, [referenceRecords]);
+  useEffect(() => {
+    let cancelled = false;
+    const loadServerReferences = async () => {
+      try {
+        const response = await fetch('/api/reference-hub', { credentials: 'include' });
+        if (!response.ok) return;
+        const payload = await response.json() as { success?: boolean; records?: ReferenceRecord[] };
+        if (!payload.success || !Array.isArray(payload.records) || cancelled) return;
+        setReferenceRecords(current => {
+          const merged = new Map<string, ReferenceRecord>();
+          for (const record of payload.records ?? []) merged.set(record.id, record);
+          for (const record of current) merged.set(record.id, record);
+          return [...merged.values()];
+        });
+        setReferenceServerSyncReady(true);
+      } catch {
+        // Local-first fallback remains authoritative when authentication/server persistence is unavailable.
+      }
+    };
+    void loadServerReferences();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    saveReferenceLibrary(referenceRecords);
+    if (!referenceServerSyncReady) return;
+    void fetch('/api/reference-hub', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: referenceRecords }),
+    }).catch(() => {
+      // Keep local persistence available if the server becomes temporarily unavailable.
+    });
+  }, [referenceRecords, referenceServerSyncReady]);
   const handleOpenImportExport = (tab: 'import' | 'export' = 'export') => { setImportExportInitialTab(tab); setIsImportExportOpen(true); };
   const handleImportArticles = (importedArticles: ArticleAppraisal[], mode: 'append' | 'replace') => {
     if (mode === 'replace') { const seenIds = new Set<string>(); const sanitized = importedArticles.map(art => { let uniqueId = art.id; if (!uniqueId || seenIds.has(uniqueId)) uniqueId = generateArticleId('art'); seenIds.add(uniqueId); return { ...art, id: uniqueId }; }); setArticles(sanitized); if (sanitized.length) { setSelectedArticleId(sanitized[0].id); setSelectedInstrumentId(sanitized[0].instrumentId || ''); } }
