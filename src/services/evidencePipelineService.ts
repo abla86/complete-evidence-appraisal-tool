@@ -92,7 +92,7 @@ export class EvidencePipelineService {
       throw new Error('Ugyldig pipeline-steg.');
     }
     if (nextIndex !== currentIndex + 1) {
-      throw new Error(`Pipeline kan bare gÃ¥ til neste steg. Gjeldende: ${state.currentStage}, valgt: ${stage}.`);
+      throw new Error(`Pipeline kan bare gå til neste steg. Gjeldende: ${state.currentStage}, valgt: ${stage}.`);
     }
 
     const currentCheckpoint = [...state.checkpoints]
@@ -100,7 +100,7 @@ export class EvidencePipelineService {
       .find(checkpoint => checkpoint.stage === state.currentStage);
 
     if (!currentCheckpoint || currentCheckpoint.status !== 'completed') {
-      throw new Error(`Steget ${state.currentStage} mÃ¥ fullfÃ¸res fÃ¸r pipeline kan gÃ¥ videre.`);
+      throw new Error(`Steget ${state.currentStage} må fullføres før pipeline kan gå videre.`);
     }
 
     const permission = REQUIRED_PERMISSIONS[stage];
@@ -143,7 +143,7 @@ export class EvidencePipelineService {
   ): Promise<EvidencePipelineState> {
     const current = [...state.checkpoints].reverse().find(checkpoint => checkpoint.stage === state.currentStage);
     if (!current || current.status !== 'in_progress') {
-      throw new Error(`Pipeline-steget ${state.currentStage} er ikke aktivt og kan derfor ikke fullfÃ¸res.`);
+      throw new Error(`Pipeline-steget ${state.currentStage} er ikke aktivt og kan derfor ikke fullføres.`);
     }
 
     const now = new Date().toISOString();
