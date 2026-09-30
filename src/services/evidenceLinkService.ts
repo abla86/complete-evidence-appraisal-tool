@@ -20,6 +20,7 @@ export interface PdfEvidenceAnnotation {
   updatedAt: string;
   researcherVerified: boolean;
   evidenceId?: string;
+  claimId?: string;
 }
 
 export interface PdfHighlightLink {
@@ -135,6 +136,25 @@ export function createEvidenceFromPdfAnnotation(
     evidenceType: 'QUOTE',
     extractedBy,
   });
+}
+
+export function linkPdfAnnotationToClaim(
+  annotation: PdfEvidenceAnnotation,
+  evidence: EvidenceExtraction,
+  claim: AcademicClaim,
+  context: EvidenceLinkContext,
+  audit: AuditTrailService,
+): PdfEvidenceAnnotation {
+  const linked = linkPdfAnnotationToEvidence(annotation, evidence);
+  const updatedClaim = attachEvidenceToClaim(claim, evidence.id, context, audit);
+  if (!updatedClaim.supportingEvidenceIds.includes(evidence.id)) {
+    throw new Error('Evidence was not attached to the AcademicClaim.');
+  }
+  return {
+    ...linked,
+    claimId: claim.id,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 export function linkPdfAnnotationToEvidence(
