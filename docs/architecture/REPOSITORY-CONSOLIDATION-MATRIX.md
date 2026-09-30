@@ -126,3 +126,21 @@ A Git-tree comparison was performed against the canonical `main` tree.
 - Exact blob-identical paths were not treated as migration candidates.
 - The canonical application already contains its own duplicate-review, inter-rater, IMRaD, PRISMA, evidence-traceability and module-contract implementations. Those should remain authoritative rather than creating parallel copies.
 - Legacy code containing unverifiable hard-coded bibliographic/DOI claims is **not** to be migrated merely because it exists in a source repository.
+
+
+## Duplicate repositories retired — 2026-09-30
+
+The following duplicate application repositories have been reduced to redirect-only stubs. Their Git history remains available, but they are no longer active codebases:
+
+- `abla86/new-complete-evidence-appraisal` → canonical `abla86/complete-evidence-appraisal-tool`
+- `abla86/new-evicence-appraisal-tool` → canonical `abla86/complete-evidence-appraisal-tool`
+
+Verification performed before retirement:
+
+- `new-complete-evidence-appraisal`: 114 tracked files.
+- `new-evicence-appraisal-tool`: 114 tracked files.
+- The two duplicate repositories shared 112 identical file blobs and differed in only 2 files.
+- The canonical repository already contained 111/111 matching files from `new-complete-evidence-appraisal` under `archive/complete-evidence-appraisal-tool/`.
+- No application code was discarded from the canonical repository.
+
+**Active development rule:** Complete Evidence application code is developed only in `abla86/complete-evidence-appraisal-tool`.
