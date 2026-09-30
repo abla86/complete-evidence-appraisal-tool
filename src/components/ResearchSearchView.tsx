@@ -127,6 +127,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
         lawText: null,
         toolVersion: 'research-search',
         externalRequestsMade: true,
+        collectedLocally: false,
       });
       upsertSourceRecord(sourceRecord);
       sourceRecordId = sourceRecord.recordId;
