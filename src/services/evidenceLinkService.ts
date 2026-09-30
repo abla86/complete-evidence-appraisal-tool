@@ -121,6 +121,39 @@ export function createEvidenceExtraction(input: {
   };
 }
 
+export function createEvidenceFromPdfAnnotation(
+  annotation: PdfEvidenceAnnotation,
+  extractedBy: string,
+): EvidenceExtraction {
+  if (!annotation.sourceRecordId.trim()) throw new Error('sourceRecordId is required.');
+  if (!extractedBy.trim()) throw new Error('extractedBy is required.');
+
+  return createEvidenceExtraction({
+    sourceRecordId: annotation.sourceRecordId,
+    excerpt: annotation.quote,
+    location: { page: String(annotation.page) },
+    evidenceType: 'QUOTE',
+    extractedBy,
+  });
+}
+
+export function linkPdfAnnotationToEvidence(
+  annotation: PdfEvidenceAnnotation,
+  evidence: EvidenceExtraction,
+): PdfEvidenceAnnotation {
+  if (annotation.sourceRecordId !== evidence.sourceRecordId) {
+    throw new Error('PDF annotation and evidence must reference the same SourceRecord.');
+  }
+  if (annotation.quote.trim() !== evidence.excerpt.trim()) {
+    throw new Error('PDF annotation quote and evidence excerpt must match.');
+  }
+  return {
+    ...annotation,
+    evidenceId: evidence.id,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export function linkHighlightToEvidence(
   link: Omit<PdfHighlightLink, 'id' | 'createdAt'>,
   evidence: EvidenceExtraction[],
