@@ -106,11 +106,16 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
     setLookupResult(null);
   }, [article.id, article.doi]);
 
-  const handleCopyText = (text: string, key: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    showToast(`${label} kopiert til utklippstavlen!`, 'success');
-    setTimeout(() => setCopiedKey(null), 2000);
+  const handleCopyText = async (text: string, key: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      showToast(`${label} kopiert til utklippstavlen!`, 'success');
+    } catch {
+      showToast(`${label} kunne ikke kopieres. Kopier teksten manuelt.`, 'warning');
+    } finally {
+      setTimeout(() => setCopiedKey(null), 2000);
+    }
   };
 
   const handleCopyRichText = async (html: string, plainText: string, key: string, label: string) => {
@@ -155,7 +160,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
         showToast(res.errorMessage || 'Fant ikke DOI i internasjonale registre.', 'warning');
       }
     } catch (err: unknown) {
-      showToast(`DOI-oppslag feilet: ${err instanceof Error ? err instanceof Error ? err.message : 'Ukjent feil' : 'Nettverksfeil'}`, 'error');
+      showToast(`DOI-oppslag feilet: ${err instanceof Error ? err.message : 'Nettverksfeil'}`, 'error');
     } finally {
       setIsLookingUp(false);
     }
@@ -786,7 +791,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                     </span>
                     <div 
                       className="pl-6 -indent-6 font-serif text-slate-900 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: (lookupResult.formatted.styles[selectedStyle] || lookupResult.formatted.styles.apa7).htmlFormatted }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeCitationHtml((lookupResult.formatted.styles[selectedStyle] || lookupResult.formatted.styles.apa7).htmlFormatted) }}
                     />
                   </div>
 
