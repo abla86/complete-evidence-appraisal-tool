@@ -32,5 +32,6 @@ test('search-imported SourceRecord records external retrieval provenance', () =>
   });
 
   assert.equal(record.provenance.externalRequestsMade, true);
+  assert.equal(record.provenance.collectedLocally, false);
   assert.equal(record.provenance.tool, 'source-record-gateway');
 });
