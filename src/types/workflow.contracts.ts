@@ -18,6 +18,8 @@ export interface AppraisalItemResponse {
   answer: AppraisalAnswer;
   rationale: string;
   evidence?: AppraisalEvidenceLink;
+  /** Canonical AcademicClaim ids supported by this appraisal response. */
+  claimIds?: string[];
 }
 
 export interface AppraisalSession {
