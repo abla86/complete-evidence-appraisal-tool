@@ -31,6 +31,7 @@ export interface ResearchEngineDocument {
   extractedText: string;
   wordCount: number;
   estimatedPages: number;
+  pages: FileParseResult['pages'];
   metadata: FileParseResult['metadata'];
   sections: FileParseResult['sections'];
   scanned: boolean;
@@ -63,6 +64,7 @@ export class ResearchEngineGateway {
       extractedText: parsed.extractedText,
       wordCount: parsed.wordCount,
       estimatedPages: parsed.estimatedPages,
+      pages: parsed.pages,
       metadata: parsed.metadata,
       sections: parsed.sections,
       scanned: parsed.isScannedOrImageOnly,
