@@ -385,12 +385,12 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 <span>
                   {selectedStyle === 'apa7' && 'APA 7: Kursiv tidsskrift & volum, sentence-case tittel, aktiv https://doi.org-lenke.'}
                   {selectedStyle === 'vancouver' && 'Vancouver (ICMJE): Numerisk sekvens, NLM tidsskriftnavn, direkte sidetallsspenn.'}
-                  {selectedStyle === 'harvard' && 'Harvard: Forfatter-Ã¥r med enkle anfÃ¸rselstegn for tittel og "Available at:".'}
-                  {selectedStyle === 'chicago-author-date' && 'Chicago Author-Date: Doble anfÃ¸rselstegn for tittel, Title Case og Ã¥rstall etter forfatter.'}
+                  {selectedStyle === 'harvard' && 'Harvard: Forfatter-år med enkle anførselstegn for tittel og "Available at:".'}
+                  {selectedStyle === 'chicago-author-date' && 'Chicago Author-Date: Doble anførselstegn for tittel, Title Case og årstall etter forfatter.'}
                   {selectedStyle === 'chicago-notes' && 'Chicago Notes & Bib: Fullstendig fotnoteoppsett for humaniora og etikk.'}
                   {selectedStyle === 'mla9' && 'MLA 9th: Med vol., no., pp. deskriptorer og Works Cited standard.'}
-                  {selectedStyle === 'ieee' && 'IEEE: Hakeparentes [1] med forfatterinitialer fÃ¸rst for teknologiske/medisinske artikler.'}
-                  {(selectedStyle === 'bibtex' || selectedStyle === 'ris') && 'Maskinlesbart dataformat klart for referansehÃ¥ndterer.'}
+                  {selectedStyle === 'ieee' && 'IEEE: Hakeparentes [1] med forfatterinitialer først for teknologiske/medisinske artikler.'}
+                  {(selectedStyle === 'bibtex' || selectedStyle === 'ris') && 'Maskinlesbart dataformat klart for referansehåndterer.'}
                 </span>
               </div>
 
@@ -400,7 +400,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                   type="button"
                   onClick={() => handleCopyRichText(currentStyleOutput.htmlFormatted, currentStyleOutput.plainText, 'word-rich', 'Formatert referanse')}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-950 bg-teal-100 hover:bg-teal-200 border border-teal-300 rounded-lg transition-colors shadow-2xs cursor-pointer"
-                  title="Kopierer rik tekst slik at kursiv pÃ¥ tidsskrift og volum bevares nÃ¥r du limer inn i Microsoft Word eller Google Docs"
+                  title="Kopierer rik tekst slik at kursiv på tidsskrift og volum bevares når du limer inn i Microsoft Word eller Google Docs"
                 >
                   {copiedKey === 'word-rich' ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Sparkles className="w-3.5 h-3.5 text-teal-700" />}
                   <span>Kopier til Word (med kursiv)</span>
@@ -432,7 +432,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                 <ExternalLink className="w-3.5 h-3.5 text-teal-700" />
-                Ã…pne artikkelen direkte i vitenskapelige registre:
+                Åpne artikkelen direkte i vitenskapelige registre:
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -511,7 +511,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 {currentStyleOutput.inTextParenthetical}
               </div>
               <p className="text-[11px] text-slate-500">
-                Brukes pÃ¥ slutten av en setning: Â«...som dokumentert i nyere litteratur {currentStyleOutput.inTextParenthetical}.Â»
+                Brukes på slutten av en setning: Â«...som dokumentert i nyere litteratur {currentStyleOutput.inTextParenthetical}.Â»
               </p>
             </div>
 
@@ -519,7 +519,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                  Narrativ sitering (I lÃ¸pende tekst)
+                  Narrativ sitering (I løpende tekst)
                 </span>
                 <button
                   type="button"
@@ -534,7 +534,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 {currentStyleOutput.inTextNarrative}
               </div>
               <p className="text-[11px] text-slate-500">
-                Brukes nÃ¥r forfatteren inngÃ¥r i setningen: Â«IfÃ¸lge {currentStyleOutput.inTextNarrative} viser funnene...Â»
+                Brukes når forfatteren inngår i setningen: Â«Ifølge {currentStyleOutput.inTextNarrative} viser funnene...Â»
               </p>
             </div>
           </div>
@@ -561,7 +561,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                   type="text"
                   value={quotePage}
                   onChange={(e) => setQuotePage(e.target.value)}
-                  placeholder="f.eks. 14 eller 14â€“16"
+                  placeholder="f.eks. 14 eller 14–16"
                   className="w-36 text-xs p-1.5 bg-white border border-amber-300 rounded-lg focus:ring-2 focus:ring-teal-700"
                 />
               </div>
@@ -624,7 +624,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                       batchSortOrder === 'author' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    Forfatter (Aâ€“Ã…)
+                    Forfatter (A–Å)
                   </button>
                   <button
                     type="button"
@@ -633,7 +633,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                       batchSortOrder === 'year' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    Ã…rstall
+                    Årstall
                   </button>
                   <button
                     type="button"
@@ -642,7 +642,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                       batchSortOrder === 'order' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    RekkefÃ¸lge
+                    Rekkefølge
                   </button>
                 </div>
               </div>
@@ -736,12 +736,12 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                   {isLookingUp ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>SlÃ¥r opp...</span>
+                      <span>Slår opp...</span>
                     </>
                   ) : (
                     <>
                       <Search className="w-3.5 h-3.5" />
-                      <span>SlÃ¥ opp DOI & Generer Referanser</span>
+                      <span>Slå opp DOI & Generer Referanser</span>
                     </>
                   )}
                 </button>
@@ -772,7 +772,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-teal-800 font-semibold underline"
                   >
-                    <span>Ã…pne pÃ¥ DOI.org</span>
+                    <span>Åpne på DOI.org</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
