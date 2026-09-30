@@ -24,11 +24,11 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
     const text = selectedText.trim();
     const actorId = reviewerId.trim();
     if (!actorId) {
-      setMessage('Reviewer-ID mÃ¥ vÃ¦re eksplisitt angitt.');
+      setMessage('Reviewer-ID må være eksplisitt angitt.');
       return;
     }
     if (!text) {
-      setMessage('Marker eller lim inn tekst fra PDF fÃ¸r du oppretter evidens.');
+      setMessage('Marker eller lim inn tekst fra PDF før du oppretter evidens.');
       return;
     }
 
@@ -55,7 +55,7 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
     <section className="grid lg:grid-cols-[minmax(0,1fr)_22rem] gap-4 bg-white border border-slate-200 rounded-2xl p-4">
       <div className="min-h-[36rem] rounded-xl border border-slate-200 overflow-hidden bg-slate-100">
         <object data={`${url}#page=${page}`} type="application/pdf" className="w-full h-[36rem]">
-          <div className="p-6 text-sm">Nettleseren kan ikke vise PDF direkte. Bruk forhÃ¥ndsvisning eller Ã¥pne filen i PDF-leser.</div>
+          <div className="p-6 text-sm">Nettleseren kan ikke vise PDF direkte. Bruk forhåndsvisning eller åpne filen i PDF-leser.</div>
         </object>
       </div>
 
