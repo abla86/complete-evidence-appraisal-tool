@@ -58,7 +58,7 @@ export const ReferenceHubView: React.FC<ReferenceHubViewProps> = ({ records = []
       <div>
         <h2 className="text-xl font-bold text-slate-900 font-serif">Reference Hub</h2>
         <p className="text-sm text-slate-500 max-w-3xl">
-          Ã‰n felles referansemotor for hele Evidence-systemet. EndNote, Zotero, Mendeley og Paperpile håndteres som kompatibilitets- og import/eksportformater.
+          Én felles referansemotor for hele Evidence-systemet. EndNote, Zotero, Mendeley og Paperpile håndteres som kompatibilitets- og import/eksportformater.
         </p>
       </div>
 
