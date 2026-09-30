@@ -15,6 +15,7 @@ import type { DocumentClassificationResult } from '../types';
 import { reviewerIdForRequest } from './authApi';
 import { applySourceRecordScreeningToWorkflow } from './researchWorkflowBridge';
 import type { SourceRecord } from '../domain/sourceRecord';
+import { validateSourceRecord } from './validateSourceRecord';
 
 function param(req: Request, name: string): string { const value = req.params[name]; return Array.isArray(value) ? value[0] ?? '' : value; }
 
@@ -134,6 +135,8 @@ export function registerResearchWorkflowRoutes(app: { get: Function; post: Funct
       const record = req.body?.record as SourceRecord | undefined;
       if (!record || typeof record !== 'object') return sendError(res, 400, 'SourceRecord is required');
       if (typeof record.recordId !== 'string' || record.recordId.trim() === '') return sendError(res, 400, 'SourceRecord recordId is required');
+      const validation = validateSourceRecord(record);
+      if (!validation.ok) return sendError(res, 400, `Invalid SourceRecord: ${validation.errors.join(' ')}`);
       const updated = save(applySourceRecordScreeningToWorkflow(workflow, record, reviewerId));
       return res.json({ success: true, workflow: updated, studyId: updated.studyId, screening: updated.screening.filter(item => item.studyId === updated.studyId && item.reviewerId === reviewerId) });
     } catch (error) {
