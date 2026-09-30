@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import type { TextContent, TextItem } from 'pdfjs-dist/types/src/display/api';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 import type { PdfAnnotationCoordinates } from '../services/evidenceLinkService';
 
 GlobalWorkerOptions.workerSrc = new URL(
@@ -46,9 +46,8 @@ export const PdfEvidenceViewer: React.FC<Props> = ({ file, initialPage = 1, onSe
       setPages([]);
       try {
         const data = new Uint8Array(await file.arrayBuffer());
-        const loaded = await getDocument({ data, disableWorker: false }).promise;
+        const loaded = await getDocument({ data }).promise;
         if (cancelled) {
-          await loaded.destroy();
           return;
         }
         setPdf(loaded);
@@ -67,7 +66,7 @@ export const PdfEvidenceViewer: React.FC<Props> = ({ file, initialPage = 1, onSe
           });
         }
         if (!cancelled) setPages(next);
-        else await loaded.destroy();
+        else return;
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'PDF kunne ikke vises.');
       }
@@ -98,7 +97,6 @@ export const PdfEvidenceViewer: React.FC<Props> = ({ file, initialPage = 1, onSe
         await page.render({
           canvasContext: context,
           viewport,
-          transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined,
         }).promise;
       }
     };
