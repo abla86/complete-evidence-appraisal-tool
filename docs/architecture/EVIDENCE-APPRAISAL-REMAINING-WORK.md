@@ -51,7 +51,7 @@ The current `main` tree has executable foundations for canonical source identity
    - Preserve local-first privacy and SHA-256 fingerprint.
 
 5. **End-to-end screening → appraisal flow**
-   - **Implemented:** screening inclusion, human classification verification, human evidence verification and instrument compatibility are enforced before appraisal creation; regression-tested.
+   - **Implemented:** screening inclusion, human classification verification, human evidence verification and instrument compatibility are enforced before appraisal creation; SourceRecord screening decisions can now be adapted into and persisted on the canonical research workflow; regression-tested.
    - Included SourceRecord can become a study/article record without losing provenance.
    - Full-text eligibility decision, standard exclusion reason, rationale and evidence location.
    - Appraisal opens on the correct instrument/version.
