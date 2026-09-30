@@ -89,9 +89,8 @@ export const PdfEvidenceViewer: React.FC<Props> = ({ file, initialPage = 1, onSe
         if (!canvas) continue;
         const context = canvas.getContext('2d');
         if (!context) continue;
-        const outputScale = window.devicePixelRatio || 1;
-        canvas.width = Math.ceil(viewport.width * outputScale);
-        canvas.height = Math.ceil(viewport.height * outputScale);
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
         canvas.style.width = `${viewport.width}px`;
         canvas.style.height = `${viewport.height}px`;
         await page.render({
