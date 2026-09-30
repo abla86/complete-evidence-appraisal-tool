@@ -120,7 +120,14 @@ export default function App() {
       return next;
     });
   }, [articles]);
-  const handleReferenceChange = (records: ReferenceRecord[]) => { setReferenceRecords(records); setArticles(current => current.map(article => { const reference = records.find(r => r.id === article.id); if (!reference) return article; return { ...article, doi: reference.doi || article.doi, doiUrl: reference.doi ? `https://doi.org/${reference.doi}` : article.doiUrl, journal: reference.journal || article.journal, pages: reference.pages || article.pages, apaReference: article.apaReference }; })); };
+  const handleReferenceChange = (records: ReferenceRecord[]) => {
+    setReferenceRecords(records);
+    setArticles(current => current.map(article => {
+      const reference = records.find(r => (r.articleIds ?? []).includes(article.id));
+      if (!reference) return article;
+      return { ...article, doi: reference.doi || article.doi, doiUrl: reference.doi ? `https://doi.org/${reference.doi}` : article.doiUrl, journal: reference.journal || article.journal, pages: reference.pages || article.pages, apaReference: article.apaReference };
+    }));
+  };
   const saveAppraisalSession = (session: AppraisalSession) => { setAppraisalSessions(upsertAppraisalSession(session)); };
   const actor = { id: currentUserRole === 'lead_reviewer' ? 'lead-reviewer' : currentUserRole, role: currentUserRole } as const;
   const pipelineProjectId = pipelineState.projectId || 'workspace';
