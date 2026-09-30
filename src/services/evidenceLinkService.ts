@@ -14,7 +14,7 @@ export interface PdfEvidenceAnnotation {
   sourceRecordId: string;
   page: number;
   quote: string;
-  coordinates: PdfAnnotationCoordinates[];
+  coordinates?: PdfAnnotationCoordinates[];
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -40,8 +40,8 @@ export function createPdfEvidenceAnnotation(input: Omit<PdfEvidenceAnnotation, '
   if (!Number.isInteger(input.page) || input.page < 1) throw new Error('PDF page must be a positive integer.');
   if (!input.quote.trim()) throw new Error('PDF annotation quote is required.');
   if (!input.createdBy.trim()) throw new Error('createdBy is required.');
-  if (!input.coordinates.length) throw new Error('PDF annotation requires at least one coordinate rectangle.');
-  for (const rect of input.coordinates) {
+  if (input.coordinates && input.coordinates.length === 0) throw new Error('PDF annotation coordinates cannot be empty when supplied.');
+  for (const rect of input.coordinates ?? []) {
     if (![rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) || rect.width <= 0 || rect.height <= 0) {
       throw new Error('PDF annotation coordinates are invalid.');
     }
@@ -66,7 +66,7 @@ export function loadPdfEvidenceAnnotations(): PdfEvidenceAnnotation[] {
     return parsed.filter((item): item is PdfEvidenceAnnotation => {
       if (!item || typeof item !== 'object') return false;
       const value = item as Partial<PdfEvidenceAnnotation>;
-      return typeof value.id === 'string' && typeof value.sourceRecordId === 'string' && Number.isInteger(value.page) && value.page > 0 && typeof value.quote === 'string' && Array.isArray(value.coordinates) && typeof value.createdBy === 'string';
+      return typeof value.id === 'string' && typeof value.sourceRecordId === 'string' && Number.isInteger(value.page) && value.page > 0 && typeof value.quote === 'string' && (value.coordinates === undefined || Array.isArray(value.coordinates)) && typeof value.createdBy === 'string';
     });
   } catch {
     return [];
