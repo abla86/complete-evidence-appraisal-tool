@@ -122,7 +122,7 @@ export function decideAppraisalLaunch(studyDesign: string, instrumentId: string,
     return normalizedTarget === design || normalizedTarget.includes(design) || design.includes(normalizedTarget);
   });
   if (compatible) return { instrument, allowed: true, warnings: [], reason: 'Instrumentet er kompatibelt med registrert studiedesign.' };
-  if (allowAlternative) return { instrument, allowed: true, warnings: [`Instrumentet er ikke et direkte design-treff for Â«${studyDesign}Â». Bruk krever eksplisitt metodisk begrunnelse.`], reason: 'Instrumentet er valgt som eksplisitt alternativ.' };
+  if (allowAlternative) return { instrument, allowed: true, warnings: [`Instrumentet er ikke et direkte design-treff for «${studyDesign}». Bruk krever eksplisitt metodisk begrunnelse.`], reason: 'Instrumentet er valgt som eksplisitt alternativ.' };
   return { instrument, allowed: false, warnings: ['Studiedesign og valgt instrument er metodisk inkompatible.'], reason: 'Bytt instrument eller åpne en eksplisitt alternativ vurdering med dokumentert faglig begrunnelse.' };
 }
 
