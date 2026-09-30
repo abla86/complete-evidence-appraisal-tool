@@ -10,7 +10,8 @@ import { OpenResearchApiService, OpenResearchRecord, OPEN_DATABASES, SearchDatab
 import { EvidenceIntelligenceService } from '../services/evidenceIntelligenceService';
 import { saveSearchQueryRecord, updateSearchQuerySelection } from '../services/searchQueryRecordStore';
 import { buildSourceRecord } from '../services/buildSourceRecord';
-import { upsertSourceRecord } from '../services/sourceRecordLibraryStore';
+import { upsertSourceRecord, loadSourceRecordLibrary } from '../services/sourceRecordLibraryStore';
+import { loadResearchArtifactsFromServer, syncResearchArtifactsToServer } from '../services/researchArtifactSync';
 import { useToast } from './Toast';
 
 export interface SearchHistoryEntry { id: string; query: string; source: string; timestamp: string; resultsCount: number; }
@@ -68,6 +69,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
         fetched,
       );
       saveSearchQueryRecord(searchRecord);
+      void syncResearchArtifactsToServer();
       setLastSearchRecordId(searchRecord.id);
       const histItem: SearchHistoryEntry = { id: searchRecord.id, query: q, source: dbConfig.name, timestamp: searchRecord.dateSearched, resultsCount: fetched.length };
       setHistory(prev => [histItem, ...prev.filter(h => h.query !== q).slice(0, 19)]);
@@ -130,6 +132,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
         collectedLocally: false,
       });
       upsertSourceRecord(sourceRecord);
+      void syncResearchArtifactsToServer();
       sourceRecordId = sourceRecord.recordId;
     }
     onImportArticle({ title: rec.title, authors: rec.authors, journal: rec.journal, publicationYear: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, year: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, doi: rec.doi || '', doiUrl: rec.doi ? `https://doi.org/${Apa7CitationService.cleanDoi(rec.doi)}` : undefined, shortCitation: formattedApa.shortCitation, apaReference: formattedApa.plainText, abstract: rec.abstract || undefined, methodology: undefined, studyDesign: rec.studyTypeHint || undefined, epistemology: undefined, overallVerdict: 'Vurder videre', instrumentId: undefined }, sourceRecordId);
