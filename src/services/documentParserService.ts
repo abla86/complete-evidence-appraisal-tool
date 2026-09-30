@@ -205,7 +205,7 @@ export class DocumentParserService {
         const pageText = content.items
           .map((item: unknown) => { const record = item && typeof item === 'object' ? item as { str?: unknown } : {}; return typeof record.str === 'string' ? record.str : ''; })
           .join(' ')
-          .replace(/\\s{2,}/g, ' ')
+          .replace(/\s{2,}/g, ' ')
           .trim();
 
         if (pageText) {
@@ -213,7 +213,7 @@ export class DocumentParserService {
         }
       }
 
-      const text = pages.join('\\n\\n').trim();
+      const text = pages.join('\n\n').trim();
       const isScanned = text.length < 80;
       return {
         text,
@@ -249,7 +249,7 @@ export class DocumentParserService {
     // DOCX is a ZIP package. Reading the binary as Latin-1 and regexing XML
     // does not work for normal DOCX files because document.xml is compressed.
     const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-    return result.value.replace(/\\s{2,}/g, ' ').trim();
+    return result.value.replace(/\s{2,}/g, ' ').trim();
   }
 
   private static cleanPdfEscapes(str: string): string {
