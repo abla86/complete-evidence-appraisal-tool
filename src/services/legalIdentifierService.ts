@@ -4,7 +4,7 @@ export interface KnownLegalActRule {
   id: string;
   actName: string;
   officialShortCode: string;
-  jurisdiction: 'Norge' | 'EU/EÃ˜S' | 'Internasjonal';
+  jurisdiction: 'Norge' | 'EU/EØS' | 'Internasjonal';
   legalCategory: LegalActReference['legalCategory'];
   legalCategoryName: string;
   defaultNormativeLevel: LegalActReference['normativeLevel'];
@@ -26,15 +26,15 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
     matchKeywords: [
       'helse- og omsorgstjenesteloven',
       'helse og omsorgstjenesteloven',
-      'hol Â§',
+      'hol §',
       'lov om kommunale helse- og omsorgstjenester'
     ],
     sectionRegexes: [
-      /helse-?\s*og\s*omsorgstjenesteloven\s*(?:Â§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
-      /hol\s*Â§+\s*([0-9]+-[0-9]+[a-z]?)/i
+      /helse-?\s*og\s*omsorgstjenesteloven\s*(?:§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
+      /hol\s*§+\s*([0-9]+-[0-9]+[a-z]?)/i
     ],
-    description: 'Lov om kommunale helse- og omsorgstjenester. Lovfester kommunens plikt til Ã¥ tilby nÃ¸dvendige helse- og omsorgstjenester, individuell plan, pÃ¥rÃ¸rendestÃ¸tte og samarbeidsavtaler.',
-    relevanceForAppraisal: 'I faglige retningslinjer markerer henvisninger til denne loven bindende lovfestede plikter for kommuner og bydeler, i motsetning til faglige rÃ¥d/anbefalinger.'
+    description: 'Lov om kommunale helse- og omsorgstjenester. Lovfester kommunens plikt til å tilby nødvendige helse- og omsorgstjenester, individuell plan, pårørendestøtte og samarbeidsavtaler.',
+    relevanceForAppraisal: 'I faglige retningslinjer markerer henvisninger til denne loven bindende lovfestede plikter for kommuner og bydeler, i motsetning til faglige råd/anbefalinger.'
   },
   {
     id: 'spesialisthelsetjenesteloven',
@@ -48,11 +48,11 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'spesialisthelsetjenesteloven',
       'spesialisthelsetjenestelov',
       'lov om spesialisthelsetjenesten',
-      'sphl Â§'
+      'sphl §'
     ],
     sectionRegexes: [
-      /spesialisthelsetjenesteloven\s*(?:Â§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
-      /sphl\s*Â§+\s*([0-9]+-[0-9]+[a-z]?)/i
+      /spesialisthelsetjenesteloven\s*(?:§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
+      /sphl\s*§+\s*([0-9]+-[0-9]+[a-z]?)/i
     ],
     description: 'Lov om spesialisthelsetjenesten m.m. Lovfester regionale helseforetaks og sykehusenes plikter innen diagnostikk, behandling, pasientkoordinering og veiledningsplikt overfor kommunene.',
     relevanceForAppraisal: 'Definerer formelle juridiske krav til spesialisthelsetjenestens organisering og pasientrettede plikter.'
@@ -69,14 +69,14 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'helsepersonelloven',
       'helsepersonellov',
       'lov om helsepersonell',
-      'hpl Â§'
+      'hpl §'
     ],
     sectionRegexes: [
-      /helsepersonelloven\s*(?:Â§+|paragraf)?\s*([0-9]+[a-z]?)/i,
-      /hpl\s*Â§+\s*([0-9]+[a-z]?)/i
+      /helsepersonelloven\s*(?:§+|paragraf)?\s*([0-9]+[a-z]?)/i,
+      /hpl\s*§+\s*([0-9]+[a-z]?)/i
     ],
-    description: 'Lov om helsepersonell m.v. Lovfester krav til faglig forsvarlighet (Â§ 4), taushetsplikt (Â§ 21), opplysningsrett (Â§ 22ff) og opplysningsplikt til barnevern (Â§ 33) og nÃ¸detater (Â§ 31).',
-    relevanceForAppraisal: 'I kliniske studier og retningslinjer er etterlevelse av taushetsplikt og opplysningsplikt avgjÃ¸rende for etisk og juridisk gyldighet.'
+    description: 'Lov om helsepersonell m.v. Lovfester krav til faglig forsvarlighet (§ 4), taushetsplikt (§ 21), opplysningsrett (§ 22ff) og opplysningsplikt til barnevern (§ 33) og nødetater (§ 31).',
+    relevanceForAppraisal: 'I kliniske studier og retningslinjer er etterlevelse av taushetsplikt og opplysningsplikt avgjørende for etisk og juridisk gyldighet.'
   },
   {
     id: 'pasient-og-brukerrettighetsloven',
@@ -90,14 +90,14 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'pasient- og brukerrettighetsloven',
       'pasientrettighetsloven',
       'pasient- og brukerrettighetslov',
-      'pbrl Â§',
+      'pbrl §',
       'lov om pasient- og brukerrettigheter'
     ],
     sectionRegexes: [
-      /pasient-?\s*(?:og\s*bruker)?rettighetsloven\s*(?:Â§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
-      /pbrl\s*Â§+\s*([0-9]+-[0-9]+[a-z]?)/i
+      /pasient-?\s*(?:og\s*bruker)?rettighetsloven\s*(?:§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
+      /pbrl\s*§+\s*([0-9]+-[0-9]+[a-z]?)/i
     ],
-    description: 'Lov om pasient- og brukerrettigheter. Gir rett til nÃ¸dvendig helsehjelp, medvirkning, informasjon, journalinnsyn, samtykke til helsehjelp (kap. 4) og individuell plan (Â§ 2-5).',
+    description: 'Lov om pasient- og brukerrettigheter. Gir rett til nødvendig helsehjelp, medvirkning, informasjon, journalinnsyn, samtykke til helsehjelp (kap. 4) og individuell plan (§ 2-5).',
     relevanceForAppraisal: 'Vurderer om pasientens lovfestede rettigheter til medvirkning og informert samtykke er ivaretatt i intervensjoner og retningslinjer.'
   },
   {
@@ -106,20 +106,20 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
     officialShortCode: 'BVL',
     jurisdiction: 'Norge',
     legalCategory: 'STATUTORY_DUTY',
-    legalCategoryName: 'Barnevern & LovpÃ¥lagt meldeplikt',
+    legalCategoryName: 'Barnevern & Lovpålagt meldeplikt',
     defaultNormativeLevel: 'MANDATORY_STATUTORY_DUTY',
     matchKeywords: [
       'barnevernsloven',
       'barnevernloven',
       'barnevernlov',
       'lov om barnevern',
-      'bvl Â§'
+      'bvl §'
     ],
     sectionRegexes: [
-      /barnevern(?:s)?loven\s*(?:Â§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
-      /bvl\s*Â§+\s*([0-9]+-[0-9]+[a-z]?)/i
+      /barnevern(?:s)?loven\s*(?:§+|paragraf)?\s*([0-9]+-[0-9]+[a-z]?)/i,
+      /bvl\s*§+\s*([0-9]+-[0-9]+[a-z]?)/i
     ],
-    description: 'Lov om barnevern. Regulerer tiltak for sÃ¥rbare barn, meldeplikt fra helsepersonell og tverrsektorielt samarbeid mellom barnevern og helsetjenester.',
+    description: 'Lov om barnevern. Regulerer tiltak for sårbare barn, meldeplikt fra helsepersonell og tverrsektorielt samarbeid mellom barnevern og helsetjenester.',
     relevanceForAppraisal: 'Sentralt i studier om barnehelse og tverretatlig samarbeid (f.eks. ved vurdering av fastlegers meldeplikt og samarbeid med barnevernet).'
   },
   {
@@ -136,25 +136,25 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'lov om medisinsk og helsefaglig forskning',
       'rek-godkjenning',
       'regional etisk komite',
-      'regional komitÃ© for medisinsk og helsefaglig forskningsetikk',
+      'regional komité for medisinsk og helsefaglig forskningsetikk',
       'regional committees for medical and health research ethics',
-      'rek sÃ¸r-Ã¸st',
+      'rek sør-øst',
       'rek nord',
       'rek vest',
       'rek midt'
     ],
     sectionRegexes: [
-      /helseforskningsloven\s*(?:Â§+|paragraf)?\s*([0-9]+[a-z]?)/i,
-      /rek\s*(?:sÃ¸r-Ã¸st|nord|vest|midt)?\s*(?:ref|saksnummer|nr)?[:.]?\s*([0-9]+(?:\/[0-9]+)?)/i
+      /helseforskningsloven\s*(?:§+|paragraf)?\s*([0-9]+[a-z]?)/i,
+      /rek\s*(?:sør-øst|nord|vest|midt)?\s*(?:ref|saksnummer|nr)?[:.]?\s*([0-9]+(?:\/[0-9]+)?)/i
     ],
-    description: 'Lov om medisinsk og helsefaglig forskning. Krever forhÃ¥ndsgodkjenning fra REK for all forskning pÃ¥ mennesker, humant biologisk materiale eller helseopplysninger.',
-    relevanceForAppraisal: 'Kritisk kontrollpunkt i JBI Q9 og CASP etikkvurdering for norske helsefaglige primÃ¦rstudier.'
+    description: 'Lov om medisinsk og helsefaglig forskning. Krever forhåndsgodkjenning fra REK for all forskning på mennesker, humant biologisk materiale eller helseopplysninger.',
+    relevanceForAppraisal: 'Kritisk kontrollpunkt i JBI Q9 og CASP etikkvurdering for norske helsefaglige primærstudier.'
   },
   {
     id: 'personopplysningsloven-gdpr',
     actName: 'Personopplysningsloven & GDPR',
     officialShortCode: 'POL / GDPR',
-    jurisdiction: 'EU/EÃ˜S',
+    jurisdiction: 'EU/EØS',
     legalCategory: 'PRIVACY_DATA_PROTECTION',
     legalCategoryName: 'Personvern, Databehandling & Sikt/NSD',
     defaultNormativeLevel: 'LEGAL_ETHICAL_REQUIREMENT',
@@ -171,7 +171,7 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'dataprotection'
     ],
     sectionRegexes: [
-      /personopplysningsloven\s*(?:Â§+|paragraf)?\s*([0-9]+[a-z]?)/i,
+      /personopplysningsloven\s*(?:§+|paragraf)?\s*([0-9]+[a-z]?)/i,
       /gdpr\s*art(?:icle|\.?)?\s*([0-9]+[a-z]?)/i,
       /sikt\s*(?:ref|prosjekt|nr|referanse)?[:.]?\s*([0-9]+)/i,
       /nsd\s*(?:ref|prosjekt|nr|referanse)?[:.]?\s*([0-9]+)/i
@@ -196,9 +196,9 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'granskingsutvalget'
     ],
     sectionRegexes: [
-      /forskningsetikkloven\s*(?:Â§+|paragraf)?\s*([0-9]+[a-z]?)/i
+      /forskningsetikkloven\s*(?:§+|paragraf)?\s*([0-9]+[a-z]?)/i
     ],
-    description: 'Lov om organisering av forskningsetisk arbeid. PÃ¥legger forskningsinstitusjoner Ã¥ sikre god forskningsskikk og behandle uredelighetssaker.',
+    description: 'Lov om organisering av forskningsetisk arbeid. Pålegger forskningsinstitusjoner å sikre god forskningsskikk og behandle uredelighetssaker.',
     relevanceForAppraisal: 'Danner det overordnede nasjonale rammeverket for vitenskapelig redelighet og metodisk integritet.'
   },
   {
@@ -212,14 +212,14 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
     matchKeywords: [
       'forvaltningsloven',
       'forvaltningslov',
-      'fvl Â§',
-      'lov om behandlingsmÃ¥ten i forvaltningssaker'
+      'fvl §',
+      'lov om behandlingsmåten i forvaltningssaker'
     ],
     sectionRegexes: [
-      /forvaltningsloven\s*(?:Â§+|paragraf)?\s*([0-9]+[a-z]?)/i,
-      /fvl\s*Â§+\s*([0-9]+[a-z]?)/i
+      /forvaltningsloven\s*(?:§+|paragraf)?\s*([0-9]+[a-z]?)/i,
+      /fvl\s*§+\s*([0-9]+[a-z]?)/i
     ],
-    description: 'Lov om behandlingsmÃ¥ten i forvaltningssaker. Regulerer saksbehandling i offentlig forvaltning, herunder habilitet (Â§ 6), taushetsplikt (Â§ 13) og begrunnelsesplikt (Â§ 24).',
+    description: 'Lov om behandlingsmåten i forvaltningssaker. Regulerer saksbehandling i offentlig forvaltning, herunder habilitet (§ 6), taushetsplikt (§ 13) og begrunnelsesplikt (§ 24).',
     relevanceForAppraisal: 'Relevant for offentlige helsevedtak, retningslinjeprosesser og forvaltningsmessig transparens.'
   },
   {
@@ -237,7 +237,7 @@ export const KNOWN_LEGAL_ACTS_DATABASE: KnownLegalActRule[] = [
       'helsinki-deklarasjonen',
       'wma declaration'
     ],
-    description: 'World Medical Association etiske prinsipper for medisinsk forskning som involverer mennesker. Krever informert samtykke, protokollregistrering og uavhengig etisk komitÃ©vurdering.',
+    description: 'World Medical Association etiske prinsipper for medisinsk forskning som involverer mennesker. Krever informert samtykke, protokollregistrering og uavhengig etisk komitévurdering.',
     relevanceForAppraisal: 'Global standard referert i internasjonale RCT-er og kliniske studier for JBI Q9 og CONSORT.'
   }
 ];
@@ -278,7 +278,7 @@ export class LegalActsIdentifierService {
           const match = raw.match(regex);
           if (match) {
             matched = true;
-            matchedSection = match[1] ? `Â§ ${match[1]}` : undefined;
+            matchedSection = match[1] ? `§ ${match[1]}` : undefined;
             if (!matchedSnippet) {
               matchedSnippet = match[0];
             }
@@ -317,18 +317,18 @@ export class LegalActsIdentifierService {
     // Detect explicit statutory mandate keywords in guidelines
     const hasStatutoryDutyKeywords = 
       lower.includes('lovfestet plikt') || 
-      lower.includes('lovpÃ¥lagt') || 
+      lower.includes('lovpålagt') || 
       lower.includes('lovhjemmel:') ||
       lower.includes('lovhjemlet plikt');
 
     const statutoryCount = identifiedActs.filter(a => a.isStatutoryDuty).length;
 
     // Detect specific ethical and privacy clearances
-    const rekMatch = raw.match(/rek\s*(?:sÃ¸r-Ã¸st|nord|vest|midt)?\s*(?:ref|saksnummer|nr|godkjenning)?[:.]?\s*([0-9]+(?:\/[0-9]+)?)/i);
+    const rekMatch = raw.match(/rek\s*(?:sør-øst|nord|vest|midt)?\s*(?:ref|saksnummer|nr|godkjenning)?[:.]?\s*([0-9]+(?:\/[0-9]+)?)/i);
     const siktMatch = raw.match(/(?:sikt|nsd)\s*(?:ref|prosjekt|nr|referanse)?[:.]?\s*([0-9]+)/i);
 
     const ethicsAndPrivacyApprovals = {
-      hasRekApproval: lower.includes('rek') || lower.includes('regional komitÃ© for medisinsk') || lower.includes('regional etisk komite') || Boolean(rekMatch),
+      hasRekApproval: lower.includes('rek') || lower.includes('regional komité for medisinsk') || lower.includes('regional etisk komite') || Boolean(rekMatch),
       rekReference: rekMatch ? rekMatch[0].trim() : undefined,
       hasSiktNsdApproval: lower.includes('sikt') || lower.includes('nsd') || lower.includes('norsk senter for forskningsdata') || Boolean(siktMatch),
       siktReference: siktMatch ? siktMatch[0].trim() : undefined,
@@ -367,22 +367,22 @@ export class LegalActsIdentifierService {
   } {
     const lower = (text || '').toLowerCase();
 
-    if (lower.includes('lovfestet plikt') || lower.includes('lovpÃ¥lagt plikt') || lower.includes('hjemlet i lov') || lower.includes('skal iht.') || lower.includes('lovhjemmel:')) {
+    if (lower.includes('lovfestet plikt') || lower.includes('lovpålagt plikt') || lower.includes('hjemlet i lov') || lower.includes('skal iht.') || lower.includes('lovhjemmel:')) {
       return {
         level: 'LOVFESTET_PLIKT',
-        levelName: 'Lovfestet plikt (Â«skalÂ» / Â«mÃ¥Â»)',
+        levelName: 'Lovfestet plikt (Â«skalÂ» / Â«måÂ»)',
         badgeColor: 'bg-rose-100 text-rose-900 border-rose-300',
-        description: 'Juridisk bindende plikt forankret direkte i helselovgivningen (f.eks. helse- og omsorgstjenesteloven eller pasient- og brukerrettighetsloven). Ikke gjenstand for lokalt skjÃ¸nn.',
+        description: 'Juridisk bindende plikt forankret direkte i helselovgivningen (f.eks. helse- og omsorgstjenesteloven eller pasient- og brukerrettighetsloven). Ikke gjenstand for lokalt skjønn.',
         isLegallyBinding: true
       };
     }
 
-    if (lower.includes('sterk anbefaling') || lower.includes('bÃ¸r') || lower.includes('strong recommendation')) {
+    if (lower.includes('sterk anbefaling') || lower.includes('bør') || lower.includes('strong recommendation')) {
       return {
         level: 'STERK_ANBEFALING',
-        levelName: 'Sterk anbefaling (Â«bÃ¸rÂ»)',
+        levelName: 'Sterk anbefaling (Â«børÂ»)',
         badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
-        description: 'Normerende faglig anbefaling hvor fordelene klart vurderes Ã¥ oppveie ulempene basert pÃ¥ systematisk kunnskapsgrunnlag (GRADE).',
+        description: 'Normerende faglig anbefaling hvor fordelene klart vurderes å oppveie ulempene basert på systematisk kunnskapsgrunnlag (GRADE).',
         isLegallyBinding: false
       };
     }
@@ -392,16 +392,16 @@ export class LegalActsIdentifierService {
         level: 'SVAK_ANBEFALING',
         levelName: 'Svak/betinget anbefaling (Â«kanÂ»)',
         badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
-        description: 'Faglig anbefaling med balanse mellom fordeler og ulemper hvor pasientverdier og lokale ressurser mÃ¥ tillegges stor vekt.',
+        description: 'Faglig anbefaling med balanse mellom fordeler og ulemper hvor pasientverdier og lokale ressurser må tillegges stor vekt.',
         isLegallyBinding: false
       };
     }
 
     return {
       level: 'FAGLIG_RAD',
-      levelName: 'God praksis / Faglig rÃ¥d',
+      levelName: 'God praksis / Faglig råd',
       badgeColor: 'bg-slate-100 text-slate-900 border-slate-300',
-      description: 'Erfaringsbasert eller konsensusbasert rÃ¥d for god klinisk praksis der det mangler formelle GRADE-oppsummeringer.',
+      description: 'Erfaringsbasert eller konsensusbasert råd for god klinisk praksis der det mangler formelle GRADE-oppsummeringer.',
       isLegallyBinding: false
     };
   }
