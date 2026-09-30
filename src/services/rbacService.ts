@@ -111,14 +111,14 @@ export class RbacService {
         return {
           id: 'adjudicator',
           name: 'Tredjeperson / Mekler (Arbiter)',
-          description: 'Autorisert til Ã¥ avgjÃ¸re dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmÃ¸te.'
+          description: 'Autorisert til å avgjøre dissenser mellom Reviewer 1 og Reviewer 2 ved konsensusmøte.'
         };
       case 'reviewer':
       default:
         return {
           id: 'reviewer',
           name: 'Uavhengig gransker (Reviewer)',
-          description: 'GjennomfÃ¸rer blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
+          description: 'Gjennomfører blindet eller uavhengig kvalitetsvurdering og dokumenterer evidensgrunnlag.'
         };
     }
   }
