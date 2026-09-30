@@ -94,7 +94,7 @@ export const PdfEvidenceViewer: React.FC<Props> = ({ file, initialPage = 1, onSe
         canvas.style.width = `${viewport.width}px`;
         canvas.style.height = `${viewport.height}px`;
         await page.render({
-          canvasContext: context,
+          canvas,
           viewport,
         }).promise;
       }
