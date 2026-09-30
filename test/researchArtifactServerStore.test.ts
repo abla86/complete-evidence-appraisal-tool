@@ -34,12 +34,12 @@ try {
   const search = {
     id: 'search-1',
     database: 'TestDB',
-    query: 'test',
+    searchString: 'test',
     dateSearched: new Date().toISOString(),
     filters: {},
-    resultsCount: 1,
+    totalResults: 1,
     selectedCount: 1,
-    results: [],
+    records: [],
   };
 
   await saveResearchArtifacts('user-1', { searchRecords: [search], sourceRecords: [source] });
