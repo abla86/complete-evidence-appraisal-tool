@@ -42,8 +42,8 @@ export interface SourceRecord {
   provenance: {
     tool: string;
     toolVersion: string;
-    collectedLocally: true;
-    externalRequestsMade: false;
+    collectedLocally: boolean;
+    externalRequestsMade: boolean;
     collectedAt: string;
   };
   intake?: {
