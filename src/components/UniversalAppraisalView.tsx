@@ -3,6 +3,7 @@ import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { decideAppraisalLaunch, upsertAppraisalResponse, validateAppraisalSession, type AppraisalSession } from '../services/universalAppraisalService';
 import { Amstar2AssessmentEngine, Agree2AssessmentEngine, JbiQualitativeAssessmentEngine, Rob2AssessmentEngine, RobinsIAssessmentEngine } from '../services/assessmentEngines';
 import { QualityAssessmentPanel } from './QualityAssessmentPanel';
+import { getInstrumentQuestions } from '../services/runtimeInstrumentQuestions';
 import { getLatestAppraisalSession } from '../services/appraisalSessionStore';
 
 interface Props { studyId: string; studyDesign: string; initialInstrumentId?: string; reviewerId?: string; onSaved?: (session: AppraisalSession) => void; }
@@ -44,7 +45,7 @@ export const UniversalAppraisalView: React.FC<Props> = ({ studyId, studyDesign, 
   const finalize = async () => { if (!session || session.locked) return; if (!effectiveReviewerId) { setNotice('Reviewer-ID mÃ¥ oppgis.'); return; } if (!validation?.valid) { setNotice(validation?.issues.join(' ') || 'Vurderingen er ikke komplett.'); return; } try { const canonical = await saveCanonicalSession(session); const response = await fetch(`/api/appraisal/${encodeURIComponent(canonical.id)}/finalize`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewerId: effectiveReviewerId }) }); const payload = await response.json().catch(() => null) as { session?: AppraisalSession; error?: string } | null; if (!response.ok || !payload?.session) throw new Error(payload?.error || 'Kunne ikke ferdigstille appraisal.'); setSession(payload.session); onSaved?.(payload.session); setNotice('Vurderingen er validert og lÃ¥st i canonical appraisal workflow.'); } catch (error) { setNotice(error instanceof Error ? error.message : 'Vurderingen kunne ikke lagres.'); } };
 
   if (!instrument) return <div className="bg-white border border-rose-200 rounded-2xl p-6 text-rose-900">Valgt instrument finnes ikke.</div>;
-  const questions = instrument.questions ?? [];
+  const questions = getInstrumentQuestions(instrument);
   if (!effectiveReviewerId || !session) return <section className="bg-white border border-slate-200 rounded-2xl p-6 space-y-3"><h2 className="text-xl font-bold">{instrument.name}</h2><p className="text-sm text-slate-600">{notice || (starting ? 'Oppretter canonical appraisal-sessionâ€¦' : 'Appraisal-session er ikke tilgjengelig.')}</p></section>;
 
   return <section className="space-y-5 pb-16">
