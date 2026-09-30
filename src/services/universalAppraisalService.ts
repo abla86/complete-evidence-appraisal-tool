@@ -2,6 +2,7 @@
 import type { AppraisalAnswer, AppraisalEvidenceLink, AppraisalItemResponse, AppraisalSession, AppraisalSessionValidation, AppraisalLaunchDecision } from '../types/workflow.contracts';
 export type { AppraisalAnswer, AppraisalEvidenceLink, AppraisalItemResponse, AppraisalSession, AppraisalSessionValidation, AppraisalLaunchDecision } from '../types/workflow.contracts';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
+import { getInstrumentQuestions } from './runtimeInstrumentQuestions';
 
 const randomUUID = (): string => {
   const webCrypto = globalThis.crypto;
@@ -42,7 +43,7 @@ export function upsertAppraisalResponse(session: AppraisalSession, response: App
   if (!instrument) throw new Error(`Ukjent appraisal-instrument: ${session.instrumentId}`);
   const normalizedItemId = normalizeId(response.itemId);
   if (!normalizedItemId) throw new Error('Vurderingspunkt-ID er påkrevd.');
-  const question = (instrument.questions ?? []).find(q => normalizeId(q.id) === normalizedItemId);
+  const question = getInstrumentQuestions(instrument).find(q => normalizeId(q.id) === normalizedItemId);
   if (!question) throw new Error(`Vurderingspunkt ${normalizedItemId} finnes ikke i ${instrument.id} versjon ${instrument.version}.`);
   const answerPresent = response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '';
   if (answerPresent && !String(response.rationale ?? '').trim()) throw new Error(`Begrunnelse er påkrevd for vurderingspunkt ${normalizedItemId}.`);
@@ -75,7 +76,7 @@ export function validateAppraisalSession(session: AppraisalSession): AppraisalSe
   const missingRationales = session.responses.filter(response => response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '' && !String(response.rationale ?? '').trim()).map(response => normalizeId(response.itemId));
   const invalidAnswerValues: string[] = [];
   for (const response of session.responses) {
-    const question = (instrument.questions ?? []).find(q => normalizeId(q.id) === normalizeId(response.itemId));
+    const question = getInstrumentQuestions(instrument).find(q => normalizeId(q.id) === normalizeId(response.itemId));
     if (!question) continue;
     const allowedAnswers = question.allowedAnswers ?? instrument.allowedAnswers ?? [];
     if (allowedAnswers.length > 0 && response.answer !== null && response.answer !== undefined && String(response.answer).trim() !== '' && !allowedAnswers.map(String).includes(String(response.answer))) invalidAnswerValues.push(normalizeId(response.itemId));
