@@ -307,7 +307,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
     const updated = DocumentClassifierService.applyHumanDecision(classification, {
       status: 'UNCERTAIN',
       verifiedBy: 'Forsker',
-      rationale: 'Markert som usikker av forsker Ã¢â‚¬“ krever manuell fulltekst-gjennomgang'
+      rationale: 'Markert som usikker av forsker – krever manuell fulltekst-gjennomgang'
     });
     setClassification(updated);
     showToast('Dokument markert som metodisk usikkert.', 'warning');
@@ -356,7 +356,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
               <h2 className="text-base sm:text-lg font-bold text-slate-900 font-serif flex items-center gap-2">
                 <span>Dokumentklassifisering & Studiedesign-Gate</span>
                 <span className="text-xs font-sans px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-semibold">
-                  Seksjon 8Ã¢â‚¬“22 Integritetskontroll
+                  Seksjon 8–22 Integritetskontroll
                 </span>
               </h2>
               <p className="text-xs text-slate-500">
@@ -384,7 +384,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
               </span>
               <p className="text-amber-800 leading-relaxed">
                 Systemet <strong>antar aldri</strong> at et dokument er en kvalitativ forskningsartikkel bare fordi det inneholder tekst. 
-                Alle automatiske forslag markeres som <strong>Ã‚Â«AI-kandidatforslag Ã¢â‚¬“ krever verifiseringÃ‚Â»</strong>. 
+                Alle automatiske forslag markeres som <strong>«AI-kandidatforslag – krever verifisering»</strong>. 
                 Forskeren må eksplisitt godkjenne eller overstyre klassifiseringen før vurderingsinstrumentet velges.
               </p>
             </div>
@@ -694,7 +694,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
                             <Gavel className="w-3.5 h-3.5 text-rose-700" />
-                            <span>Lovfestede Plikter (Ã‚Â«skal / måÃ‚Â»)</span>
+                            <span>Lovfestede Plikter («skal / må»)</span>
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">
                             {classification.legalAnalysis.statutoryDuties.length}
@@ -704,7 +704,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {classification.legalAnalysis.statutoryDuties.map((duty, idx) => (
                               <div key={idx} className="bg-white p-2 rounded border border-rose-100 text-[11px] text-slate-800">
-                                <span className="font-mono text-rose-900 font-semibold block">Ã‚Â«{duty.rawText}Ã‚Â»</span>
+                                <span className="font-mono text-rose-900 font-semibold block">«{duty.rawText}»</span>
                                 {duty.legalBasis && (
                                   <span className="text-[10px] text-rose-700 block mt-0.5">Hjemmel: {duty.legalBasis}</span>
                                 )}
@@ -713,7 +713,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           </div>
                         ) : (
                           <p className="text-[11px] text-rose-800/80 italic">
-                            Ingen eksplisitte lovfestede tvangsplikter eller Ã‚Â«skalÃ‚Â»-krav registrert.
+                            Ingen eksplisitte lovfestede tvangsplikter eller «skal»-krav registrert.
                           </p>
                         )}
                       </div>
@@ -722,7 +722,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-teal-950 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-teal-700" />
-                            <span>Faglige Råd (Ã‚Â«bør / kanÃ‚Â»)</span>
+                            <span>Faglige Råd («bør / kan»)</span>
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold">
                             {classification.legalAnalysis.professionalAdvice.length}
@@ -732,14 +732,14 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {classification.legalAnalysis.professionalAdvice.map((advice, idx) => (
                               <div key={idx} className="bg-white p-2 rounded border border-teal-100 text-[11px] text-slate-800">
-                                <span className="font-mono text-teal-950 block">Ã‚Â«{advice.rawText}Ã‚Â»</span>
+                                <span className="font-mono text-teal-950 block">«{advice.rawText}»</span>
                                 <span className="text-[10px] text-teal-700 block mt-0.5">{advice.context}</span>
                               </div>
                             ))}
                           </div>
                         ) : (
                           <p className="text-[11px] text-teal-800/80 italic">
-                            Ingen spesifikke Ã‚Â«børÃ‚Â»-råd registrert.
+                            Ingen spesifikke «bør»-råd registrert.
                           </p>
                         )}
                       </div>
@@ -864,7 +864,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                       >
                         {MASTER_INSTRUMENTS_REGISTRY.map(inst => (
                           <option key={inst.id} value={inst.id}>
-                            {inst.shortName} ({inst.version}) Ã¢â‚¬“ {inst.categoryName}
+                            {inst.shortName} ({inst.version}) – {inst.categoryName}
                           </option>
                         ))}
                       </select>
@@ -1027,7 +1027,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                             {candidate ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200">
                                 <Sparkles className="w-3 h-3 text-teal-700" />
-                                <span>Candidate evidence Ã¢â‚¬“ requires verification</span>
+                                <span>Candidate evidence – requires verification</span>
                               </span>
                             ) : (
                               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">
@@ -1040,7 +1040,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                           {candidate && (
                             <div className="mt-3 space-y-2">
                               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-slate-800 font-mono leading-relaxed">
-                                Ã‚Â«{candidate.extractedSnippet}Ã‚Â»
+                                «{candidate.extractedSnippet}»
                               </div>
 
                               <div className="flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-2">
