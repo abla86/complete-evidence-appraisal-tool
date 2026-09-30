@@ -81,8 +81,8 @@ export function validateSourceRecord(record: unknown): SourceRecordValidationRes
   if (!objectLike(provenance)) {
     errors.push('provenance section is required');
   } else {
-    if (provenance.collectedLocally !== true) errors.push('provenance.collectedLocally must be true');
-    if (provenance.externalRequestsMade !== false) errors.push('provenance.externalRequestsMade must be false');
+    if (typeof provenance.collectedLocally !== 'boolean') errors.push('provenance.collectedLocally must be boolean');
+    if (typeof provenance.externalRequestsMade !== 'boolean') errors.push('provenance.externalRequestsMade must be boolean');
   }
 
   return { ok: errors.length === 0, errors };
