@@ -122,8 +122,27 @@ export const SourceRecordWorkflowView: React.FC = () => {
     const reviewResult = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Fulltekst vurdert', { fullTextDecision, fullTextExclusionReason });
     if (!reviewResult.transitioned) { setMessage(`Fulltekst avvist: ${reviewResult.reason}`); return; }
     const result = await attachReviewedRecordToPico(reviewResult.record, picoId, actor, auditWriter);
-    setMessage(result.attached ? `Knyttet til PICO ${result.picoEntityId}. Referanse er fortsatt ikke verifisert.` : `PICO-attach avvist: ${result.reason}`);
-    if (result.attached && result.record) setRecord(result.record);
+    if (!result.attached || !result.record) {
+      setMessage(`PICO-attach avvist: ${result.reason}`);
+      return;
+    }
+    setRecord(result.record);
+    try {
+      const response = await fetch(`/api/research-workflows/${encodeURIComponent(result.record.recordId)}/screening/source-record`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record: result.record }),
+      });
+      const payload = await response.json() as { success?: boolean; error?: string; workflow?: { studyId?: string } };
+      if (!response.ok || payload.success !== true) {
+        setMessage(`Knyttet til PICO ${result.picoEntityId}, men canonical research-workflow ble ikke oppdatert: ${payload.error ?? `HTTP ${response.status}`}`);
+        return;
+      }
+      setMessage(`Knyttet til PICO ${result.picoEntityId} og synkronisert til canonical research-workflow ${payload.workflow?.studyId ?? result.record.recordId}. Referanse er fortsatt ikke verifisert.`);
+    } catch (error) {
+      setMessage(`Knyttet til PICO ${result.picoEntityId}, men workflow-synkronisering feilet: ${error instanceof Error ? error.message : 'ukjent feil'}`);
+    }
   };
 
   const verifyReferenceLocally = () => {
