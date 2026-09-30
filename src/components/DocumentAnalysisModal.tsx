@@ -952,7 +952,6 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                         sourceRecordId,
                         page: selectedPdfPage,
                         quote: pdfEvidenceQuote,
-                        coordinates: [{ x: 0, y: 0, width: 1, height: 1 }],
                         createdBy: 'current-researcher',
                         researcherVerified: false,
                       });
