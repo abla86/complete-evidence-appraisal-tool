@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { transitionScreeningState } from '../src/services/sourceIntakeService';
+import { createScreeningDecisionFromSourceRecord } from '../src/services/researchWorkflowBridge';
 import type { SourceRecord } from '../src/domain/sourceRecord';
 
 const record = {
@@ -48,4 +49,36 @@ test('included screening records reviewer, decision and full-text provenance', a
   assert.equal(result.record?.intake?.reviewerId, 'reviewer-1');
   assert.equal(result.record?.intake?.screeningDecision, 'uncertain');
   assert.equal(result.record?.intake?.fullTextDecision, 'include');
+});
+
+
+test('SourceRecord screening maps into canonical research workflow decision', () => {
+  const included = structuredClone(record);
+  included.intake = {
+    ...included.intake,
+    reviewerId: 'reviewer-1',
+    screeningDecision: 'include',
+    screeningReason: 'Meets eligibility criteria.',
+    fullTextDecision: 'include',
+  };
+  const decision = createScreeningDecisionFromSourceRecord({ record: included, studyId: 'study-1' });
+  assert.equal(decision.studyId, 'study-1');
+  assert.equal(decision.reviewerId, 'reviewer-1');
+  assert.equal(decision.decision, 'include');
+  assert.equal(decision.eligibilityDecision, 'include');
+});
+
+test('SourceRecord cannot bypass explicit full-text inclusion', () => {
+  const included = structuredClone(record);
+  included.intake = {
+    ...included.intake,
+    reviewerId: 'reviewer-1',
+    screeningDecision: 'include',
+    screeningReason: 'Meets eligibility criteria.',
+    fullTextDecision: 'pending',
+  };
+  assert.throws(
+    () => createScreeningDecisionFromSourceRecord({ record: included }),
+    /explicit full-text inclusion/,
+  );
 });
