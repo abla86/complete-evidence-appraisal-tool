@@ -179,7 +179,7 @@ export const UnifiedReferenceHubView: React.FC<UnifiedReferenceHubViewProps> = (
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-teal-700" />
               <h2 className="text-xl font-bold font-serif">Reference Hub</h2>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 border border-teal-200 text-teal-900">Ã‰n referansemotor</span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 border border-teal-200 text-teal-900">Én referansemotor</span>
             </div>
             <p className="text-sm text-slate-600 mt-1">EndNote, Zotero, Mendeley og Paperpile samles her som interoperabilitet, ikke som parallelle databaser.</p>
           </div>
