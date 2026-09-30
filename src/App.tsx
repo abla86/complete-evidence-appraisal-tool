@@ -143,12 +143,13 @@ export default function App() {
             {Boolean(selectedInstrumentId) && activeTab === 'instrumentinfo' ? <UniversalAppraisalView studyId={currentStudyId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} /> : <>
               {activeTab === 'overview' && <OverviewView articles={articles} onSelectArticle={handleSelectArticle} onEditArticle={handleEditArticle} onGoToThesis={() => setActiveTab('synthesis')} onOpenCustomEvaluator={handleNewArticle} onOpenImportExport={handleOpenImportExport} />}
               {activeTab === 'document_studio' && <><DocumentAnalysisModal isOpen={true} onClose={() => setActiveTab('overview')} /><ClinicalInteroperabilityPanel /></>}
-              {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported) => { const newArt = ImportExportService.createDefaultArticle({ id: generateArticleId('art'), title: imported.title || 'Uten tittel', authors: imported.authors || 'Ukjent forfatter', year: imported.publicationYear || new Date().getFullYear(), journal: imported.journal || '', doi: imported.doi || '', design: imported.studyDesign, sourceName: 'Forskningssøk (API)' }); setArticles(prev => [newArt, ...prev]);
+              {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported, sourceRecordId) => { const newArt = ImportExportService.createDefaultArticle({ id: generateArticleId('art'), title: imported.title || 'Uten tittel', authors: imported.authors || 'Ukjent forfatter', year: imported.publicationYear || new Date().getFullYear(), journal: imported.journal || '', doi: imported.doi || '', design: imported.studyDesign, sourceName: 'Forskningssøk (API)' }); setArticles(prev => [newArt, ...prev]);
                 setReferenceRecords(prev => {
                   const doiKey = newArt.doi?.trim().toLowerCase();
                   const existing = prev.find(r => (doiKey && r.doi?.trim().toLowerCase() === doiKey) || r.title.trim().toLowerCase() === newArt.title.trim().toLowerCase());
-                  if (existing) return prev.map(r => r.id === existing.id ? { ...r, articleIds: [...new Set([...(r.articleIds ?? []), newArt.id])], updatedAt: new Date().toISOString() } : r);
-                  return [...prev, articleToReference(newArt)];
+                  if (existing) return prev.map(r => r.id === existing.id ? { ...r, articleIds: [...new Set([...(r.articleIds ?? []), newArt.id])], sourceRecordIds: sourceRecordId ? [...new Set([...(r.sourceRecordIds ?? []), sourceRecordId])] : r.sourceRecordIds, updatedAt: new Date().toISOString() } : r);
+                  const reference = articleToReference(newArt);
+                  return [...prev, sourceRecordId ? { ...reference, sourceRecordIds: [...new Set([...(reference.sourceRecordIds ?? []), sourceRecordId])] } : reference];
                 });
                 setSelectedArticleId(newArt.id); setActiveTab('details'); }} />}
               {activeTab === 'source_workflow' && <SourceRecordWorkflowView />}
