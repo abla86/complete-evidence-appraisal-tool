@@ -19,6 +19,8 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
   const view = useMemo(() => getDualReviewSessionView(studyId, instrumentId), [studyId, instrumentId]);
   const [resolution, setResolution] = useState<'consensus' | 'thirdReviewer' | 'autoResolve'>('consensus');
   const [message, setMessage] = useState('');
+  const [rationale, setRationale] = useState('');
+  const [consensusResponses, setConsensusResponses] = useState<Record<string, string | number | boolean | null>>({});
 
   if (!actorId.trim()) {
     return (
@@ -57,7 +59,21 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
         .map(item => ({ itemId: String(item.itemId), comment: item.rationale })),
     }));
 
-    const result = resolveConflict(view.reviewerA.id, reviews, actorId.trim(), resolution);
+    const disagreements = view.comparison.items.filter(item => item.disagreement);
+    if (!rationale.trim()) {
+      setMessage('En eksplisitt begrunnelse er påkrevd før oppløsning kan registreres.');
+      return;
+    }
+    if (resolution === 'autoResolve') {
+      setMessage('Automatisk flertall er ikke tillatt for metodisk appraisal-uenighet.');
+      return;
+    }
+    const missing = disagreements.filter(item => consensusResponses[String(item.itemId)] === null || consensusResponses[String(item.itemId)] === undefined || consensusResponses[String(item.itemId)] === '');
+    if (missing.length > 0) {
+      setMessage(`Velg eksplisitt consensus-svar for: ${missing.map(item => item.itemId).join(', ')}.`);
+      return;
+    }
+    const result = resolveConflict(view.reviewerA.id, reviews, actorId.trim(), resolution, consensusResponses, rationale);
     setMessage(`Oppløsning registrert: ${result.disagreements.length} uenighet(er), metode ${resolution}.`);
   };
 
@@ -67,7 +83,7 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
         <div>
           <div className="text-[10px] uppercase tracking-wide text-slate-400">UNIVERSAL DUAL REVIEW</div>
           <h3 className="text-lg font-bold">{instrumentId}</h3>
-          <p className="text-xs text-slate-600 mt-1">{view.reviewerA.reviewerId} â†” {view.reviewerB.reviewerId}</p>
+          <p className="text-xs text-slate-600 mt-1">{view.reviewerA.reviewerId} ↔ {view.reviewerB.reviewerId}</p>
         </div>
         <div className={`px-3 py-2 rounded-xl text-sm font-bold ${view.comparison.requiresArbitration ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}>
           Uenighet: {Math.round(view.comparison.overallDisagreement * 100)}%
@@ -101,9 +117,35 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
           <select value={resolution} onChange={e => setResolution(e.target.value as typeof resolution)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white">
             <option value="consensus">Konsensus</option>
             <option value="thirdReviewer">Tredje reviewer</option>
-            <option value="autoResolve">Automatisk flertall</option>
+            <option value="autoResolve" disabled>Automatisk flertall (ikke tillatt)</option>
           </select>
-          <button type="button" onClick={handleResolve} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Registrer oppløsning</button>
+          <div className="w-full space-y-3">
+            {view.comparison.items.filter(item => item.disagreement).map(item => (
+              <label key={item.itemId} className="block text-xs">
+                <span className="font-bold">Consensus for punkt {item.itemId}</span>
+                <select
+                  value={String(consensusResponses[String(item.itemId)] ?? '')}
+                  onChange={e => setConsensusResponses(prev => ({ ...prev, [String(item.itemId)]: e.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 bg-white"
+                >
+                  <option value="">Velg eksplisitt svar</option>
+                  <option value={String(item.reviewer1Score ?? '')}>Reviewer A: {String(item.reviewer1Score ?? '—')}</option>
+                  <option value={String(item.reviewer2Score ?? '')}>Reviewer B: {String(item.reviewer2Score ?? '—')}</option>
+                </select>
+              </label>
+            ))}
+            <label className="block text-xs">
+              <span className="font-bold">Begrunnelse</span>
+              <textarea
+                value={rationale}
+                onChange={e => setRationale(e.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+                placeholder="Dokumenter hvorfor konsensus/oppløsningen ble valgt."
+              />
+            </label>
+            <button type="button" onClick={handleResolve} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Registrer oppløsning</button>
+          </div>
         </div>
       )}
 
