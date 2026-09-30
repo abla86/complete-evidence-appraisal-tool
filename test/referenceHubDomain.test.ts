@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { type ReferenceRecord } from '../src/domain/referenceHub';
 import { loadReferenceLibrary, saveReferenceLibrary } from '../src/services/referenceLibraryStore';
+import { createReferenceRecord } from '../src/services/referenceHubService';
 
 test('canonical ReferenceRecord supports research identifiers and integrity metadata', () => {
   const record: ReferenceRecord = {
@@ -27,9 +28,24 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
   assert.equal(record.pmid, '12345678');
   assert.equal(record.pmcid, 'PMC123456');
   assert.equal(record.verification, 'VALIDATION_REQUIRED');
+  assert.deepEqual(record.articleIds, []);
 });
 
 test('reference library loader safely falls back when browser storage is unavailable', () => {
   assert.deepEqual(loadReferenceLibrary([]), []);
   assert.doesNotThrow(() => saveReferenceLibrary([]));
+});
+
+
+test('reference records use an independent identity from article records', () => {
+  const record = createReferenceRecord({
+    id: 'ref-1',
+    kind: 'JOURNAL_ARTICLE',
+    title: 'Example',
+    authors: 'Doe, J.',
+    year: 2025,
+    articleIds: ['art-1'],
+  });
+  assert.notEqual(record.id, record.articleIds?.[0]);
+  assert.deepEqual(record.articleIds, ['art-1']);
 });
