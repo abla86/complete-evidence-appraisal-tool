@@ -36,6 +36,8 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const [message, setMessage] = useState('');
   const [batchId, setBatchId] = useState('screening-batch-1');
   const [picoId, setPicoId] = useState('pico-1');
+  const [fullTextDecision, setFullTextDecision] = useState<'include' | 'exclude' | 'pending'>('pending');
+  const [fullTextExclusionReason, setFullTextExclusionReason] = useState('');
   const included = articles.filter(a => a.lifecycleStatus === 'FINALIZED' || a.overallVerdict === 'Inkluder').length;
   const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;
   const unresolved = Math.max(0, articles.length - included - excluded);
@@ -100,9 +102,11 @@ export const SourceRecordWorkflowView: React.FC = () => {
 
   const attach = async () => {
     if (!record) return;
-    const result = await attachReviewedRecordToPico(record, picoId, ACTOR, auditWriter);
+    const reviewResult = await transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Fulltekst vurdert', { fullTextDecision, fullTextExclusionReason });
+    if (!reviewResult.transitioned) { setMessage(`Fulltekst avvist: ${reviewResult.reason}`); return; }
+    const result = await attachReviewedRecordToPico(reviewResult.record, picoId, ACTOR, auditWriter);
     setMessage(result.attached ? `Knyttet til PICO ${result.picoEntityId}. Referanse er fortsatt ikke verifisert.` : `PICO-attach avvist: ${result.reason}`);
-    if (result.attached) setRecord({ ...record, intake: { ...record.intake, screeningState: 'included' } });
+    if (result.attached && result.record) setRecord(result.record);
   };
 
   const verifyReferenceLocally = () => {
@@ -178,8 +182,14 @@ export const SourceRecordWorkflowView: React.FC = () => {
           <button onClick={() => void link()} disabled={!record} title={!record ? 'Importer en SourceRecord først.' : 'Koble valgt SourceRecord til screening-batch.'} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">1. Koble batch</button>
           {!record && <p className="text-[11px] text-slate-300">Importer en SourceRecord først for å aktivere workflow-handlingene.</p>}
           <button onClick={() => void review()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 font-bold text-sm disabled:opacity-40">2. Marker reviewed</button>
+          <label className="block text-xs text-slate-300">Fulltekstbeslutning
+            <select value={fullTextDecision} onChange={e => setFullTextDecision(e.target.value as typeof fullTextDecision)} className="mt-1 w-full rounded-lg p-2 text-slate-900 text-sm">
+              <option value="pending">Ikke avgjort</option><option value="include">Inkluder</option><option value="exclude">Ekskluder</option>
+            </select>
+          </label>
+          {fullTextDecision === 'exclude' && <textarea value={fullTextExclusionReason} onChange={e => setFullTextExclusionReason(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="Obligatorisk eksklusjonsgrunn ved fulltekst" rows={2} />}
           <input value={picoId} onChange={e => setPicoId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="PICO/PECO-id" />
-          <button onClick={() => void attach()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
+          <button onClick={() => void attach() disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
         </article>
       </div>
       {message && <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">{message}</div>}
