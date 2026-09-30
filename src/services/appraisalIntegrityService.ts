@@ -18,7 +18,7 @@ export function validateAppraisalIntegrity(session: AppraisalSession): Appraisal
   blockingIssues.push(...validation.issues);
 
   if (session.instrumentVersion !== instrument.version) {
-    blockingIssues.push(`Instrumentversjon er endret: Ã¸kt ${session.instrumentVersion}, registry ${instrument.version}. Opprett ny vurderingsversjon.`);
+    blockingIssues.push(`Instrumentversjon er endret: økt ${session.instrumentVersion}, registry ${instrument.version}. Opprett ny vurderingsversjon.`);
   }
 
   if (instrument.verificationStatus === 'PROTOTYPE' || instrument.verificationStatus === 'DEPRECATED') {
