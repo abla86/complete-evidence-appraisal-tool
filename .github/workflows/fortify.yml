@@ -28,8 +28,7 @@ on:
 
 jobs:
   Fortify-AST-Scan:
-    # Fortify credentials are optional infrastructure configuration; skip cleanly until configured.
-    if: ${{ secrets.FOD_USER != '' && secrets.FOD_PAT != '' }}
+    # Credentials are optional. GitHub does not allow direct secrets-context checks in job-level if expressions.
     # Use the appropriate runner for building your source code. Ensure dev tools required to build your code are present and configured appropriately (MSBuild, Python, etc).
     runs-on: ubuntu-latest
     permissions:
@@ -43,6 +42,19 @@ jobs:
       - name: Check Out Source Code
         uses: actions/checkout@v4
 
+      - name: Check Fortify configuration
+        id: fortify-config
+        shell: bash
+        env:
+          FOD_USER: ${{ secrets.FOD_USER }}
+          FOD_PAT: ${{ secrets.FOD_PAT }}
+        run: |
+          if [[ -n "$FOD_USER" && -n "$FOD_PAT" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Fortify credentials are not configured; skipping Fortify scan."
+          fi
       # Perform SAST and/or SCA scan via Fortify on Demand/Fortify Hosted/ScanCentral SAST/Debricked. Based on
       # configuration, the Fortify GitHub Action can optionally set up the application version/release, generate
       # job summaries and Pull Request comments, and/or export SAST results to the GitHub code scanning dashboard.
@@ -52,6 +64,7 @@ jobs:
       # documentation at https://github.com/fortify/github-action#readme for more information on the various
       # configuration options and available sub-actions.
       - name: Run Fortify Scan
+        if: steps.fortify-config.outputs.enabled == 'true'
         # Specify Fortify GitHub Action version to run. As per GitHub starter workflow requirements, this example
         # uses the commit id corresponding to version 1.6.2. It is recommended to check whether any later releases
         # are available at https://github.com/fortify/github-action/releases. Depending on the amount of stability
