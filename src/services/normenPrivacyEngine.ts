@@ -10,8 +10,8 @@ export async function deIdentifyHealthcareText(text:string,options:DeIdentificat
  replace(/\b\d{11}\b/g,'[FNR_REDACTED]');
  replace(/\b(?:HPR[- ]?nr\.?|HPR)\s*[:#-]?\s*\d{6,8}\b/gi,'HPR-[REDACTED]');
  if(options.knownNames){for(const name of [...options.knownNames].filter(Boolean).sort((a,b)=>b.length-a.length)){const escaped=name.replace(/[.*+?^$()|[\]\\]/g,'\\$&');replace(new RegExp('\\b'+escaped+'\\b','gi'),'[NAME_REDACTED]');}}
- if(options.replaceNames)replace(/\b(?:Ola|Kari|Per|Anne|Hans|Liv)\s+[A-ZÃ†Ã˜Ã…][a-zÃ¦Ã¸Ã¥]+\b/g,'[NAME_REDACTED]');
- if(options.replaceAddresses!==false)replace(/\b(?:St|Street|Gate|veg|veien|vei)\.?\s+[A-Za-zÃ†Ã˜Ã…Ã¦Ã¸Ã¥0-9 .'-]{2,60}\s+\d{1,4}\b/gi,'[ADDRESS_REDACTED]');
+ if(options.replaceNames)replace(/\b(?:Ola|Kari|Per|Anne|Hans|Liv)\s+[A-ZÆØÅ][a-zæøå]+\b/g,'[NAME_REDACTED]');
+ if(options.replaceAddresses!==false)replace(/\b(?:St|Street|Gate|veg|veien|vei)\.?\s+[A-Za-zÆØÅæøå0-9 .'-]{2,60}\s+\d{1,4}\b/gi,'[ADDRESS_REDACTED]');
  const [inputDigest,outputDigest]=await Promise.all([sha256(text),sha256(output)]);
  return{deIdentifiedText:output,replacements,audit:{timestamp:new Date().toISOString(),algorithm:'SHA-256',inputDigest,outputDigest,replacements,clientOnly:true}};
 }
