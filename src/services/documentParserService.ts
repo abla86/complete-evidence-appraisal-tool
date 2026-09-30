@@ -21,6 +21,7 @@ export interface FileParseResult {
   extractedText: string;
   wordCount: number;
   estimatedPages: number;
+  pages: { pageNumber: number; text: string }[];
   metadata: {
     title: string;
     authors: string;
@@ -95,11 +96,13 @@ export class DocumentParserService {
     let extractedText = '';
     let isScannedOrImageOnly = false;
     let ocrAppliedOrNeeded = false;
+    let pages: { pageNumber: number; text: string }[] = [];
 
     if (lowerName.endsWith('.pdf')) {
       fileType = 'pdf';
       const parsedPdf = await this.extractPdfText(file);
       extractedText = parsedPdf.text;
+      pages = parsedPdf.pages;
       isScannedOrImageOnly = parsedPdf.isScanned;
       ocrAppliedOrNeeded = parsedPdf.ocrNeeded;
     } else if (lowerName.endsWith('.docx')) {
@@ -148,6 +151,7 @@ export class DocumentParserService {
       extractedText,
       wordCount,
       estimatedPages,
+      pages,
       metadata,
       sections,
       imradAnalysis,
@@ -176,16 +180,16 @@ export class DocumentParserService {
    * PDF text extraction engine
    * Detects embedded text streams, Tj/TJ operators, and flags scanned PDFs
    */
-  private static async extractPdfText(file: ParserInput): Promise<{ text: string; isScanned: boolean; ocrNeeded: boolean }> {
+  private static async extractPdfText(file: ParserInput): Promise<{ text: string; pages: { pageNumber: number; text: string }[]; isScanned: boolean; ocrNeeded: boolean }> {
     let buffer: ArrayBuffer;
     if (typeof file.arrayBuffer === 'function') {
       buffer = await file.arrayBuffer();
     } else if (file.content instanceof ArrayBuffer) {
       buffer = file.content;
     } else if (typeof file.content === 'string') {
-      return { text: file.content, isScanned: false, ocrNeeded: false };
+      return { text: file.content, pages: [{ pageNumber: 1, text: file.content }], isScanned: false, ocrNeeded: false };
     } else {
-      return { text: '', isScanned: true, ocrNeeded: true };
+      return { text: '', pages: [], isScanned: true, ocrNeeded: true };
     }
 
     try {
@@ -197,7 +201,7 @@ export class DocumentParserService {
         data: new Uint8Array(buffer),
         });
       const pdf = await loadingTask.promise;
-      const pages: string[] = [];
+      const pageTexts: { pageNumber: number; text: string }[] = [];
 
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
         const page = await pdf.getPage(pageNumber);
@@ -209,14 +213,15 @@ export class DocumentParserService {
           .trim();
 
         if (pageText) {
-          pages.push(pageText);
+          pageTexts.push({ pageNumber, text: pageText });
         }
       }
 
-      const text = pages.join('\n\n').trim();
+      const text = pageTexts.map(page => page.text).join('\n\n').trim();
       const isScanned = text.length < 80;
       return {
         text,
+        pages: pageTexts,
         isScanned,
         ocrNeeded: isScanned
       };
@@ -224,6 +229,7 @@ export class DocumentParserService {
       console.warn('PDF.js extraction failed:', error);
       return {
         text: '',
+        pages: [],
         isScanned: true,
         ocrNeeded: true
       };
