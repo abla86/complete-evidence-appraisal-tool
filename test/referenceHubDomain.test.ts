@@ -22,6 +22,8 @@ test('canonical ReferenceRecord supports research identifiers and integrity meta
     retraction: { detected: false, source: 'not-checked', checkedAt: new Date().toISOString() },
     attachments: [],
     annotations: [],
+    articleIds: [],
+    sourceRecordIds: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
