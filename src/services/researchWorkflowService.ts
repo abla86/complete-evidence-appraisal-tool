@@ -126,7 +126,7 @@ export function createResearchWorkflowFromText(
   fileName = 'document.txt',
   studyId?: string,
 ): WorkflowState {
-  if (!text?.trim()) throw new Error('Dokumenttekst kan ikke vÃ¦re tom.');
+  if (!text?.trim()) throw new Error('Dokumenttekst kan ikke være tom.');
 
   const normalizedFileName = fileName.trim() || 'document.txt';
   const analysis = ResearchEngineGateway.analyzeText(text, normalizedFileName);
@@ -241,7 +241,7 @@ export function verifyResearchEvidence(
   if (!current) throw new Error(`Evidence finnes ikke: ${evidenceId}`);
   if (current.source === 'REJECTED' && verified) {
     throw new Error(
-      'Avvist evidence mÃ¥ vurderes pÃ¥ nytt gjennom eksplisitt re-inntak fÃ¸r det kan verifiseres.',
+      'Avvist evidence må vurderes på nytt gjennom eksplisitt re-inntak før det kan verifiseres.',
     );
   }
 
@@ -341,7 +341,7 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
 
   if (!state.research.classificationVerified) {
     throw new Error(
-      'Human verification av dokumentklassifisering (classification) er pÃ¥krevd.',
+      'Human verification av dokumentklassifisering (classification) er påkrevd.',
     );
   }
 
@@ -361,7 +361,7 @@ export function assertReadyForAppraisal(state: WorkflowState): void {
   const verifiedEvidence = getVerifiedResearchEvidence(state);
   if (verifiedEvidence.length === 0) {
     throw new Error(
-      'Minst ett evidensfunn mÃ¥ vÃ¦re menneskelig verifisert fÃ¸r appraisal kan startes.',
+      'Minst ett evidensfunn må være menneskelig verifisert før appraisal kan startes.',
     );
   }
 
