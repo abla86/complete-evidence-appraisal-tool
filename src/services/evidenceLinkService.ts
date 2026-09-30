@@ -1,6 +1,7 @@
 ﻿import type { AcademicClaim, EvidenceExtraction, EvidenceKind } from '../domain/academicEvidence';
 import { createId } from '../utils/id';
 import { AuditTrailService } from './auditTrailService';
+import type { AppraisalSession } from './universalAppraisalService';
 
 export interface PdfAnnotationCoordinates {
   x: number;
@@ -200,6 +201,23 @@ export function linkHighlightToEvidence(
   });
 
   return created;
+}
+
+export function attachClaimToAppraisalItem(
+  claim: AcademicClaim,
+  session: AppraisalSession,
+  itemId: number | string,
+): AppraisalSession {
+  const normalizedItemId = String(itemId).trim();
+  if (!normalizedItemId) throw new Error('Appraisal item ID is required.');
+  if (!claim.id.trim()) throw new Error('AcademicClaim ID is required.');
+  const index = session.responses.findIndex(response => String(response.itemId).trim() === normalizedItemId);
+  if (index < 0) throw new Error(`Appraisal item ${normalizedItemId} has no response yet.`);
+  const response = session.responses[index];
+  const claimIds = [...new Set([...(response.claimIds ?? []), claim.id])];
+  const responses = [...session.responses];
+  responses[index] = { ...response, claimIds };
+  return { ...session, responses, updatedAt: new Date().toISOString() };
 }
 
 export function attachEvidenceToClaim(
