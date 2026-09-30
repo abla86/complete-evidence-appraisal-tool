@@ -28,6 +28,7 @@ async function startServer() {
   }
   const PORT = parsedPort;
   const production = process.env.NODE_ENV === 'production';
+  const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
 
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -35,7 +36,7 @@ async function startServer() {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.crossref.org https://api.openalex.org https://www.ebi.ac.uk https://accounts.google.com https://oauth2.googleapis.com https://generativelanguage.googleapis.com");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src "+ scriptSource + "; connect-src 'self' https://api.crossref.org https://api.openalex.org https://www.ebi.ac.uk https://accounts.google.com https://oauth2.googleapis.com https://generativelanguage.googleapis.com");
     if (production) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
   });
