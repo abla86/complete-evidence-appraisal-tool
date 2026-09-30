@@ -256,7 +256,7 @@ Authors: Lund, H. M., Solberg, K. E., Vis, S. A., & Bakke, M. B. (2024). BMC Pri
 DOI: 10.1186/s12875-024-02269-9
 
 Background & Aim:
-Interprofessional collaboration in primary care is essential for vulnerable patient groups, yet fraught with structural barriers. The aim of this study was to explore general practitionersÃ¢â‚¬â„¢ experiences of interprofessional collaboration, identifying structural and relational patterns in clinical practice.
+Interprofessional collaboration in primary care is essential for vulnerable patient groups, yet fraught with structural barriers. The aim of this study was to explore general practitioners’ experiences of interprofessional collaboration, identifying structural and relational patterns in clinical practice.
 
 Methods:
 Study design: A qualitative study utilizing Grounded Theory methodology (Strauss & Corbin, Charmaz).
@@ -267,7 +267,7 @@ Reflexivity & Research team:
 The research team consisted of two practicing clinicians (authors 1 and 2), a health services researcher (author 3), and a medical anthropologist (author 4). Shared clinical background facilitated rapport during interviews, while multidisciplinary debriefings mitigated confirmation bias.
 
 Results:
-The core category emerged as 'ThereÃ¢â‚¬â„¢s a will, but not a way', encompassing three main dimensions: (1) Asymmetrical communication channels, (2) Uncertainty regarding feedback and confidentiality boundaries, and (3) Desire for structured interprofessional meeting platforms.
+The core category emerged as 'There’s a will, but not a way', encompassing three main dimensions: (1) Asymmetrical communication channels, (2) Uncertainty regarding feedback and confidentiality boundaries, and (3) Desire for structured interprofessional meeting platforms.
 
 Declarations & Ethics:
 Ethical approval was evaluated and granted by Sikt (ref 982121). Written informed consent was obtained from all participating GPs. Confidentiality was strictly maintained by pseudonymizing all transcripts.`;
@@ -673,7 +673,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="text-indigo-600 hover:text-indigo-800 shrink-0 p-1 hover:bg-indigo-50 rounded"
-                                  title="Ãƒ…pne på Lovdata"
+                                  title="Åpne på Lovdata"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
@@ -879,7 +879,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                     <div className="bg-white/80 p-2.5 rounded-lg border border-rose-200 text-xs text-rose-900 space-y-1">
                       <span className="font-bold block text-[11px] uppercase">Gating-advarsel:</span>
                       {gateCheck.incompatibleReasons.map((reason, idx) => (
-                        <p key={idx}>Ã¢â‚¬Â¢ {reason}</p>
+                        <p key={idx}>• {reason}</p>
                       ))}
                     </div>
                   )}
@@ -1031,7 +1031,7 @@ Ethical approval was evaluated and granted by Sikt (ref 982121). Written informe
                               </span>
                             ) : (
                               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">
-                                Ingen direkte teksttreff (Ikke funnet Ã¢â€°Â  Nei)
+                                Ingen direkte teksttreff (Ikke funnet ≠ Nei)
                               </span>
                             )}
                           </div>
