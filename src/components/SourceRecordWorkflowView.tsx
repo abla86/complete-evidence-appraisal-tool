@@ -189,7 +189,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
           </label>
           {fullTextDecision === 'exclude' && <textarea value={fullTextExclusionReason} onChange={e => setFullTextExclusionReason(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="Obligatorisk eksklusjonsgrunn ved fulltekst" rows={2} />}
           <input value={picoId} onChange={e => setPicoId(e.target.value)} className="w-full rounded-lg p-2 text-slate-900 text-sm" placeholder="PICO/PECO-id" />
-          <button onClick={() => void attach() disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
+          <button onClick={() => void attach()} disabled={!record} className="w-full px-3 py-2 rounded-lg bg-emerald-400 text-slate-950 font-bold text-sm disabled:opacity-40">3. Koble til PICO</button>
         </article>
       </div>
       {message && <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">{message}</div>}
