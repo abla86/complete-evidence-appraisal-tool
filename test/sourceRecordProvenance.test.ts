@@ -29,6 +29,7 @@ test('search-imported SourceRecord records external retrieval provenance', () =>
     lawText: null,
     toolVersion: 'research-search',
     externalRequestsMade: true,
+    collectedLocally: false,
   });
 
   assert.equal(record.provenance.externalRequestsMade, true);
