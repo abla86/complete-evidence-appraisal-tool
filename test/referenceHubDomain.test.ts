@@ -49,3 +49,25 @@ test('reference records use an independent identity from article records', () =>
   assert.notEqual(record.id, record.articleIds?.[0]);
   assert.deepEqual(record.articleIds, ['art-1']);
 });
+
+
+test('reference library rejects malformed persisted records without discarding valid records', () => {
+  const store = new Map<string, string>();
+  const previous = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, value); },
+    removeItem: (key: string) => { store.delete(key); },
+    clear: () => { store.clear(); },
+    key: () => null,
+    get length() { return store.size; },
+  } as Storage;
+  try {
+    const valid = { id: 'ref-valid', importedFrom: ['MANUAL'], tags: [], collections: [], attachments: [], annotations: [], verification: 'DETECTED', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    store.set('evidence-appraisal-reference-hub-v1', JSON.stringify({ schemaVersion: 1, updatedAt: new Date().toISOString(), records: [valid, { id: '' }] }));
+    assert.equal(loadReferenceLibrary([]).length, 1);
+    assert.ok(store.has('evidence-appraisal-reference-hub-quarantine-v1'));
+  } finally {
+    globalThis.localStorage = previous;
+  }
+});
