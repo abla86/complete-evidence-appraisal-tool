@@ -51,6 +51,13 @@ export interface SourceRecord {
     receivedFrom: string;
     screeningState: 'unassigned' | 'awaiting-review' | 'reviewed' | 'excluded' | 'included';
     screeningBatchId?: string;
+    reviewerId?: string;
+    screeningDecision?: 'include' | 'exclude' | 'uncertain';
+    screeningReason?: string;
+    fullTextDecision?: 'include' | 'exclude' | 'pending';
+    fullTextExclusionReason?: string;
+    screeningDecidedAt?: string;
+    fullTextDecidedAt?: string;
   };
 }
 
