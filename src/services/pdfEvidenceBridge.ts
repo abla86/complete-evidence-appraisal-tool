@@ -17,7 +17,7 @@ export function annotationToEvidence(
   createdBy: string,
   evidenceType: EvidenceKind = 'QUOTE',
 ): EvidenceExtraction {
-  if (!annotation.text.trim()) throw new Error('Et PDF-highlight mÃ¥ inneholde tekst fÃ¸r det kan registreres som evidens.');
+  if (!annotation.text.trim()) throw new Error('Et PDF-highlight må inneholde tekst før det kan registreres som evidens.');
 
   return {
     id: `evidence_${annotation.id}`,
@@ -40,9 +40,9 @@ export function linkAnnotationToEvidence(
   tag?: PdfEvidenceLink['tag'],
 ): PdfEvidenceLink {
   if (evidence.id !== `evidence_${annotation.id}`) {
-    throw new Error('PDF-annotation og evidens tilhÃ¸rer ikke samme kobling.');
+    throw new Error('PDF-annotation og evidens tilhører ikke samme kobling.');
   }
-  if (confidence < 0 || confidence > 1) throw new Error('Konfidens mÃ¥ vÃ¦re mellom 0 og 1.');
+  if (confidence < 0 || confidence > 1) throw new Error('Konfidens må være mellom 0 og 1.');
 
   return {
     id: `pdf-link_${annotation.id}`,
