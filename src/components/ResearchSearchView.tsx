@@ -7,10 +7,14 @@ import {
 import { ArticleAppraisal } from '../types';
 import { Apa7CitationService } from '../services/apa7CitationService';
 import { OpenResearchApiService, OpenResearchRecord, OPEN_DATABASES, SearchDatabaseOption } from '../services/openResearchApiService';
+import { EvidenceIntelligenceService } from '../services/evidenceIntelligenceService';
+import { saveSearchQueryRecord } from '../services/searchQueryRecordStore';
+import { buildSourceRecord } from '../services/buildSourceRecord';
+import { upsertSourceRecord } from '../services/sourceRecordLibraryStore';
 import { useToast } from './Toast';
 
 export interface SearchHistoryEntry { id: string; query: string; source: string; timestamp: string; resultsCount: number; }
-interface ResearchSearchProps { onImportArticle: (article: Partial<ArticleAppraisal>) => void; existingArticles: ArticleAppraisal[]; }
+interface ResearchSearchProps { onImportArticle: (article: Partial<ArticleAppraisal>, sourceRecordId?: string) => void; existingArticles: ArticleAppraisal[]; }
 type DoiVerification = { success?: boolean; verification?: { isRetracted?: boolean } };
 
 export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArticle, existingArticles }) => {
@@ -28,6 +32,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
     if (saved) { try { return JSON.parse(saved) as SearchHistoryEntry[]; } catch { return []; } }
     return [];
   });
+  const [lastSearchRecordId, setLastSearchRecordId] = useState<string | null>(null);
   const [importedIds, setImportedIds] = useState<Set<string>>(() => {
     const set = new Set<string>();
     existingArticles.forEach(a => { if (a.doi) set.add(a.doi.toLowerCase().trim()); if (a.title) set.add(a.title.toLowerCase().trim()); });
@@ -54,7 +59,17 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
       else if (db === 'doaj') fetched = await OpenResearchApiService.searchDOAJ(q, 15);
       else if (db === 'preprints') fetched = await OpenResearchApiService.searchEuropePmc(`${q} AND (SRC:PPR OR HAS_BOOK:N)`, 15);
       setResults(fetched);
-      const histItem: SearchHistoryEntry = { id: `hist-${Date.now()}`, query: q, source: dbConfig.name, timestamp: new Date().toISOString(), resultsCount: fetched.length };
+      const searchRecord = EvidenceIntelligenceService.createSearchRecord(
+        dbConfig.name,
+        q,
+        { databaseId: db, norwegianOnly: filterNorwegianOnly, openAccessOnly: filterOpenAccessOnly, limit: fetched.length },
+        fetched.length,
+        0,
+        fetched,
+      );
+      saveSearchQueryRecord(searchRecord);
+      setLastSearchRecordId(searchRecord.id);
+      const histItem: SearchHistoryEntry = { id: searchRecord.id, query: q, source: dbConfig.name, timestamp: searchRecord.dateSearched, resultsCount: fetched.length };
       setHistory(prev => [histItem, ...prev.filter(h => h.query !== q).slice(0, 19)]);
       showToast(fetched.length === 0 ? `Ingen åpne artikler funnet i ${dbConfig.name} for "${q}"` : `Fant ${fetched.length} treff i ${dbConfig.name}. Treffene er ikke automatisk klassifisert som fagfellevurderte.`, fetched.length === 0 ? 'info' : 'success');
     } catch (err: unknown) { console.error('Search error:', err); showToast(`Søkefeil: ${err instanceof Error ? err.message : 'Kunne ikke kontakte databasen'}`, 'error'); }
@@ -82,6 +97,40 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
 
   const handleImport = (rec: OpenResearchRecord) => {
     const formattedApa = Apa7CitationService.formatApa7({ title: rec.title, authors: rec.authors, journal: rec.journal, year: rec.year, doi: rec.doi });
+    const sourceUrl = rec.landingPageUrl || rec.doiUrl || rec.openAccessPdfUrl;
+    let sourceRecordId: string | undefined;
+    if (sourceUrl) {
+      const capturedAt = new Date().toISOString();
+      const sourceRecord = buildSourceRecord({
+        meta: {
+          sourceUrl,
+          title: rec.title,
+          authors: rec.authors.split(',').map(value => value.trim()).filter(Boolean),
+          publicationDate: /^\\d{4}$/.test(rec.year) ? `${rec.year}-01-01` : undefined,
+          journal: rec.journal,
+          doi: rec.doi,
+          detectedAt: capturedAt,
+          detectedFrom: ['manual'],
+          fields: { searchRecordId: lastSearchRecordId, externalRecordId: rec.id, database: rec.source },
+        },
+        privacyResult: {
+          sourceUrl,
+          analyzedAt: capturedAt,
+          externalResourceCount: 0,
+          externalHosts: [],
+          trackingIndicatorCount: 0,
+          trackingHosts: [],
+          signals: [],
+          localOnlyAnalysis: true,
+          localOnly: true,
+        },
+        lawText: null,
+        toolVersion: 'research-search',
+        externalRequestsMade: true,
+      });
+      upsertSourceRecord(sourceRecord);
+      sourceRecordId = sourceRecord.recordId;
+    }
     onImportArticle({ title: rec.title, authors: rec.authors, journal: rec.journal, publicationYear: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, year: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, doi: rec.doi || '', doiUrl: rec.doi ? `https://doi.org/${Apa7CitationService.cleanDoi(rec.doi)}` : undefined, shortCitation: formattedApa.shortCitation, apaReference: formattedApa.plainText, abstract: rec.abstract || undefined, methodology: undefined, studyDesign: rec.studyTypeHint || undefined, epistemology: undefined, overallVerdict: 'Vurder videre', instrumentId: undefined });
     if (rec.doi) setImportedIds(prev => new Set(prev).add(rec.doi!.toLowerCase().trim()));
     setImportedIds(prev => new Set(prev).add(rec.title.toLowerCase().trim()));
