@@ -8,7 +8,7 @@ import { ArticleAppraisal } from '../types';
 import { Apa7CitationService } from '../services/apa7CitationService';
 import { OpenResearchApiService, OpenResearchRecord, OPEN_DATABASES, SearchDatabaseOption } from '../services/openResearchApiService';
 import { EvidenceIntelligenceService } from '../services/evidenceIntelligenceService';
-import { saveSearchQueryRecord } from '../services/searchQueryRecordStore';
+import { saveSearchQueryRecord, updateSearchQuerySelection } from '../services/searchQueryRecordStore';
 import { buildSourceRecord } from '../services/buildSourceRecord';
 import { upsertSourceRecord } from '../services/sourceRecordLibraryStore';
 import { useToast } from './Toast';
@@ -106,7 +106,7 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
           sourceUrl,
           title: rec.title,
           authors: rec.authors.split(',').map(value => value.trim()).filter(Boolean),
-          publicationDate: /^\\d{4}$/.test(rec.year) ? `${rec.year}-01-01` : undefined,
+          publicationDate: /^\d{4}$/.test(rec.year) ? `${rec.year}-01-01` : undefined,
           journal: rec.journal,
           doi: rec.doi,
           detectedAt: capturedAt,
@@ -131,10 +131,10 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
       upsertSourceRecord(sourceRecord);
       sourceRecordId = sourceRecord.recordId;
     }
-    onImportArticle({ title: rec.title, authors: rec.authors, journal: rec.journal, publicationYear: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, year: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, doi: rec.doi || '', doiUrl: rec.doi ? `https://doi.org/${Apa7CitationService.cleanDoi(rec.doi)}` : undefined, shortCitation: formattedApa.shortCitation, apaReference: formattedApa.plainText, abstract: rec.abstract || undefined, methodology: undefined, studyDesign: rec.studyTypeHint || undefined, epistemology: undefined, overallVerdict: 'Vurder videre', instrumentId: undefined });
+    onImportArticle({ title: rec.title, authors: rec.authors, journal: rec.journal, publicationYear: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, year: Number.isInteger(Number.parseInt(rec.year, 10)) ? Number.parseInt(rec.year, 10) : undefined, doi: rec.doi || '', doiUrl: rec.doi ? `https://doi.org/${Apa7CitationService.cleanDoi(rec.doi)}` : undefined, shortCitation: formattedApa.shortCitation, apaReference: formattedApa.plainText, abstract: rec.abstract || undefined, methodology: undefined, studyDesign: rec.studyTypeHint || undefined, epistemology: undefined, overallVerdict: 'Vurder videre', instrumentId: undefined }, sourceRecordId);
     if (rec.doi) setImportedIds(prev => new Set(prev).add(rec.doi!.toLowerCase().trim()));
     setImportedIds(prev => new Set(prev).add(rec.title.toLowerCase().trim()));
-    showToast(`"${rec.title.slice(0, 45)}..." er importert til hvelvet med full APA 7th referanse!`, 'success');
+    showToast(sourceRecordId ? `"${rec.title.slice(0, 45)}..." er importert med Reference Hub + SourceRecord-sporbarhet.` : `"${rec.title.slice(0, 45)}..." er importert; SourceRecord krever en verifiserbar kildelenke.`, sourceRecordId ? 'success' : 'warning');
   };
 
   const isAlreadyImported = (rec: OpenResearchRecord) => Boolean((rec.doi && importedIds.has(rec.doi.toLowerCase().trim())) || importedIds.has(rec.title.toLowerCase().trim()));
