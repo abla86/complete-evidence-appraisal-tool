@@ -1,6 +1,7 @@
 ﻿import type { AppraisalSession } from './universalAppraisalService';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 import { getQualityAssessmentsForSession, type StoredQualityAssessment } from './qualityAssessmentService';
+import { getInstrumentQuestions } from './runtimeInstrumentQuestions';
 
 export interface AppraisalItemView {
   itemId: string;
@@ -31,7 +32,7 @@ export function getAppraisalSessionView(session: AppraisalSession): AppraisalSes
   if (!instrument) throw new Error(`Instrument finnes ikke i registry: ${session.instrumentId}`);
 
   const responseMap = new Map(session.responses.map(response => [String(response.itemId), response]));
-  const items = (instrument.questions ?? []).map((question, index) => {
+  const items = getInstrumentQuestions(instrument).map((question, index) => {
     const response = responseMap.get(String(question.id));
     return {
       itemId: String(question.id),
