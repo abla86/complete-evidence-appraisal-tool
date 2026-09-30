@@ -32,6 +32,7 @@ import { ToastProvider } from './components/Toast';
 import { UserRole } from './services/rbacService';
 import { GraduationCap, PlusCircle } from 'lucide-react';
 import { createReferenceRecord, type ReferenceRecord } from './services/referenceHubService';
+import { generateUniqueId } from './services/idGenerator';
 import { loadReferenceLibrary, saveReferenceLibrary } from './services/referenceLibraryStore';
 import { loadAppraisalSessions, upsertAppraisalSession } from './services/appraisalSessionStore';
 import type { AppraisalSession } from './services/universalAppraisalService';
@@ -40,8 +41,29 @@ import { ImportExportService } from './services/importExportService';
 import { StudioStateProvider } from './state/StudioStateContext';
 import { ClinicalInteroperabilityPanel } from './components/ClinicalInteroperabilityPanel';
 
-function articleToReference(article: ArticleAppraisal): ReferenceRecord {
-  return createReferenceRecord({ id: article.id, kind: 'JOURNAL_ARTICLE', title: article.title, authors: article.authors, year: article.year, journal: article.journal, volume: article.volumeIssue?.split('(')[0]?.trim(), issue: article.volumeIssue?.match(/\((.*?)\)/)?.[1], pages: article.pages, doi: article.doi, url: article.sourceUrl, importedFrom: ['JSON'], tags: [], collections: ['Evidence Appraisal Workspace'] });
+function articleToReference(article: ArticleAppraisal, existing?: ReferenceRecord): ReferenceRecord {
+  if (existing) {
+    const articleIds = new Set(existing.articleIds ?? []);
+    articleIds.add(article.id);
+    return { ...existing, articleIds: [...articleIds], updatedAt: new Date().toISOString() };
+  }
+  return createReferenceRecord({
+    id: generateUniqueId('ref'),
+    kind: 'JOURNAL_ARTICLE',
+    title: article.title,
+    authors: article.authors,
+    year: article.year,
+    journal: article.journal,
+    volume: article.volumeIssue?.split('(')[0]?.trim(),
+    issue: article.volumeIssue?.match(/\((.*?)\)/)?.[1],
+    pages: article.pages,
+    doi: article.doi,
+    url: article.sourceUrl,
+    importedFrom: ['JSON'],
+    tags: [],
+    collections: ['Evidence Appraisal Workspace'],
+    articleIds: [article.id],
+  });
 }
 
 export default function App() {
@@ -78,7 +100,26 @@ export default function App() {
   const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
   const hardResetApp = () => { localStorage.clear(); sessionStorage.clear(); window.location.reload(); };
   useEffect(() => { const instrumentId = currentArticle?.instrumentId || ''; if (instrumentId !== selectedInstrumentId) setSelectedInstrumentId(instrumentId); }, [currentArticle?.id, currentArticle?.instrumentId, selectedInstrumentId]);
-  useEffect(() => { setReferenceRecords(prev => { const byId = new Map(prev.map(record => [record.id, record])); for (const article of articles) if (!byId.has(article.id)) byId.set(article.id, articleToReference(article)); return Array.from(byId.values()); }); }, [articles]);
+  useEffect(() => {
+    setReferenceRecords(prev => {
+      const byArticleId = new Map<string, ReferenceRecord>();
+      for (const record of prev) for (const articleId of record.articleIds ?? []) byArticleId.set(articleId, record);
+      const byDoi = new Map<string, ReferenceRecord>();
+      for (const record of prev) if (record.doi) byDoi.set(record.doi.trim().toLowerCase(), record);
+      const next = [...prev];
+      for (const article of articles) {
+        const existing = byArticleId.get(article.id) ?? (article.doi ? byDoi.get(article.doi.trim().toLowerCase()) : undefined);
+        const reference = articleToReference(article, existing);
+        if (existing) {
+          const index = next.findIndex(record => record.id === existing.id);
+          if (index >= 0) next[index] = reference;
+        } else {
+          next.push(reference);
+        }
+      }
+      return next;
+    });
+  }, [articles]);
   const handleReferenceChange = (records: ReferenceRecord[]) => { setReferenceRecords(records); setArticles(current => current.map(article => { const reference = records.find(r => r.id === article.id); if (!reference) return article; return { ...article, doi: reference.doi || article.doi, doiUrl: reference.doi ? `https://doi.org/${reference.doi}` : article.doiUrl, journal: reference.journal || article.journal, pages: reference.pages || article.pages, apaReference: article.apaReference }; })); };
   const saveAppraisalSession = (session: AppraisalSession) => { setAppraisalSessions(upsertAppraisalSession(session)); };
   const actor = { id: currentUserRole === 'lead_reviewer' ? 'lead-reviewer' : currentUserRole, role: currentUserRole } as const;
@@ -95,7 +136,14 @@ export default function App() {
             {Boolean(selectedInstrumentId) && activeTab === 'instrumentinfo' ? <UniversalAppraisalView studyId={currentStudyId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} /> : <>
               {activeTab === 'overview' && <OverviewView articles={articles} onSelectArticle={handleSelectArticle} onEditArticle={handleEditArticle} onGoToThesis={() => setActiveTab('synthesis')} onOpenCustomEvaluator={handleNewArticle} onOpenImportExport={handleOpenImportExport} />}
               {activeTab === 'document_studio' && <><DocumentAnalysisModal isOpen={true} onClose={() => setActiveTab('overview')} /><ClinicalInteroperabilityPanel /></>}
-              {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported) => { const newArt = ImportExportService.createDefaultArticle({ id: generateArticleId('art'), title: imported.title || 'Uten tittel', authors: imported.authors || 'Ukjent forfatter', year: imported.publicationYear || new Date().getFullYear(), journal: imported.journal || '', doi: imported.doi || '', design: imported.studyDesign, sourceName: 'Forskningssøk (API)' }); setArticles(prev => [newArt, ...prev]); setSelectedArticleId(newArt.id); setActiveTab('details'); }} />}
+              {activeTab === 'search' && <ResearchSearchView existingArticles={articles} onImportArticle={(imported) => { const newArt = ImportExportService.createDefaultArticle({ id: generateArticleId('art'), title: imported.title || 'Uten tittel', authors: imported.authors || 'Ukjent forfatter', year: imported.publicationYear || new Date().getFullYear(), journal: imported.journal || '', doi: imported.doi || '', design: imported.studyDesign, sourceName: 'Forskningssøk (API)' }); setArticles(prev => [newArt, ...prev]);
+                setReferenceRecords(prev => {
+                  const doiKey = newArt.doi?.trim().toLowerCase();
+                  const existing = prev.find(r => (doiKey && r.doi?.trim().toLowerCase() === doiKey) || r.title.trim().toLowerCase() === newArt.title.trim().toLowerCase());
+                  if (existing) return prev.map(r => r.id === existing.id ? { ...r, articleIds: [...new Set([...(r.articleIds ?? []), newArt.id])], updatedAt: new Date().toISOString() } : r);
+                  return [...prev, articleToReference(newArt)];
+                });
+                setSelectedArticleId(newArt.id); setActiveTab('details'); }} />}
               {activeTab === 'source_workflow' && <SourceRecordWorkflowView />}
               {activeTab === 'details' && currentArticle && <ArticleDetailView article={currentArticle} allArticles={articles} onSelectArticleId={setSelectedArticleId} onGoToOverview={() => setActiveTab('overview')} onGoToThesis={() => setActiveTab('synthesis')} onEditArticle={handleEditArticle} onNewArticle={handleNewArticle} />}
               {activeTab === 'details' && !currentArticle && <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center"><GraduationCap className="w-6 h-6 mx-auto mb-3" /><h3 className="font-bold">Ingen artikkel valgt</h3><button type="button" onClick={handleNewArticle} className="mt-4 px-4 py-2 rounded-xl bg-teal-800 text-white text-xs font-bold"><PlusCircle className="w-4 h-4 inline mr-1" /> Opprett ny artikkel</button></div>}
