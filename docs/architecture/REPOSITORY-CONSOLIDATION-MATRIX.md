@@ -1,4 +1,4 @@
-> **Update 2026-09-19:** all repositories listed below (including academic-research-engine and research-privacy-inspector) were merged with full history into `archive/<name>/` in this repository and the old repositories were deleted. Extract a folder with `git subtree split` if an independent repo is needed again.
+> **Update 2026-09-30:** historical Evidence/Research repositories listed below were consolidated or retired after verification. `academic-research-engine` and `research-privacy-inspector` remain separate by design. The two later duplicate Evidence Appraisal shells were reduced to redirect-only stubs after their code was verified as already preserved in the canonical repository.
 
 # Repository consolidation and migration matrix
 
@@ -69,7 +69,7 @@ After that gate is satisfied, `evidence-appraisal-tool` should be archived rathe
 
 ## Current conclusion
 
-The old repository is a substantial earlier implementation, not merely dead code. The main repository already contains most of its methodological surface, but the old repository contains additional **persistent research/implementation workflow functionality** that must not be lost. Those pieces are the remaining migration targets.
+The historical `evidence-appraisal-tool` implementation is a substantial earlier implementation, not merely dead code. The main repository already contains most of its methodological surface, but the old repository contains additional **persistent research/implementation workflow functionality** that must not be lost. Those pieces are the remaining migration targets.
 
 ## Consolidated deferred / removed material
 
