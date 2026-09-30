@@ -48,6 +48,7 @@ export interface ReferenceRecord extends SharedReferenceInput {
   updatedAt: string;
   duplicateOf?: string;
   sourceRecordIds?: string[];
+  articleIds?: string[];
   verification: ReferenceVerificationState;
   verifiedBy?: string;
   verifiedAt?: string;
@@ -130,6 +131,8 @@ export function createReferenceRecord(input: SharedReferenceInput & {
   annotations?: ReferenceAnnotation[];
   verification?: ReferenceVerificationState;
   retraction?: ReferenceRecord['retraction'];
+  sourceRecordIds?: string[];
+  articleIds?: string[];
 }): ReferenceRecord {
   const timestamp = now();
   const record: ReferenceRecord = {
@@ -146,6 +149,8 @@ export function createReferenceRecord(input: SharedReferenceInput & {
     updatedAt: timestamp,
     verification: 'DETECTED',
     retraction: input.retraction,
+    sourceRecordIds: input.sourceRecordIds ?? [],
+    articleIds: input.articleIds ?? [],
   };
 
   record.verification = input.verification ?? recordVerification(record);
@@ -165,6 +170,8 @@ export function updateReferenceRecord(
     verifiedAt?: string;
     verificationAuthority?: string;
     retraction?: ReferenceRecord['retraction'];
+    sourceRecordIds?: string[];
+    articleIds?: string[];
   },
   changedBy = 'current-user',
   reason?: string,
@@ -181,6 +188,8 @@ export function updateReferenceRecord(
     favorite: patch.favorite ?? record.favorite,
     attachments: patch.attachments ?? record.attachments,
     annotations: patch.annotations ?? record.annotations,
+    sourceRecordIds: patch.sourceRecordIds ?? record.sourceRecordIds ?? [],
+    articleIds: patch.articleIds ?? record.articleIds ?? [],
     createdAt: record.createdAt,
     updatedAt: now(),
     verification: record.verification,
