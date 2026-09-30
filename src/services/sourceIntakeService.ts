@@ -161,6 +161,9 @@ export async function attachReviewedRecordToPico(
   if (state !== 'reviewed') {
     return { attached: false as const, reason: 'not-reviewed' as const };
   }
+  if (record.intake?.fullTextDecision !== 'include') {
+    return { attached: false as const, reason: 'full-text-inclusion-required' as const };
+  }
 
   await audit.append({
     actor,
@@ -173,7 +176,7 @@ export async function attachReviewedRecordToPico(
     },
   });
 
-  return { attached: true as const, picoEntityId };
+  return { attached: true as const, picoEntityId, record: { ...record, intake: { ...record.intake, screeningState: 'included' as const } } };
 }
 
 
