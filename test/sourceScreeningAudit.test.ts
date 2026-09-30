@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { transitionScreeningState } from '../src/services/sourceIntakeService';
-import { createScreeningDecisionFromSourceRecord } from '../src/services/researchWorkflowBridge';
+import { createScreeningDecisionFromSourceRecord, applySourceRecordScreeningToWorkflow } from '../src/services/researchWorkflowBridge';
+import { createResearchWorkflowFromText } from '../src/services/researchWorkflowService';
 import type { SourceRecord } from '../src/domain/sourceRecord';
 
 const record = {
@@ -81,4 +82,26 @@ test('SourceRecord cannot bypass explicit full-text inclusion', () => {
     () => createScreeningDecisionFromSourceRecord({ record: included }),
     /explicit full-text inclusion/,
   );
+});
+
+
+test('SourceRecord screening updates the canonical research workflow', () => {
+  const included = structuredClone(record);
+  included.intake = {
+    ...included.intake,
+    reviewerId: 'reviewer-1',
+    screeningDecision: 'include',
+    screeningReason: 'Meets eligibility criteria.',
+    fullTextDecision: 'include',
+  };
+  const workflow = createResearchWorkflowFromText(
+    'Methods: qualitative study. Participants described their experiences.',
+    'study.txt',
+    'study-1',
+  );
+  const updated = applySourceRecordScreeningToWorkflow(workflow, included);
+  assert.equal(updated.screening.length, 1);
+  assert.equal(updated.screening[0].studyId, 'study-1');
+  assert.equal(updated.screening[0].decision, 'INCLUDED');
+  assert.equal(updated.screening[0].reviewerId, 'reviewer-1');
 });
