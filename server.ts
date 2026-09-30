@@ -13,6 +13,7 @@ import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi'
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
 import { registerIntegrityApi } from './src/services/integrityApi';
 import { requireAuthenticatedUser } from './src/services/authApi';
+import { registerReferenceHubApi } from './src/services/referenceHubRoutes';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -81,6 +82,7 @@ async function startServer() {
   registerResearchWorkflowApi(app);
   registerAppraisalWorkflowApi(app);
   registerIntegrityApi(app);
+  registerReferenceHubApi(app);
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: '2026.1', integrity: { status: 'integrated', immutableAssessments: true, auditChain: true, aiBoundary: true }, researchEngine: { status: 'integrated', contractVersion: '1.0.0' }, workflow: { status: 'integrated', researchToAppraisal: true }, appraisal: { status: 'integrated', sessionApi: true }, authentication: { status: 'integrated', provider: 'google-oauth' } });
