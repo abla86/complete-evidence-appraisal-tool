@@ -139,6 +139,7 @@ export function createResearchWorkflowFromText(
     extractedText: text,
     wordCount: words.length,
     estimatedPages: Math.max(1, Math.ceil(words.length / 500)),
+    pages: [],
     metadata: {
       title: normalizedFileName.replace(/\.[^/.]+$/, ''),
       authors: '',
