@@ -1,4 +1,4 @@
-> **Status 2026-09-19:** the repositories listed here have been merged, with full git history, into `archive/<name>/` of the canonical repository and the standalone repositories were removed after every file was verified.
+> **Status 2026-09-30:** the historical repositories listed here were consolidated into this canonical repository or explicitly retired. Two later duplicate shells (`new-complete-evidence-appraisal` and the misspelled `new-evicence-appraisal-tool`) were also reduced to redirect-only stubs after verifying their code was already preserved in the canonical repository.
 
 # Repository Consolidation
 
