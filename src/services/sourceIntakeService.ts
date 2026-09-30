@@ -77,6 +77,7 @@ export async function linkRecordToScreeningBatch(
   audit: AuditWriter,
 ) {
   const current = record.intake?.screeningState ?? 'unassigned';
+  if (!batchId.trim()) return { linked: false as const, reason: 'batch-id-required', currentState: current };
   if (!allowedTransitions[current].includes('awaiting-review')) {
     return { linked: false as const, reason: 'invalid-state', currentState: current };
   }
@@ -109,11 +110,18 @@ export async function transitionScreeningState(
   actor: Actor,
   audit: AuditWriter,
   reason?: string,
+  details?: { reviewerId?: string; fullTextDecision?: 'include' | 'exclude' | 'pending'; fullTextExclusionReason?: string },
 ) {
   const current = record.intake?.screeningState ?? 'unassigned';
   if (!allowedTransitions[current].includes(nextState)) {
+
     return { transitioned: false as const, reason: 'invalid-transition', currentState: current };
   }
+
+  if (!actor.id.trim()) return { transitioned: false as const, reason: 'reviewer-required', currentState: current };
+  if (nextState === 'excluded' && !reason?.trim()) return { transitioned: false as const, reason: 'exclusion-reason-required', currentState: current };
+  if (nextState === 'included' && details?.fullTextDecision !== 'include') return { transitioned: false as const, reason: 'full-text-inclusion-required', currentState: current };
+  if (details?.fullTextDecision === 'exclude' && !details.fullTextExclusionReason?.trim()) return { transitioned: false as const, reason: 'full-text-exclusion-reason-required', currentState: current };
 
   const updated = {
     ...record,
@@ -123,6 +131,13 @@ export async function transitionScreeningState(
         receivedFrom: record.provenance.tool,
       }),
       screeningState: nextState,
+      reviewerId: actor.id,
+      screeningDecision: nextState === 'included' ? 'include' : nextState === 'excluded' ? 'exclude' : 'uncertain',
+      screeningReason: reason?.trim() || undefined,
+      screeningDecidedAt: new Date().toISOString(),
+      fullTextDecision: details?.fullTextDecision,
+      fullTextExclusionReason: details?.fullTextExclusionReason?.trim() || undefined,
+      fullTextDecidedAt: details?.fullTextDecision && details.fullTextDecision !== 'pending' ? new Date().toISOString() : undefined,
     },
   };
 
