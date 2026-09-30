@@ -24,7 +24,7 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
     return (
       <section className="bg-white border border-rose-200 rounded-2xl p-5">
         <h3 className="font-bold text-rose-900">Dual Review</h3>
-        <p className="text-sm text-rose-800 mt-1">Reviewer-ID mÃ¥ vÃ¦re eksplisitt angitt.</p>
+        <p className="text-sm text-rose-800 mt-1">Reviewer-ID må være eksplisitt angitt.</p>
       </section>
     );
   }
@@ -33,14 +33,14 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
     return (
       <section className="bg-white border border-slate-200 rounded-2xl p-5">
         <h3 className="font-bold">Dual Review</h3>
-        <p className="text-sm text-slate-600 mt-1">Det finnes ikke to separate appraisal-sesjoner for dette studiet og instrumentet ennÃ¥.</p>
+        <p className="text-sm text-slate-600 mt-1">Det finnes ikke to separate appraisal-sesjoner for dette studiet og instrumentet ennå.</p>
       </section>
     );
   }
 
   const handleResolve = () => {
     if (actorRole !== 'lead_reviewer' && actorRole !== 'adjudicator' && actorRole !== 'admin') {
-      setMessage('Kun hovedgransker, adjudicator eller administrator kan registrere opplÃ¸sning.');
+      setMessage('Kun hovedgransker, adjudicator eller administrator kan registrere oppløsning.');
       return;
     }
 
@@ -58,7 +58,7 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
     }));
 
     const result = resolveConflict(view.reviewerA.id, reviews, actorId.trim(), resolution);
-    setMessage(`OpplÃ¸sning registrert: ${result.disagreements.length} uenighet(er), metode ${resolution}.`);
+    setMessage(`Oppløsning registrert: ${result.disagreements.length} uenighet(er), metode ${resolution}.`);
   };
 
   return (
@@ -78,7 +78,7 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
         {[view.reviewerA, view.reviewerB].map((reviewer) => (
           <div key={reviewer.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div className="text-xs font-bold">{reviewer.reviewerId}</div>
-            <div className="text-[11px] text-slate-500 mt-1">{reviewer.responses.length} svar Â· {reviewer.locked ? 'LÃ¥st' : 'Ã…pen'}</div>
+            <div className="text-[11px] text-slate-500 mt-1">{reviewer.responses.length} svar · {reviewer.locked ? 'Låst' : 'Åpen'}</div>
           </div>
         ))}
       </div>
@@ -89,8 +89,8 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
           {view.comparison.items.filter(item => item.disagreement).map(item => (
             <div key={item.itemId} className="grid md:grid-cols-3 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs">
               <div className="font-bold">Punkt {item.itemId}</div>
-              <div>Reviewer A: <strong>{String(item.reviewer1Score ?? 'â€”')}</strong></div>
-              <div>Reviewer B: <strong>{String(item.reviewer2Score ?? 'â€”')}</strong></div>
+              <div>Reviewer A: <strong>{String(item.reviewer1Score ?? '—')}</strong></div>
+              <div>Reviewer B: <strong>{String(item.reviewer2Score ?? '—')}</strong></div>
             </div>
           ))}
         </div>
@@ -103,7 +103,7 @@ export const UniversalDualReviewPanel: React.FC<Props> = ({
             <option value="thirdReviewer">Tredje reviewer</option>
             <option value="autoResolve">Automatisk flertall</option>
           </select>
-          <button type="button" onClick={handleResolve} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Registrer opplÃ¸sning</button>
+          <button type="button" onClick={handleResolve} className="rounded-xl bg-teal-800 text-white px-4 py-2 text-sm font-bold">Registrer oppløsning</button>
         </div>
       )}
 
