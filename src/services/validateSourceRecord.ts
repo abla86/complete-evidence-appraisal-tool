@@ -6,7 +6,7 @@ export interface SourceRecordValidationResult {
 }
 
 const URI_RE = /^https?:\/\/[^\s]+$/i;
-const UUID_V4_RE = /^[a-z0-9]{8}-[a-z0-9]{4}-4[a-z0-9]{3}-[89ab][a-z0-9]{3}-[a-z0-9]{12}$/i;
+const UUID_V4_RE = /^(?:record-)?[a-z0-9]{8}-[a-z0-9]{4}-4[a-z0-9]{3}-[89ab][a-z0-9]{3}-[a-z0-9]{12}$/i;
 const DOI_RE = /^10\.\d{4,9}\/[\-._;()/:A-Z0-9]+$/i;
 
 function objectLike(value: unknown): value is Record<string, unknown> {
