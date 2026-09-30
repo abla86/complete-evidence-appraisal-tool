@@ -47,7 +47,7 @@ The current `main` tree has executable foundations for canonical source identity
    - Actual PDF page rendering.
    - Page-aware text selection/highlight.
    - Annotation persistence with page/quote/coordinates.
-   - Link annotation → EvidenceExtraction → AcademicClaim → appraisal item.
+   - **Implemented:** annotation → EvidenceExtraction → AcademicClaim linkage is now explicit and tested; appraisal-item mapping remains a separate integration boundary.
    - Preserve local-first privacy and SHA-256 fingerprint.
 
 5. **End-to-end screening → appraisal flow**
