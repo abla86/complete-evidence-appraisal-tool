@@ -43,7 +43,7 @@ export interface FileParseResult {
 
 export class DocumentParserService {
   public static readonly MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
-  public static readonly ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.txt', '.rtf', '.md'];
+  public static readonly ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.txt', '.md'];
 
   /**
    * Validates file properties before processing
