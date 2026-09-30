@@ -8,6 +8,33 @@
 
 export type { ReviewComparison } from '../types/researchWorkflow';
 
+export interface ReviewAuthorizationContext {
+  session: UserSession;
+  projectId: string;
+}
+
+export function assertReviewPermission(context: ReviewAuthorizationContext, permission: 'assign' | 'conduct' | 'adjudicate' | 'signOff'): void {
+  if (!RbacService.authorizeProjectAccess(context.session, context.projectId)) {
+    throw new Error(`Brukeren har ikke tilgang til prosjektet: ${context.projectId}`);
+  }
+  const required: Record<typeof permission, Parameters<typeof RbacService.checkPermission>[1]> = {
+    assign: 'canConductDualReview',
+    conduct: 'canConductAppraisal',
+    adjudicate: 'canAdjudicateDisagreements',
+    signOff: 'canSignOffConsensus',
+  };
+  if (!RbacService.checkPermission(context.session.role, required[permission])) {
+    throw new Error(`Rollen ${context.session.role} har ikke tillatelse til handlingen: ${permission}`);
+  }
+}
+
+export function assertReviewerIdentity(session: UserSession, reviewerId: string): void {
+  if (!reviewerId.trim()) throw new Error('Reviewer ID er påkrevd.');
+  if (session.role === 'admin' || session.role === 'lead_reviewer' || session.role === 'adjudicator') return;
+  if (session.userId !== reviewerId) throw new Error('En reviewer kan bare endre sin egen review-instans.');
+}
+
+
 export function assignReviews(
   appraisalId: string,
   studyId: string,
@@ -103,3 +130,44 @@ export function resolveConflict(
 }
 
 
+
+
+export function assignReviewsAuthorized(args: {
+  appraisalId: string;
+  studyId: string;
+  instrumentId: string;
+  reviewers: string[];
+  config: DualReviewConfig;
+  authorization: ReviewAuthorizationContext;
+}): ReviewInstance[] {
+  assertReviewPermission(args.authorization, 'assign');
+  return assignReviews(args.appraisalId, args.studyId, args.instrumentId, args.reviewers, args.config);
+}
+
+export function submitReviewAuthorized(args: {
+  review: ReviewInstance;
+  authorization: ReviewAuthorizationContext;
+}): ReviewInstance {
+  assertReviewPermission(args.authorization, 'conduct');
+  assertReviewerIdentity(args.authorization.session, args.review.reviewerId);
+  if (args.review.status === 'completed' && !args.review.completedAt) {
+    throw new Error('En completed review må ha completedAt.');
+  }
+  return { ...args.review };
+}
+
+export function resolveReviewAuthorized(args: {
+  appraisalId: string;
+  reviewer: string;
+  disagreements: ReviewDisagreement[];
+  method: DualReviewConfig['arbitrationMethod'];
+  responses: Record<string, string | number | boolean | null>;
+  rationale: string;
+  authorization: ReviewAuthorizationContext;
+}): ResolvedAppraisal {
+  assertReviewPermission(args.authorization, 'adjudicate');
+  if (args.authorization.session.userId !== args.reviewer && args.authorization.session.role !== 'admin' && args.authorization.session.role !== 'lead_reviewer') {
+    throw new Error('Adjudikator-identiteten samsvarer ikke med innlogget bruker.');
+  }
+  return resolveAppraisal(args.appraisalId, args.reviewer, args.disagreements, args.method, args.responses, args.rationale);
+}
