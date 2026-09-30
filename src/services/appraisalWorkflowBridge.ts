@@ -11,6 +11,7 @@ import {
 } from './universalAppraisalService';
 import type { ResearchAppraisalPayload, WorkflowState, ResearchEvidenceRecord } from '../types/workflow.contracts';
 import { researchWorkflowStore } from './researchWorkflowStore';
+import { getInstrumentQuestions } from './runtimeInstrumentQuestions';
 import { evidenceEventBus } from './evidenceEventBus';
 import { appendAuditEntry } from './auditTrailService';
 
@@ -237,7 +238,7 @@ export async function recordAppraisalResponse(sessionId: string, response: Appra
   const itemId = String(response?.itemId ?? '').trim();
   if (!itemId || response?.rationale === undefined) throw new Error('itemId and rationale are required.');
   const instrument = getInstrumentOrNull(record.session.instrumentId);
-  if (!instrument || (instrument.questions ?? []).every(q => String(q.id) !== itemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
+  if (!instrument || getInstrumentQuestions(instrument).every(q => String(q.id) !== itemId)) throw new Error('itemId finnes ikke i valgt appraisal-instrument.');
 
   if (response.evidence?.sourceId) {
     const sourceId = response.evidence.sourceId.trim();
