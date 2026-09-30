@@ -93,7 +93,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
       relevance: 'No or very minor concerns',
       contributingStudies: 4,
       overallConfidence: 'Moderate confidence',
-      outcomeName: 'Alvorlige uÃ¸nskede hendelser (Adverse events)',
+      outcomeName: 'Alvorlige uønskede hendelser (Adverse events)',
       outcomeType: 'Dichotomous',
       assumedRisk: '15 per 1 000',
       correspondingRisk: '18 per 1 000 (3 flere per 1 000)',
@@ -108,7 +108,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
       publicationBias: 0,
       certainty: 'Moderate',
       importance: 'Critical',
-      comments: 'Nedgradert 1 nivÃ¥ pga imprecision (bredt konfidensintervall som inkluderer bÃ¥de gevinst og skade).'
+      comments: 'Nedgradert 1 nivå pga imprecision (bredt konfidensintervall som inkluderer både gevinst og skade).'
     }
   ]);
 
@@ -119,21 +119,21 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
       finding: 'Pasienter opplever tverrfaglig oppfølging som avgjørende for mestringstro og trygghet i hverdagen.',
       confidence: 'High confidence',
       rationale: 'Gjenfinnbart på tvers av 5 uavhengige kvalitative studier med rik empiri og solid forskerrefleksivitet.',
-      reviewFinding: 'Pasienter opplever tverrfaglig oppfÃ¸lging som avgjÃ¸rende for mestringstro og trygghet i hverdagen.',
+      reviewFinding: 'Pasienter opplever tverrfaglig oppfølging som avgjørende for mestringstro og trygghet i hverdagen.',
       methodologicalLimitations: 'No or very minor concerns',
       coherence: 'No or very minor concerns',
       adequacyOfData: 'No or very minor concerns',
       relevance: 'No or very minor concerns',
       overallConfidence: 'High confidence',
       contributingStudies: 'Lund et al. (2024), Berg et al. (2023), Thorne et al. (2022)',
-      explanation: 'Gjenfinnbart pÃ¥ tvers av 5 uavhengige kvalitative studier med rik empiri og solid forskerrefleksivitet.'
+      explanation: 'Gjenfinnbart på tvers av 5 uavhengige kvalitative studier med rik empiri og solid forskerrefleksivitet.'
     },
     {
       id: 'cerq-2',
       finding: 'Kulturelle barrierer og språkutfordringer forsinker tidlig oppstart av rehabiliteringstiltak.',
       confidence: 'Moderate confidence',
       rationale: 'Moderat tillit pga begrenset antall informanter fra minoritetsgrupper (Adequacy of data).',
-      reviewFinding: 'Kulturelle barrierer og sprÃ¥kutfordringer forsinker tidlig oppstart av rehabiliteringstiltak.',
+      reviewFinding: 'Kulturelle barrierer og språkutfordringer forsinker tidlig oppstart av rehabiliteringstiltak.',
       methodologicalLimitations: 'Minor concerns',
       coherence: 'No or very minor concerns',
       adequacyOfData: 'Moderate concerns',
@@ -146,10 +146,10 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
 
   // WHO Evidence-to-Decision (EtD / DECIDE) State
   const [etdInput, setEtdInput] = useState<WhoEtdCriteriaInput>({
-    guidelineQuestion: 'BÃ¸r strukturert tverrfaglig rehabilitering tilbys rutinemessig til voksne med langvarige muskel-/skjelettsmerter?',
-    targetPopulation: 'Voksne (18-67 Ã¥r) med langvarige muskel- og skjelettsmerter (>3 mnd)',
-    intervention: 'Strukturert tverrfaglig biopsykososial rehabilitering (fysioterapi, kognitiv tilnÃ¦rming, arbeidstiltak)',
-    comparison: 'Standard primÃ¦rhelsetjenesteoppfÃ¸lging / egentrening',
+    guidelineQuestion: 'Bør strukturert tverrfaglig rehabilitering tilbys rutinemessig til voksne med langvarige muskel-/skjelettsmerter?',
+    targetPopulation: 'Voksne (18-67 år) med langvarige muskel- og skjelettsmerter (>3 mnd)',
+    intervention: 'Strukturert tverrfaglig biopsykososial rehabilitering (fysioterapi, kognitiv tilnærming, arbeidstiltak)',
+    comparison: 'Standard primærhelsetjenesteoppfølging / egentrening',
     problemPriority: 'Yes',
     desirableEffects: 'Large',
     undesirableEffects: 'Trivial',
@@ -258,7 +258,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
             WHO Kvalitetskontroll, GRADE & Evidence-to-Decision
           </h1>
           <p className="text-sm text-teal-100/90 leading-relaxed">
-            Komplett evidensrammeverk for forskere: Automatisk etterprÃ¸ving mot WHO-kravene, GRADE Kvantitativ SoF-tabell, 
+            Komplett evidensrammeverk for forskere: Automatisk etterprøving mot WHO-kravene, GRADE Kvantitativ SoF-tabell, 
             GRADE-CERQual Kvalitativ profil, og WHO DECIDE Evidence-to-Decision (EtD) for kliniske anbefalinger.
           </p>
 
@@ -273,7 +273,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
               <div className="text-xl font-black mt-0.5 text-emerald-300">{fullyCompliantCount} / {articles.length} artikler</div>
             </div>
             <div className="bg-white/10 backdrop-blur-xs border border-white/10 rounded-xl p-3">
-              <div className="text-[11px] text-teal-200 uppercase font-semibold">Gj.snitt KvalitetsskÃ¥r</div>
+              <div className="text-[11px] text-teal-200 uppercase font-semibold">Gj.snitt Kvalitetsskår</div>
               <div className="text-xl font-black mt-0.5 text-teal-200">{avgComplianceScore}%</div>
             </div>
             <div className="bg-white/10 backdrop-blur-xs border border-white/10 rounded-xl p-3">
@@ -355,7 +355,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>WHO HÃ¥ndbok & Prinsipper</span>
+          <span>WHO Håndbok & Prinsipper</span>
         </button>
       </div>
 
@@ -376,7 +376,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 >
                   {articles.map(art => (
                     <option key={art.id} value={art.id}>
-                      {art.shortCitation} â€“ {art.title.substring(0, 50)}...
+                      {art.shortCitation} – {art.title.substring(0, 50)}...
                     </option>
                   ))}
                 </select>
@@ -386,7 +386,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                     onClick={() => onSelectArticleForView(selectedArticle.id)}
                     className="px-3 py-2 text-xs font-semibold text-teal-800 hover:bg-teal-50 rounded-lg border border-teal-200 transition-colors"
                   >
-                    Ã…pne artikkeldetaljer
+                    Åpne artikkeldetaljer
                   </button>
                 )}
               </div>
@@ -484,7 +484,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : 'bg-rose-100 text-rose-800'
                             }`}>
-                              {rule.passed ? 'BestÃ¥tt' : 'Mangler'}
+                              {rule.passed ? 'Bestått' : 'Mangler'}
                             </span>
                           </div>
                         </div>
@@ -496,13 +496,13 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                   {!auditReport.overallPassed && onSelectArticleForEdit && (
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                       <span className="text-xs text-slate-600">
-                        Ã˜nsker du Ã¥ komplettere manglende begrunnelser eller data?
+                        Ønsker du å komplettere manglende begrunnelser eller data?
                       </span>
                       <button
                         onClick={() => onSelectArticleForEdit(selectedArticle.id)}
                         className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-800 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition-colors"
                       >
-                        <span>FullfÃ¸r i JBI-skjema</span>
+                        <span>Fullfør i JBI-skjema</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -520,7 +520,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                   <div>
                     <div className="font-bold text-sm text-slate-900">WHO Kvalitetsindeks</div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      {auditReport.passedRuleCount} av {auditReport.totalRuleCount} kontrollpunkter bestÃ¥tt
+                      {auditReport.passedRuleCount} av {auditReport.totalRuleCount} kontrollpunkter bestått
                     </div>
                   </div>
 
@@ -686,7 +686,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                             }}
                             className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
                           >
-                            <option value="RCT">RCT (Starter HÃ¸y)</option>
+                            <option value="RCT">RCT (Starter Høy)</option>
                             <option value="Observational">Observasjonell (Starter Lav)</option>
                           </select>
                         </div>
@@ -717,7 +717,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                             >
                               <option value="0">Ingen (0)</option>
                               <option value="-1">Alvorlig (-1)</option>
-                              <option value="-2">SvÃ¦rt alvorlig (-2)</option>
+                              <option value="-2">Svært alvorlig (-2)</option>
                             </select>
                           </div>
                           <div>
@@ -729,7 +729,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                             >
                               <option value="0">Ingen (0)</option>
                               <option value="-1">Alvorlig (-1)</option>
-                              <option value="-2">SvÃ¦rt alvorlig (-2)</option>
+                              <option value="-2">Svært alvorlig (-2)</option>
                             </select>
                           </div>
                           <div>
@@ -741,7 +741,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                             >
                               <option value="0">Ingen (0)</option>
                               <option value="-1">Alvorlig (-1)</option>
-                              <option value="-2">SvÃ¦rt alvorlig (-2)</option>
+                              <option value="-2">Svært alvorlig (-2)</option>
                             </select>
                           </div>
                           <div>
@@ -753,7 +753,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                             >
                               <option value="0">Ingen (0)</option>
                               <option value="-1">Alvorlig (-1)</option>
-                              <option value="-2">SvÃ¦rt alvorlig (-2)</option>
+                              <option value="-2">Svært alvorlig (-2)</option>
                             </select>
                           </div>
                         </div>
@@ -879,7 +879,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                         onChange={(e) => handleRecalculateCerqual(finding.id, { methodologicalLimitations: e.target.value as any })}
                         className="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs"
                       >
-                        <option value="No or very minor concerns">Ingen / svÃ¦rt smÃ¥</option>
+                        <option value="No or very minor concerns">Ingen / svært små</option>
                         <option value="Minor concerns">Mindre bekymringer</option>
                         <option value="Moderate concerns">Moderate bekymringer</option>
                         <option value="Serious concerns">Alvorlige bekymringer</option>
@@ -893,7 +893,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                         onChange={(e) => handleRecalculateCerqual(finding.id, { coherence: e.target.value as any })}
                         className="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs"
                       >
-                        <option value="No or very minor concerns">Ingen / svÃ¦rt smÃ¥</option>
+                        <option value="No or very minor concerns">Ingen / svært små</option>
                         <option value="Minor concerns">Mindre bekymringer</option>
                         <option value="Moderate concerns">Moderate bekymringer</option>
                         <option value="Serious concerns">Alvorlige bekymringer</option>
@@ -907,7 +907,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                         onChange={(e) => handleRecalculateCerqual(finding.id, { adequacyOfData: e.target.value as any })}
                         className="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs"
                       >
-                        <option value="No or very minor concerns">Ingen / svÃ¦rt smÃ¥</option>
+                        <option value="No or very minor concerns">Ingen / svært små</option>
                         <option value="Minor concerns">Mindre bekymringer</option>
                         <option value="Moderate concerns">Moderate bekymringer</option>
                         <option value="Serious concerns">Alvorlige bekymringer</option>
@@ -921,7 +921,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                         onChange={(e) => handleRecalculateCerqual(finding.id, { relevance: e.target.value as any })}
                         className="w-full mt-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs"
                       >
-                        <option value="No or very minor concerns">Ingen / svÃ¦rt smÃ¥</option>
+                        <option value="No or very minor concerns">Ingen / svært små</option>
                         <option value="Minor concerns">Mindre bekymringer</option>
                         <option value="Moderate concerns">Moderate bekymringer</option>
                         <option value="Serious concerns">Alvorlige bekymringer</option>
@@ -962,7 +962,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    WHO AnbefalingsnivÃ¥ (Recommendation Level):
+                    WHO Anbefalingsnivå (Recommendation Level):
                   </div>
                   <h4 className="text-xl font-black mt-0.5">{etdResult.recommendationType}</h4>
                 </div>
@@ -982,7 +982,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                   onChange={(e) => setEtdInput(prev => ({ ...prev, problemPriority: e.target.value as any }))}
                   className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium"
                 >
-                  <option value="Yes">Ja (HÃ¸y prioritet)</option>
+                  <option value="Yes">Ja (Høy prioritet)</option>
                   <option value="Probably yes">Sannsynligvis ja</option>
                   <option value="Probably no">Sannsynligvis nei</option>
                   <option value="No">Nei</option>
@@ -990,17 +990,17 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
               </div>
 
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                <label className="text-xs font-bold text-slate-800 block">2. Balanse mellom Ã¸nskede og uÃ¸nskede effekter</label>
+                <label className="text-xs font-bold text-slate-800 block">2. Balanse mellom ønskede og uønskede effekter</label>
                 <select
                   value={etdInput.balanceOfEffects}
                   onChange={(e) => setEtdInput(prev => ({ ...prev, balanceOfEffects: e.target.value as any }))}
                   className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium"
                 >
-                  <option value="Favors intervention">Klar overvekt i favÃ¸r av intervensjon</option>
-                  <option value="Probably favors intervention">Sannsynligvis i favÃ¸r av intervensjon</option>
-                  <option value="Does not favor either">NÃ¸ytral / lik balanse</option>
-                  <option value="Probably favors comparison">Sannsynligvis i favÃ¸r av kontroll/sammenligning</option>
-                  <option value="Favors comparison">Klar overvekt i favÃ¸r av kontroll</option>
+                  <option value="Favors intervention">Klar overvekt i favør av intervensjon</option>
+                  <option value="Probably favors intervention">Sannsynligvis i favør av intervensjon</option>
+                  <option value="Does not favor either">Nøytral / lik balanse</option>
+                  <option value="Probably favors comparison">Sannsynligvis i favør av kontroll/sammenligning</option>
+                  <option value="Favors comparison">Klar overvekt i favør av kontroll</option>
                 </select>
               </div>
 
@@ -1011,10 +1011,10 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                   onChange={(e) => setEtdInput(prev => ({ ...prev, certaintyOfEvidence: e.target.value as any }))}
                   className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium"
                 >
-                  <option value="High">HÃ¸y sikkerhet (High)</option>
+                  <option value="High">Høy sikkerhet (High)</option>
                   <option value="Moderate">Moderat sikkerhet (Moderate)</option>
                   <option value="Low">Lav sikkerhet (Low)</option>
-                  <option value="Very Low">SvÃ¦rt lav sikkerhet (Very Low)</option>
+                  <option value="Very Low">Svært lav sikkerhet (Very Low)</option>
                 </select>
               </div>
 
@@ -1041,22 +1041,22 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 >
                   <option value="Favors intervention">Kostnadseffektivt / fordelaktig</option>
                   <option value="Probably favors intervention">Sannsynligvis fordelaktig</option>
-                  <option value="Does not favor either">NÃ¸ytralt</option>
+                  <option value="Does not favor either">Nøytralt</option>
                   <option value="Probably favors comparison">Sannsynligvis for dyrt</option>
                 </select>
               </div>
 
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                <label className="text-xs font-bold text-slate-800 block">6. PÃ¥virkning pÃ¥ helselikhet (Equity)</label>
+                <label className="text-xs font-bold text-slate-800 block">6. Påvirkning på helselikhet (Equity)</label>
                 <select
                   value={etdInput.equity}
                   onChange={(e) => setEtdInput(prev => ({ ...prev, equity: e.target.value as any }))}
                   className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium"
                 >
-                  <option value="Increased equity">Ã˜kt helselikhet (Reduserer forskjeller)</option>
-                  <option value="Probably increased">Sannsynligvis Ã¸kt likhet</option>
-                  <option value="Probably no impact">Ingen vesentlig pÃ¥virkning</option>
-                  <option value="Reduced equity">Redusert helselikhet (Ã˜ker ulikhet)</option>
+                  <option value="Increased equity">Økt helselikhet (Reduserer forskjeller)</option>
+                  <option value="Probably increased">Sannsynligvis økt likhet</option>
+                  <option value="Probably no impact">Ingen vesentlig påvirkning</option>
+                  <option value="Reduced equity">Redusert helselikhet (Øker ulikhet)</option>
                 </select>
               </div>
             </div>
@@ -1177,7 +1177,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 hover:text-teal-950 hover:underline"
                   >
-                    <span>Ã…pne offisiell modellveileder hos {selectedModel.governingBody}</span>
+                    <span>Åpne offisiell modellveileder hos {selectedModel.governingBody}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
@@ -1196,8 +1196,8 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Verdens helseorganisasjon (WHO) stiller strenge metodiske krav til syntetisering og kritisk vurdering
-              av forskningsevidens. Dette verktÃ¸yet hÃ¥ndhever automatisk disse kontrollprinsippene for Ã¥ garantere
-              hÃ¸yeste akademiske standard for masteroppgaver og vitenskapelige publikasjoner.
+              av forskningsevidens. Dette verktøyet håndhever automatisk disse kontrollprinsippene for å garantere
+              høyeste akademiske standard for masteroppgaver og vitenskapelige publikasjoner.
             </p>
           </div>
 
@@ -1208,7 +1208,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 <span>Modellintegritet & Versjonskontroll</span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Ingen artikler kan vurderes med utdaterte eller feilaktige modeller. Alle sjekklister mÃ¥ vÃ¦re 
+                Ingen artikler kan vurderes med utdaterte eller feilaktige modeller. Alle sjekklister må være 
                 oppdatert til offisiell revisjon (f.eks. JBI 2017, AMSTAR 2 2017, RoB 2 2019).
               </p>
             </div>
@@ -1219,8 +1219,8 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 <span>100% Fullstendighetskrav</span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Ingen spÃ¸rsmÃ¥l eller metodiske domener kan hoppes over. Alle 10 JBI-kriterier mÃ¥ vurderes 
-                systematisk for Ã¥ forhindre selektiv kvalitetsvurdering.
+                Ingen spørsmål eller metodiske domener kan hoppes over. Alle 10 JBI-kriterier må vurderes 
+                systematisk for å forhindre selektiv kvalitetsvurdering.
               </p>
             </div>
 
@@ -1242,7 +1242,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Bekreftende vurderinger (Â«JaÂ») skal underbygges med konkrete tekstutdrag eller sidetallshenvisninger
-                fra artikkelen for maksimal etterprÃ¸vbarhet.
+                fra artikkelen for maksimal etterprøvbarhet.
               </p>
             </div>
 
@@ -1252,8 +1252,8 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 <span>Forskerrefleksivitet & Posisjonering</span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                I henhold til kvalitativ forskningsmetodikk (JBI 6 & 7) mÃ¥ forfatternes forforstÃ¥else, teoretiske 
-                stÃ¥sted og pÃ¥virkning pÃ¥ datamaterialet eksplisitt evalueres.
+                I henhold til kvalitativ forskningsmetodikk (JBI 6 & 7) må forfatternes forforståelse, teoretiske 
+                ståsted og påvirkning på datamaterialet eksplisitt evalueres.
               </p>
             </div>
 
@@ -1264,7 +1264,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Forhindrer feilaktige slutninger. Kvalitative studier belyser opplevelser og mekanismer, men kan 
-                aldri tolkes som bevis pÃ¥ isolert kausal effekt av en intervensjon.
+                aldri tolkes som bevis på isolert kausal effekt av en intervensjon.
               </p>
             </div>
           </div>
