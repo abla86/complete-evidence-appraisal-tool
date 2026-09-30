@@ -3,6 +3,7 @@ import { useStudioState } from '../state/StudioStateContext';
 import type { SourceRecord } from '../domain/sourceRecord';
 import { validateSourceRecord } from '../services/validateSourceRecord';
 import { validateReference } from '../services/referenceIntegrityService';
+import { loadSourceRecordLibrary, upsertSourceRecord } from '../services/sourceRecordLibraryStore';
 import { appendAuditEntry } from '../services/auditTrailService';
 import {
   intakeSourceRecord,
@@ -14,13 +15,6 @@ import {
   type AuditWriter,
 } from '../services/sourceIntakeService';
 
-const ACTOR: Actor = { id: 'test-group-user', role: 'reviewer' };
-
-class MemoryStore implements IntakeStore {
-  private records = new Map<string, SourceRecord>();
-  getRecord(id: string) { return this.records.get(id); }
-  saveRecord(record: SourceRecord) { this.records.set(record.recordId, structuredClone(record)); }
-}
 
 class TrailWriter implements AuditWriter {
   append(input: Parameters<typeof appendAuditEntry>[0]) {
@@ -38,6 +32,8 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const [picoId, setPicoId] = useState('pico-1');
   const [fullTextDecision, setFullTextDecision] = useState<'include' | 'exclude' | 'pending'>('pending');
   const [fullTextExclusionReason, setFullTextExclusionReason] = useState('');
+  const [actor, setActor] = useState<Actor | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const included = articles.filter(a => a.lifecycleStatus === 'FINALIZED' || a.overallVerdict === 'Inkluder').length;
   const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;
   const unresolved = Math.max(0, articles.length - included - excluded);
@@ -62,8 +58,25 @@ export const SourceRecordWorkflowView: React.FC = () => {
     setArticles(current => current.map(article => article.id === selected.id ? { ...article, overallVerdict: decision, verdictNote: decision === 'Ekskluder' ? 'Ekskludert i screening; begrunnelse dokumenteres i audit trail.' : article.verdictNote } : article));
     setMessage('Screeningbeslutning registrert: ' + decision + '.');
   };
-  const store = useMemo(() => new MemoryStore(), []);
+  const store = useMemo<IntakeStore>(() => ({
+    getRecord: (id: string) => loadSourceRecordLibrary().find(item => item.recordId === id),
+    saveRecord: (sourceRecord: SourceRecord) => { upsertSourceRecord(sourceRecord); },
+  }), []);
   const auditWriter = useMemo(() => new TrailWriter(), []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then(response => response.ok ? response.json() as Promise<{ authenticated?: boolean; user?: { sub?: string } | null }> : null)
+      .then(result => {
+        if (cancelled) return;
+        const reviewerId = result?.authenticated && result.user?.sub ? result.user.sub.trim() : '';
+        setActor(reviewerId ? { id: reviewerId, role: 'reviewer' } : null);
+      })
+      .catch(() => { if (!cancelled) setActor(null); })
+      .finally(() => { if (!cancelled) setAuthLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const importRecord = async () => {
     setMessage('');
@@ -74,7 +87,8 @@ export const SourceRecordWorkflowView: React.FC = () => {
         setMessage(`Import avvist: ${validation.errors.join(' ')}`);
         return;
       }
-      const result = await intakeSourceRecord(parsed, ACTOR, store, auditWriter);
+      if (!actor) { setMessage('Innlogging kreves før SourceRecord kan registreres.'); return; }
+      const result = await intakeSourceRecord(parsed, actor, store, auditWriter);
       if (!result.accepted) {
         setMessage(`Import avvist: ${result.reason}`);
         return;
@@ -88,23 +102,26 @@ export const SourceRecordWorkflowView: React.FC = () => {
 
   const link = async () => {
     if (!record) return;
-    const result = await linkRecordToScreeningBatch(record, batchId, ACTOR, auditWriter);
+    if (!actor) { setMessage('Innlogging kreves før screening-batch kan kobles.'); return; }
+    const result = await linkRecordToScreeningBatch(record, batchId, actor, auditWriter);
     setRecord(result.linked ? result.record : record);
     setMessage(result.linked ? 'Koblet til screening-batch.' : `Kobling avvist: ${result.reason}`);
   };
 
   const review = async () => {
     if (!record) return;
-    const result = await transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Testgruppe-screening fullført');
+    if (!actor) { setMessage('Innlogging kreves før screening kan registreres.'); return; }
+    const result = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Screening fullført');
     setRecord(result.transitioned ? result.record : record);
     setMessage(result.transitioned ? 'Screeningstatus: reviewed.' : `Screening avvist: ${result.reason}`);
   };
 
   const attach = async () => {
     if (!record) return;
-    const reviewResult = await transitionScreeningState(record, 'reviewed', ACTOR, auditWriter, 'Fulltekst vurdert', { fullTextDecision, fullTextExclusionReason });
+    if (!actor) { setMessage('Innlogging kreves før fulltekstbeslutning kan registreres.'); return; }
+    const reviewResult = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Fulltekst vurdert', { fullTextDecision, fullTextExclusionReason });
     if (!reviewResult.transitioned) { setMessage(`Fulltekst avvist: ${reviewResult.reason}`); return; }
-    const result = await attachReviewedRecordToPico(reviewResult.record, picoId, ACTOR, auditWriter);
+    const result = await attachReviewedRecordToPico(reviewResult.record, picoId, actor, auditWriter);
     setMessage(result.attached ? `Knyttet til PICO ${result.picoEntityId}. Referanse er fortsatt ikke verifisert.` : `PICO-attach avvist: ${result.reason}`);
     if (result.attached && result.record) setRecord(result.record);
   };
@@ -160,6 +177,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
       </div>
       <header>
         <h2 className="text-2xl font-bold text-slate-900">SourceRecord → Screening → PICO</h2>
+        <p className="mt-1 text-xs text-slate-500">{authLoading ? 'Kontrollerer innlogging…' : actor ? `Innlogget reviewer: ${actor.id}` : 'Innlogging kreves for auditerte workflow-handlinger.'}</p>
         <p className="mt-1 text-sm text-slate-600">Eksplisitt testflyt. Hver handling er separat og spores i canonical audit trail.</p>
       </header>
       <div className="grid xl:grid-cols-3 gap-5">
