@@ -1,4 +1,5 @@
-﻿import type {
+﻿import { RbacService, type UserSession } from './rbacService';
+import type {
   DualReviewConfig,
   ReviewComparison,
   ReviewDisagreement,
