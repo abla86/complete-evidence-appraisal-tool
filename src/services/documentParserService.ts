@@ -6,7 +6,7 @@ import mammoth from 'mammoth';
 
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
 
-export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*†‡§0-9\u2070-\u2079]+/gu, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
+export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*†‡§0-9\u00B9\u00B2\u00B3\u2074-\u2079]+/gu, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
 
 export interface ParserInput { name: string; size: number; type?: string; content?: ArrayBuffer | string; text?: () => Promise<string>; arrayBuffer?: () => Promise<ArrayBuffer>; }
 
