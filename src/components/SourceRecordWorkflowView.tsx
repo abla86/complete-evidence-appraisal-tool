@@ -34,6 +34,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const [fullTextExclusionReason, setFullTextExclusionReason] = useState('');
   const [actor, setActor] = useState<Actor | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [serverSyncReady, setServerSyncReady] = useState(false);
   const included = articles.filter(a => a.lifecycleStatus === 'FINALIZED' || a.overallVerdict === 'Inkluder').length;
   const excluded = articles.filter(a => a.overallVerdict === 'Ekskluder').length;
   const unresolved = Math.max(0, articles.length - included - excluded);
@@ -65,6 +66,34 @@ export const SourceRecordWorkflowView: React.FC = () => {
   const auditWriter = useMemo(() => new TrailWriter(), []);
 
   React.useEffect(() => {
+    if (!actor) return;
+    let cancelled = false;
+    void fetch('/api/source-records', { credentials: 'include' })
+      .then(response => response.ok ? response.json() as Promise<{ records?: SourceRecord[] }> : null)
+      .then(payload => {
+        if (cancelled || !payload?.records) return;
+        const local = loadSourceRecordLibrary();
+        const merged = new Map<string, SourceRecord>();
+        for (const item of payload.records) merged.set(item.recordId, item);
+        for (const item of local) merged.set(item.recordId, item);
+        for (const item of merged.values()) upsertSourceRecord(item);
+        setServerSyncReady(true);
+      })
+      .catch(() => { if (!cancelled) setServerSyncReady(false); });
+    return () => { cancelled = true; };
+  }, [actor]);
+
+  React.useEffect(() => {
+    if (!actor || !serverSyncReady) return;
+    const records = loadSourceRecordLibrary();
+    void fetch('/api/source-records', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records }),
+    }).catch(() => undefined);
+  }, [actor, serverSyncReady, record]);
+  React.useEffect(() => {
     let cancelled = false;
     void fetch('/api/auth/me', { credentials: 'include' })
       .then(response => response.ok ? response.json() as Promise<{ authenticated?: boolean; user?: { sub?: string } | null }> : null)
@@ -94,6 +123,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
         return;
       }
       setRecord(result.record);
+      if (serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
       setMessage(`Importert. Status: ${result.record.referenceDraft.status.toUpperCase()} / ${result.record.intake.screeningState}`);
     } catch (error) {
       setMessage(`Importfeil: ${error instanceof Error ? error.message : 'ugyldig JSON'}`);
@@ -105,6 +135,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
     if (!actor) { setMessage('Innlogging kreves før screening-batch kan kobles.'); return; }
     const result = await linkRecordToScreeningBatch(record, batchId, actor, auditWriter);
     setRecord(result.linked ? result.record : record);
+    if (result.linked && serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     setMessage(result.linked ? 'Koblet til screening-batch.' : `Kobling avvist: ${result.reason}`);
   };
 
@@ -113,6 +144,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
     if (!actor) { setMessage('Innlogging kreves før screening kan registreres.'); return; }
     const result = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Screening fullført');
     setRecord(result.transitioned ? result.record : record);
+    if (result.transitioned && serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     setMessage(result.transitioned ? 'Screeningstatus: reviewed.' : `Screening avvist: ${result.reason}`);
   };
 
@@ -127,6 +159,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
       return;
     }
     setRecord(result.record);
+    if (serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     try {
       const response = await fetch(`/api/research-workflows/${encodeURIComponent(result.record.recordId)}/screening/source-record`, {
         method: 'POST',
