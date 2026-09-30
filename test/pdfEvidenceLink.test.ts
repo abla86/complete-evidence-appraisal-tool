@@ -5,6 +5,7 @@ import {
   createPdfEvidenceAnnotation,
   linkPdfAnnotationToEvidence,
   linkPdfAnnotationToClaim,
+  attachClaimToAppraisalItem,
 } from '../src/services/evidenceLinkService';
 
 test('PDF annotation becomes page-aware EvidenceExtraction and keeps source identity', () => {
@@ -73,4 +74,30 @@ test('PDF annotation can be linked through EvidenceExtraction to an AcademicClai
   assert.equal(linked.claimId, claim.id);
   assert.deepEqual(claim.supportingEvidenceIds, [evidence.id]);
   assert.deepEqual(evidence.linkedClaims, [claim.id]);
+});
+
+test('AcademicClaim can be linked to an appraisal response item', () => {
+  const claim = {
+    id: 'claim-appraisal-1',
+    text: 'The intervention improved adherence.',
+    supportingEvidenceIds: [],
+    contradictoryEvidenceIds: [],
+    status: 'NEEDS_REVIEW' as const,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    authorId: 'researcher-1',
+  };
+  const session = {
+    id: 'appraisal-1',
+    studyId: 'study-1',
+    instrumentId: 'casp-rct',
+    instrumentVersion: 'test',
+    reviewerId: 'researcher-1',
+    responses: [{ itemId: '1', answer: 'Yes', rationale: 'Documented evidence.' }],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    locked: false,
+  };
+  const updated = attachClaimToAppraisalItem(claim, session, '1');
+  assert.deepEqual(updated.responses[0].claimIds, [claim.id]);
 });
