@@ -76,7 +76,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
   // Run analysis (tries backend API / Gemini, falls back to deterministic)
   const handleRunAnalysis = async () => {
     if (!documentText.trim()) {
-      showToast('Vennligst lim inn eller last opp en forskningsartikkel fÃ¸rst.', 'warning');
+      showToast('Vennligst lim inn eller last opp en forskningsartikkel først.', 'warning');
       return;
     }
 
@@ -95,7 +95,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
         const data = await response.json();
         if (data.success && data.report) {
           setReport(data.report);
-          showToast(`Integritetsanalyse fullfÃ¸rt (${data.report.engineUsed})`, 'success');
+          showToast(`Integritetsanalyse fullført (${data.report.engineUsed})`, 'success');
           setIsAnalyzing(false);
           return;
         }
@@ -107,7 +107,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
     // Local Fallback
     const localReport = MetaResearchService.classifyAndAuditDocument(documentText, documentFileName);
     setReport(localReport);
-    showToast('Integritetsanalyse fullfÃ¸rt via deterministisk metodisk motor', 'success');
+    showToast('Integritetsanalyse fullført via deterministisk metodisk motor', 'success');
     setIsAnalyzing(false);
   };
 
@@ -176,8 +176,8 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
     md += `**Dokumenttype:** ${report.classification.documentTypeName}\n`;
     md += `**Metodologifamilie:** ${report.classification.methodologyType}\n`;
     md += `**Epistemologi:** ${report.classification.epistemology}\n`;
-    md += `**Samlet integritetsnivÃ¥:** ${report.overallIntegrityLevel}\n`;
-    md += `**Anbefalt primÃ¦rinstrument:** ${recommendedInstrument.name} (${recommendedInstrument.shortName})\n\n`;
+    md += `**Samlet integritetsnivå:** ${report.overallIntegrityLevel}\n`;
+    md += `**Anbefalt primærinstrument:** ${recommendedInstrument.name} (${recommendedInstrument.shortName})\n\n`;
     md += `## Sammendrag\n${report.integritySummary}\n\n`;
     md += `## 9 Integritetsdimensjoner\n\n`;
     report.integrityDimensions.forEach(dim => {
@@ -233,11 +233,11 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-                <span>Forsk pÃ¥ Forskning & Integritetsvakt</span>
+                <span>Forsk på Forskning & Integritetsvakt</span>
               </h1>
               <p className="text-slate-300 text-sm sm:text-base max-w-3xl mt-1.5 leading-relaxed">
                 Automatisk identifisering av vitenskapelige publikasjoner (kvalitativ, RCT, observasjonell, mixed methods, retningslinje), 
-                kildekontrollert integritetsscreening over 9 metavitenskapelige dimensjoner, og matchmaking mot alle internasjonalt verifiserte evalueringsverktÃ¸y.
+                kildekontrollert integritetsscreening over 9 metavitenskapelige dimensjoner, og matchmaking mot alle internasjonalt verifiserte evalueringsverktøy.
               </p>
             </div>
 
@@ -300,7 +300,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                           {sample.categoryName}
                         </span>
                         <span className="text-xs font-medium text-slate-900 truncate">
-                          {sample.title.split('â€“')[0]}
+                          {sample.title.split('–')[0]}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
@@ -350,10 +350,10 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                 <Upload className="w-5 h-5" />
               </div>
               <p className="text-xs font-semibold text-slate-800">
-                Dra og slipp forskningsartikkel eller klikk for Ã¥ bla gjennom
+                Dra og slipp forskningsartikkel eller klikk for å bla gjennom
               </p>
               <p className="text-[11px] text-slate-500">
-                StÃ¸tter PDF, Word (DOCX), ren tekst og forskningsnotater
+                Støtter PDF, Word (DOCX), ren tekst og forskningsnotater
               </p>
             </div>
 
@@ -383,12 +383,12 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
               {isAnalyzing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-emerald-300" />
-                  KjÃ¸rer Metodisk AI & Integritetsscreening...
+                  Kjører Metodisk AI & Integritetsscreening...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  KjÃ¸r Integritetsanalyse & VerktÃ¸ymatch
+                  Kjør Integritetsanalyse & Verktøymatch
                 </>
               )}
             </button>
@@ -410,7 +410,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
               }`}
             >
               <Compass className="w-3.5 h-3.5 text-emerald-600" />
-              1. Dokumenttype & VerktÃ¸ymatch
+              1. Dokumenttype & Verktøymatch
             </button>
 
             <button
@@ -436,7 +436,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
               }`}
             >
               <Layers className="w-3.5 h-3.5 text-cyan-600" />
-              3. Alle EvalueringsverktÃ¸y ({MethodologyRegistry.length})
+              3. Alle Evalueringsverktøy ({MethodologyRegistry.length})
             </button>
           </div>
 
@@ -568,7 +568,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                   <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1">
                     <span className="font-bold flex items-center gap-1.5 text-rose-950">
                       <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                      Integritetsvern â€“ Forbudte praksiser for dette verktÃ¸yet:
+                      Integritetsvern – Forbudte praksiser for dette verktøyet:
                     </span>
                     <ul className="list-disc list-inside space-y-0.5 text-rose-800 text-[11px]">
                       {recommendedInstrument.prohibitedAcademicPractices.map((p, idx) => (
@@ -622,7 +622,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500 italic">Ingen andre primÃ¦re alternativer registrert for dette designet.</p>
+                    <p className="text-xs text-slate-500 italic">Ingen andre primære alternativer registrert for dette designet.</p>
                   )}
                 </div>
 
@@ -630,7 +630,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                 <div className="bg-white rounded-2xl p-5 border border-rose-200/80 shadow-xs space-y-3">
                   <h4 className="text-xs font-bold text-rose-900 uppercase tracking-wider flex items-center gap-2">
                     <XCircle className="w-4 h-4 text-rose-600" />
-                    Inkompatible VerktÃ¸y (Advarsel)
+                    Inkompatible Verktøy (Advarsel)
                   </h4>
                   {incompatibleInstruments.length > 0 ? (
                     <div className="space-y-2">
@@ -638,7 +638,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                         <div key={inc.id} className="p-3 rounded-xl bg-rose-50/70 border border-rose-200/60 text-xs text-rose-900">
                           <span className="font-bold block">{inc.shortName} ({inc.name})</span>
                           <span className="text-[11px] text-rose-700 block mt-0.5">
-                            Metodisk feil: Utformet for {inc.targetStudyDesign.join(', ')}. Kan ikke benyttes pÃ¥ {report.classification.documentTypeName.toLowerCase()}.
+                            Metodisk feil: Utformet for {inc.targetStudyDesign.join(', ')}. Kan ikke benyttes på {report.classification.documentTypeName.toLowerCase()}.
                           </span>
                         </div>
                       ))}
@@ -659,16 +659,16 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    Metodisk Integritets-Scorecard (Forsk pÃ¥ Forskning)
+                    Metodisk Integritets-Scorecard (Forsk på Forskning)
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Strukturert kildekontroll over 9 vitenskapelige kjerneelementer i trÃ¥d med JBI, Cochrane, ICMJE og Open Science.
+                    Strukturert kildekontroll over 9 vitenskapelige kjerneelementer i tråd med JBI, Cochrane, ICMJE og Open Science.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs font-semibold">
                   <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800">
-                    {report.integrityDimensions.filter(d => d.score === 'HIGH').length} BestÃ¥tt
+                    {report.integrityDimensions.filter(d => d.score === 'HIGH').length} Bestått
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800">
                     {report.integrityDimensions.filter(d => d.score === 'UNCLEAR' || d.score === 'MODERATE').length} Uavklart
@@ -758,7 +758,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">
-                      Komplett Register over EvalueringsverktÃ¸y ({filteredCatalogue.length})
+                      Komplett Register over Evalueringsverktøy ({filteredCatalogue.length})
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Verifiserte internasjonale standarder for kritisk vurdering, risk of bias, retningslinjer og syntese.
@@ -790,7 +790,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                     type="text"
                     value={catalogueSearch}
                     onChange={(e) => setCatalogueSearch(e.target.value)}
-                    placeholder="SÃ¸k i verktÃ¸y (JBI, AMSTAR 2, CASP, AGREE II, RoB 2, GRADE, MMAT, QUADAS-2, STROBE)..."
+                    placeholder="Søk i verktøy (JBI, AMSTAR 2, CASP, AGREE II, RoB 2, GRADE, MMAT, QUADAS-2, STROBE)..."
                     className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -858,7 +858,7 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
                           onClick={() => handleLaunchAssessment(inst.id)}
                           className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-emerald-600 text-white text-xs font-semibold transition cursor-pointer"
                         >
-                          Velg VerktÃ¸y
+                          Velg Verktøy
                         </button>
                       </div>
                     </div>
