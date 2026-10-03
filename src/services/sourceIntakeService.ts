@@ -119,6 +119,7 @@ export async function transitionScreeningState(
   if (details?.fullTextDecision === 'exclude' && !details.fullTextExclusionReason?.trim()) return { transitioned: false as const, reason: 'full-text-exclusion-reason-required', currentState: current };
 
   if (!allowedTransitions[current].includes(nextState)) {
+    if (nextState === 'included') return { transitioned: false as const, reason: 'full-text-inclusion-required', currentState: current };
     return { transitioned: false as const, reason: 'invalid-transition', currentState: current };
   }
 
