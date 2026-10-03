@@ -151,6 +151,8 @@ export function linkPdfAnnotationToClaim(
   if (!updatedClaim.supportingEvidenceIds.includes(evidence.id)) {
     throw new Error('Evidence was not attached to the AcademicClaim.');
   }
+  claim.supportingEvidenceIds = [...updatedClaim.supportingEvidenceIds];
+  claim.updatedAt = updatedClaim.updatedAt;
   return {
     ...linked,
     claimId: claim.id,
