@@ -123,7 +123,9 @@ export async function transitionScreeningState(
   if (nextState === 'included' && details?.fullTextDecision !== 'include') return { transitioned: false as const, reason: 'full-text-inclusion-required', currentState: current };
   if (details?.fullTextDecision === 'exclude' && !details.fullTextExclusionReason?.trim()) return { transitioned: false as const, reason: 'full-text-exclusion-reason-required', currentState: current };
 
-  const updated = {
+  const screeningDecision: NonNullable<SourceRecord['intake']>['screeningDecision'] =
+    nextState === 'included' ? 'include' : nextState === 'excluded' ? 'exclude' : 'uncertain';
+  const updated: SourceRecord = {
     ...record,
     intake: {
       ...(record.intake ?? {
@@ -132,7 +134,7 @@ export async function transitionScreeningState(
       }),
       screeningState: nextState,
       reviewerId: actor.id,
-      screeningDecision: nextState === 'included' ? 'include' : nextState === 'excluded' ? 'exclude' : 'uncertain',
+      screeningDecision,
       screeningReason: reason?.trim() || undefined,
       screeningDecidedAt: new Date().toISOString(),
       fullTextDecision: details?.fullTextDecision,
