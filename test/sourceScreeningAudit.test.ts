@@ -5,7 +5,7 @@ import { createScreeningDecisionFromSourceRecord, applySourceRecordScreeningToWo
 import { createResearchWorkflowFromText } from '../src/services/researchWorkflowService';
 import type { SourceRecord } from '../src/domain/sourceRecord';
 
-const record = {
+const record: SourceRecord = {
   schemaVersion: '1.0.0',
   recordId: 'record-550e8400-e29b-41d4-a716-446655440000',
   source: { url: 'https://example.org/article', capturedAt: new Date().toISOString() },
