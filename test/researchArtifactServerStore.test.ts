@@ -16,7 +16,7 @@ try {
     schemaVersion: '1.0.0' as const,
     recordId: createRecordId(),
     source: { url: 'https://example.org/article', capturedAt: new Date().toISOString() },
-    metadata: { title: 'Test', authors: ['Author'], publicationDate: '2026-01-01', journal: 'Journal', status: 'COMPLETE' as const, missingFields: [] },
+    metadata: { sourceUrl: 'https://example.org/article', title: 'Test', authors: ['Author'], publicationDate: '2026-01-01', journal: 'Journal', detectedAt: new Date().toISOString(), detectedFrom: ['manual'] as const, status: 'COMPLETE' as const, missingFields: [] },
     identifiers: { doi: null },
     referenceDraft: { apa7: 'Author (2026). Test.', status: 'complete' as const, note: 'Draft – detected metadata, not verified against source' as const },
     legalReference: null,
