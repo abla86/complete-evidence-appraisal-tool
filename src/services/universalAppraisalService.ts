@@ -99,7 +99,7 @@ export function assertInstrumentIntegrity(session: AppraisalSession): void {
   const instrument = getInstrumentOrNull(session.instrumentId);
   if (!instrument) throw new Error('INSTRUMENT_INTEGRITY: instrument not found in MethodologyRegistry.');
   if (session.instrumentVersion !== instrument.version) throw new Error(`INSTRUMENT_INTEGRITY: session version ${session.instrumentVersion} does not match registry version ${instrument.version}.`);
-  const expected = new Set((instrument.questions ?? []).map(q => normalizeId(q.id)));
+  const expected = new Set(getInstrumentQuestions(instrument).map(q => normalizeId(q.id)));
   const actual = new Set(session.responses.map(r => normalizeId(r.itemId)));
   if (expected.size !== actual.size || [...expected].some(id => !actual.has(id))) throw new Error('INSTRUMENT_INTEGRITY: session responses do not match the selected instrument question set.');
 }
