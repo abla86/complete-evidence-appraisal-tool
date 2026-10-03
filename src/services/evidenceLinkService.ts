@@ -245,6 +245,10 @@ export function attachEvidenceToClaim(
   };
 
   if (!evidence.linkedClaims.includes(claim.id)) evidence.linkedClaims.push(claim.id);
+  const contextEvidence = context.evidence.find(item => item.id === evidence.id);
+  if (contextEvidence && contextEvidence !== evidence) {
+    contextEvidence.linkedClaims = [...new Set([...contextEvidence.linkedClaims, claim.id])];
+  }
 
   void audit.append({
     actor: { id: claim.authorId, role: 'reviewer' },
