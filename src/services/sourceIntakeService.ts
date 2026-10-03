@@ -113,15 +113,14 @@ export async function transitionScreeningState(
   details?: { reviewerId?: string; fullTextDecision?: 'include' | 'exclude' | 'pending'; fullTextExclusionReason?: string },
 ) {
   const current = record.intake?.screeningState ?? 'unassigned';
-  if (!allowedTransitions[current].includes(nextState)) {
-
-    return { transitioned: false as const, reason: 'invalid-transition', currentState: current };
-  }
-
   if (!actor.id.trim()) return { transitioned: false as const, reason: 'reviewer-required', currentState: current };
   if (nextState === 'excluded' && !reason?.trim()) return { transitioned: false as const, reason: 'exclusion-reason-required', currentState: current };
   if (nextState === 'included' && details?.fullTextDecision !== 'include') return { transitioned: false as const, reason: 'full-text-inclusion-required', currentState: current };
   if (details?.fullTextDecision === 'exclude' && !details.fullTextExclusionReason?.trim()) return { transitioned: false as const, reason: 'full-text-exclusion-reason-required', currentState: current };
+
+  if (!allowedTransitions[current].includes(nextState)) {
+    return { transitioned: false as const, reason: 'invalid-transition', currentState: current };
+  }
 
   const screeningDecision: NonNullable<SourceRecord['intake']>['screeningDecision'] =
     nextState === 'included' ? 'include' : nextState === 'excluded' ? 'exclude' : 'uncertain';
