@@ -1,9 +1,8 @@
-import assert from 'node:assert/strict';
 import test from 'node:test';
+import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import assert from 'node:assert/strict';
 import { createReferenceRecord } from '../src/services/referenceHubService';
 import { createRecordId } from '../src/domain/sourceRecord';
 
@@ -21,7 +20,7 @@ try {
     identifiers: { doi: null },
     referenceDraft: { apa7: 'Author (2026). Test.', status: 'complete' as const, note: 'Draft – detected metadata, not verified against source' as const },
     legalReference: null,
-    privacy: { localOnly: true, analyzedAt: new Date().toISOString(), sourceUrl: 'https://example.org/article', externalResourceCount: 0, externalHosts: [], trackingIndicatorCount: 0, trackingHosts: [], signals: [], localOnlyAnalysis: true as const },
+    privacy: { localOnly: true as const, analyzedAt: new Date().toISOString(), sourceUrl: 'https://example.org/article', externalResourceCount: 0, externalHosts: [], trackingIndicatorCount: 0, trackingHosts: [], signals: [], localOnlyAnalysis: true as const },
     provenance: { tool: 'test', toolVersion: '1', collectedLocally: false, externalRequestsMade: true, collectedAt: new Date().toISOString() },
   };
 
