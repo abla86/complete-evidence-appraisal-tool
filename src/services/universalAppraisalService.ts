@@ -67,7 +67,8 @@ export function upsertAppraisalResponse(session: AppraisalSession, response: App
 export function validateAppraisalSession(session: AppraisalSession): AppraisalSessionValidation {
   const instrument = getInstrumentOrNull(session.instrumentId);
   if (!instrument) return { valid: false, missingItemIds: [], missingRationales: [], issues: ['Instrumentet finnes ikke i MethodologyRegistry.'] };
-  const expected = new Set((instrument.questions ?? []).map(q => normalizeId(q.id)));
+  const questions = getInstrumentQuestions(instrument);
+  const expected = new Set(questions.map(q => normalizeId(q.id)));
   const responseIds = session.responses.map(response => normalizeId(response.itemId));
   const actual = new Set(responseIds);
   const missingItemIds = [...expected].filter(id => !actual.has(id));
