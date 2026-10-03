@@ -44,7 +44,9 @@ export async function loadReferenceHub(userId: string): Promise<ReferenceRecord[
   try {
     const raw = await fs.readFile(file, 'utf8');
     const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? normalize(parsed) : [];
+    if (Array.isArray(parsed)) return normalize(parsed);
+    if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { records?: unknown }).records)) return normalize((parsed as { records: unknown[] }).records);
+    return [];
   } catch (error: unknown) {
     if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') return [];
     throw error;
