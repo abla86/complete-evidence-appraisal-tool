@@ -10,11 +10,11 @@ function fixture() {
     schemaVersion: '1.0.0',
     recordId: createRecordId(),
     source: { url: 'https://example.test/article', capturedAt: new Date().toISOString() },
-    metadata: { status: 'COMPLETE', missingFields: [], fields: { title: 'Test article' } },
+    metadata: { sourceUrl: 'https://example.test/article', title: 'Test article', detectedAt: new Date().toISOString(), detectedFrom: ['manual'], status: 'COMPLETE', missingFields: [], fields: { title: 'Test article' } },
     identifiers: { doi: null },
     referenceDraft: { apa7: null, status: 'incomplete', note: 'Draft – detected metadata, not verified against source' },
     legalReference: null,
-    privacy: { localOnly: true, piiDetected: false, sensitiveDataDetected: false, recommendations: [] },
+    privacy: { sourceUrl: 'https://example.test/article', analyzedAt: new Date().toISOString(), externalResourceCount: 0, externalHosts: [], trackingIndicatorCount: 0, trackingHosts: [], signals: [], localOnlyAnalysis: true, localOnly: true },
     provenance: { tool: 'test', toolVersion: '1', collectedLocally: true, externalRequestsMade: false, collectedAt: new Date().toISOString() },
   };
 }
