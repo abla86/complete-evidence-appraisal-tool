@@ -3,9 +3,9 @@ import test from 'node:test';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createRecordId } from '../src/domain/sourceRecord';
+import { createRecordId, type SourceRecord } from '../src/domain/sourceRecord';
 
-function fixture() {
+function fixture(): SourceRecord {
   return {
     schemaVersion: '1.0.0',
     recordId: createRecordId(),
