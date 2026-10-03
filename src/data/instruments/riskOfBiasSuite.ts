@@ -52,11 +52,11 @@ export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
     verifiedAt: '2024-11-15',
     verifiedBy: 'Cochrane Methods Audit',
     questions: [
-      { id: 1, shortTitle: 'Domene 1: Randomiseringsprosess', questionText: 'Er det risiko for skjevhet knyttet til randomiseringssekvensen og skjuling av allokering?', questionTextEn: 'Bias arising from the randomization process', domain: 'Domene 1', isCritical: true },
-      { id: 2, shortTitle: 'Domene 2: Avvik fra tiltenkte intervensjoner', questionText: 'Er det risiko for skjevhet som følge av avvik fra de tiltenkte intervensjonene (blinding/etterlevelse)?', questionTextEn: 'Bias due to deviations from intended interventions', domain: 'Domene 2', isCritical: true },
-      { id: 3, shortTitle: 'Domene 3: Manglende utfallsdata', questionText: 'Er det risiko for skjevhet knyttet til frafall og manglende utfallsdata?', questionTextEn: 'Bias due to missing outcome data', domain: 'Domene 3', isCritical: true },
-      { id: 4, shortTitle: 'Domene 4: Måling av utfallet', questionText: 'Er det risiko for skjevhet i måling og vurdering av utfallet (blinding av utfallsvurderere)?', questionTextEn: 'Bias in measurement of the outcome', domain: 'Domene 4', isCritical: true },
-      { id: 5, shortTitle: 'Domene 5: Valg av rapportert resultat', questionText: 'Er det risiko for skjevhet i selektiv rapportering av analyseresultater og undergrupper?', questionTextEn: 'Bias in selection of the reported result', domain: 'Domene 5', isCritical: true }
+      { id: 1, shortTitle: 'Domene 1: Randomiseringsprosess', questionText: 'Er det risiko for skjevhet knyttet til randomiseringssekvensen og skjuling av allokering?', questionTextEn: 'Bias arising from the randomization process', domain: 'Domene 1', isCritical: true, allowedAnswers: ['Low risk', 'Some concerns', 'High risk', 'Lav risiko', 'Noen bekymringer', 'Høy risiko'] },
+      { id: 2, shortTitle: 'Domene 2: Avvik fra tiltenkte intervensjoner', questionText: 'Er det risiko for skjevhet som følge av avvik fra de tiltenkte intervensjonene (blinding/etterlevelse)?', questionTextEn: 'Bias due to deviations from intended interventions', domain: 'Domene 2', isCritical: true, allowedAnswers: ['Low risk', 'Some concerns', 'High risk', 'Lav risiko', 'Noen bekymringer', 'Høy risiko'] },
+      { id: 3, shortTitle: 'Domene 3: Manglende utfallsdata', questionText: 'Er det risiko for skjevhet knyttet til frafall og manglende utfallsdata?', questionTextEn: 'Bias due to missing outcome data', domain: 'Domene 3', isCritical: true, allowedAnswers: ['Low risk', 'Some concerns', 'High risk', 'Lav risiko', 'Noen bekymringer', 'Høy risiko'] },
+      { id: 4, shortTitle: 'Domene 4: Måling av utfallet', questionText: 'Er det risiko for skjevhet i måling og vurdering av utfallet (blinding av utfallsvurderere)?', questionTextEn: 'Bias in measurement of the outcome', domain: 'Domene 4', isCritical: true, allowedAnswers: ['Low risk', 'Some concerns', 'High risk', 'Lav risiko', 'Noen bekymringer', 'Høy risiko'] },
+      { id: 5, shortTitle: 'Domene 5: Valg av rapportert resultat', questionText: 'Er det risiko for skjevhet i selektiv rapportering av analyseresultater og undergrupper?', questionTextEn: 'Bias in selection of the reported result', domain: 'Domene 5', isCritical: true, allowedAnswers: ['Low risk', 'Some concerns', 'High risk', 'Lav risiko', 'Noen bekymringer', 'Høy risiko'] }
     ]
   },
   {
@@ -104,7 +104,16 @@ export const RISK_OF_BIAS_INSTRUMENTS: AppraisalInstrument[] = [
     qualityControlGuidelines: 'Spesifiser målstudioppsett (target trial) før vurdering.',
     verificationStatus: 'VERIFIED',
     verifiedAt: '2024-11-15',
-    verifiedBy: 'Cochrane Audit'
+    verifiedBy: 'Cochrane Audit',
+    questions: [
+      { id: 1, shortTitle: 'D1 Konfundering', questionText: 'Er viktige prognostiske faktorer og potensielle konfoundere tilstrekkelig håndtert?', domain: 'D1 Konfundering', isCritical: true, allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] },
+      { id: 2, shortTitle: 'D2 Utvalg', questionText: 'Er det liten risiko for bias i hvordan deltakerne kom inn i studien?', domain: 'D2 Utvalg', allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] },
+      { id: 3, shortTitle: 'D3 Intervensjonsklassifisering', questionText: 'Er intervensjonen klassifisert korrekt uten systematiske feil?', domain: 'D3 Intervensjonsklassifisering', allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] },
+      { id: 4, shortTitle: 'D4 Avvik', questionText: 'Er det liten risiko for bias på grunn av avvik fra tiltenkt intervensjon?', domain: 'D4 Avvik', allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] },
+      { id: 5, shortTitle: 'D5 Manglende data', questionText: 'Er manglende utfallsdata håndtert slik at resultatet ikke systematisk skjevfordeles?', domain: 'D5 Manglende data', allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] },
+      { id: 6, shortTitle: 'D6 Utfallsmåling', questionText: 'Er utfallet målt uten systematiske forskjeller mellom gruppene?', domain: 'D6 Utfallsmåling', allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] },
+      { id: 7, shortTitle: 'D7 Rapportert resultat', questionText: 'Er det liten risiko for selektiv rapportering av resultatet?', domain: 'D7 Rapportert resultat', allowedAnswers: ['Low risk', 'Moderate risk', 'Serious risk', 'Critical risk', 'No information', 'Lav', 'Moderat', 'Alvorlig', 'Kritisk', 'Ingen informasjon'] }
+    ]
   },
   {
     id: 'robins-e',
