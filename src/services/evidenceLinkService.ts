@@ -244,9 +244,9 @@ export function attachEvidenceToClaim(
     updatedAt: new Date().toISOString(),
   };
 
-  if (!evidence.linkedClaims.includes(claim.id)) evidence.linkedClaims.push(claim.id);
+  evidence.linkedClaims = [...new Set([...evidence.linkedClaims, claim.id])];
   const contextEvidence = context.evidence.find(item => item.id === evidence.id);
-  if (contextEvidence && contextEvidence !== evidence) {
+  if (contextEvidence) {
     contextEvidence.linkedClaims = [...new Set([...contextEvidence.linkedClaims, claim.id])];
   }
 
