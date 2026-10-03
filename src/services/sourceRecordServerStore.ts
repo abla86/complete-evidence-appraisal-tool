@@ -12,7 +12,12 @@ function normalize(records: unknown[]): SourceRecord[] {
   return [...byId.values()];
 }
 export async function loadSourceRecords(userId: string): Promise<SourceRecord[]> {
-  try { const raw = await fs.readFile(userFile(userId), 'utf8'); const parsed = JSON.parse(raw) as unknown;\n    if (Array.isArray(parsed)) return normalize(parsed);\n    if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { records?: unknown }).records)) {\n      return normalize((parsed as { records: unknown[] }).records);\n    }\n    return []; }
+  try { const raw = await fs.readFile(userFile(userId), 'utf8'); const parsed = JSON.parse(raw) as unknown;
+if (Array.isArray(parsed)) return normalize(parsed);
+if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { records?: unknown }).records)) {
+return normalize((parsed as { records: unknown[] }).records);
+}
+return []; }
   catch (error: unknown) { if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') return []; throw error; }
 }
 export async function saveSourceRecords(userId: string, records: SourceRecord[]): Promise<SourceRecord[]> {
