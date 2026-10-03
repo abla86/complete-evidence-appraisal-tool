@@ -20,7 +20,7 @@ try {
     identifiers: { doi: null },
     referenceDraft: { apa7: 'Author (2026). Test.', status: 'complete' as const, note: 'Draft – detected metadata, not verified against source' as const },
     legalReference: null,
-    privacy: { localOnly: true, analyzedAt: new Date().toISOString(), sourceUrl: 'https://example.org/article', externalResourceCount: 0, externalHosts: [], trackingIndicatorCount: 0, trackingHosts: [], signals: [] },
+    privacy: { localOnly: true, analyzedAt: new Date().toISOString(), sourceUrl: 'https://example.org/article', externalResourceCount: 0, externalHosts: [], trackingIndicatorCount: 0, trackingHosts: [], signals: [], localOnlyAnalysis: true },
     provenance: { tool: 'test', toolVersion: '1', collectedLocally: false, externalRequestsMade: true, collectedAt: new Date().toISOString() },
   };
 
