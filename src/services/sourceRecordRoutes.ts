@@ -1,5 +1,5 @@
 import type { Express, Request, Response } from 'express';
-import { requireAuthenticatedUser } from './authApi';
+import { requireProUser } from './stripeEntitlement';
 import { loadSourceRecords, saveSourceRecords } from './sourceRecordServerStore';
 import { validateSourceRecord } from './validateSourceRecord';
 import type { SourceRecord } from '../domain/sourceRecord';
@@ -15,12 +15,12 @@ function authorizeRecords(records: SourceRecord[], userId: string): void {
 }
 export function registerSourceRecordApi(app: Express): void {
   app.get('/api/source-records', async (req: Request, res: Response) => {
-    try { const user = requireAuthenticatedUser(req); return res.json({ success: true, records: await loadSourceRecords(user.sub) }); }
+    try { const user = requireProUser(req); return res.json({ success: true, records: await loadSourceRecords(user.sub) }); }
     catch (error) { return sendError(res, 401, error); }
   });
   app.put('/api/source-records', async (req: Request, res: Response) => {
     try {
-      const user = requireAuthenticatedUser(req);
+      const user = requireProUser(req);
       if (!Array.isArray(req.body?.records)) return sendError(res, 400, 'records must be an array.');
       if (req.body.records.length > 5000) return sendError(res, 413, 'SourceRecord library contains too many records.');
       const records = req.body.records as SourceRecord[];
