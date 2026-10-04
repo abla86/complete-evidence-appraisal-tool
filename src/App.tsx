@@ -70,8 +70,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const tabTitles: Record<ActiveTab, string> = { overview: 'Research Intelligence Platform', document_studio: 'Document Studio', source_workflow: 'Screening & PICO', appraisal: 'Universal Appraisal', reference_hub: 'Reference & Citation Hub', meta_research: 'Meta-Research & PRISMA', peer_review: 'Peer Review & Consensus', synthesis: 'Synthesis & Export Gate', search: 'Research Search', evaluate: 'Article Evaluation', details: 'Study Details', compare: 'Dual Review', audittrail: 'Audit Trail', who_validation: 'WHO Validation', methodology_audit: 'Methodology Audit', reference_library: 'Reference Library', validation_dashboard: 'Validation Dashboard', help_examples: 'Help & Examples', instrumentinfo: 'Instrument Information', writing_studio: 'Writing Studio' };
   const [isDocAnalysisOpen, setIsDocAnalysisOpen] = useState(false);
+  const [proStatus, setProStatus] = useState<{ authenticated: boolean; pro: boolean; email: string | null }>({ authenticated: false, pro: false, email: null });
+  const [proNotice, setProNotice] = useState<string | null>(null);
 
   useEffect(() => { document.title = `Complete Evidence Appraisal Suite · ${tabTitles[activeTab]}`; }, [activeTab]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const result = params.get('pro');
+    if (result === 'activated') setProNotice('Pro er aktivert. Alle Pro-funksjoner er nå tilgjengelige.');
+    if (result === 'error') setProNotice(params.get('message') || 'Pro kunne ikke aktiveres.');
+    if (result) window.history.replaceState({}, document.title, window.location.pathname);
+    void fetch('/api/pro/status', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(data => {
+      if (data) setProStatus({ authenticated: Boolean(data.authenticated), pro: Boolean(data.pro), email: data.email || null });
+    }).catch(() => undefined);
+  }, []);
   const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
   useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return () => window.removeEventListener('research-suite:navigate', handler); }, []);
@@ -171,6 +183,7 @@ export default function App() {
   return (
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
+        {proNotice && <div className={`mx-4 mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${proStatus.pro || proNotice.includes('aktivert') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>{proNotice}<button type="button" className="ml-3 underline" onClick={() => setProNotice(null)}>Lukk</button></div>}
         <Header activeTab={activeTab} setActiveTab={setActiveTab} articles={articles} selectedArticleId={selectedArticleId} onSelectArticleId={setSelectedArticleId} selectedInstrumentId={selectedInstrumentId} onSelectInstrument={setSelectedInstrumentId} currentUserRole={currentUserRole} onSelectUserRole={setCurrentUserRole} onOpenPrivacyCenter={() => setIsPrivacyCenterOpen(true)} onOpenDocAnalysis={() => setIsDocAnalysisOpen(true)} onOpenImportExport={handleOpenImportExport} onOpenAutosave={() => setIsAutosaveModalOpen(true)} onNewArticle={handleNewArticle} />
         <StudioStateProvider value={{ articles, setArticles, references: referenceRecords, setReferences: setReferenceRecords, pipelineState, setPipelineState, selectedArticleId, setSelectedArticleId }}>
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
