@@ -1,5 +1,5 @@
 import type { Express, Request, Response } from 'express';
-import { requireAuthenticatedUser } from './authApi';
+import { requireProUser } from './stripeEntitlement';
 import { loadResearchArtifacts, saveResearchArtifacts } from './researchArtifactServerStore';
 import type { SourceRecord } from '../domain/sourceRecord';
 import type { SearchQueryRecord } from './evidenceIntelligenceService';
@@ -11,7 +11,7 @@ function error(res: Response, status: number, value: unknown) {
 export function registerResearchArtifactApi(app: Express): void {
   app.get('/api/research-artifacts', async (req: Request, res: Response) => {
     try {
-      const user = requireAuthenticatedUser(req);
+      const user = requireProUser(req);
       return res.json({ success: true, ...(await loadResearchArtifacts(user.sub)) });
     } catch (err) {
       return error(res, 401, err);
@@ -20,7 +20,7 @@ export function registerResearchArtifactApi(app: Express): void {
 
   app.put('/api/research-artifacts', async (req: Request, res: Response) => {
     try {
-      const user = requireAuthenticatedUser(req);
+      const user = requireProUser(req);
       const searchRecords = req.body?.searchRecords;
       const sourceRecords = req.body?.sourceRecords;
       if (!Array.isArray(searchRecords) || !Array.isArray(sourceRecords)) return error(res, 400, 'searchRecords and sourceRecords must be arrays.');
