@@ -16,7 +16,7 @@ import { getAuthenticatedUser, requireAuthenticatedUser } from './src/services/a
 import { registerReferenceHubApi } from './src/services/referenceHubRoutes';
 import { registerResearchArtifactApi } from './src/services/researchArtifactRoutes';
 import { registerSourceRecordApi } from './src/services/sourceRecordRoutes';
-import { registerEntitlementApi, verifyAndGrantPro } from './src/services/stripeEntitlement';
+import { registerEntitlementApi, requireProUser, verifyAndGrantPro } from './src/services/stripeEntitlement';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -131,7 +131,7 @@ async function startServer() {
   app.get('/api/instruments', (_req: Request, res: Response) => res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY }));
 
   app.use('/api/documents', (req, res, next) => {
-    try { requireAuthenticatedUser(req); next(); }
+    try { requireProUser(req); next(); }
     catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
   });
   app.use('/api/meta-research', (req, res, next) => {
