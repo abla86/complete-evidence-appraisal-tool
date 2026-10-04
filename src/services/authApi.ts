@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from 'express';
 import {
   authorizationStateCookieHeader,
+  authorizationReturnTo,
   clearAuthorizationStateCookie,
   clearSessionCookie,
   createAuthorizationRequest,
@@ -35,9 +36,10 @@ export function reviewerIdForRequest(req: Request): string {
 }
 
 export function registerAuthApi(app: Express): void {
-  app.get('/auth/google', (_req, res) => {
+  app.get('/auth/google', (req, res) => {
     if (!googleOAuthConfigured()) return res.status(503).send('Google OAuth is not configured.');
-    const { url, state } = createAuthorizationRequest();
+    const returnTo = String(req.query.returnTo || '/');
+    const { url, state } = createAuthorizationRequest(returnTo);
     res.setHeader('Set-Cookie', authorizationStateCookieHeader(state, process.env.NODE_ENV === 'production'));
     return res.redirect(url);
   });
@@ -51,7 +53,7 @@ export function registerAuthApi(app: Express): void {
       const user = await exchangeCode(code, state, expectedState);
       const session = createSessionCookie(user);
       res.setHeader('Set-Cookie', [sessionCookieHeader(session, secureCookie(req)), clearAuthorizationStateCookie(secureCookie(req))]);
-      return res.redirect('/');
+      return res.redirect(authorizationReturnTo(state));
     } catch (error) {
       res.setHeader('Set-Cookie', clearAuthorizationStateCookie(secureCookie(req)));
       return res.status(401).send(error instanceof Error ? error.message : 'Authentication failed.');
