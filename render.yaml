@@ -13,3 +13,7 @@ services:
         value: gemini-3.8-flash
       - key: GEMINI_API_KEY
         sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRO_PAYMENT_LINK_ID
+        value: plink_1UMvNFBP9Robpo623kSgv7Lv
