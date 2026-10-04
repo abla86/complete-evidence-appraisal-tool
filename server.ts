@@ -12,7 +12,7 @@ import { registerResearchEngineIntegration } from './src/services/researchEngine
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
 import { registerIntegrityApi } from './src/services/integrityApi';
-import { requireAuthenticatedUser } from './src/services/authApi';
+import { getAuthenticatedUser, requireAuthenticatedUser } from './src/services/authApi';
 import { registerReferenceHubApi } from './src/services/referenceHubRoutes';
 import { registerResearchArtifactApi } from './src/services/researchArtifactRoutes';
 import { registerSourceRecordApi } from './src/services/sourceRecordRoutes';
