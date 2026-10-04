@@ -46,6 +46,13 @@ async function stripeGet(path: string): Promise<any> {
   return data;
 }
 
+export function requireProUser(req: Request): { sub: string; email?: string; name?: string; picture?: string } {
+  const user = getAuthenticatedUser(req);
+  if (!user?.sub) throw new Error('Authentication required.');
+  if (!hasProEntitlement(req)) throw new Error('Evidence Appraisal Suite Pro is required for this feature.');
+  return user;
+}
+
 export function hasProEntitlement(req: Request): boolean {
   const user = getAuthenticatedUser(req);
   if (!user?.sub || !user.email) return false;
