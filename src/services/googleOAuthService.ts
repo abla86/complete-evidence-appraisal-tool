@@ -58,13 +58,19 @@ function decode<T>(value: string): T | null {
   } catch { return null; }
 }
 
-export function createAuthorizationRequest(): { url: string; state: string } {
+export function createAuthorizationRequest(returnTo = '/'): { url: string; state: string } {
   const client = getGoogleOAuthClient();
-  const state = encode({ nonce: crypto.randomBytes(24).toString('hex'), exp: Date.now() + 10 * 60 * 1000 });
+  const safeReturnTo = returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
+  const state = encode({ nonce: crypto.randomBytes(24).toString('hex'), returnTo: safeReturnTo, exp: Date.now() + 10 * 60 * 1000 });
   return { state, url: client.generateAuthUrl({ access_type: 'offline', scope: scopes(), include_granted_scopes: true, state, prompt: 'select_account' }) };
 }
 
 export function createAuthorizationUrl(): string { return createAuthorizationRequest().url; }
+export function authorizationReturnTo(state: string): string {
+  const decoded = decode<{ returnTo?: string }>(state);
+  const returnTo = decoded?.returnTo;
+  return typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
+}
 export function authorizationStateCookieHeader(state: string, secure: boolean): string { return `evidence_google_oauth_state=${encodeURIComponent(state)}; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=600${secure ? '; Secure' : ''}`; }
 export function readAuthorizationStateCookie(cookieHeader?: string): string | null {
   if (!cookieHeader) return null;
