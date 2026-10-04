@@ -63,7 +63,7 @@ export function hasProEntitlement(req: Request): boolean {
 export async function verifyAndGrantPro(req: Request, sessionId: string): Promise<{ email: string }> {
   const user = getAuthenticatedUser(req);
   if (!user?.sub || !user.email) throw new Error('Logg inn med Google før du aktiverer Pro.');
-  if (!/^cs_[A-Za-z0-9]+$/.test(sessionId)) throw new Error('Ugyldig Stripe checkout session.');
+  if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) throw new Error('Ugyldig Stripe checkout session.');
   const session = await stripeGet('checkout/sessions/' + encodeURIComponent(sessionId));
   if (session.payment_status !== 'paid') throw new Error('Betalingen er ikke registrert som fullført.');
   if (session.payment_link !== PAYMENT_LINK_ID) throw new Error('Betalingen gjelder ikke Evidence Appraisal Suite Pro.');
