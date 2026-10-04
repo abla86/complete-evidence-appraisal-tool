@@ -16,6 +16,7 @@ import { requireAuthenticatedUser } from './src/services/authApi';
 import { registerReferenceHubApi } from './src/services/referenceHubRoutes';
 import { registerResearchArtifactApi } from './src/services/researchArtifactRoutes';
 import { registerSourceRecordApi } from './src/services/sourceRecordRoutes';
+import { registerEntitlementApi, verifyAndGrantPro } from './src/services/stripeEntitlement';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -87,6 +88,18 @@ async function startServer() {
   registerReferenceHubApi(app);
   registerResearchArtifactApi(app);
   registerSourceRecordApi(app);
+  registerEntitlementApi(app);
+
+  app.get('/purchase-complete', async (req: Request, res: Response) => {
+    const sessionId = String(req.query.session_id || '').trim();
+    try {
+      const result = await verifyAndGrantPro(req, sessionId);
+      return res.redirect('/?pro=activated&email=' + encodeURIComponent(result.email));
+    } catch (error) {
+      if (!getAuthenticatedUser(req)) return res.redirect('/auth/google?returnTo=' + encodeURIComponent('/purchase-complete?session_id=' + sessionId));
+      return res.redirect('/?pro=error&message=' + encodeURIComponent(error instanceof Error ? error.message : 'Kunne ikke aktivere Pro.'));
+    }
+  });
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: '2026.1', integrity: { status: 'integrated', immutableAssessments: true, auditChain: true, aiBoundary: true }, researchEngine: { status: 'integrated', contractVersion: '1.0.0' }, workflow: { status: 'integrated', researchToAppraisal: true }, appraisal: { status: 'integrated', sessionApi: true }, authentication: { status: 'integrated', provider: 'google-oauth' } });
