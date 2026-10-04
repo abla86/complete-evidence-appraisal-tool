@@ -1,5 +1,5 @@
 import type { Express, Request, Response } from 'express';
-import { requireAuthenticatedUser } from './authApi';
+import { requireProUser } from './stripeEntitlement';
 import { loadReferenceHub, saveReferenceHub } from './referenceHubServerStore';
 import type { ReferenceRecord } from './referenceHubService';
 
@@ -10,7 +10,7 @@ function sendError(res: Response, status: number, error: unknown) {
 export function registerReferenceHubApi(app: Express): void {
   app.get('/api/reference-hub', async (req: Request, res: Response) => {
     try {
-      const user = requireAuthenticatedUser(req);
+      const user = requireProUser(req);
       const records = await loadReferenceHub(user.sub);
       return res.json({ success: true, records });
     } catch (error) {
@@ -20,7 +20,7 @@ export function registerReferenceHubApi(app: Express): void {
 
   app.put('/api/reference-hub', async (req: Request, res: Response) => {
     try {
-      const user = requireAuthenticatedUser(req);
+      const user = requireProUser(req);
       if (!Array.isArray(req.body?.records)) return sendError(res, 400, 'records must be an array.');
       if (req.body.records.length > 5000) return sendError(res, 413, 'Reference Hub contains too many records.');
       const records = await saveReferenceHub(user.sub, req.body.records as ReferenceRecord[]);
