@@ -183,4 +183,4 @@ Commercial planning and launch gates are documented in:
 - `docs/MONETIZATION.md`
 - `docs/PRODUCT-OFFER.md`
 
-**Important:** payment checkout, tax handling and customer entitlements must be configured before accepting money. No payment credentials belong in this repository.
+**Live checkout:** Individual Pro is 799 NOK via Stripe Payment Link. Successful payment is verified server-side against Stripe and the matching Google account receives a signed Pro entitlement automatically. The deployment requires the secret environment variable `STRIPE_SECRET_KEY`; it must never be committed to GitHub. `STRIPE_PRO_PAYMENT_LINK_ID` is configured in `render.yaml`.
