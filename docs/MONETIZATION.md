@@ -18,7 +18,7 @@ Purpose: acquisition and product validation.
 - examples
 
 ### Individual Pro
-Initial proposed price range: 499–999 NOK for a paid package, with the final price determined after user validation.
+Initial proposed price range: 799 NOK for a paid package, with the final price determined after user validation.
 Potential features:
 - extended methodology library
 - advanced project workflows
