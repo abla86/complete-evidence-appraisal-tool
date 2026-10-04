@@ -161,3 +161,26 @@ Authentication endpoints:
 - `POST /api/auth/logout` — sign out
 - `GET /api/auth/google/config` — non-secret runtime configuration
 
+
+
+---
+
+## COMMERCIAL PRODUCT / LAUNCH
+
+The project is also being packaged as **Evidence Appraisal Suite**, a research-support product for students, researchers and review teams.
+
+**Product page:** `/sales.html` in a production deployment.
+
+### Launch model
+
+- **Free:** core appraisal workspace and starter workflow.
+- **Individual Pro:** proposed launch range 499–999 NOK, subject to user validation.
+- **Team / Institution:** custom pricing after validation.
+
+The commercial proposition is deliberately limited to structured appraisal, evidence traceability and research workflow support. The software does **not** certify study quality, replace methodological judgement, or provide clinical decisions.
+
+Commercial planning and launch gates are documented in:
+- `docs/MONETIZATION.md`
+- `docs/PRODUCT-OFFER.md`
+
+**Important:** payment checkout, tax handling and customer entitlements must be configured before accepting money. No payment credentials belong in this repository.
