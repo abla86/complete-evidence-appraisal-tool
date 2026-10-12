@@ -178,7 +178,7 @@ export async function attachReviewedRecordToPico(
     },
   });
 
-  return { attached: true as const, picoEntityId, record: { ...record, intake: { ...record.intake, screeningState: 'included' as const } } };
+  return { attached: true as const, picoEntityId, record: { ...record, intake: { ...record.intake, screeningState: 'included' as const, screeningDecision: 'include' as const } } };
 }
 
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { transitionScreeningState } from '../src/services/sourceIntakeService';
+import { attachReviewedRecordToPico, transitionScreeningState } from '../src/services/sourceIntakeService';
 import { createScreeningDecisionFromSourceRecord, applySourceRecordScreeningToWorkflow } from '../src/services/researchWorkflowBridge';
 import { createResearchWorkflowFromText } from '../src/services/researchWorkflowService';
 import type { SourceRecord } from '../src/domain/sourceRecord';
@@ -104,4 +104,26 @@ test('SourceRecord screening updates the canonical research workflow', () => {
   assert.equal(updated.screening[0].studyId, 'study-1');
   assert.equal(updated.screening[0].decision, 'INCLUDED');
   assert.equal(updated.screening[0].reviewerId, 'reviewer-1');
+});
+
+
+test('PICO attachment promotes the canonical screening decision to include', async () => {
+  const reviewed = structuredClone(record);
+  reviewed.intake = {
+    ...reviewed.intake,
+    reviewerId: actor.id,
+    screeningState: 'reviewed',
+    screeningDecision: 'uncertain',
+    fullTextDecision: 'include',
+  };
+
+  const result = await attachReviewedRecordToPico(reviewed, 'pico-1', actor, audit);
+  assert.equal(result.attached, true);
+  if (!result.attached) return;
+
+  assert.equal(result.record.intake?.screeningState, 'included');
+  assert.equal(result.record.intake?.screeningDecision, 'include');
+  const canonicalDecision = createScreeningDecisionFromSourceRecord({ record: result.record });
+  assert.equal(canonicalDecision.decision, 'include');
+  assert.equal(canonicalDecision.eligibilityDecision, 'include');
 });

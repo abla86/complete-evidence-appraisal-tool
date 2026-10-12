@@ -135,6 +135,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
     if (!actor) { setMessage('Innlogging kreves før screening-batch kan kobles.'); return; }
     const result = await linkRecordToScreeningBatch(record, batchId, actor, auditWriter);
     setRecord(result.linked ? result.record : record);
+    if (result.linked) upsertSourceRecord(result.record);
     if (result.linked && serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     setMessage(result.linked ? 'Koblet til screening-batch.' : `Kobling avvist: ${result.reason}`);
   };
@@ -144,6 +145,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
     if (!actor) { setMessage('Innlogging kreves før screening kan registreres.'); return; }
     const result = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Screening fullført');
     setRecord(result.transitioned ? result.record : record);
+    if (result.transitioned) upsertSourceRecord(result.record);
     if (result.transitioned && serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     setMessage(result.transitioned ? 'Screeningstatus: reviewed.' : `Screening avvist: ${result.reason}`);
   };
@@ -153,12 +155,15 @@ export const SourceRecordWorkflowView: React.FC = () => {
     if (!actor) { setMessage('Innlogging kreves før fulltekstbeslutning kan registreres.'); return; }
     const reviewResult = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Fulltekst vurdert', { fullTextDecision, fullTextExclusionReason });
     if (!reviewResult.transitioned) { setMessage(`Fulltekst avvist: ${reviewResult.reason}`); return; }
+    upsertSourceRecord(reviewResult.record);
+    setRecord(reviewResult.record);
     const result = await attachReviewedRecordToPico(reviewResult.record, picoId, actor, auditWriter);
     if (!result.attached || !result.record) {
       setMessage(`PICO-attach avvist: ${result.reason}`);
       return;
     }
     setRecord(result.record);
+    upsertSourceRecord(result.record);
     if (serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     try {
       const response = await fetch(`/api/research-workflows/${encodeURIComponent(result.record.recordId)}/screening/source-record`, {
