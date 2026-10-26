@@ -8,36 +8,54 @@ import { MASTER_INSTRUMENTS_REGISTRY } from '../data/masterRegistry';
 
 export class SnapshotService {
   /**
-   * Generates a deterministic immutable lock hash for an assessment based on
-   * instrument ID, version, study citation, creation date, and item answers.
+   * Generates a real SHA-256 fingerprint of the assessment content and instrument
+   * metadata. This detects accidental changes; it is not a server-signed or
+   * tamper-proof audit record because browser-local storage can be edited.
    */
-  public static generateLockHash(appraisal: Partial<ArticleAppraisal>, instrument: AppraisalInstrument): string {
-    const raw = `${instrument.id}:${instrument.version}:${appraisal.id}:${appraisal.doi || ''}:${instrument.validationChecksum}`;
-    // Simple fast hashing for browser runtime
-    let hash = 0;
-    for (let i = 0; i < raw.length; i++) {
-      const char = raw.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash |= 0;
-    }
-    const hex = Math.abs(hash).toString(16).padStart(8, '0');
-    return `SHA256:${hex}${instrument.validationChecksum.slice(-8)}`;
+  public static async generateLockHash(appraisal: Partial<ArticleAppraisal>, instrument: AppraisalInstrument): Promise<string> {
+    const stableStringify = (value: unknown): string => {
+      if (value === null || typeof value !== 'object') return JSON.stringify(value);
+      if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+      const record = value as Record<string, unknown>;
+      return `{${Object.keys(record).sort().map(key => `${JSON.stringify(key)}:${stableStringify(record[key])}`).join(',')}}`;
+    };
+    const raw = stableStringify({
+      instrument: {
+        id: instrument.id,
+        version: instrument.version,
+        edition: instrument.edition,
+        validationChecksum: instrument.validationChecksum,
+      },
+      appraisal: {
+        id: appraisal.id,
+        doi: appraisal.doi || '',
+        title: appraisal.title || '',
+        design: appraisal.design || '',
+        documentHash: appraisal.documentHash || '',
+        items: appraisal.items || [],
+      },
+    });
+    const subtle = globalThis.crypto?.subtle;
+    if (!subtle) throw new Error('SNAPSHOT_INTEGRITY: Web Crypto SHA-256 is unavailable in this environment.');
+    const digest = await subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    const hex = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+    return `SHA256:${hex}`;
   }
 
   /**
-   * Creates an immutable AssessmentSnapshot that seals the methodology, version,
-   * source publication, and creation details for permanent reproducibility.
+   * Creates a snapshot containing the methodology version and a SHA-256 content
+   * fingerprint. The snapshot remains editable data, not immutable storage.
    */
-  public static createSnapshot(
+  public static async createSnapshot(
     appraisal: ArticleAppraisal,
     reviewer: string = 'Reviewer 1'
-  ): AssessmentSnapshot {
+  ): Promise<AssessmentSnapshot> {
     const inst = MASTER_INSTRUMENTS_REGISTRY.find(i => i.id === appraisal.instrumentId);
     if (!inst) {
       throw new Error(`SNAPSHOT_INTEGRITY: unknown appraisal instrument: ${appraisal.instrumentId || 'missing'}`);
     }
 
-    const lockHash = this.generateLockHash(appraisal, inst);
+    const lockHash = await this.generateLockHash(appraisal, inst);
 
     return {
       assessmentId: `SNAP-${appraisal.id}-${Date.now().toString(36)}`,
@@ -64,16 +82,16 @@ export class SnapshotService {
   /**
    * Reopens a finalized assessment with mandatory documented reason and audit event.
    */
-  public static reopenAssessment(
+  public static async reopenAssessment(
     appraisal: ArticleAppraisal,
     reason: string,
     reopenedBy: string
-  ): ArticleAppraisal {
+  ): Promise<ArticleAppraisal> {
     if (!reason || reason.trim().length < 5) {
       throw new Error('Obligatorisk faglig begrunnelse (minst 5 tegn) kreves for å gjenåpne en finalisert vurdering.');
     }
 
-    const currentSnapshot = appraisal.snapshot || this.createSnapshot(appraisal, reopenedBy);
+    const currentSnapshot = appraisal.snapshot || await this.createSnapshot(appraisal, reopenedBy);
     const updatedHistory = [
       ...(currentSnapshot.reopenHistory || []),
       {
@@ -118,11 +136,11 @@ export class SnapshotService {
   /**
    * Finalizes an assessment, locking it against accidental edits.
    */
-  public static finalizeAssessment(
+  public static async finalizeAssessment(
     appraisal: ArticleAppraisal,
     finalizedBy: string
-  ): ArticleAppraisal {
-    const currentSnapshot = appraisal.snapshot || this.createSnapshot(appraisal, finalizedBy);
+  ): Promise<ArticleAppraisal> {
+    const currentSnapshot = appraisal.snapshot || await this.createSnapshot(appraisal, finalizedBy);
     const newSnapshot: AssessmentSnapshot = {
       ...currentSnapshot,
       lifecycleStatus: 'FINALIZED',
