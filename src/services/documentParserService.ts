@@ -58,15 +58,24 @@ export function reconstructPdfTextItems(items: unknown[]): string {
 }
 
 export function normalizeExtractedText(value: string): string {
+  // Consume each whitespace run once. Keep separators before leading-decimal
+  // values (for example ".05 .10" or tab-separated columns "10\t.05").
+  // Curly quotation marks are intentionally left alone because their role is
+  // language-dependent and removing adjacent spaces can merge words.
   return String(value ?? '')
     .replace(/\uFEFF/g, '')
     .replace(/\u00A0/g, ' ')
     .replace(/\u00AD/g, '')
-    .replace(/[ \t]+([,.;:!?%…])/g, '$1')
-    .replace(/([([{“‘])[ \t]+/g, '$1')
-    .replace(/[ \t]+([)\]}”’])/g, '$1')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\r\n?/g, '\n');
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+/g, (whitespace, offset, whole) => {
+      const before = whole[offset - 1] ?? '';
+      const after = whole[offset + whitespace.length] ?? '';
+      if (after === '.' && /\d/u.test(whole[offset + whitespace.length + 1] ?? '')) return whitespace;
+      if (/[,;:!?%…，。；：！？、)]/u.test(after) || after === ']' || after === '}') return '';
+      if (before === '(' || before === '[' || before === '{') return '';
+      return whitespace;
+    })
+    .replace(/[ \t]+\n/g, '\n');
 }
 
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
