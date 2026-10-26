@@ -92,28 +92,28 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   const currentLifecycle: AssessmentLifecycleStatus = article.lifecycleStatus || 'FINALIZED';
   const isLocked = currentLifecycle === 'FINALIZED';
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     if (onEditArticle) {
       const verifyCheck = MethodIntegrityGate.canMarkAsVerified(article);
       if (!verifyCheck.allowed) {
         showToast(`MethodIntegrityGate: Kan ikke finalisere/verifisere vurderingen: ${verifyCheck.reasons.join(', ')}`, 'error');
         return;
       }
-      const verified = MethodIntegrityGate.verifyAppraisal(article, article.reviewerName || 'Reviewer 1');
-      const finalized = SnapshotService.finalizeAssessment(verified, article.reviewerName || 'Reviewer 1');
+      const verified = await MethodIntegrityGate.verifyAppraisal(article, article.reviewerName || 'Reviewer 1');
+      const finalized = await SnapshotService.finalizeAssessment(verified, article.reviewerName || 'Reviewer 1');
       onEditArticle(finalized);
-      showToast('Vurderingen er verifisert mot MethodologyRegistry og forseglet med uforanderlig lås.', 'success');
+      showToast('Vurderingen er kontrollert mot MethodologyRegistry og lagret med et SHA-256-fingeravtrykk. Lokal nettleserlagring er ikke manipulasjonssikker.', 'success');
     }
   };
 
-  const handleConfirmReopen = () => {
+  const handleConfirmReopen = async () => {
     if (!reopenReason || reopenReason.trim().length < 5) {
       showToast('Du må oppgi en obligatorisk faglig begrunnelse (minst 5 tegn) for gjenåpning.', 'error');
       return;
     }
     if (onEditArticle) {
       try {
-        const reopened = SnapshotService.reopenAssessment(article, reopenReason, reopenedBy);
+        const reopened = await SnapshotService.reopenAssessment(article, reopenReason, reopenedBy);
         onEditArticle(reopened);
         setShowReopenModal(false);
         setReopenReason('');
