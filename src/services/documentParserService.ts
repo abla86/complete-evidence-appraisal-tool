@@ -4,6 +4,80 @@ import { MetaResearchService } from './metaResearchService';
 import { IMRaDAnalysisService } from './imradAnalysisService';
 import mammoth from 'mammoth';
 
+/**
+ * Repairs spacing artifacts introduced when PDF.js splits words and punctuation
+ * into separate text items. It deliberately preserves punctuation characters,
+ * Unicode typography, decimals, and line/paragraph boundaries.
+ */
+export interface PdfTextItemLike {
+  str?: unknown;
+  width?: unknown;
+  height?: unknown;
+  transform?: unknown;
+  hasEOL?: unknown;
+}
+
+/** Reconstructs PDF.js text items using their geometry instead of blindly inserting spaces. */
+export function reconstructPdfTextItems(items: unknown[]): string {
+  const output: string[] = [];
+  let previous: { x: number; y: number; width: number; height: number } | undefined;
+  for (const item of items) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as PdfTextItemLike;
+    const value = typeof record.str === 'string' ? record.str : '';
+    if (!value) {
+      if (record.hasEOL === true && output.length && !output[output.length - 1].endsWith('\n')) output.push('\n');
+      continue;
+    }
+    const transform = Array.isArray(record.transform) ? record.transform : [];
+    const x = typeof transform[4] === 'number' ? transform[4] : undefined;
+    const y = typeof transform[5] === 'number' ? transform[5] : undefined;
+    const width = typeof record.width === 'number' ? record.width : 0;
+    const height = typeof record.height === 'number' ? record.height : (typeof transform[3] === 'number' ? Math.abs(transform[3]) : 10);
+    if (previous && x !== undefined && y !== undefined) {
+      const lineTolerance = Math.max(2, Math.min(previous.height, height) * 0.45);
+      if (Math.abs(y - previous.y) > lineTolerance) {
+        if (output.length && !output[output.length - 1].endsWith('\n')) output.push('\n');
+      } else {
+        const gap = x - (previous.x + previous.width);
+        const startsWithPunctuation = /^[,.;:!?%…，。；：！？、)\]}»”’]/u.test(value);
+        const previousEndsWithOpening = /[(\[{«“‘]$/u.test(output[output.length - 1] ?? '');
+        if (gap > Math.max(1.5, height * 0.18) && !startsWithPunctuation && !previousEndsWithOpening && !/\s$/u.test(output[output.length - 1] ?? '')) output.push(' ');
+      }
+    } else if (output.length && !/\s$/u.test(output[output.length - 1]) && !/^[,.;:!?%…，。；：！？、)\]}»”’]/u.test(value)) {
+      output.push(' ');
+    }
+    output.push(value);
+    previous = x !== undefined && y !== undefined ? { x, y, width, height } : undefined;
+    if (record.hasEOL === true && !output[output.length - 1].endsWith('\n')) {
+      output.push('\n');
+      previous = undefined;
+    }
+  }
+  return normalizeExtractedText(output.join('')).replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
+}
+
+export function normalizeExtractedText(value: string): string {
+  // Consume each whitespace run once. Keep separators before leading-decimal
+  // values (for example ".05 .10" or tab-separated columns "10\t.05").
+  // Curly quotation marks are intentionally left alone because their role is
+  // language-dependent and removing adjacent spaces can merge words.
+  return String(value ?? '')
+    .replace(/\uFEFF/g, '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\u00AD/g, '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+/g, (whitespace, offset, whole) => {
+      const before = whole[offset - 1] ?? '';
+      const after = whole[offset + whitespace.length] ?? '';
+      if (after === '.' && /\d/u.test(whole[offset + whitespace.length + 1] ?? '')) return whitespace;
+      if (/[,.;:!?%…，。；：！？、)]/u.test(after) || after === ']' || after === '}') return '';
+      if (before === '(' || before === '[' || before === '{') return '';
+      return whitespace;
+    })
+    .replace(/[ \t]+\n/g, '\n');
+}
+
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
 
 export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*†‡§0-9\u00B9\u00B2\u00B3\u2074-\u2079]+/gu, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
@@ -113,6 +187,9 @@ export class DocumentParserService {
       extractedText = await this.extractPlainText(file);
     }
 
+    extractedText = normalizeExtractedText(extractedText);
+    pages = pages.map(page => ({ ...page, text: normalizeExtractedText(page.text) }));
+
     if (!extractedText.trim() && isScannedOrImageOnly) {
       extractedText = `[SKANNET DOKUMENT IDENTIFISERT - ${file.name}]\n\nDokumentet fremstår som en skannet bilde-PDF eller inneholder ikke et tilgjengelig tekstlag.\nSystemet har registrert filen for videre manuell gjennomgang eller OCR-behandling.\nForfattere og tittel bør kontrolleres manuelt.`;
     }
@@ -206,14 +283,10 @@ export class DocumentParserService {
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
         const page = await pdf.getPage(pageNumber);
         const content = await page.getTextContent();
-        const pageText = content.items
-          .map((item: unknown) => { const record = item && typeof item === 'object' ? item as { str?: unknown } : {}; return typeof record.str === 'string' ? record.str : ''; })
-          .join(' ')
-          .replace(/\s{2,}/g, ' ')
-          .trim();
+        const normalizedPageText = reconstructPdfTextItems(content.items as unknown[]);
 
-        if (pageText) {
-          pageTexts.push({ pageNumber, text: pageText });
+        if (normalizedPageText) {
+          pageTexts.push({ pageNumber, text: normalizedPageText });
         }
       }
 
