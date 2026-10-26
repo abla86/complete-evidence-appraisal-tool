@@ -6,6 +6,7 @@ import type { SourceRecord } from '../domain/sourceRecord';
 import { validateSourceRecord } from './validateSourceRecord';
 
 const ROOT = path.resolve(process.env.RESEARCH_ARTIFACTS_DATA_DIR || path.join(process.cwd(), 'data', 'research-artifacts'));
+const writeQueues = new Map<string, Promise<void>>();
 
 function userFile(userId: string): string {
   const safeId = crypto.createHash('sha256').update(userId).digest('hex');
@@ -57,10 +58,28 @@ export async function saveResearchArtifacts(
     searchRecords: normalizeSearch(artifacts.searchRecords),
     sourceRecords: normalizeSources(artifacts.sourceRecords),
   };
-  await fs.mkdir(ROOT, { recursive: true });
+  await fs.mkdir(ROOT, { recursive: true, mode: 0o700 });
   const file = userFile(userId);
-  const temporary = file + '.tmp';
-  await fs.writeFile(temporary, JSON.stringify({ schemaVersion: 1, updatedAt: new Date().toISOString(), ...normalized }, null, 2), { encoding: 'utf8', mode: 0o600 });
-  await fs.rename(temporary, file);
+  const previous = writeQueues.get(userId) ?? Promise.resolve();
+  const operation = previous.catch(() => undefined).then(async () => {
+    // Unique temp files prevent concurrent requests for one user from clobbering
+    // each other's temporary file before the atomic rename.
+    const temporary = `${file}.${crypto.randomUUID()}.tmp`;
+    const payload = JSON.stringify({ schemaVersion: 1, updatedAt: new Date().toISOString(), ...normalized }, null, 2);
+    await fs.writeFile(temporary, payload, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+    try {
+      await fs.rename(temporary, file);
+      await fs.chmod(file, 0o600);
+    } catch (error) {
+      await fs.rm(temporary, { force: true }).catch(() => undefined);
+      throw error;
+    }
+  });
+  writeQueues.set(userId, operation);
+  try {
+    await operation;
+  } finally {
+    if (writeQueues.get(userId) === operation) writeQueues.delete(userId);
+  }
   return normalized;
 }
