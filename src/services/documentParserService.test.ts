@@ -112,7 +112,7 @@ test('extracts punctuation, decimals and line boundaries from an actual PDF file
   const content = makeMinimalPdf(['Results, methods. p = 0.04', 'CI 95%: 1.02 - 1.45']);
   const parsed = await DocumentParserService.parseFile({ name: 'punctuation-fixture.pdf', size: content.byteLength, content });
   assert.equal(parsed.fileType, 'pdf');
-  assert.match(parsed.extractedText, /Results, methods\\. p = 0\\.04/u);
-  assert.match(parsed.extractedText, /CI 95%: 1\\.02 - 1\\.45/u);
+  assert.match(parsed.extractedText, /Results, methods\. p = 0\.04/u);
+  assert.match(parsed.extractedText, /CI 95%: 1\.02 - 1\.45/u);
   assert.equal(parsed.pages.length, 1);
 });
