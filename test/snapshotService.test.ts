@@ -13,14 +13,14 @@ test('snapshot fingerprint is a real SHA-256 digest and changes with assessment 
     title: 'Example study',
     design: 'RCT',
     documentHash: 'doc-hash',
-    items: [{ questionId: 1, answer: 'Yes', rationale: 'Supported by page 4' }],
+    items: [{ questionId: 1, status: 'Yes', justification: 'Supported by page 4' }],
   };
 
   const first = await SnapshotService.generateLockHash(base, instrument);
   const same = await SnapshotService.generateLockHash(base, instrument);
   const changed = await SnapshotService.generateLockHash({
     ...base,
-    items: [{ questionId: 1, answer: 'No', rationale: 'Different assessment' }],
+    items: [{ questionId: 1, status: 'No', justification: 'Different assessment' }],
   }, instrument);
 
   assert.match(first, /^SHA256:[0-9a-f]{64}$/);
