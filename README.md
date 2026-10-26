@@ -2,7 +2,7 @@
 **Metavitenskapelig evalueringsplattform for forskningsmetode, retningslinjer og vitenskapelig integritet**
 
 ![Methodology Integrity](https://img.shields.io/badge/Methodology%20Integrity-Source%20Controlled-teal)
-![Version Locking](https://img.shields.io/badge/Version%20Locking-Immutable-emerald)
+![Version Fingerprinting](https://img.shields.io/badge/Version%20Fingerprinting-SHA--256-blue)
 ![Test Pyramid](https://img.shields.io/badge/Test%20Pyramid-Level%201%20%7C%202%20%7C%203-blue)
 ![License](https://img.shields.io/badge/License-Academic%20%2F%20Open%20Access-slate)
 
@@ -37,11 +37,11 @@ Applikasjonen er bygget som en moderne fullstack TypeScript-applikasjon med Expr
 │   │   ├── MetaResearchLabView.tsx      # Forsk på Forskning (Integritetsvakt & Analyse)
 │   │   ├── ReferenceLibraryView.tsx     # Referansevalideringsbibliotek & Gold Standard Diff
 │   │   ├── ValidationDashboardView.tsx  # Utvikler- & revisjonsdashboard for Testpyramiden
-│   │   ├── MethodologyAuditView.tsx     # 100% Kilde- og metoderevisjonsvisning
+│   │   ├── MethodologyAuditView.tsx     # Kilde- og metoderevisjonsvisning
 │   │   ├── MethodologyView.tsx          # Instrumentkatalog med DOI-kilder
 │   │   ├── EvaluateView.tsx             # Interaktivt vurderingsskjema med evidenslokalisering
 │   │   ├── DualReviewModal.tsx          # To-gransker sammenligning og konsensusadjudisering
-│   │   ├── AuditTrailView.tsx           # Tidsstemplet, uforanderlig revisjonslogg
+│   │   ├── AuditTrailView.tsx           # Tidsstemplet, hash-kjedet revisjonslogg (lokal lagring er ikke manipulasjonssikker)
 │   │   └── ...                          # Øvrige spesialiserte komponenter
 │   ├── data/
 │   │   ├── masterRegistry.ts            # Sentralt register over verifiserte instrumenter
@@ -113,7 +113,7 @@ Systemet verifiseres i henhold til en 3-nivås testpyramide:
 ```
 
 - **Level 1 (Unit):** Tester alle kombinasjoner av kritiske og ikke-kritiske svakheter i AMSTAR 2, min/maks formelgrenser i AGREE II, CASP screening-gater og inputvalidering.
-- **Level 2 (Integration):** Tester at uforenlige studietypedesign varsles i sanntid, at vurderingssnapshots er uforanderlige (*immutable*), og at audit logs opprettholdes.
+- **Level 2 (Integration):** Tester at uforenlige studietypedesign varsles i sanntid, at vurderingssnapshots er hash-fingeravtrykk som kan brukes til å oppdage endringer, og at audit logs opprettholdes.
 - **Level 3 (Reference):** Kjører publiserte forskningsartikler med kjente referansevurderinger gjennom algoritmene og verifiserer overensstemmelse.
 
 ---
