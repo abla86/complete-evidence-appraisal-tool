@@ -53,7 +53,7 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200 flex items-center gap-1">
                 <History className="w-3.5 h-3.5" />
-                <span>Uforanderlig Endringslogg</span>
+                <span>Hash-kjedet Endringslogg</span>
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                 Audit Trail & Metoderevisjon
@@ -63,7 +63,7 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ articles = [] })
               Revisjonsspor & Endringshistorikk
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              Full sporbarhet over alle metodiske endringer, svarjusteringer og begrunnelsesrevisjoner per studie i ditt prosjekt.
+              Lokal sporbarhet over metodiske endringer, svar og begrunnelser. Hash-kjeden kan oppdage enkelte endringer, men lokal nettleserlagring kan redigeres og er ikke en manipulasjonssikker revisjonslogg.
             </p>
           </div>
 
