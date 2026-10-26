@@ -9,6 +9,54 @@ import mammoth from 'mammoth';
  * into separate text items. It deliberately preserves punctuation characters,
  * Unicode typography, decimals, and line/paragraph boundaries.
  */
+export interface PdfTextItemLike {
+  str?: unknown;
+  width?: unknown;
+  height?: unknown;
+  transform?: unknown;
+  hasEOL?: unknown;
+}
+
+/** Reconstructs PDF.js text items using their geometry instead of blindly inserting spaces. */
+export function reconstructPdfTextItems(items: unknown[]): string {
+  const output: string[] = [];
+  let previous: { x: number; y: number; width: number; height: number } | undefined;
+  for (const item of items) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as PdfTextItemLike;
+    const value = typeof record.str === 'string' ? record.str : '';
+    if (!value) {
+      if (record.hasEOL === true && output.length && !output[output.length - 1].endsWith('\n')) output.push('\n');
+      continue;
+    }
+    const transform = Array.isArray(record.transform) ? record.transform : [];
+    const x = typeof transform[4] === 'number' ? transform[4] : undefined;
+    const y = typeof transform[5] === 'number' ? transform[5] : undefined;
+    const width = typeof record.width === 'number' ? record.width : 0;
+    const height = typeof record.height === 'number' ? record.height : (typeof transform[3] === 'number' ? Math.abs(transform[3]) : 10);
+    if (previous && x !== undefined && y !== undefined) {
+      const lineTolerance = Math.max(2, Math.min(previous.height, height) * 0.45);
+      if (Math.abs(y - previous.y) > lineTolerance) {
+        if (output.length && !output[output.length - 1].endsWith('\n')) output.push('\n');
+      } else {
+        const gap = x - (previous.x + previous.width);
+        const startsWithPunctuation = /^[,.;:!?%…，。；：！？、)\]}»”’]/u.test(value);
+        const previousEndsWithOpening = /[(\[{«“‘]$/u.test(output[output.length - 1] ?? '');
+        if (gap > Math.max(1.5, height * 0.18) && !startsWithPunctuation && !previousEndsWithOpening && !/\s$/u.test(output[output.length - 1] ?? '')) output.push(' ');
+      }
+    } else if (output.length && !/\s$/u.test(output[output.length - 1]) && !/^[,.;:!?%…，。；：！？、)\]}»”’]/u.test(value)) {
+      output.push(' ');
+    }
+    output.push(value);
+    previous = x !== undefined && y !== undefined ? { x, y, width, height } : undefined;
+    if (record.hasEOL === true && !output[output.length - 1].endsWith('\n')) {
+      output.push('\n');
+      previous = undefined;
+    }
+  }
+  return normalizeExtractedText(output.join('')).replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
+}
+
 export function normalizeExtractedText(value: string): string {
   return String(value ?? '')
     .replace(/\uFEFF/g, '')
@@ -226,10 +274,7 @@ export class DocumentParserService {
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
         const page = await pdf.getPage(pageNumber);
         const content = await page.getTextContent();
-        const pageText = content.items
-          .map((item: unknown) => { const record = item && typeof item === 'object' ? item as { str?: unknown } : {}; return typeof record.str === 'string' ? record.str : ''; })
-          .join(' ');
-        const normalizedPageText = normalizeExtractedText(pageText).replace(/[ \t]{2,}/g, ' ').trim();
+        const normalizedPageText = reconstructPdfTextItems(content.items as unknown[]);
 
         if (normalizedPageText) {
           pageTexts.push({ pageNumber, text: normalizedPageText });
