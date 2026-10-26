@@ -71,7 +71,7 @@ export function normalizeExtractedText(value: string): string {
       const before = whole[offset - 1] ?? '';
       const after = whole[offset + whitespace.length] ?? '';
       if (after === '.' && /\d/u.test(whole[offset + whitespace.length + 1] ?? '')) return whitespace;
-      if (/[,;:!?%…，。；：！？、)]/u.test(after) || after === ']' || after === '}') return '';
+      if (/[,.;:!?%…，。；：！？、)]/u.test(after) || after === ']' || after === '}') return '';
       if (before === '(' || before === '[' || before === '{') return '';
       return whitespace;
     })
