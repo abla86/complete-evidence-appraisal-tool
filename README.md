@@ -184,3 +184,12 @@ Commercial planning and launch gates are documented in:
 - `docs/PRODUCT-OFFER.md`
 
 **Live checkout:** Individual Pro is 799 NOK via Stripe Payment Link. Successful payment is verified server-side against Stripe and the matching Google account receives a signed Pro entitlement automatically. The deployment requires the secret environment variable `STRIPE_SECRET_KEY`; it must never be committed to GitHub. `STRIPE_PRO_PAYMENT_LINK_ID` is configured in `render.yaml`.
+
+
+## Disclaimers and limitations
+
+- **Project status:** Features may be incomplete, experimental, or unverified. Confirm behavior against the current code, tests, and configuration before relying on it.
+- **No warranty:** Provided as-is, without guarantees of correctness, availability, security, or production readiness. Review and test changes before production use.
+- **Security and data:** Never commit credentials, API keys, personal information, or confidential data. Review permissions, external services, logging, retention, and dependency risks. Automated checks are not a complete security audit.
+- **Testing and deployment:** Passing tests or static checks does not prove all behavior is correct or deployment is safe. Verify functionality, access controls, dependencies, backups, monitoring, and operational requirements independently.
+- **Domain-specific limitation:** This tool supports critical appraisal; it does not replace expert methodological judgment. Verify source references, instrument versions, extracted evidence, scoring rules and conclusions against the original study and authoritative guidance before academic, clinical or policy use.
