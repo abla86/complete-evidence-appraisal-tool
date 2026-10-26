@@ -1,21 +1,5 @@
-# Security Policy
+# Security Policy — archived learning material
 
-## Supported Versions
+This directory contains archived educational material and is not the maintained Evidence Appraisal application. No ongoing security updates are promised for this archived directory.
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
-
-## Reporting a Vulnerability
-
-Use this section to tell people how to report a vulnerability.
-
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Do not use example data or code here to process identifiable research participants, patient data or confidential datasets. Report security concerns privately against the maintained repository at https://github.com/abla86/complete-evidence-appraisal-tool. Redact personal data and credentials from all reports.
