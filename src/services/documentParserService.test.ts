@@ -70,7 +70,7 @@ test('reconstructs PDF text from item positions without inserting spaces before 
 
 test('preserves separators before leading-decimal values and tabular columns', () => {
   assert.equal(normalizeExtractedText('Values: .05 .10'), 'Values: .05 .10');
-  assert.equal(normalizeExtractedText('10\\t.05\\t20'), '10\\t.05\\t20');
+  assert.equal(normalizeExtractedText('10\t.05\t20'), '10\t.05\t20');
 });
 
 test('does not merge words around ambiguous curly quotation marks', () => {
