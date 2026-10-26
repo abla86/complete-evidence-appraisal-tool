@@ -1,6 +1,6 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DocumentParserService, normalizeExtractedText } from './documentParserService';
+import { DocumentParserService, normalizeExtractedText, reconstructPdfTextItems } from './documentParserService';
 
 test('extractSections does not invent IMRaD boundaries from paragraph count', () => {
   const text = [
@@ -54,4 +54,15 @@ test('extracted text preserves scientific punctuation, Unicode and line boundari
 
 test('extracted text removes spacing before closing punctuation and normalizes PDF whitespace', () => {
   assert.equal(normalizeExtractedText('Dose ( 10 mg ) , not  100 mg .'), 'Dose (10 mg), not  100 mg.');
+});
+
+test('reconstructs PDF text from item positions without inserting spaces before punctuation', () => {
+  const items = [
+    { str: 'Results', transform: [10, 0, 0, 10, 10, 100], width: 34, height: 10 },
+    { str: ',', transform: [10, 0, 0, 10, 44, 100], width: 2, height: 10 },
+    { str: 'methods', transform: [10, 0, 0, 10, 50, 100], width: 34, height: 10 },
+    { str: '.', transform: [10, 0, 0, 10, 84, 100], width: 2, height: 10, hasEOL: true },
+    { str: 'Next line', transform: [10, 0, 0, 10, 10, 85], width: 40, height: 10 }
+  ];
+  assert.equal(reconstructPdfTextItems(items), 'Results, methods.\nNext line');
 });
