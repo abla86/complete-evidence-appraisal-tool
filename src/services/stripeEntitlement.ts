@@ -42,7 +42,10 @@ async function stripeGet(path: string): Promise<any> {
   if (!STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured.');
   const response = await fetch('https://api.stripe.com/v1/' + path, { headers: { Authorization: 'Bearer ' + STRIPE_SECRET_KEY } });
   const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message || 'Stripe API request failed.');
+  if (!response.ok) {
+    console.error('Stripe API request failed with status:', response.status);
+    throw new Error('Stripe payment verification failed. Please retry later.');
+  }
   return data;
 }
 
