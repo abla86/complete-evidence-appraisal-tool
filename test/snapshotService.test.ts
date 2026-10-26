@@ -2,12 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SnapshotService } from '../src/services/snapshotService';
 import { MASTER_INSTRUMENTS_REGISTRY } from '../src/data/masterRegistry';
+import type { ArticleAppraisal } from '../src/types';
 
 test('snapshot fingerprint is a real SHA-256 digest and changes with assessment content', async () => {
   const instrument = MASTER_INSTRUMENTS_REGISTRY[0];
   assert.ok(instrument, 'test requires at least one registered instrument');
 
-  const base = {
+  const base: Partial<ArticleAppraisal> = {
     id: 'test-study',
     doi: '10.0000/example',
     title: 'Example study',
