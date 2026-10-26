@@ -15,13 +15,15 @@ const store = new EvidenceStore();
 function actor(req: Request): string { return reviewerIdForRequest(req); }
 
 function sendError(res: Response, error: unknown, status = 400) {
-  res.status(status).json({ success: false, error: error instanceof Error ? error.message : 'Ukjent feil.' });
+  if (status >= 500) console.error('Integrity API operation failed:', error instanceof Error ? error.name : 'UnknownError');
+  const safeMessage = status >= 500 ? 'Intern feil. Prøv igjen senere.' : error instanceof Error ? error.message : 'Ukjent feil.';
+  res.status(status).json({ success: false, error: safeMessage });
 }
 
 export function registerIntegrityApi(app: Express) {
   app.get('/api/integrity/health', async (req, res) => {
     try {
-      reviewerIdForRequest(req); res.json({ success: true, assessments: await store.countAssessments(), auditChains: await store.countAuditChains(), persistence: 'durable-local-store' }); }
+      reviewerIdForRequest(req); res.json({ success: true, assessments: await store.countAssessments(), auditChains: await store.countAuditChains(), persistence: 'local-filesystem; durability depends on deployment storage configuration' }); }
     catch (e) { sendError(res, e, 503); }
   });
 
