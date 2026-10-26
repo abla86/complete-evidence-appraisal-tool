@@ -393,6 +393,7 @@ export class MethodIntegrityGate {
       hash = (hash << 5) - hash + rawContent.charCodeAt(i);
       hash |= 0;
     }
+    // Informational registry checksum only; this is not a cryptographic or tamper-proof seal.
     const integrityHash = `MIG-CHECKSUM:${Math.abs(hash).toString(16).padStart(8, '0')}${instrument.validationChecksum?.slice(-6) || ''}`;
 
     return {
@@ -492,7 +493,7 @@ export class MethodIntegrityGate {
   /**
    * Applies 'Verified' status with an immutable MethodIntegrityGate seal.
    */
-  public static verifyAppraisal(appraisal: ArticleAppraisal, verifiedBy: string = 'MethodIntegrityGate'): ArticleAppraisal {
+  public static async verifyAppraisal(appraisal: ArticleAppraisal, verifiedBy: string = 'MethodIntegrityGate'): Promise<ArticleAppraisal> {
     const check = this.canMarkAsVerified(appraisal);
     if (!check.allowed) {
       throw new MethodIntegrityGateError(
@@ -501,7 +502,7 @@ export class MethodIntegrityGate {
       );
     }
 
-    const snapshot = SnapshotService.createSnapshot(appraisal, verifiedBy);
+    const snapshot = await SnapshotService.createSnapshot(appraisal, verifiedBy);
     const updatedAuditTrail = [
       {
         id: `AUD-VERIFY-${Date.now()}`,
@@ -514,7 +515,7 @@ export class MethodIntegrityGate {
         previousAnswer: appraisal.methodologyAlignmentStatus || 'PENDING_VERIFICATION',
         newAnswer: 'INTERNALLY_COMPLIANCE_CHECKED',
         previousRationale: 'Uverifisert',
-        newRationale: `Godkjent gjennom MethodIntegrityGate (Hash: ${check.gateResult.integrityHash}). Kilde, versjon, antall kriterier og skÃ¥ringsmodell er validert mot registeret.`,
+        newRationale: 'Godkjent gjennom MethodIntegrityGate. Kilde, versjon, antall kriterier og skåringsmodell er kontrollert mot registeret.',
         changedBy: verifiedBy,
         timestamp: new Date().toISOString(),
         comment: 'Full metodisk samsvarsgodkjenning fullfÃ¸rt.'
@@ -525,10 +526,7 @@ export class MethodIntegrityGate {
     return {
       ...appraisal,
       methodologyAlignmentStatus: 'INTERNALLY_COMPLIANCE_CHECKED',
-      snapshot: {
-        ...snapshot,
-        immutableLockHash: check.gateResult.integrityHash
-      },
+      snapshot,
       auditTrail: updatedAuditTrail
     };
   }
