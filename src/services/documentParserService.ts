@@ -4,6 +4,23 @@ import { MetaResearchService } from './metaResearchService';
 import { IMRaDAnalysisService } from './imradAnalysisService';
 import mammoth from 'mammoth';
 
+/**
+ * Repairs spacing artifacts introduced when PDF.js splits words and punctuation
+ * into separate text items. It deliberately preserves punctuation characters,
+ * Unicode typography, decimals, and line/paragraph boundaries.
+ */
+export function normalizeExtractedText(value: string): string {
+  return String(value ?? '')
+    .replace(/\uFEFF/g, '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\u00AD/g, '')
+    .replace(/[ \t]+([,.;:!?%…])/g, '$1')
+    .replace(/([([{“‘])[ \t]+/g, '$1')
+    .replace(/[ \t]+([)\]}”’])/g, '$1')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\r\n?/g, '\n');
+}
+
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
 
 export function parseAuthorList(value: string): string[] { return String(value || '').replace(/["*†‡§0-9\u00B9\u00B2\u00B3\u2074-\u2079]+/gu, '').split(/\s*,\s*|\s+and\s+/i).map(name => name.trim()).filter(Boolean); }
@@ -113,6 +130,9 @@ export class DocumentParserService {
       extractedText = await this.extractPlainText(file);
     }
 
+    extractedText = normalizeExtractedText(extractedText);
+    pages = pages.map(page => ({ ...page, text: normalizeExtractedText(page.text) }));
+
     if (!extractedText.trim() && isScannedOrImageOnly) {
       extractedText = `[SKANNET DOKUMENT IDENTIFISERT - ${file.name}]\n\nDokumentet fremstår som en skannet bilde-PDF eller inneholder ikke et tilgjengelig tekstlag.\nSystemet har registrert filen for videre manuell gjennomgang eller OCR-behandling.\nForfattere og tittel bør kontrolleres manuelt.`;
     }
@@ -208,12 +228,11 @@ export class DocumentParserService {
         const content = await page.getTextContent();
         const pageText = content.items
           .map((item: unknown) => { const record = item && typeof item === 'object' ? item as { str?: unknown } : {}; return typeof record.str === 'string' ? record.str : ''; })
-          .join(' ')
-          .replace(/\s{2,}/g, ' ')
-          .trim();
+          .join(' ');
+        const normalizedPageText = normalizeExtractedText(pageText).replace(/[ \t]{2,}/g, ' ').trim();
 
-        if (pageText) {
-          pageTexts.push({ pageNumber, text: pageText });
+        if (normalizedPageText) {
+          pageTexts.push({ pageNumber, text: normalizedPageText });
         }
       }
 
