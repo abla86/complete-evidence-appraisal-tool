@@ -1,6 +1,6 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DocumentParserService } from './documentParserService';
+import { DocumentParserService, normalizeExtractedText } from './documentParserService';
 
 test('extractSections does not invent IMRaD boundaries from paragraph count', () => {
   const text = [
@@ -41,3 +41,17 @@ test('file validation rejects unsupported extensions', () => {
 });
 
 
+
+test('extracted text removes spaces before punctuation without changing punctuation', () => {
+  const input = 'Results , methods ; outcomes : significant . ( p = 0.04 ) 95 %';
+  assert.equal(normalizeExtractedText(input), 'Results, methods; outcomes: significant. (p = 0.04) 95%');
+});
+
+test('extracted text preserves scientific punctuation, Unicode and line boundaries', () => {
+  const input = 'CI 95 %: 1.02 – 1.45\r\n“Effect size” ; α = 0.05, p < 0.001 .';
+  assert.equal(normalizeExtractedText(input), 'CI 95%: 1.02 – 1.45\n“Effect size”; α = 0.05, p < 0.001.');
+});
+
+test('extracted text removes spacing before closing punctuation and normalizes PDF whitespace', () => {
+  assert.equal(normalizeExtractedText('Dose ( 10 mg ) , not  100 mg .'), 'Dose (10 mg), not  100 mg.');
+});
