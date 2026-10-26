@@ -56,7 +56,8 @@ export function registerAuthApi(app: Express): void {
       return res.redirect(authorizationReturnTo(state));
     } catch (error) {
       res.setHeader('Set-Cookie', clearAuthorizationStateCookie(secureCookie(req)));
-      return res.status(401).send(error instanceof Error ? error.message : 'Authentication failed.');
+      console.error('Google OAuth callback failed:', error instanceof Error ? error.name : 'UnknownError');
+      return res.status(401).send('Google sign-in failed. Please retry or contact the administrator.');
     }
   });
 
