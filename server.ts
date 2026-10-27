@@ -57,15 +57,18 @@ async function startServer() {
     for (const [bucketKey, bucket] of rateBuckets) {
       if (bucket.resetAt <= now) rateBuckets.delete(bucketKey);
     }
+    const current = rateBuckets.get(key);
+    if (current && current.resetAt > now) {
+      current.count += 1;
+      return current.count > limit;
+    }
+
+    // Do not evict active clients or block every request when the map is full.
+    // Reject only a new bucket once the bounded store has reached capacity.
     if (rateBuckets.size >= MAX_RATE_BUCKETS) return true;
 
-    const current = rateBuckets.get(key);
-    if (!current || current.resetAt <= now) {
-      rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
-      return false;
-    }
-    current.count += 1;
-    return current.count > limit;
+    rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
   };
 
   app.use('/api', (req, res, next) => {
