@@ -58,9 +58,21 @@ function decode<T>(value: string): T | null {
   } catch { return null; }
 }
 
+function safeLocalReturnTo(value: unknown): string {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/';
+  try {
+    const target = new URL(value, APP_URL);
+    const appOrigin = new URL(APP_URL).origin;
+    if (target.origin !== appOrigin) return '/';
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return '/';
+  }
+}
+
 export function createAuthorizationRequest(returnTo = '/'): { url: string; state: string } {
   const client = getGoogleOAuthClient();
-  const safeReturnTo = returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
+  const safeReturnTo = safeLocalReturnTo(returnTo);
   const state = encode({ nonce: crypto.randomBytes(24).toString('hex'), returnTo: safeReturnTo, exp: Date.now() + 10 * 60 * 1000 });
   return { state, url: client.generateAuthUrl({ access_type: 'offline', scope: scopes(), include_granted_scopes: true, state, prompt: 'select_account' }) };
 }
@@ -68,8 +80,7 @@ export function createAuthorizationRequest(returnTo = '/'): { url: string; state
 export function createAuthorizationUrl(): string { return createAuthorizationRequest().url; }
 export function authorizationReturnTo(state: string): string {
   const decoded = decode<{ returnTo?: string }>(state);
-  const returnTo = decoded?.returnTo;
-  return typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
+  return safeLocalReturnTo(decoded?.returnTo);
 }
 export function authorizationStateCookieHeader(state: string, secure: boolean): string { return `evidence_google_oauth_state=${encodeURIComponent(state)}; Path=/auth/google; HttpOnly; SameSite=Lax; Max-Age=600${secure ? '; Secure' : ''}`; }
 export function readAuthorizationStateCookie(cookieHeader?: string): string | null {
