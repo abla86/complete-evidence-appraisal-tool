@@ -165,7 +165,11 @@ async function startServer() {
       if (effectiveSize > 8 * 1024 * 1024) return res.status(413).json({ success: false, error: 'Filen er for stor.' });
       const parseResult = await DocumentParserService.parseFile({ name: fileName, size: effectiveSize, type: mimeType, content: contentBuffer });
       res.json({ success: true, data: parseResult, integration: { contractVersion: '1.0.0', evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0, humanVerificationRequired: true, appraisalGateRequired: true } });
-    } catch (err: unknown) { res.status(400).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil under dokumentbehandling og tekstraksjon.' }); }
+    } catch (err: unknown) {
+      // Keep parser/library internals and local file paths out of public API responses.
+      console.error('Document parsing failed:', err instanceof Error ? err.name : 'UnknownError');
+      res.status(400).json({ success: false, error: 'Dokumentet kunne ikke behandles. Kontroller filformatet og prøv igjen.' });
+    }
   });
 
   app.post('/api/meta-research/analyze', async (req: Request, res: Response) => {
