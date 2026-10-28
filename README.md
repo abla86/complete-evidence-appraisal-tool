@@ -131,6 +131,10 @@ Systemet verifiseres i henhold til en 3-nivås testpyramide:
 Systemet respekterer alle opphavsrettslige rammer og Creative Commons-lisenser (f.eks. CC BY 4.0 for AMSTAR 2 og RoB 2, CC BY-NC-SA 4.0 for CASP UK, og åpen forskningsbruk for JBI og AGREE Research Trust).
 
 
+## Storage durability
+
+By default, assessments and research artifacts are stored on the local filesystem. On ephemeral hosting, redeployments or instance replacement may remove these files; multiple instances also do not share a local directory. The health endpoint does not guarantee durable storage. Configure and test a persistent volume or database, including backups and restore procedures, before relying on records across deployments.
+
 ## Google OAuth 2.0
 
 Google sign-in is implemented by the Evidence app itself. It does **not** use Home Assistant's OAuth callback.
