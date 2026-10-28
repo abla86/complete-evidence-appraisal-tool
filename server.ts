@@ -100,7 +100,7 @@ async function startServer() {
       return res.redirect('/?pro=activated&email=' + encodeURIComponent(result.email));
     } catch (error) {
       if (!getAuthenticatedUser(req)) return res.redirect('/auth/google?returnTo=' + encodeURIComponent('/purchase-complete?session_id=' + sessionId));
-      return res.redirect('/?pro=error&message=' + encodeURIComponent(error instanceof Error ? error.message : 'Kunne ikke aktivere Pro.'));
+      return res.redirect('/?pro=error&message=' + encodeURIComponent('Betalingen kunne ikke bekreftes. Kontroller betalingsstatus eller kontakt support.'));
     }
   });
 
