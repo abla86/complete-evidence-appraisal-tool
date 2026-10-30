@@ -48,6 +48,9 @@ export const LicenseGate: React.FC<{ children: React.ReactNode }> = ({ children 
     const fromUrl = takeLicenseFromLocation();
     if (fromUrl.error) setReason(fromUrl.error);
     void apply(fromUrl.token ?? readStoredLicense());
+    const onHashChange = () => { const next = takeLicenseFromLocation(); if (next.error) setReason(next.error); if (next.token) void apply(next.token); };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   }, [apply]);
 
   // Renew subscription licences that expire within 7 days, or have expired, when the server is reachable.

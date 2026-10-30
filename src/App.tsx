@@ -40,6 +40,20 @@ import { EvidencePipelineService, type EvidencePipelineState } from './services/
 import { ImportExportService } from './services/importExportService';
 import { StudioStateProvider } from './state/StudioStateContext';
 import { ClinicalInteroperabilityPanel } from './components/ClinicalInteroperabilityPanel';
+import { CustomEvaluatorView } from './components/CustomEvaluatorView';
+import { MethodologyView } from './components/MethodologyView';
+import { InstrumentInfoView } from './components/InstrumentInfoView';
+import { AnalysisToolsView } from './components/AnalysisToolsView';
+import { ModuleWorkspaceView } from './components/ModuleWorkspaceView';
+import { AuditTimeline } from './components/AuditTimeline';
+import { AuditAnalyticsDashboard } from './components/AuditAnalyticsDashboard';
+import { AuditReviewerCompare } from './components/AuditReviewerCompare';
+import { AcademicWriterView } from './components/AcademicWriterView';
+import { PdfEvidenceWorkspace } from './components/PdfEvidenceWorkspace';
+import { LegalView, type LegalSection } from './components/LegalView';
+import { AccountView } from './components/AccountView';
+import { getNetworkConsent } from './services/networkPolicy';
+import { SELLER } from './legal/seller';
 import { guardedFetch } from './services/networkPolicy';
 
 function articleToReference(article: ArticleAppraisal, existing?: ReferenceRecord): ReferenceRecord {
@@ -69,22 +83,11 @@ function articleToReference(article: ArticleAppraisal, existing?: ReferenceRecor
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
-  const tabTitles: Record<ActiveTab, string> = { overview: 'Research Intelligence Platform', document_studio: 'Document Studio', source_workflow: 'Screening & PICO', appraisal: 'Universal Appraisal', reference_hub: 'Reference & Citation Hub', meta_research: 'Meta-Research & PRISMA', peer_review: 'Peer Review & Consensus', synthesis: 'Synthesis & Export Gate', search: 'Research Search', evaluate: 'Article Evaluation', details: 'Study Details', compare: 'Dual Review', audittrail: 'Audit Trail', who_validation: 'WHO Validation', methodology_audit: 'Methodology Audit', reference_library: 'Reference Library', validation_dashboard: 'Validation Dashboard', help_examples: 'Help & Examples', instrumentinfo: 'Instrument Information', writing_studio: 'Writing Studio' };
+  const tabTitles: Record<ActiveTab, string> = { overview: 'Research Intelligence Platform', document_studio: 'Document Studio', source_workflow: 'Screening & PICO', appraisal: 'Universal Appraisal', reference_hub: 'Reference & Citation Hub', meta_research: 'Meta-Research & PRISMA', peer_review: 'Peer Review & Consensus', synthesis: 'Synthesis & Export Gate', search: 'Research Search', evaluate: 'Article Evaluation', details: 'Study Details', compare: 'Dual Review', audittrail: 'Audit Trail', who_validation: 'WHO Validation', methodology_audit: 'Methodology Audit', reference_library: 'Reference Library', validation_dashboard: 'Validation Dashboard', help_examples: 'Help & Examples', instrumentinfo: 'Instrument Information', writing_studio: 'Writing Studio', new_article: 'Ny artikkel', methodology: 'Instrumentkatalog', analysis_tools: 'Analyseverktøy', modules: 'Kildeinntak & inspektører', legal: 'Vilkår og personvern', account: 'Lisens og konto' };
   const [isDocAnalysisOpen, setIsDocAnalysisOpen] = useState(false);
-  const [proStatus, setProStatus] = useState<{ authenticated: boolean; pro: boolean; email: string | null }>({ authenticated: false, pro: false, email: null });
-  const [proNotice, setProNotice] = useState<string | null>(null);
+  const [legalSection, setLegalSection] = useState<LegalSection>('disclaimer');
 
-  useEffect(() => { document.title = `Complete Evidence Appraisal Suite · ${tabTitles[activeTab]}`; }, [activeTab]);
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const result = params.get('pro');
-    if (result === 'activated') setProNotice('Pro er aktivert. Alle Pro-funksjoner er nå tilgjengelige.');
-    if (result === 'error') setProNotice(params.get('message') || 'Pro kunne ikke aktiveres.');
-    if (result) window.history.replaceState({}, document.title, window.location.pathname);
-    void guardedFetch('cloud', '/api/pro/status', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(data => {
-      if (data) setProStatus({ authenticated: Boolean(data.authenticated), pro: Boolean(data.pro), email: data.email || null });
-    }).catch(() => undefined);
-  }, []);
+  useEffect(() => { document.title = `Evidence Appraisal Tool · ${tabTitles[activeTab]}`; }, [activeTab]);
   const [articles, setArticles] = useState<ArticleAppraisal[]>(() => AutosaveService.loadArticles([]));
   useEffect(() => { if (activeTab === 'document_studio') setIsDocAnalysisOpen(false); }, [activeTab]);
   useEffect(() => { const handler = (event: Event) => { const target = (event as CustomEvent<string>).detail; if (typeof target === 'string') setActiveTab(target as ActiveTab); }; window.addEventListener('research-suite:navigate', handler); return () => window.removeEventListener('research-suite:navigate', handler); }, []);
@@ -104,6 +107,7 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     const loadServerReferences = async () => {
+      if (!getNetworkConsent().cloud) return; // cloud sync is opt-in
       try {
         const response = await guardedFetch('cloud', '/api/reference-hub', { credentials: 'include' });
         if (!response.ok) return;
@@ -143,10 +147,9 @@ export default function App() {
   };
   const handleSelectArticle = (id: string) => { setSelectedArticleId(id); setActiveTab('details'); };
   const handleEditArticle = (article: ArticleAppraisal) => { if (article.instrumentId) setSelectedInstrumentId(article.instrumentId); setArticles(prev => prev.map(a => a.id === article.id ? article : a)); setEditingArticle(article); setSelectedArticleId(article.id); setActiveTab('instrumentinfo'); };
-  const handleNewArticle = () => { setEditingArticle(null); setSelectedInstrumentId(''); setActiveTab('instrumentinfo'); };
+  const handleNewArticle = () => { setEditingArticle(null); setSelectedInstrumentId(''); setActiveTab('new_article'); };
   const handleSaveArticle = (savedArticle: ArticleAppraisal) => { setArticles(prev => { const idx = prev.findIndex(a => a.id === savedArticle.id); if (idx >= 0) { const next = [...prev]; next[idx] = savedArticle; return next; } return [savedArticle, ...prev]; }); setSelectedArticleId(savedArticle.id); setEditingArticle(null); setSelectedInstrumentId(savedArticle.instrumentId || ''); setActiveTab('details'); };
   const currentArticle = articles.find(a => a.id === selectedArticleId) || articles[0];
-  const hardResetApp = () => { localStorage.clear(); sessionStorage.clear(); window.location.reload(); };
   useEffect(() => { const instrumentId = currentArticle?.instrumentId || ''; if (instrumentId !== selectedInstrumentId) setSelectedInstrumentId(instrumentId); }, [currentArticle?.id, currentArticle?.instrumentId, selectedInstrumentId]);
   useEffect(() => {
     setReferenceRecords(prev => {
@@ -184,7 +187,6 @@ export default function App() {
   return (
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
-        {proNotice && <div className={`mx-4 mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${proStatus.pro || proNotice.includes('aktivert') ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>{proNotice}<button type="button" className="ml-3 underline" onClick={() => setProNotice(null)}>Lukk</button></div>}
         <Header activeTab={activeTab} setActiveTab={setActiveTab} articles={articles} selectedArticleId={selectedArticleId} onSelectArticleId={setSelectedArticleId} selectedInstrumentId={selectedInstrumentId} onSelectInstrument={setSelectedInstrumentId} currentUserRole={currentUserRole} onSelectUserRole={setCurrentUserRole} onOpenPrivacyCenter={() => setIsPrivacyCenterOpen(true)} onOpenDocAnalysis={() => setIsDocAnalysisOpen(true)} onOpenImportExport={handleOpenImportExport} onOpenAutosave={() => setIsAutosaveModalOpen(true)} onNewArticle={handleNewArticle} />
         <StudioStateProvider value={{ articles, setArticles, references: referenceRecords, setReferences: setReferenceRecords, pipelineState, setPipelineState, selectedArticleId, setSelectedArticleId }}>
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
@@ -208,19 +210,32 @@ export default function App() {
               {activeTab === 'compare' && <><UniversalDualReviewPanel studyId={selectedArticleId} instrumentId={selectedInstrumentId} actorId={actor.id} actorRole={currentUserRole} /><DualReviewView articles={articles} onSelectArticleId={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} onGoToEvaluation={handleEditArticle} /></>}
               {activeTab === 'peer_review' && <PeerReviewStudioView articles={articles} onUpdateArticles={setArticles} onNavigateToStudy={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
               {activeTab === 'synthesis' && <div className="space-y-6"><ThesisReadyView articles={articles} onOpenImportExport={handleOpenImportExport} /><AuditTrailView articles={articles} /></div>}
-              {activeTab === 'audittrail' && <AuditTrailView articles={articles} />}
+              {activeTab === 'audittrail' && <div className="space-y-6"><AuditTrailView articles={articles} /><AuditAnalyticsDashboard /><AuditTimeline /><AuditReviewerCompare reviewerA="lead-reviewer" reviewerB="reviewer" /></div>}
               {activeTab === 'who_validation' && <WhoValidationHubView articles={articles} onSelectArticleForEdit={(id) => { const art = articles.find(a => a.id === id); if (art) handleEditArticle(art); }} onSelectArticleForView={(id) => { setSelectedArticleId(id); setActiveTab('details'); }} />}
               {activeTab === 'methodology_audit' && <MethodologyAuditView />}
               {activeTab === 'meta_research' && <MetaResearchLabView onSelectInstrumentForAssessment={(instrumentId, prefillArticle) => { setSelectedInstrumentId(instrumentId); if (prefillArticle) { const articleId = generateArticleId('art'); const newArt: ArticleAppraisal = { id: articleId, instrumentId, instrumentVersion: 'PENDING_VERIFICATION', lifecycleStatus: 'DRAFT', title: prefillArticle.title || 'Ny forskningsartikkel', authors: prefillArticle.authors || 'Forfattere', shortCitation: `${(prefillArticle.authors || 'Forfattere').split(',')[0]} (${prefillArticle.year || 2024})`, year: prefillArticle.year || 2024, doi: prefillArticle.doi || '', doiUrl: prefillArticle.doi ? `https://doi.org/${prefillArticle.doi}` : '', sourceUrl: '', sourceName: 'Forsk på forskning', journal: 'Vitenskapelig tidsskrift', studyContext: 'Klinisk eller samfunnsmessig kontekst', design: prefillArticle.design || 'Ukjent / Uavklart', dataCollection: 'Se fulltekst', participants: 'Se fulltekst', analyticMethod: 'Se fulltekst', summaryScore: { ja: 0, uklart: 10, nei: 0, ikkeRelevant: 0, total: 10 }, overallVerdict: 'Vurder videre', verdictNote: 'Krever vurdering med valgt instrument', keyStrength: 'Ikke forhåndsvurdert', mainLimitation: 'Fulltekst må kontrolleres', apaReference: `${prefillArticle.authors || 'Forfattere'} (${prefillArticle.year || 2024}). ${prefillArticle.title || 'Artikkel'}.`, items: (MASTER_INSTRUMENTS_REGISTRY.find(inst => inst.id === instrumentId)?.questions ?? []).map(q => ({ questionId: Number(q.id), status: 'Uklart', justification: '', evidenceText: '', sourceQuoteOrRef: '', location: { page: '', section: '' } })), auditTrail: [] }; setArticles(prev => [...prev, newArt]); setSelectedArticleId(newArt.id); } setActiveTab('instrumentinfo'); }} onSaveToLibrary={() => setActiveTab('overview')} />}
-              {activeTab === 'reference_hub' && <><ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} /><ClinicalInteroperabilityPanel /></>}
-              {activeTab === 'writing_studio' && <WritingStudioView references={referenceRecords} />}
+              {activeTab === 'reference_hub' && <div className="space-y-6"><ReferenceHubView records={referenceRecords} onChange={handleReferenceChange} /><PdfEvidenceWorkspace references={referenceRecords} onChange={handleReferenceChange} /><ClinicalInteroperabilityPanel /></div>}
+              {activeTab === 'writing_studio' && <div className="space-y-6"><WritingStudioView references={referenceRecords} /><AcademicWriterView references={referenceRecords} /></div>}
               {activeTab === 'reference_library' && <ReferenceLibraryView articles={articles} />}
               {activeTab === 'validation_dashboard' && <ValidationDashboardView />}
               {activeTab === 'help_examples' && <HelpAndExamplesView />}
+              {activeTab === 'new_article' && <CustomEvaluatorView onSaveNewArticle={handleSaveArticle} />}
+              {activeTab === 'methodology' && <div className="space-y-6">{selectedInstrumentId && <InstrumentInfoView instrumentId={selectedInstrumentId} onSwitchToJbi={() => setSelectedInstrumentId('jbi-qualitative-2017')} />}<MethodologyView onGoToThesis={() => setActiveTab('synthesis')} /></div>}
+              {activeTab === 'analysis_tools' && <AnalysisToolsView />}
+              {activeTab === 'modules' && <ModuleWorkspaceView />}
+              {activeTab === 'legal' && <LegalView section={legalSection} onSelect={setLegalSection} />}
+              {activeTab === 'account' && <AccountView />}
               {activeTab === 'appraisal' && <UniversalAppraisalView studyId={selectedArticleId || 'new-study'} studyDesign={currentArticle?.design || ''} initialInstrumentId={selectedInstrumentId} reviewerId={appraisalReviewerId} onSaved={saveAppraisalSession} />}
             </>}
           </main>
         </StudioStateProvider>
+        <footer className="mt-10 border-t border-slate-200 bg-white px-4 py-5 text-xs text-slate-600">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <p className="max-w-3xl">Støtteverktøy for kritisk vurdering. Erstatter ikke faglig skjønn; kontroller alle resultater mot originalkilden og det offisielle instrumentet. KI er valgfri og avslått som standard.</p>
+            <nav aria-label="Juridisk" className="flex flex-wrap gap-3">{(['disclaimer', 'terms', 'privacy', 'withdrawal', 'cookies', 'conduct', 'accessibility', 'seller'] as LegalSection[]).map(section => <button key={section} type="button" className="underline" onClick={() => { setLegalSection(section); setActiveTab('legal'); }}>{{ disclaimer: 'Ansvar', terms: 'Vilkår', privacy: 'Personvern', withdrawal: 'Angrerett', cookies: 'Informasjonskapsler', conduct: 'Atferdsregler', accessibility: 'Tilgjengelighet', seller: 'Om selger' }[section]}</button>)}</nav>
+          </div>
+          <p className="max-w-7xl mx-auto mt-2 text-slate-400">{SELLER.name} · org.nr. {SELLER.organisationNumber} · {SELLER.address}</p>
+        </footer>
         <DocumentAnalysisModal isOpen={isDocAnalysisOpen} onClose={() => setIsDocAnalysisOpen(false)} />
         <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} initialTab={importExportInitialTab} articles={articles} onImportArticles={handleImportArticles} />
         <AutosaveModal isOpen={isAutosaveModalOpen} onClose={() => setIsAutosaveModalOpen(false)} articles={articles} onRestoreArticles={(restoredArticles) => { setArticles(restoredArticles); setSelectedArticleId(restoredArticles[0]?.id || ''); }} />

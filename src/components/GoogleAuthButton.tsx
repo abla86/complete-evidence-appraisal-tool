@@ -10,11 +10,14 @@ interface Session {
 export const GoogleAuthButton: React.FC = () => {
   const [session, setSession] = useState<Session>({ authenticated: false, user: null });
   const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
 
   const load = async () => {
     try {
-      const response = await guardedFetch('cloud', '/api/auth/session', { credentials: 'same-origin' });
+      const response = await guardedFetch('cloud', '/api/auth/me', { credentials: 'same-origin' });
       if (response.ok) setSession(await response.json());
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Innloggingsstatus kunne ikke hentes.');
     } finally {
       setLoading(false);
     }
@@ -23,11 +26,13 @@ export const GoogleAuthButton: React.FC = () => {
   useEffect(() => { void load(); }, []);
 
   const logout = async () => {
-    await guardedFetch('cloud', '/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    try { await guardedFetch('cloud', '/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); }
+    catch (error) { setNotice(error instanceof Error ? error.message : 'Utlogging feilet.'); }
     await load();
   };
 
   if (loading) return null;
+  if (notice && !session.authenticated) return <p role="status" className="text-xs text-amber-900">{notice}</p>;
 
   if (session.authenticated) {
     return (

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Evidence Appraisal Tool">
+  <rect width="512" height="512" rx="112" fill="#0f766e"/>
+  <path d="M160 132h168l56 56v192a24 24 0 0 1-24 24H160a24 24 0 0 1-24-24V156a24 24 0 0 1 24-24z" fill="#f8fafc"/>
+  <path d="M328 132v56h56" fill="#ccfbf1"/>
+  <path d="M184 300l44 44 100-112" fill="none" stroke="#0f766e" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

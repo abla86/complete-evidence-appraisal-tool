@@ -1,21 +1,27 @@
 {
   "name": "complete-evidence-appraisal-tool",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build:web": "vite build && node scripts/third-party-notices.mjs dist/THIRD-PARTY-NOTICES.txt",
+    "build:offline": "vite build --mode offline && node scripts/package-offline.mjs",
+    "build:server": "esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "npm run build:web && npm run build:offline && npm run build:server",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
-    "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
+    "clean": "node -e \"import('node:fs').then(fs=>{for(const d of ['dist','dist-offline','release'])fs.rmSync(d,{recursive:true,force:true})})\"",
     "lint": "tsc --noEmit",
     "test": "node --import tsx --test \"test/**/*.test.ts\" \"tests/**/*.test.ts\"",
-    "test:coverage": "node --import tsx --test --experimental-test-coverage \"test/**/*.test.ts\" \"tests/**/*.test.ts\""
+    "test:coverage": "node --import tsx --test --experimental-test-coverage \"test/**/*.test.ts\" \"tests/**/*.test.ts\"",
+    "license:keygen": "node scripts/license-keygen.mjs",
+    "license:issue": "node scripts/issue-license.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
     "canvas-confetti": "^1.9.4",
+    "dompurify": "^3.4.17",
     "dotenv": "^17.2.3",
     "express": "^4.22.2",
     "google-auth-library": "^10.9.1",
@@ -25,8 +31,7 @@
     "motion": "^12.23.24",
     "pdfjs-dist": "^6.3.289",
     "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "dompurify": "^3.4.17"
+    "react-dom": "^19.0.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.14",
@@ -40,12 +45,16 @@
     "esbuild": "^0.25.12",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.4.5"
+    "vite": "^6.4.5",
+    "vite-plugin-singlefile": "^2.3.4"
   },
   "overrides": {
-    "qs": "^6.16.0",
+    "qs": "^6.17.1",
     "proxy-addr": "2.0.8",
     "source-map-js": "1.2.2",
     "body-parser": "1.20.9"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }

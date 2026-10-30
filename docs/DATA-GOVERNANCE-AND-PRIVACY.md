@@ -40,7 +40,7 @@ Primary threats include:
 
 1. Authorization is enforced on the server for every protected resource.
 2. A user cannot access another project's assessment by changing an identifier in a URL or request body.
-3. Finalized assessment snapshots are immutable; corrections create a new version or documented adjudication event.
+3. Finalized assessment snapshots are read-only in the application; corrections create a new version or documented adjudication event. Locally stored data is not tamper-proof; the SHA-256 audit chain makes edits detectable.
 4. Authentication secrets are never exposed to the browser or repository.
 5. AI-generated content cannot directly overwrite a human appraisal decision.
 6. Logs contain operational identifiers rather than sensitive document contents.

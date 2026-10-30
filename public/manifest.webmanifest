@@ -1,1 +1,15 @@
-{"name":"Complete Evidence Appraisal Suite & Meta-Research Platform","short_name":"Evidence Appraisal","start_url":".","display":"standalone","background_color":"#f8fafc","theme_color":"#0f766e","lang":"en","description":"Client-side research evidence appraisal and meta-research workspace.","icons":[]}
+{
+  "name": "Evidence Appraisal Tool",
+  "short_name": "Evidence Appraisal",
+  "description": "Verktøy for kritisk vurdering av forskning. Data behandles lokalt på enheten.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f766e",
+  "lang": "nb",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-offline
+release
 coverage
 .git
 .github

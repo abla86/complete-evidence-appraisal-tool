@@ -6,7 +6,6 @@ paths:
   - scripts
 
 paths-ignore:
-  - archive/**
   - node_modules/**
   - dist/**
   - coverage/**

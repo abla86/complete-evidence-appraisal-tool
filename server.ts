@@ -81,6 +81,11 @@ async function startServer() {
     next();
   });
 
+  app.use('/purchase-complete', (req, res, next) => {
+    if (rateLimit(req, 10, 60_000)) { res.setHeader('Retry-After', '60'); return res.status(429).send('For mange forespørsler. Prøv igjen senere.'); }
+    next();
+  });
+
   registerAuthApi(app);
   registerResearchEngineIntegration(app);
   registerResearchWorkflowApi(app);

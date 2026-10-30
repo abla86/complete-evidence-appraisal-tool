@@ -18,3 +18,15 @@
 
 ### Not claimed as complete
 - A successful `npm test` / `npm run build` run has not been established from the current `main` revision through the available GitHub status data.
+
+## 1.0.0 – 2026-10-30
+
+- Local-first appraisal: sessions are created, saved and locked in the browser (previously required a server workflow that the UI never created). Fixed ROBINS-I answer options that the instrument rejected.
+- Downloadable offline edition (single HTML file in a zip) and installable web app with full offline cache.
+- Ed25519-signed licences: trial, online subscription and one-time download licence; manual issuing script.
+- Network policy: every outbound request needs per-category consent (default off), host allow-list and local log. AI analysis no longer sends document text by default. Removed the server document upload endpoint.
+- Workspace backup/restore as zip with SHA-256 verification; erasure now removes all app data.
+- Legal pages (terms, withdrawal, privacy, cookies, disclaimer, conduct, accessibility) with seller identity.
+- Navigation exposes all views; 13 previously unreachable views wired in; duplicate views removed; repaired mis-encoded Norwegian text in 50 files.
+- Server: fixed SPA deep links on Express 4, JSON 404 for unknown API routes, CSP allows only the used metadata hosts, no internal error messages in responses.
+- Removed archive/ and patches/ (kept in git history) and the duplicate readme.md / bun.lock.

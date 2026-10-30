@@ -106,7 +106,7 @@ Validation must address:
 - missing and impossible values;
 - instrument/version compatibility;
 - deterministic calculations;
-- immutable assessment snapshots;
+- assessment snapshots that are read-only in the application (hash-chained so edits are detectable; local storage is not tamper-proof);
 - provenance completeness;
 - consistency between UI and server calculations;
 - regression tests after methodology changes.

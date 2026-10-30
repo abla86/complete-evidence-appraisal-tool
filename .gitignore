@@ -1,6 +1,8 @@
 node_modules/
 build/
 dist/
+dist-offline/
+release/
 coverage/
 data/
 .DS_Store

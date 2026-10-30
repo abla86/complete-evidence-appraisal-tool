@@ -15,6 +15,42 @@ permissions:
   contents: read
 
 jobs:
+  cross-platform:
+    name: Build and test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build web, offline edition and server
+        run: npm run build
+
+      - name: Verify offline package exists
+        shell: bash
+        run: test -s release/evidence-appraisal-offline.zip
+
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
