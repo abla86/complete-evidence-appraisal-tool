@@ -295,7 +295,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                      {art.instrumentName.split('â€“')[0].trim()}
+                      {art.instrumentName.split('–')[0].trim()}
                     </span>
                     <span className="text-[11px] font-medium text-slate-500">
                       {art.year}
@@ -307,7 +307,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
                   </h3>
 
                   <div className="text-[11px] text-slate-600 mt-1 line-clamp-1">
-                    {art.authors} â€¢ <span className="italic">{art.journal}</span>
+                    {art.authors} • <span className="italic">{art.journal}</span>
                   </div>
 
                   <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
@@ -375,7 +375,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
 
                   {activeRefArticle.pmid && (
                     <>
-                      <span className="text-slate-300">â€¢</span>
+                      <span className="text-slate-300">•</span>
                       <span className="font-semibold text-slate-700">PMID:</span>
                       <a
                         href={`https://pubmed.ncbi.nlm.nih.gov/${activeRefArticle.pmid}/`}
@@ -389,7 +389,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
                     </>
                   )}
 
-                  <span className="text-slate-300">â€¢</span>
+                  <span className="text-slate-300">•</span>
                   <span className="font-semibold text-slate-700">Database:</span>
                   <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-[11px] font-medium">
                     {activeRefArticle.database}
@@ -432,7 +432,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
                           <div>
                             <div className="font-semibold text-slate-900 text-xs">{supp.supplementTitle}</div>
                             <div className="text-[11px] text-slate-500">
-                              Format: {supp.fileType} â€¢ Dekker: {supp.itemsCovered}
+                              Format: {supp.fileType} • Dekker: {supp.itemsCovered}
                             </div>
                           </div>
                           {supp.supplementUrl && (
@@ -607,7 +607,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
                               </span>
                             </div>
                             <div className="text-[11px] text-slate-500">
-                              {item.referenceSource} â€¢ {item.reviewerOrStudy}
+                              {item.referenceSource} • {item.reviewerOrStudy}
                             </div>
                           </div>
 
@@ -631,7 +631,7 @@ export const ReferenceLibraryView: React.FC<ReferenceLibraryViewProps> = ({
                             </div>
                             {item.evidenceSnippet && (
                               <div className="p-2 rounded bg-white border border-slate-200 font-serif italic text-[11px] text-slate-800">
-                                Â«{item.evidenceSnippet}Â»
+                                «{item.evidenceSnippet}»
                               </div>
                             )}
                             <div className="text-[11px] text-slate-500">

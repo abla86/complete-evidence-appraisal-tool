@@ -37,7 +37,7 @@ test('pipeline blocks unauthorized consensus transition', async () => {
       id: 'reviewer-1',
       role: 'reviewer',
     }),
-    /Pipeline kan bare gÃ¥ til neste steg/,
+    /Pipeline kan bare gå til neste steg/,
   );
 });
 

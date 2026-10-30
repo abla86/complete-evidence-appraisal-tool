@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import path from 'path';
-import { DocumentParserService } from './src/services/documentParserService';
 import { MetaResearchService } from './src/services/metaResearchService';
 import { MASTER_INSTRUMENTS_REGISTRY } from './src/data/masterRegistry';
 import { GoogleGenAI } from '@google/genai';
@@ -12,11 +11,11 @@ import { registerResearchEngineIntegration } from './src/services/researchEngine
 import { registerResearchWorkflowApi } from './src/services/researchWorkflowApi';
 import { registerAppraisalWorkflowApi } from './src/services/appraisalWorkflowApi';
 import { registerIntegrityApi } from './src/services/integrityApi';
-import { getAuthenticatedUser, requireAuthenticatedUser } from './src/services/authApi';
+import { requireAuthenticatedUser } from './src/services/authApi';
 import { registerReferenceHubApi } from './src/services/referenceHubRoutes';
 import { registerResearchArtifactApi } from './src/services/researchArtifactRoutes';
 import { registerSourceRecordApi } from './src/services/sourceRecordRoutes';
-import { registerEntitlementApi, requireProUser, verifyAndGrantPro } from './src/services/stripeEntitlement';
+import { registerLicenseApi, requireLicensedUser } from './src/services/licenseServer';
 
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -40,7 +39,7 @@ async function startServer() {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src "+ scriptSource + "; connect-src 'self' https://api.crossref.org https://api.openalex.org https://www.ebi.ac.uk https://accounts.google.com https://oauth2.googleapis.com https://generativelanguage.googleapis.com");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src "+ scriptSource + "; connect-src 'self' https://api.crossref.org https://api.openalex.org https://www.ebi.ac.uk https://eutils.ncbi.nlm.nih.gov https://api.semanticscholar.org https://doaj.org; worker-src 'self' blob:; form-action 'self'");
     if (production) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
   });
@@ -72,8 +71,7 @@ async function startServer() {
   };
 
   app.use('/api', (req, res, next) => {
-    const expensive = req.path.startsWith('/documents/parse-file')
-      || req.path.startsWith('/meta-research/')
+    const expensive = req.path.startsWith('/meta-research/')
       || req.path.startsWith('/evidence/verify-doi')
       || req.path.startsWith('/evidence/search/');
     if (rateLimit(req, expensive ? 10 : 120, 60_000)) {
@@ -91,21 +89,10 @@ async function startServer() {
   registerReferenceHubApi(app);
   registerResearchArtifactApi(app);
   registerSourceRecordApi(app);
-  registerEntitlementApi(app);
-
-  app.get('/purchase-complete', async (req: Request, res: Response) => {
-    const sessionId = String(req.query.session_id || '').trim();
-    try {
-      const result = await verifyAndGrantPro(req, sessionId);
-      return res.redirect('/?pro=activated&email=' + encodeURIComponent(result.email));
-    } catch (error) {
-      if (!getAuthenticatedUser(req)) return res.redirect('/auth/google?returnTo=' + encodeURIComponent('/purchase-complete?session_id=' + sessionId));
-      return res.redirect('/?pro=error&message=' + encodeURIComponent('Betalingen kunne ikke bekreftes. Kontroller betalingsstatus eller kontakt support.'));
-    }
-  });
+  registerLicenseApi(app);
 
   app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: '2026.1', integrity: { status: 'integrated', immutableAssessments: true, auditChain: true, aiBoundary: true }, researchEngine: { status: 'integrated', contractVersion: '1.0.0' }, workflow: { status: 'integrated', researchToAppraisal: true }, appraisal: { status: 'integrated', sessionApi: true }, authentication: { status: 'integrated', provider: 'google-oauth' } });
+    res.json({ status: 'ok', tool: 'Evidence Appraisal Tool', version: process.env.npm_package_version || 'unknown', storage: { serverPersistence: 'local-filesystem', durable: false, note: 'Server-side records are stored on the local filesystem. Configure a persistent volume and backups before relying on them.' }, assessments: { lockedSessionsAreReadOnlyInApp: true, tamperProof: false, auditChain: 'sha256-hash-chain-detects-edits' }, ai: { optional: true, configured: Boolean(process.env.GEMINI_API_KEY), outputRequiresHumanVerification: true }, authentication: { provider: 'google-oauth', configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) }, licensing: { issuingConfigured: Boolean(process.env.LICENSE_PRIVATE_KEY) } });
   });
 
   app.get('/api/doi-lookup', async (req: Request, res: Response) => {
@@ -133,10 +120,6 @@ async function startServer() {
 
   app.get('/api/instruments', (_req: Request, res: Response) => res.json({ success: true, count: MASTER_INSTRUMENTS_REGISTRY.length, instruments: MASTER_INSTRUMENTS_REGISTRY }));
 
-  app.use('/api/documents', (req, res, next) => {
-    try { requireProUser(req); next(); }
-    catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
-  });
   app.use('/api/meta-research', (req, res, next) => {
     try { requireAuthenticatedUser(req); next(); }
     catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
@@ -146,31 +129,7 @@ async function startServer() {
     catch { res.status(401).json({ success: false, error: 'Authentication required.' }); }
   });
 
-  app.post('/api/documents/parse-file', async (req: Request, res: Response) => {
-    try {
-      const { fileName, fileSizeBytes, mimeType, base64Content, textContent } = req.body;
-      if (!fileName || typeof fileName !== 'string') return res.status(400).json({ success: false, error: 'Filnavn mangler.' });
-      if (fileName.length > 255) return res.status(400).json({ success: false, error: 'Filnavnet er for langt.' });
-      if (mimeType !== undefined && typeof mimeType !== 'string') return res.status(400).json({ success: false, error: 'Ugyldig MIME-type.' });
-      if (textContent !== undefined && typeof textContent !== 'string') return res.status(400).json({ success: false, error: 'Ugyldig tekstinnhold.' });
-      if (base64Content !== undefined && typeof base64Content !== 'string') return res.status(400).json({ success: false, error: 'Ugyldig binært innhold.' });
-      let contentBuffer: ArrayBuffer | string = textContent || '';
-      if (base64Content) {
-        if (!/^[A-Za-z0-9+/=\s]+$/.test(base64Content)) return res.status(400).json({ success: false, error: 'Ugyldig base64-innhold.' });
-        const binString = Buffer.from(base64Content, 'base64');
-        if (binString.length > 8 * 1024 * 1024) return res.status(413).json({ success: false, error: 'Filen er for stor.' });
-        contentBuffer = binString.buffer.slice(binString.byteOffset, binString.byteOffset + binString.byteLength);
-      }
-      const effectiveSize = typeof contentBuffer === 'string' ? Buffer.byteLength(contentBuffer, 'utf8') : contentBuffer.byteLength;
-      if (effectiveSize > 8 * 1024 * 1024) return res.status(413).json({ success: false, error: 'Filen er for stor.' });
-      const parseResult = await DocumentParserService.parseFile({ name: fileName, size: effectiveSize, type: mimeType, content: contentBuffer });
-      res.json({ success: true, data: parseResult, integration: { contractVersion: '1.0.0', evidenceCandidateCount: parseResult.candidateEvidence?.length ?? 0, humanVerificationRequired: true, appraisalGateRequired: true } });
-    } catch (err: unknown) {
-      // Keep parser/library internals and local file paths out of public API responses.
-      console.error('Document parsing failed:', err instanceof Error ? err.name : 'UnknownError');
-      res.status(400).json({ success: false, error: 'Dokumentet kunne ikke behandles. Kontroller filformatet og prøv igjen.' });
-    }
-  });
+  // Documents and PDFs are parsed in the browser only; the server deliberately has no upload endpoint.
 
   app.post('/api/meta-research/analyze', async (req: Request, res: Response) => {
     try {
@@ -211,17 +170,20 @@ async function startServer() {
 
   app.post('/api/evidence/verify-doi', async (req: Request, res: Response) => {
     try { const { doi } = req.body; if (!doi || typeof doi !== 'string') return res.status(400).json({ success: false, error: 'DOI er påkrevd.' }); const verification = await EvidenceIntelligenceService.verifyPublicationByDoi(doi); if (!verification) return res.status(404).json({ success: false, status: 'NOT_FOUND', message: 'Ingen verifiserbar Crossref-post ble funnet.' }); res.json({ success: true, verification, methodologicalNote: 'Crossref metadata kan ikke alene bekrefte fagfellevurdering.' }); }
-    catch (err: unknown) { res.status(502).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Feil ved ekstern kildeverifisering.' }); }
+    catch { res.status(502).json({ success: false, error: 'Feil ved ekstern kildeverifisering. Prøv igjen senere.' }); }
   });
 
   app.get('/api/evidence/search/europe-pmc', async (req: Request, res: Response) => {
     try { const query = String(req.query.q || '').trim(); const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 25))); const page = Math.max(1, Number(req.query.page || 1)); if (!query) return res.status(400).json({ success: false, error: 'Søketekst mangler.' }); const result = await EvidenceIntelligenceService.searchEuropePmc(query, pageSize, page); const searchRecord = EvidenceIntelligenceService.createSearchRecord('Europe PMC', result.query, { pageSize, page }, result.total, 0, result.results); res.json({ success: true, ...result, searchRecord, prismaSNote: 'Søkehistorikken kan brukes som grunnlag for transparent rapportering av databasesøk; PRISMA-S-felter må fylles/valideres av forskeren.' }); }
-    catch (err: unknown) { res.status(502).json({ success: false, error: (err instanceof Error ? err.message : undefined) || 'Europe PMC-søk feilet.' }); }
+    catch { res.status(502).json({ success: false, error: 'Europe PMC-søk feilet. Prøv igjen senere.' }); }
   });
 
   const viteDev = process.env.NODE_ENV !== 'production';
   if (viteDev) { const { createServer: createViteServer } = await import('vite'); const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' }); app.use(vite.middlewares); }
-  else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath)); app.get('/{*splat}', (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
+  else { const distPath = path.resolve(process.cwd(), 'dist'); app.use(express.static(distPath, { setHeaders: (res, file) => { if (/(^|[\\/])(sw\.js|index\.html)$/.test(file)) res.setHeader('Cache-Control', 'no-cache'); } }));
+    app.use('/api', (_req, res) => res.status(404).json({ success: false, error: 'Ukjent API-endepunkt.' }));
+    // SPA fallback for client-side views (Express 4 syntax; '/{*splat}' only works in Express 5).
+    app.get(/^(?!\/api\/|\/auth\/).*/, (_req, res) => res.sendFile(path.join(distPath, 'index.html'))); }
   const host = process.env.HOST || '127.0.0.1';
   app.listen(PORT, host, () => console.log(`Evidence Appraisal Tool running on http://${host}:${PORT}`)); // DevSkim: ignore DS137138
 }

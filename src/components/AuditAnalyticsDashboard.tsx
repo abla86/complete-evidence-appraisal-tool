@@ -28,13 +28,13 @@ export const AuditAnalyticsDashboard: React.FC = () => {
       <div className="grid md:grid-cols-3 gap-3">
         <Metric label="Hendelser" value={String(analytics.total)} />
         <Metric label="Handlingstyper" value={String(analytics.actions.length)} />
-        <Metric label="AktÃ¸rer" value={String(analytics.actors.length)} />
+        <Metric label="Aktører" value={String(analytics.actors.length)} />
       </div>
       <div className="grid lg:grid-cols-2 gap-4">
         <Panel title="Hendelser per handling">
           {analytics.actions.map(([action, count]) => <Row key={action} label={action} value={count} total={analytics.total} />)}
         </Panel>
-        <Panel title="Hendelser per aktÃ¸r">
+        <Panel title="Hendelser per aktør">
           {analytics.actors.map(([actor, count]) => <Row key={actor} label={actor} value={count} total={analytics.total} />)}
         </Panel>
       </div>
@@ -42,7 +42,7 @@ export const AuditAnalyticsDashboard: React.FC = () => {
         {analytics.latest.length === 0 ? <div className="text-sm text-slate-500">Ingen audit-hendelser.</div> : analytics.latest.map(entry => (
           <div key={entry.entryId} className="border-b border-slate-100 py-3 last:border-0">
             <div className="font-semibold text-sm">{entry.action}</div>
-            <div className="text-xs text-slate-500 mt-1">{entry.actor.id} Â· {new Date(entry.timestamp).toLocaleString('nb-NO')}</div>
+            <div className="text-xs text-slate-500 mt-1">{entry.actor.id} · {new Date(entry.timestamp).toLocaleString('nb-NO')}</div>
             <div className="text-xs text-slate-500 mt-1">{entry.subject.entityType}:{entry.subject.id}</div>
           </div>
         ))}

@@ -24,7 +24,7 @@ export function answerJbiQuestion(
   evidence?: { quote?: string; page?: string; section?: string; sourceId?: string },
 ): AppraisalSession {
   const question = JBI_QUESTIONS.find(item => item.id === questionId);
-  if (!question) throw new Error(`Ukjent JBI-spÃ¸rsmÃ¥l: ${questionId}`);
+  if (!question) throw new Error(`Ukjent JBI-spørsmål: ${questionId}`);
   return upsertAppraisalResponse(session, {
     itemId: questionId,
     answer,

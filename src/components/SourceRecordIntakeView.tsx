@@ -46,7 +46,7 @@ export const SourceRecordIntakeView: React.FC = () => {
       provenance: { tool: 'superprogram-demo', toolVersion: '1.0.0', collectedLocally: true, externalRequestsMade: false, collectedAt: new Date().toISOString() }
     };
     setJson(JSON.stringify(demo, null, 2));
-    setMessage('Eksempel lastet. Trykk Â«Importer kildepostÂ».');
+    setMessage('Eksempel lastet. Trykk «Importer kildepost».');
   };
 
   return (

@@ -370,7 +370,7 @@ export class LegalActsIdentifierService {
     if (lower.includes('lovfestet plikt') || lower.includes('lovpålagt plikt') || lower.includes('hjemlet i lov') || lower.includes('skal iht.') || lower.includes('lovhjemmel:')) {
       return {
         level: 'LOVFESTET_PLIKT',
-        levelName: 'Lovfestet plikt (Â«skalÂ» / Â«måÂ»)',
+        levelName: 'Lovfestet plikt («skal» / «må»)',
         badgeColor: 'bg-rose-100 text-rose-900 border-rose-300',
         description: 'Juridisk bindende plikt forankret direkte i helselovgivningen (f.eks. helse- og omsorgstjenesteloven eller pasient- og brukerrettighetsloven). Ikke gjenstand for lokalt skjønn.',
         isLegallyBinding: true
@@ -380,7 +380,7 @@ export class LegalActsIdentifierService {
     if (lower.includes('sterk anbefaling') || lower.includes('bør') || lower.includes('strong recommendation')) {
       return {
         level: 'STERK_ANBEFALING',
-        levelName: 'Sterk anbefaling (Â«børÂ»)',
+        levelName: 'Sterk anbefaling («bør»)',
         badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
         description: 'Normerende faglig anbefaling hvor fordelene klart vurderes å oppveie ulempene basert på systematisk kunnskapsgrunnlag (GRADE).',
         isLegallyBinding: false
@@ -390,7 +390,7 @@ export class LegalActsIdentifierService {
     if (lower.includes('svak anbefaling') || lower.includes('betinget anbefaling') || lower.includes('kan vurderes') || lower.includes('conditional recommendation')) {
       return {
         level: 'SVAK_ANBEFALING',
-        levelName: 'Svak/betinget anbefaling (Â«kanÂ»)',
+        levelName: 'Svak/betinget anbefaling («kan»)',
         badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
         description: 'Faglig anbefaling med balanse mellom fordeler og ulemper hvor pasientverdier og lokale ressurser må tillegges stor vekt.',
         isLegallyBinding: false

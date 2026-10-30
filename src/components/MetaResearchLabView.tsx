@@ -1,4 +1,5 @@
 ﻿import React, { useState, useMemo, useRef } from 'react';
+import { getNetworkConsent, guardedFetch } from '../services/networkPolicy';
 import { 
   ShieldCheck, 
   Search, 
@@ -73,42 +74,39 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
     showToast(`Eksempelartikkel lastet: ${sample.title}`, 'info');
   };
 
-  // Run analysis (tries backend API / Gemini, falls back to deterministic)
-  const handleRunAnalysis = async () => {
+  // Local deterministic analysis by default. AI is optional, requires the "KI-analyse" network
+  // consent and an explicit confirmation each time, because the document text leaves the device.
+  const handleRunAnalysis = async (useAi = false) => {
     if (!documentText.trim()) {
       showToast('Vennligst lim inn eller last opp en forskningsartikkel først.', 'warning');
       return;
     }
-
+    if (useAi) {
+      if (!getNetworkConsent().ai) { showToast('KI-analyse er slått av. Slå den på under Personvern → Nettverk hvis du ønsker å sende teksten til KI-tjenesten.', 'warning'); return; }
+      if (!window.confirm('KI-analyse sender inntil ca. 7 000 tegn av dokumentteksten til verktøyets server og Google Gemini. Åpenbare personopplysninger filtreres, men send ikke upublisert eller sensitivt materiale uten at du har rett til det. Fortsette?')) return;
+    }
     setIsAnalyzing(true);
     try {
-      const response = await fetch('/api/meta-research/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: documentText,
-          fileName: documentFileName
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.report) {
-          setReport(data.report);
-          showToast(`Integritetsanalyse fullført (${data.report.engineUsed})`, 'success');
-          setIsAnalyzing(false);
-          return;
+      if (useAi) {
+        try {
+          const response = await guardedFetch('ai', '/api/meta-research/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: documentText, fileName: documentFileName }) });
+          const data = response.ok ? await response.json() : null;
+          if (data?.success && data.report) {
+            setReport(data.report);
+            showToast(data.report.engineUsed === 'GEMINI_AI' ? 'KI-forslag mottatt. Kontroller alle punkter mot fulltekst før bruk.' : 'KI var ikke tilgjengelig; serveren brukte den deterministiske motoren.', 'success');
+            return;
+          }
+          showToast('KI-analysen er ikke tilgjengelig (krever innlogging og gyldig lisens). Kjører lokal analyse i stedet.', 'warning');
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : 'KI-analysen feilet. Kjører lokal analyse i stedet.', 'warning');
         }
       }
-    } catch (e) {
-      console.warn('API call failed, running local deterministic integrity engine:', e);
+      const localReport = MetaResearchService.classifyAndAuditDocument(documentText, documentFileName);
+      setReport(localReport);
+      showToast('Integritetsanalyse fullført lokalt med deterministisk metodisk motor (ingen data sendt).', 'success');
+    } finally {
+      setIsAnalyzing(false);
     }
-
-    // Local Fallback
-    const localReport = MetaResearchService.classifyAndAuditDocument(documentText, documentFileName);
-    setReport(localReport);
-    showToast('Integritetsanalyse fullført via deterministisk metodisk motor', 'success');
-    setIsAnalyzing(false);
   };
 
   // Handle File Upload
@@ -376,21 +374,30 @@ export const MetaResearchLabView: React.FC<MetaResearchLabViewProps> = ({
             {/* Run Analysis CTA */}
             <button
               id="btn-run-integrity-analysis"
-              onClick={handleRunAnalysis}
+              type="button"
+              onClick={() => void handleRunAnalysis(false)}
               disabled={isAnalyzing}
               className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-emerald-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 cursor-pointer"
             >
               {isAnalyzing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-emerald-300" />
-                  Kjører Metodisk AI & Integritetsscreening...
+                  Kjører integritetsscreening...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  Kjør Integritetsanalyse & Verktøymatch
+                  Kjør lokal integritetsanalyse & verktøymatch
                 </>
               )}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRunAnalysis(true)}
+              disabled={isAnalyzing}
+              className="w-full py-2 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              Valgfritt: KI-forslag (sender tekst til KI-tjeneste – krever samtykke)
             </button>
           </div>
         </div>

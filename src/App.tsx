@@ -40,6 +40,7 @@ import { EvidencePipelineService, type EvidencePipelineState } from './services/
 import { ImportExportService } from './services/importExportService';
 import { StudioStateProvider } from './state/StudioStateContext';
 import { ClinicalInteroperabilityPanel } from './components/ClinicalInteroperabilityPanel';
+import { guardedFetch } from './services/networkPolicy';
 
 function articleToReference(article: ArticleAppraisal, existing?: ReferenceRecord): ReferenceRecord {
   if (existing) {
@@ -80,7 +81,7 @@ export default function App() {
     if (result === 'activated') setProNotice('Pro er aktivert. Alle Pro-funksjoner er nå tilgjengelige.');
     if (result === 'error') setProNotice(params.get('message') || 'Pro kunne ikke aktiveres.');
     if (result) window.history.replaceState({}, document.title, window.location.pathname);
-    void fetch('/api/pro/status', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(data => {
+    void guardedFetch('cloud', '/api/pro/status', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(data => {
       if (data) setProStatus({ authenticated: Boolean(data.authenticated), pro: Boolean(data.pro), email: data.email || null });
     }).catch(() => undefined);
   }, []);
@@ -104,7 +105,7 @@ export default function App() {
     let cancelled = false;
     const loadServerReferences = async () => {
       try {
-        const response = await fetch('/api/reference-hub', { credentials: 'include' });
+        const response = await guardedFetch('cloud', '/api/reference-hub', { credentials: 'include' });
         if (!response.ok) return;
         const payload = await response.json() as { success?: boolean; records?: ReferenceRecord[] };
         if (!payload.success || !Array.isArray(payload.records) || cancelled) return;
@@ -126,7 +127,7 @@ export default function App() {
   useEffect(() => {
     saveReferenceLibrary(referenceRecords);
     if (!referenceServerSyncReady) return;
-    void fetch('/api/reference-hub', {
+    void guardedFetch('cloud', '/api/reference-hub', {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { LogIn, LogOut, UserCircle } from 'lucide-react';
+import { guardedFetch } from '../services/networkPolicy';
 
 interface Session {
   authenticated: boolean;
@@ -12,7 +13,7 @@ export const GoogleAuthButton: React.FC = () => {
 
   const load = async () => {
     try {
-      const response = await fetch('/api/auth/session', { credentials: 'same-origin' });
+      const response = await guardedFetch('cloud', '/api/auth/session', { credentials: 'same-origin' });
       if (response.ok) setSession(await response.json());
     } finally {
       setLoading(false);
@@ -22,7 +23,7 @@ export const GoogleAuthButton: React.FC = () => {
   useEffect(() => { void load(); }, []);
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    await guardedFetch('cloud', '/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
     await load();
   };
 

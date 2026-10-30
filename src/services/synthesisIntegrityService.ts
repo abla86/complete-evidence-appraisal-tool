@@ -49,8 +49,8 @@ export function validateSynthesis(
   if (!synthesis.inputs.length) blockers.push('Syntesen har ingen inkluderte input-enheter.');
   if (synthesis.type === 'META_ANALYSIS' && !synthesis.poolingMethod) blockers.push('Meta-analysen mangler pooling method.');
   if (synthesis.type === 'META_ANALYSIS' && synthesis.poolingMethod === 'NOT_APPLICABLE') blockers.push('Meta-analyse kan ikke merkes NOT_APPLICABLE for pooling.');
-  if (synthesis.heterogeneity?.i2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.i2) || synthesis.heterogeneity.i2 < 0 || synthesis.heterogeneity.i2 > 100)) blockers.push('IÂ² må være mellom 0 og 100.');
-  if (synthesis.heterogeneity?.tau2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.tau2) || synthesis.heterogeneity.tau2 < 0)) blockers.push('TauÂ² kan ikke være negativ.');
+  if (synthesis.heterogeneity?.i2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.i2) || synthesis.heterogeneity.i2 < 0 || synthesis.heterogeneity.i2 > 100)) blockers.push('I² må være mellom 0 og 100.');
+  if (synthesis.heterogeneity?.tau2 !== undefined && (!Number.isFinite(synthesis.heterogeneity.tau2) || synthesis.heterogeneity.tau2 < 0)) blockers.push('Tau² kan ikke være negativ.');
 
   const appraisalIds=new Set(appraisals.filter(a=>a.locked).map(a=>a.id));
   const evidenceIds=new Set(evidence.map(e=>e.id));

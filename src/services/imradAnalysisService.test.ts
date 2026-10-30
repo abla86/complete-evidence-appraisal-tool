@@ -12,7 +12,7 @@ test('IMRaD detects explicit English structure', () => {
 });
 
 test('IMRaD detects common Norwegian headings', () => {
-  const text = ['Bakgrunn','FormÃ¥let var Ã¥ undersÃ¸ke problemstillingen i studien. Dette avsnittet gir tilstrekkelig bakgrunnsinformasjon.','Metode','Studiedesign, deltakere, datainnsamling og analyse er beskrevet. Dette avsnittet er tilstrekkelig langt for strukturell deteksjon.','Resultater','Resultatene viser hovedutfallet for deltakerne. Resultatdelen inneholder tilstrekkelig tekst for strukturell deteksjon.','Diskusjon','Funnene drÃ¸ftes i lys av tidligere forskning og begrensninger. Diskusjonsdelen inneholder tilstrekkelig tekst for strukturell deteksjon.'].join('\n\n');
+  const text = ['Bakgrunn','Formålet var å undersøke problemstillingen i studien. Dette avsnittet gir tilstrekkelig bakgrunnsinformasjon.','Metode','Studiedesign, deltakere, datainnsamling og analyse er beskrevet. Dette avsnittet er tilstrekkelig langt for strukturell deteksjon.','Resultater','Resultatene viser hovedutfallet for deltakerne. Resultatdelen inneholder tilstrekkelig tekst for strukturell deteksjon.','Diskusjon','Funnene drøftes i lys av tidligere forskning og begrensninger. Diskusjonsdelen inneholder tilstrekkelig tekst for strukturell deteksjon.'].join('\n\n');
   const result = IMRaDAnalysisService.analyze(text, 'artikkel.txt');
   assert.equal(result.explicitComplete, true);
   assert.deepEqual(result.missingSections, []);

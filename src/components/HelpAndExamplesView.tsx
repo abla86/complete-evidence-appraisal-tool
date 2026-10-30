@@ -379,7 +379,7 @@ export const HelpAndExamplesView: React.FC<HelpAndExamplesViewProps> = ({
                     {currentExample.article.authors} ({currentExample.article.year})
                   </p>
                   <p className="text-xs text-slate-500">
-                    {currentExample.article.journal} â€¢ {currentExample.article.volumeIssue} â€¢ DOI: {currentExample.article.doi}
+                    {currentExample.article.journal} • {currentExample.article.volumeIssue} • DOI: {currentExample.article.doi}
                   </p>
                 </div>
 

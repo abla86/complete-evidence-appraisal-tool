@@ -1,5 +1,5 @@
 import type { Express, Request, Response } from 'express';
-import { requireProUser } from './stripeEntitlement';
+import { requireLicensedUser } from './licenseServer';
 import { loadResearchArtifacts, saveResearchArtifacts } from './researchArtifactServerStore';
 import type { SourceRecord } from '../domain/sourceRecord';
 import type { SearchQueryRecord } from './evidenceIntelligenceService';
@@ -14,9 +14,9 @@ function error(res: Response, status: number, value?: unknown) {
 
 export function registerResearchArtifactApi(app: Express): void {
   app.get('/api/research-artifacts', async (req: Request, res: Response) => {
-    let user: ReturnType<typeof requireProUser>;
+    let user: ReturnType<typeof requireLicensedUser>;
     try {
-      user = requireProUser(req);
+      user = requireLicensedUser(req);
     } catch (err) {
       return error(res, 401, err);
     }
@@ -28,9 +28,9 @@ export function registerResearchArtifactApi(app: Express): void {
   });
 
   app.put('/api/research-artifacts', async (req: Request, res: Response) => {
-    let user: ReturnType<typeof requireProUser>;
+    let user: ReturnType<typeof requireLicensedUser>;
     try {
-      user = requireProUser(req);
+      user = requireLicensedUser(req);
     } catch (err) {
       return error(res, 401, err);
     }

@@ -88,8 +88,8 @@ export const ResearchSearchView: React.FC<ResearchSearchProps> = ({ onImportArti
     const cleanDoi = doi.trim(); if (!cleanDoi) return;
     setVerifyingDoi(cleanDoi);
     try {
-      const response = await fetch('/api/evidence/verify-doi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ doi: cleanDoi }) });
-      const data = await response.json() as DoiVerification;
+      const verification = await EvidenceIntelligenceService.verifyPublicationByDoi(cleanDoi);
+      const data: DoiVerification = { success: Boolean(verification), verification: verification ?? undefined };
       setVerificationByDoi(prev => ({ ...prev, [cleanDoi.toLowerCase()]: data }));
       const retracted = data.verification?.isRetracted === true;
       showToast(data.success ? (retracted ? 'Kritisk varsel: Crossref har registrert en retraction-relasjon.' : 'DOI verifisert mot Crossref. Fagfellevurdering er ikke konkludert automatisk.') : 'Ingen verifiserbar Crossref-post funnet. Dette betyr ikke automatisk at publikasjonen er ugyldig.', data.success ? (retracted ? 'warning' : 'success') : 'info');

@@ -235,7 +235,7 @@ export const InstrumentInfoView: React.FC<InstrumentInfoViewProps> = ({
           <ul className="space-y-2.5">
             {inst.prohibitedAcademicPractices.map((proc, i) => (
               <li key={i} className="p-3 bg-white/80 border border-amber-200 rounded-xl text-amber-950 flex items-start gap-2">
-                <span className="font-bold text-amber-800 text-sm leading-none">â€¢</span>
+                <span className="font-bold text-amber-800 text-sm leading-none">•</span>
                 <span className="font-medium">{proc}</span>
               </li>
             ))}

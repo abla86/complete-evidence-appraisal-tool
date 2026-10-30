@@ -12,7 +12,7 @@ test('newly imported articles remain instrument-neutral until study design is ve
   });
   assert.equal(article.instrumentId, undefined);
   assert.equal(article.instrumentVersion, undefined);
-  assert.equal(article.design, 'Ukjent / uavklart â€“ krever studiedesignklassifisering');
+  assert.equal(article.design, 'Ukjent / uavklart – krever studiedesignklassifisering');
   assert.deepEqual(article.items, []);
   assert.equal(article.doiUrl, 'https://doi.org/10.1000/example');
   assert.equal(article.sourceUrl, '');
@@ -27,7 +27,7 @@ test('imported metadata is not fabricated as a qualitative design or interview m
     assert.equal(imported.newArticles.length, 1);
     const article = imported.newArticles[0];
     assert.equal(article.instrumentId, undefined);
-    assert.equal(article.design, 'Ukjent / uavklart â€“ krever studiedesignklassifisering');
+    assert.equal(article.design, 'Ukjent / uavklart – krever studiedesignklassifisering');
     assert.equal(article.dataCollection, 'Ikke oppgitt');
     assert.equal(article.participants, 'Ikke oppgitt');
     assert.equal(article.analyticMethod, 'Ikke oppgitt');

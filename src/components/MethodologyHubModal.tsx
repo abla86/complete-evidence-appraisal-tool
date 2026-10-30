@@ -265,7 +265,7 @@ export const MethodologyHubModal: React.FC<MethodologyHubModalProps> = ({
                         <div className="flex items-center gap-1.5 mt-1 text-[11px] text-teal-800 font-semibold">
                           <ShieldCheck className="w-3.5 h-3.5 text-teal-600 shrink-0" />
                           <span>{inst.shortName}</span>
-                          <span className="text-slate-300">â€¢</span>
+                          <span className="text-slate-300">•</span>
                           <span className="text-slate-500 font-normal">{inst.itemCount} ledd/domener</span>
                         </div>
                       </div>
@@ -424,7 +424,7 @@ export const MethodologyHubModal: React.FC<MethodologyHubModalProps> = ({
                   <ul className="space-y-1 text-amber-900 text-[11px]">
                     {viewingInstrument.prohibitedAcademicPractices.map((proc, i) => (
                       <li key={i} className="flex items-start gap-1.5">
-                        <span className="font-bold text-amber-700">â€¢</span>
+                        <span className="font-bold text-amber-700">•</span>
                         <span>{proc}</span>
                       </li>
                     ))}

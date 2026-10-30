@@ -1,12 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { loadPdfjs } from '../services/pdfRuntime';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 import type { PdfAnnotationCoordinates } from '../services/evidenceLinkService';
 
-GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/legacy/build/pdf.worker.mjs',
-  import.meta.url,
-).toString();
 
 export interface PdfSelection {
   page: number;
@@ -46,7 +43,7 @@ export const PdfEvidenceViewer: React.FC<Props> = ({ file, initialPage = 1, onSe
       setPages([]);
       try {
         const data = new Uint8Array(await file.arrayBuffer());
-        const loaded = await getDocument({ data }).promise;
+        const loaded = await (await loadPdfjs()).getDocument({ data }).promise;
         if (cancelled) {
           return;
         }

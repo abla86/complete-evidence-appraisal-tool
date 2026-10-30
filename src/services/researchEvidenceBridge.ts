@@ -132,7 +132,7 @@ export class ResearchEvidenceBridge {
       suggestedStatus: candidate.suggestedStatus,
       relevanceScore: candidate.relevanceScore,
       confidenceReason: humanVerified
-        ? 'ForhÃ¥ndsmarkert som verifisert i innkommende data; reviewer-identitet og tidspunkt mÃ¥ fÃ¸lge med separat fÃ¸r materialet brukes som komplett auditspor.'
+        ? 'Forhåndsmarkert som verifisert i innkommende data; reviewer-identitet og tidspunkt må følge med separat før materialet brukes som komplett auditspor.'
         : candidate.confidenceReason,
     };
   }

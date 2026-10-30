@@ -1,3 +1,4 @@
+import { guardedFetch } from './networkPolicy';
 ﻿export type RetrievalProvider = 'PUBMED' | 'CROSSREF';
 
 export interface RetrievalQuery { provider: RetrievalProvider; query: string; limit?: number; }
@@ -8,7 +9,7 @@ function text(value: unknown): string | undefined { return typeof value === 'str
 function record(value: unknown): JsonRecord { return value && typeof value === 'object' ? value as JsonRecord : {}; }
 function array(value: unknown): unknown[] { return Array.isArray(value) ? value : []; }
 function authorName(author: unknown): string { const item = record(author); const family = text(item.lastname) ?? text(item.family) ?? ''; const given = text(item.forename) ?? text(item.given) ?? ''; return [family, given].filter(Boolean).join(', '); }
-async function fetchJson(url: string): Promise<unknown> { const response = await fetch(url, { headers: { Accept: 'application/json' } }); if (!response.ok) throw new Error(`Retrieval feilet med HTTP ${response.status}.`); return response.json(); }
+async function fetchJson(url: string): Promise<unknown> { const response = await guardedFetch('metadata', url, { headers: { Accept: 'application/json' } }); if (!response.ok) throw new Error(`Retrieval feilet med HTTP ${response.status}.`); return response.json(); }
 
 export async function searchCrossref({ query, limit = 10 }: Omit<RetrievalQuery, 'provider'>): Promise<RetrievedReferenceCandidate[]> {
   const url = new URL('https://api.crossref.org/works');

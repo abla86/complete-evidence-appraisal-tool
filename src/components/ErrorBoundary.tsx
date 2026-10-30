@@ -90,7 +90,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors border border-slate-300 cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>Last inn pÃ¥ nytt</span>
+                <span>Last inn på nytt</span>
               </button>
             </div>
           </div>

@@ -714,10 +714,10 @@ export const MethodologyAuditView: React.FC = () => {
                   AKADEMISK METODISK INTEGRITET & ETTERPRØVBARHET
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold font-serif text-white">
-                  9 Uavhengige Metodiske Funksjoner â€“ Forbud mot Universell Skårflating
+                  9 Uavhengige Metodiske Funksjoner – Forbud mot Universell Skårflating
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed max-w-4xl">
-                  En vanlig fallgruve i automatiserte verktøy er å redusere alle metodiske instrumenter til en generisk prosentandel eller en oppdiktet sumskår (f.eks. Â«84% scoreÂ»). 
+                  En vanlig fallgruve i automatiserte verktøy er å redusere alle metodiske instrumenter til en generisk prosentandel eller en oppdiktet sumskår (f.eks. «84% score»). 
                   I henhold til internasjonale standarder (Cochrane, GRADE Working Group, AGREE Enterprise, JBI) har disse 9 rammeverkene i <strong>MethodologyRegistry</strong> fundamentalt ulike epistemologiske roller, ulike analyseenheter og krever distinkte evalueringsformater.
                 </p>
               </div>
@@ -763,7 +763,7 @@ export const MethodologyAuditView: React.FC = () => {
                         {currentInst.methodologicalFunction}
                       </span>
                       {currentAudit && renderStatusBadge(currentAudit.overallStatus, 'sm')}
-                      <span className="text-slate-400">â€¢</span>
+                      <span className="text-slate-400">•</span>
                       <span className="font-mono text-slate-500 text-[11px]">ID: {currentInst.id}</span>
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 font-serif mt-1">
@@ -907,7 +907,7 @@ export const MethodologyAuditView: React.FC = () => {
                   {currentInst.id === 'grade-cerqual' && (
                     <div className="space-y-1.5 text-slate-300">
                       <p className="text-emerald-400">=== GRADE-CERQual TILLIT TIL KVALITATIVT SYNTESEFUNN ===</p>
-                      <p>Syntesefunn: Â«Fastleger opplever tidspress og manglende felles arenaer som hovedbarriereÂ»</p>
+                      <p>Syntesefunn: «Fastleger opplever tidspress og manglende felles arenaer som hovedbarriere»</p>
                       <p>Komponenter: Metodiske begrensninger (Mindre), Koherens (Ingen), Tilstrekkelighet (Ingen), Relevans (Ingen)</p>
                       <p className="text-teal-300 font-bold">Samlet CERQual-tillit: HØY TILLIT (High Confidence)</p>
                     </div>
@@ -1260,7 +1260,7 @@ export const MethodologyAuditView: React.FC = () => {
               >
                 {MethodologyRegistry.map(inst => (
                   <option key={inst.id} value={inst.id}>
-                    {inst.shortName} ({inst.version}) â€“ {inst.categoryName}
+                    {inst.shortName} ({inst.version}) – {inst.categoryName}
                   </option>
                 ))}
               </select>
@@ -1301,7 +1301,7 @@ export const MethodologyAuditView: React.FC = () => {
                         onClick={() => setSelectedInstrumentId(rec.id)}
                         className="px-2.5 py-1 rounded bg-white text-teal-900 border border-teal-300 font-bold hover:bg-teal-100 transition-colors"
                       >
-                        âœ“ {rec.shortName} ({rec.version})
+                        ✓ {rec.shortName} ({rec.version})
                       </button>
                     ))}
                   </div>

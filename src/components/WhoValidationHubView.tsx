@@ -1241,7 +1241,7 @@ export const WhoValidationHubView: React.FC<WhoValidationHubViewProps> = ({
                 <span>Empirisk Tekstforankring & Sitater</span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Bekreftende vurderinger (Â«JaÂ») skal underbygges med konkrete tekstutdrag eller sidetallshenvisninger
+                Bekreftende vurderinger («Ja») skal underbygges med konkrete tekstutdrag eller sidetallshenvisninger
                 fra artikkelen for maksimal etterprøvbarhet.
               </p>
             </div>

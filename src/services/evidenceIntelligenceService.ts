@@ -1,3 +1,4 @@
+import { guardedFetch } from './networkPolicy';
 interface CrossrefUpdate { type?: string; label?: string; }
 interface CrossrefAuthor { given?: string; family?: string; }
 interface CrossrefMessage {
@@ -36,7 +37,7 @@ export class EvidenceIntelligenceService {
   static async verifyPublicationByDoi(doi: string): Promise<ExternalPublicationRecord | null> {
     const cleanDoi = doi.trim().replace(/^https?:\/\/doi\.org\//i, '');
     if (!cleanDoi) return null;
-    const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`, { headers: { Accept: 'application/json' } });
+    const response = await guardedFetch('metadata', `https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`, { headers: { Accept: 'application/json' } });
     if (!response.ok) return null;
     const data = await response.json() as CrossrefWorkResponse;
     const item = data.message;
@@ -67,7 +68,7 @@ export class EvidenceIntelligenceService {
     url.searchParams.set('format', 'json');
     url.searchParams.set('pageSize', String(Math.min(Math.max(pageSize, 1), 100)));
     url.searchParams.set('page', String(Math.max(page, 1)));
-    const response = await fetch(url);
+    const response = await guardedFetch('metadata', url.toString());
     if (!response.ok) throw new Error(`Europe PMC svarte med HTTP ${response.status}.`);
     const data = await response.json() as EuropePmcResponse;
     const results = (data.resultList?.result || []).map(r => ({

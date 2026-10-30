@@ -400,7 +400,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                         </div>
                         {isSelected && (
                           <div className="mt-2 pt-2 border-t border-teal-200/60 flex items-center justify-end text-[10px] font-bold text-teal-800">
-                            <span>Valgt format âœ“</span>
+                            <span>Valgt format ✓</span>
                           </div>
                         )}
                       </div>
@@ -600,7 +600,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                             #{idx + 1}. {art.title}
                           </span>
                           <p className="text-slate-500 text-[11px]">
-                            {art.authors} â€¢ {art.journal} ({art.year}) â€¢ DOI: {art.doi || 'Ingen'}
+                            {art.authors} • {art.journal} ({art.year}) • DOI: {art.doi || 'Ingen'}
                           </p>
                         </div>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
@@ -637,7 +637,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
         {/* Modal Footer */}
         <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
           <span>
-            Evidence Appraisal Tool â€¢ Full interoperabilitet med alle ledende referanse- og vitenskapsverktøy
+            Evidence Appraisal Tool • Full interoperabilitet med alle ledende referanse- og vitenskapsverktøy
           </span>
           <button
             type="button"

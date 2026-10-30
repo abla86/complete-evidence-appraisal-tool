@@ -231,7 +231,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             onClick={onGoToOverview}
             className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors shrink-0"
           >
-            â† Bibliotek
+            ← Bibliotek
           </button>
 
           {(allArticles?.length ?? 0) > 0 && onSelectArticleId && (
@@ -647,7 +647,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
 
                 {hasEvidence ? (
                   <p className={`italic text-[11px] p-2 bg-white/90 rounded-lg border-l-3 ${color.quoteBorder} text-slate-800 leading-relaxed font-serif`}>
-                    Â«{item.evidenceText || item.sourceQuoteOrRef}Â»
+                    «{item.evidenceText || item.sourceQuoteOrRef}»
                   </p>
                 ) : (
                   <div className="p-2 bg-white/60 rounded-lg text-[10px] text-slate-400 italic">
@@ -680,11 +680,11 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
           </div>
           <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
             <span>Resultat: <strong>{article.summaryScore.ja} Ja</strong></span>
-            <span>â€¢</span>
+            <span>•</span>
             <span><strong>{article.summaryScore.uklart} Uklart</strong></span>
             {article.summaryScore.nei > 0 && (
               <>
-                <span>â€¢</span>
+                <span>•</span>
                 <span><strong>{article.summaryScore.nei} Nei</strong></span>
               </>
             )}
@@ -784,7 +784,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                               <span>Evidens ikke eksplisitt lokalisert</span>
                             </div>
                             <p className="text-[11px] text-amber-800">
-                              (Metodisk sikkerhetsregel: Fravær av tekstfunn betyr ikke automatisk Â«NeiÂ». Krever manuell verifikasjon av vurderer.)
+                              (Metodisk sikkerhetsregel: Fravær av tekstfunn betyr ikke automatisk «Nei». Krever manuell verifikasjon av vurderer.)
                             </p>
                           </div>
                         )}

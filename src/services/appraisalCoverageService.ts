@@ -45,10 +45,10 @@ export function getInstrumentCoverage(): InstrumentCoverage[] {
       note: implementationLevel === 'FULL'
         ? 'Kanonisk arbeidsflate og instrumentspesifikk resultatmotor er koblet.'
         : implementationLevel === 'ENGINE'
-          ? 'Det finnes en instrumentspesifikk motor, men den er ikke koblet til den kanoniske arbeidsflaten ennÃ¥.'
+          ? 'Det finnes en instrumentspesifikk motor, men den er ikke koblet til den kanoniske arbeidsflaten ennå.'
           : implementationLevel === 'WORKSPACE'
             ? 'Felles vurderingsflate finnes; instrumentspesifikk resultatmotor er ikke koblet.'
-            : 'Instrumentet finnes som metoderegisteroppfÃ¸ring, men er ikke aktivt kjÃ¸rbart i appraisal-arbeidsflaten.'
+            : 'Instrumentet finnes som metoderegisteroppføring, men er ikke aktivt kjørbart i appraisal-arbeidsflaten.'
     };
   });
 }

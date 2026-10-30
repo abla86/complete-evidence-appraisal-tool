@@ -14,6 +14,7 @@ import {
   type Actor,
   type AuditWriter,
 } from '../services/sourceIntakeService';
+import { guardedFetch } from '../services/networkPolicy';
 
 
 class TrailWriter implements AuditWriter {
@@ -68,7 +69,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
   React.useEffect(() => {
     if (!actor) return;
     let cancelled = false;
-    void fetch('/api/source-records', { credentials: 'include' })
+    void guardedFetch('cloud', '/api/source-records', { credentials: 'include' })
       .then(response => response.ok ? response.json() as Promise<{ records?: SourceRecord[] }> : null)
       .then(payload => {
         if (cancelled || !payload?.records) return;
@@ -86,7 +87,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
   React.useEffect(() => {
     if (!actor || !serverSyncReady) return;
     const records = loadSourceRecordLibrary();
-    void fetch('/api/source-records', {
+    void guardedFetch('cloud', '/api/source-records', {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -95,7 +96,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
   }, [actor, serverSyncReady, record]);
   React.useEffect(() => {
     let cancelled = false;
-    void fetch('/api/auth/me', { credentials: 'include' })
+    void guardedFetch('cloud', '/api/auth/me', { credentials: 'include' })
       .then(response => response.ok ? response.json() as Promise<{ authenticated?: boolean; user?: { sub?: string } | null }> : null)
       .then(result => {
         if (cancelled) return;
@@ -123,7 +124,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
         return;
       }
       setRecord(result.record);
-      if (serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
+      if (serverSyncReady) void guardedFetch('cloud', '/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
       setMessage(`Importert. Status: ${result.record.referenceDraft.status.toUpperCase()} / ${result.record.intake.screeningState}`);
     } catch (error) {
       setMessage(`Importfeil: ${error instanceof Error ? error.message : 'ugyldig JSON'}`);
@@ -136,7 +137,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
     const result = await linkRecordToScreeningBatch(record, batchId, actor, auditWriter);
     setRecord(result.linked ? result.record : record);
     if (result.linked) upsertSourceRecord(result.record);
-    if (result.linked && serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
+    if (result.linked && serverSyncReady) void guardedFetch('cloud', '/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     setMessage(result.linked ? 'Koblet til screening-batch.' : `Kobling avvist: ${result.reason}`);
   };
 
@@ -146,7 +147,7 @@ export const SourceRecordWorkflowView: React.FC = () => {
     const result = await transitionScreeningState(record, 'reviewed', actor, auditWriter, 'Screening fullført');
     setRecord(result.transitioned ? result.record : record);
     if (result.transitioned) upsertSourceRecord(result.record);
-    if (result.transitioned && serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
+    if (result.transitioned && serverSyncReady) void guardedFetch('cloud', '/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     setMessage(result.transitioned ? 'Screeningstatus: reviewed.' : `Screening avvist: ${result.reason}`);
   };
 
@@ -164,9 +165,9 @@ export const SourceRecordWorkflowView: React.FC = () => {
     }
     setRecord(result.record);
     upsertSourceRecord(result.record);
-    if (serverSyncReady) void fetch('/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
+    if (serverSyncReady) void guardedFetch('cloud', '/api/source-records', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ records: loadSourceRecordLibrary() }) }).catch(() => undefined);
     try {
-      const response = await fetch(`/api/research-workflows/${encodeURIComponent(result.record.recordId)}/screening/source-record`, {
+      const response = await guardedFetch('cloud', `/api/research-workflows/${encodeURIComponent(result.record.recordId)}/screening/source-record`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

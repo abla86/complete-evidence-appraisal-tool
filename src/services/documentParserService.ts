@@ -3,6 +3,7 @@ import { DocumentAnalysisService } from './documentAnalysisService';
 import { MetaResearchService } from './metaResearchService';
 import { IMRaDAnalysisService } from './imradAnalysisService';
 import mammoth from 'mammoth';
+import { loadPdfjs } from './pdfRuntime';
 
 export function normalizeDoi(value: string): string { return String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').replace(/[<>\s]+$/g, '').replace(/[.,;:)]+$/g, ''); }
 
@@ -196,7 +197,7 @@ export class DocumentParserService {
       // PDF.js parses compressed streams, font encodings and page structure.
       // The previous implementation inspected raw PDF bytes and therefore could
       // not reliably extract text from normal compressed PDFs.
-      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const pdfjs = await loadPdfjs();
       const loadingTask = pdfjs.getDocument({
         data: new Uint8Array(buffer),
         });

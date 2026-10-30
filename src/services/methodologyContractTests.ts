@@ -618,7 +618,7 @@ export class MethodologyContractTests {
       totalExecutionTimeMs,
       suites,
       results,
-      academicHonestyNotice: 'AKADEMISK INTEGRITETSERKLÆRING: Bestått programvaretest (Â«Software test passedÂ») bekrefter algoritmisk determinisme og fravær av implementeringsfeil, men erstatter ALDRI vitenskapelig forskerskjønn eller manuell fagfellevurdering.'
+      academicHonestyNotice: 'AKADEMISK INTEGRITETSERKLÆRING: Bestått programvaretest («Software test passed») bekrefter algoritmisk determinisme og fravær av implementeringsfeil, men erstatter ALDRI vitenskapelig forskerskjønn eller manuell fagfellevurdering.'
     };
   }
 }

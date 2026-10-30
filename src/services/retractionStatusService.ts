@@ -1,3 +1,4 @@
+import { guardedFetch } from './networkPolicy';
 ﻿export interface RetractionStatus {
   checkedAt: string;
   status: 'NOT_CHECKED' | 'NO_KNOWN_RETRACTION' | 'RETRACTION_SIGNAL' | 'CORRECTION_SIGNAL' | 'CHECK_FAILED';
@@ -11,7 +12,7 @@ export async function checkRetractionByDoi(doi: string): Promise<RetractionStatu
   if (!normalized) return { checkedAt, status: 'CHECK_FAILED', source: 'CROSSREF', details: 'DOI mangler.' };
   try {
     const url = `https://api.crossref.org/works/${encodeURIComponent(normalized)}`;
-    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    const response = await guardedFetch('metadata', url, { headers: { Accept: 'application/json' } });
     if (!response.ok) return { checkedAt, status: 'CHECK_FAILED', source: 'CROSSREF', details: `HTTP ${response.status}.` };
     const item = (await response.json())?.message ?? {};
     const relationText = JSON.stringify(item.relation ?? {}).toLowerCase();

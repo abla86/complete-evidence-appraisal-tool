@@ -234,7 +234,7 @@ export class StudyDesignGateService {
         isCompatible: true,
         matchLevel: 'EXACT_RECOMMENDED',
         headline: `Optimalt metodisk instrument (${instrument.shortName})`,
-        explanation: `Â«${instrument.name}Â» er det verifiserte gullstandard-instrumentet for ${design.name.toLowerCase()}.`,
+        explanation: `«${instrument.name}» er det verifiserte gullstandard-instrumentet for ${design.name.toLowerCase()}.`,
         recommendedInstruments: recommendedList,
         requiresExplicitOverrideConfirmation: false
       };
@@ -246,7 +246,7 @@ export class StudyDesignGateService {
         isCompatible: true,
         matchLevel: 'ACCEPTABLE_ALTERNATIVE',
         headline: `Gyldig metodisk alternativ (${instrument.shortName})`,
-        explanation: `Â«${instrument.name}Â» er et anerkjent alternativ for ${design.name.toLowerCase()}, men ${recommendedList[0]?.shortName || 'anbefalt verktøy'} gir mer spesifikk veiledning.`,
+        explanation: `«${instrument.name}» er et anerkjent alternativ for ${design.name.toLowerCase()}, men ${recommendedList[0]?.shortName || 'anbefalt verktøy'} gir mer spesifikk veiledning.`,
         recommendedInstruments: recommendedList,
         requiresExplicitOverrideConfirmation: false
       };
@@ -269,7 +269,7 @@ export class StudyDesignGateService {
     } else if (design.id === 'unknown-uncertain') {
       specificError = `Uavklart studiedesign: Studiedesignet er ikke sikkert identifisert. Forskeren må eksplisitt bekrefte design før valg av ${instrument.shortName}.`;
     } else {
-      specificError = `Instrumentet Â«${instrument.shortName}Â» (${instrument.categoryName}) er ikke metodisk tilpasset studiedesignet Â«${design.name}Â».`;
+      specificError = `Instrumentet «${instrument.shortName}» (${instrument.categoryName}) er ikke metodisk tilpasset studiedesignet «${design.name}».`;
     }
 
     return {

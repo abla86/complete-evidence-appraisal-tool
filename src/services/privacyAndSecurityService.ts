@@ -1,4 +1,5 @@
-﻿/**
+﻿import { clearAppStorage } from './appStorage';
+/**
  * GDPR & Privacy Center Service
  * 
  * Provides:
@@ -90,9 +91,9 @@ export class PrivacyAndSecurityService {
    */
   public static purgeLocalVault(): boolean {
     try {
-      localStorage.removeItem('evidence_appraisal_articles_vault_v2');
-      localStorage.removeItem('evidence_appraisal_snapshots_vault_v2');
-      localStorage.removeItem('jbi_research_group_workspace_v1');
+      // Removes every workspace key owned by this app (articles, appraisals, references,
+      // source records, audit log, drafts). The licence key is kept so the app stays usable.
+      clearAppStorage();
       return true;
     } catch {
       return false;

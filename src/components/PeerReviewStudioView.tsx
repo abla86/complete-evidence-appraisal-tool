@@ -408,7 +408,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
               {workspace.projectName}
             </h1>
             <p className="text-xs text-slate-600 mt-0.5">
-              {workspace.institutionOrCourse} â€¢ {workspace.members.length} granskere i forskningsteamet â€¢ {articles.length} inkluderte artikler
+              {workspace.institutionOrCourse} • {workspace.members.length} granskere i forskningsteamet • {articles.length} inkluderte artikler
             </p>
           </div>
 
@@ -661,7 +661,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                           >
                             {art.shortCitation}
                           </button>
-                          <span className="block text-[10px] font-normal text-slate-500 mt-0.5">{art.year} â€¢ {art.journal}</span>
+                          <span className="block text-[10px] font-normal text-slate-500 mt-0.5">{art.year} • {art.journal}</span>
                         </td>
                         <td className="p-3 text-slate-800 align-top max-w-xs">
                           <span className="font-semibold line-clamp-1">{art.title}</span>
@@ -694,7 +694,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                               </span>
                             </div>
                           ) : (
-                            <span className="text-[11px] text-slate-400">Krever â‰¥2 vurderinger</span>
+                            <span className="text-[11px] text-slate-400">Krever ≥2 vurderinger</span>
                           )}
                         </td>
                         <td className="p-3 align-top">
@@ -761,7 +761,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                 {selectedArticle?.shortCitation} – {selectedArticle?.title}
               </h2>
               <p className="text-xs text-slate-600">
-                Design: {selectedArticle?.design} â€¢ Utvalg: {selectedArticle?.participants}
+                Design: {selectedArticle?.design} • Utvalg: {selectedArticle?.participants}
               </p>
             </div>
 
@@ -1282,11 +1282,11 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                     onChange={(e) => setNewCommentCategory(e.target.value as CommentCategory)}
                     className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold"
                   >
-                    <option value="METHODOLOGY_CONCERN">âš ï¸ Metodisk bekymring / Usikkerhet</option>
-                    <option value="CLARIFICATION_NEEDED">â“ Behov for oppklaring</option>
-                    <option value="STRENGTH_PRAISE">ðŸŒŸ Metodisk styrke / Ros</option>
-                    <option value="CONSENSUS_NOTE">ðŸ“ Konsensusnotat</option>
-                    <option value="GENERAL_FEEDBACK">ðŸ’¬ Generell tilbakemelding</option>
+                    <option value="METHODOLOGY_CONCERN">⚠️ Metodisk bekymring / Usikkerhet</option>
+                    <option value="CLARIFICATION_NEEDED">❓ Behov for oppklaring</option>
+                    <option value="STRENGTH_PRAISE">🌟 Metodisk styrke / Ros</option>
+                    <option value="CONSENSUS_NOTE">📝 Konsensusnotat</option>
+                    <option value="GENERAL_FEEDBACK">💬 Generell tilbakemelding</option>
                   </select>
                 </div>
 
@@ -1355,7 +1355,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
 
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded">
-                            {study?.shortCitation} {c.questionId ? `â€¢ Q${c.questionId}` : ''}
+                            {study?.shortCitation} {c.questionId ? `• Q${c.questionId}` : ''}
                           </span>
                           <button
                             type="button"
@@ -1366,7 +1366,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                                 : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-800'
                             }`}
                           >
-                            {c.resolved ? 'âœ“ Avklart' : 'Marker som avklart'}
+                            {c.resolved ? '✓ Avklart' : 'Marker som avklart'}
                           </button>
                           <button
                             type="button"
@@ -1443,7 +1443,7 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                   Fagfellevurderingsprotokoll: {workspace.projectName}
                 </h2>
                 <p className="text-[11px] font-sans text-slate-600 mt-1">
-                  Institusjon: {workspace.institutionOrCourse} â€¢ Standard: {workspace.protocolPrismaTarget} â€¢ Dato: {new Date().toLocaleDateString('no-NO')}
+                  Institusjon: {workspace.institutionOrCourse} • Standard: {workspace.protocolPrismaTarget} • Dato: {new Date().toLocaleDateString('no-NO')}
                 </p>
               </div>
 
@@ -1482,11 +1482,11 @@ export const PeerReviewStudioView: React.FC<PeerReviewStudioViewProps> = ({
                           </span>
                         </div>
                         <p className="text-slate-600 text-xs">
-                          {art.authors} ({art.year}) â€¢ <em>{art.journal}</em> â€¢ DOI: {art.doi || 'N/A'}
+                          {art.authors} ({art.year}) • <em>{art.journal}</em> • DOI: {art.doi || 'N/A'}
                         </p>
                         {agreement && (
                           <p className="text-teal-950 text-xs font-semibold">
-                            Inter-Rater Samstemthet: {agreement.percentAgreement}% â€¢ Cohen's &kappa; = {agreement.cohensKappa} ({agreement.interpretation})
+                            Inter-Rater Samstemthet: {agreement.percentAgreement}% • Cohen's &kappa; = {agreement.cohensKappa} ({agreement.interpretation})
                           </p>
                         )}
                         {consensus && (

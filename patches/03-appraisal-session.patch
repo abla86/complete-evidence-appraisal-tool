@@ -1,2 +1,0 @@
-# Applied directly in commit 9533b2cf6932b1b194038e7e4d7ff081d6180abb.
-# UniversalAppraisalView now creates canonical sessions through /api/research-workflow/:studyId/appraisal/session.

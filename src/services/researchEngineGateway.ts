@@ -74,7 +74,7 @@ export class ResearchEngineGateway {
   }
 
   public static analyzeText(text: string, fileName = 'document.txt'): DocumentAnalysisResult {
-    if (!text?.trim()) throw new Error('Dokumenttekst kan ikke vÃ¦re tom.');
+    if (!text?.trim()) throw new Error('Dokumenttekst kan ikke være tom.');
     return DocumentAnalysisService.analyzeText(text, fileName);
   }
 

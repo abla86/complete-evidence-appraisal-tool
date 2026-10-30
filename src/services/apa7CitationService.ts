@@ -1,3 +1,4 @@
+import { guardedFetch } from './networkPolicy';
 /**
  * Academic citation and reference utilities.
  *
@@ -330,7 +331,7 @@ export class Apa7CitationService {
       return { success: false, source: 'Local Parser', errorMessage: 'Ingen gyldig DOI oppgitt.', formatted: this.formatApa7({}, language) };
     }
     try {
-      const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, { headers: { Accept: 'application/json' } });
+      const response = await guardedFetch('metadata', `https://api.crossref.org/works/${encodeURIComponent(doi)}`, { headers: { Accept: 'application/json' } });
       if (!response.ok) throw new Error(`Crossref HTTP ${response.status}`);
       const data = await response.json() as { message?: Record<string, unknown> };
       const item = data.message || {};

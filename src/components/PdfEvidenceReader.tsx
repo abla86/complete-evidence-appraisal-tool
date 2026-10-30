@@ -61,7 +61,7 @@ export const PdfEvidenceReader: React.FC<Props> = ({ file, referenceId, reviewer
 
       <aside className="space-y-3">
         <div>
-          <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">PDF â†’ EVIDENCE</div>
+          <div className="text-[10px] uppercase tracking-wide text-teal-700 font-bold">PDF → EVIDENCE</div>
           <h3 className="text-lg font-bold">Marker evidens</h3>
           <p className="text-xs text-slate-500 mt-1">Tekstutdrag lagres som evidens med sidereferanse. Forskerverifisering skjer separat.</p>
         </div>

@@ -2,7 +2,7 @@
 **Metavitenskapelig evalueringsplattform for forskningsmetode, retningslinjer og vitenskapelig integritet**
 
 ![Methodology Integrity](https://img.shields.io/badge/Methodology%20Integrity-Source%20Controlled-teal)
-![Version Locking](https://img.shields.io/badge/Version%20Locking-Immutable-emerald)
+![Version Fingerprinting](https://img.shields.io/badge/Version%20Fingerprinting-SHA--256-blue)
 ![Test Pyramid](https://img.shields.io/badge/Test%20Pyramid-Level%201%20%7C%202%20%7C%203-blue)
 ![License](https://img.shields.io/badge/License-Academic%20%2F%20Open%20Access-slate)
 
@@ -37,11 +37,11 @@ Applikasjonen er bygget som en moderne fullstack TypeScript-applikasjon med Expr
 │   │   ├── MetaResearchLabView.tsx      # Forsk på Forskning (Integritetsvakt & Analyse)
 │   │   ├── ReferenceLibraryView.tsx     # Referansevalideringsbibliotek & Gold Standard Diff
 │   │   ├── ValidationDashboardView.tsx  # Utvikler- & revisjonsdashboard for Testpyramiden
-│   │   ├── MethodologyAuditView.tsx     # 100% Kilde- og metoderevisjonsvisning
+│   │   ├── MethodologyAuditView.tsx     # Kilde- og metoderevisjonsvisning
 │   │   ├── MethodologyView.tsx          # Instrumentkatalog med DOI-kilder
 │   │   ├── EvaluateView.tsx             # Interaktivt vurderingsskjema med evidenslokalisering
 │   │   ├── DualReviewModal.tsx          # To-gransker sammenligning og konsensusadjudisering
-│   │   ├── AuditTrailView.tsx           # Tidsstemplet, uforanderlig revisjonslogg
+│   │   ├── AuditTrailView.tsx           # Tidsstemplet, hash-kjedet revisjonslogg (lokal lagring er ikke manipulasjonssikker)
 │   │   └── ...                          # Øvrige spesialiserte komponenter
 │   ├── data/
 │   │   ├── masterRegistry.ts            # Sentralt register over verifiserte instrumenter
@@ -113,7 +113,7 @@ Systemet verifiseres i henhold til en 3-nivås testpyramide:
 ```
 
 - **Level 1 (Unit):** Tester alle kombinasjoner av kritiske og ikke-kritiske svakheter i AMSTAR 2, min/maks formelgrenser i AGREE II, CASP screening-gater og inputvalidering.
-- **Level 2 (Integration):** Tester at uforenlige studietypedesign varsles i sanntid, at vurderingssnapshots er uforanderlige (*immutable*), og at audit logs opprettholdes.
+- **Level 2 (Integration):** Tester at uforenlige studietypedesign varsles i sanntid, at vurderingssnapshots er hash-fingeravtrykk som kan brukes til å oppdage endringer, og at audit logs opprettholdes.
 - **Level 3 (Reference):** Kjører publiserte forskningsartikler med kjente referansevurderinger gjennom algoritmene og verifiserer overensstemmelse.
 
 ---
@@ -130,6 +130,10 @@ Systemet verifiseres i henhold til en 3-nivås testpyramide:
 
 Systemet respekterer alle opphavsrettslige rammer og Creative Commons-lisenser (f.eks. CC BY 4.0 for AMSTAR 2 og RoB 2, CC BY-NC-SA 4.0 for CASP UK, og åpen forskningsbruk for JBI og AGREE Research Trust).
 
+
+## Storage durability
+
+By default, assessments and research artifacts are stored on the local filesystem. On ephemeral hosting, redeployments or instance replacement may remove these files; multiple instances also do not share a local directory. The health endpoint does not guarantee durable storage. Configure and test a persistent volume or database, including backups and restore procedures, before relying on records across deployments.
 
 ## Google OAuth 2.0
 
@@ -188,8 +192,8 @@ Commercial planning and launch gates are documented in:
 
 ## Disclaimers and limitations
 
-- **Scope:** Features may be incomplete, experimental, or unverified. Confirm behavior in the current code and tests before relying on it.
-- **No warranty:** This project is provided as-is, without guarantees of correctness, availability, security, or production readiness. Review and test changes before production use.
-- **Security and data:** Never commit credentials, API keys, personal information, or confidential data. Review permissions, external services, logging, retention, and dependency risks. Automated checks, if present, are limited and are not a complete security audit.
-- **Testing and deployment:** Passing tests or static checks does not prove all behavior is correct or deployment is safe. Independently verify functionality, access controls, dependencies, backups, and operational requirements.
-- **Professional use:** Validate domain-specific content with qualified professionals and applicable standards before real-world use; this software does not replace professional judgment.
+- **Project status:** Features may be incomplete, experimental, or unverified. Confirm behavior against the current code, tests, and configuration before relying on it.
+- **No warranty:** Provided as-is, without guarantees of correctness, availability, security, or production readiness. Review and test changes before production use.
+- **Security and data:** Never commit credentials, API keys, personal information, or confidential data. Review permissions, external services, logging, retention, and dependency risks. Automated checks are not a complete security audit.
+- **Testing and deployment:** Passing tests or static checks does not prove all behavior is correct or deployment is safe. Verify functionality, access controls, dependencies, backups, monitoring, and operational requirements independently.
+- **Domain-specific limitation:** This tool supports critical appraisal; it does not replace expert methodological judgment. Verify source references, instrument versions, extracted evidence, scoring rules and conclusions against the original study and authoritative guidance before academic, clinical or policy use.

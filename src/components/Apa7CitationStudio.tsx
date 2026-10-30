@@ -516,7 +516,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 {currentStyleOutput.inTextParenthetical}
               </div>
               <p className="text-[11px] text-slate-500">
-                Brukes på slutten av en setning: Â«...som dokumentert i nyere litteratur {currentStyleOutput.inTextParenthetical}.Â»
+                Brukes på slutten av en setning: «...som dokumentert i nyere litteratur {currentStyleOutput.inTextParenthetical}.»
               </p>
             </div>
 
@@ -539,7 +539,7 @@ export const Apa7CitationStudio: React.FC<Apa7CitationStudioProps> = ({
                 {currentStyleOutput.inTextNarrative}
               </div>
               <p className="text-[11px] text-slate-500">
-                Brukes når forfatteren inngår i setningen: Â«Ifølge {currentStyleOutput.inTextNarrative} viser funnene...Â»
+                Brukes når forfatteren inngår i setningen: «Ifølge {currentStyleOutput.inTextNarrative} viser funnene...»
               </p>
             </div>
           </div>

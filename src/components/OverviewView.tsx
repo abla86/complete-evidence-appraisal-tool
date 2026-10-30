@@ -434,12 +434,12 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               Aktiv sortering: <strong className="text-slate-900">{sortLabelMap[sortBy]}</strong>
             </span>
             {articleSearchQuery && (
-              <span className="flex items-center gap-1 text-slate-600 before:content-['â€¢'] before:text-slate-300 before:mr-1">
-                Søkeord: <span className="px-1.5 py-0.2 bg-teal-100/80 text-teal-900 font-bold rounded">Â«{articleSearchQuery}Â»</span>
+              <span className="flex items-center gap-1 text-slate-600 before:content-['•'] before:text-slate-300 before:mr-1">
+                Søkeord: <span className="px-1.5 py-0.2 bg-teal-100/80 text-teal-900 font-bold rounded">«{articleSearchQuery}»</span>
               </span>
             )}
             {selectedMethodologyFilter !== 'all' && (
-              <span className="flex items-center gap-1 text-slate-600 before:content-['â€¢'] before:text-slate-300 before:mr-1">
+              <span className="flex items-center gap-1 text-slate-600 before:content-['•'] before:text-slate-300 before:mr-1">
                 Metodefilter: <span className="font-semibold text-slate-800">{selectedMethodologyFilter}</span>
               </span>
             )}
@@ -498,10 +498,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <Search className="w-6 h-6" />
           </div>
           <p className="text-base font-semibold text-slate-800">
-            Ingen artikler matchet søket {articleSearchQuery ? `Â«${articleSearchQuery}Â»` : 'og de valgte filtrene'}.
+            Ingen artikler matchet søket {articleSearchQuery ? `«${articleSearchQuery}»` : 'og de valgte filtrene'}.
           </p>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Prøv å endre søkeordet, velg Â«Alle metodologierÂ», eller nullstill sorteringen for å se hele biblioteket.
+            Prøv å endre søkeordet, velg «Alle metodologier», eller nullstill sorteringen for å se hele biblioteket.
           </p>
           <button
             type="button"

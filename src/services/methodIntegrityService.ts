@@ -347,7 +347,7 @@ export class MethodIntegrityService {
    */
   public static generateMarkdownAuditReport(report: ComprehensiveAuditReport): string {
     let md = `# EVIDENCE APPRAISAL TOOL – METHODOLOGICAL QA & AUDIT REPORT\n\n`;
-    md += `**Audit Dato:** ${report.timestamp.split('T')[0]} | **Status:** ${report.overallSystemAudit === 'PASS' ? 'âœ… PASS (ALL VERIFIED)' : 'âš ï¸ ATTENTION REQUIRED'}\n`;
+    md += `**Audit Dato:** ${report.timestamp.split('T')[0]} | **Status:** ${report.overallSystemAudit === 'PASS' ? '✅ PASS (ALL VERIFIED)' : '⚠️ ATTENTION REQUIRED'}\n`;
     md += `**Totalt antall registrerte instrumenter:** ${report.totalInstruments} (VERIFIED: ${report.verifiedCount}, PARTIALLY_VERIFIED: ${report.partiallyVerifiedCount}, UNVERIFIED: ${report.unverifiedCount})\n\n`;
 
     md += `## 1. INSTRUMENT AUDIT & VERIFICATION MATRIX\n\n`;
@@ -363,7 +363,7 @@ export class MethodIntegrityService {
     md += `- **VERSION AUDIT:** ${report.auditsSummary.versionAudit} (Eksplisitt versjonslås & ingen blanding av utgaver)\n`;
     md += `- **SCORING AUDIT:** ${report.auditsSummary.scoringAudit} (Ingen uautorisert sumskår for AMSTAR 2 / CFIR / KTA / JBI)\n`;
     md += `- **STUDY DESIGN AUDIT:** ${report.auditsSummary.studyDesignAudit} (Aktiv studietype-gating & advarselslogikk)\n`;
-    md += `- **AI SAFETY AUDIT:** ${report.auditsSummary.aiSafetyAudit} (Prinsipp: Â«Not found ≠ NoÂ», menneskelig verifikasjonskrav)\n`;
+    md += `- **AI SAFETY AUDIT:** ${report.auditsSummary.aiSafetyAudit} (Prinsipp: «Not found ≠ No», menneskelig verifikasjonskrav)\n`;
     md += `- **EVIDENCE TRACEABILITY:** ${report.auditsSummary.evidenceTraceabilityAudit} (Strukturert lagring av sitater, sidetall og begrunnelse)\n`;
     md += `- **AUDIT TRAIL:** ${report.auditsSummary.auditTrailAudit} (Revisjonslogg med tidsstempel, endret verdi og begrunnelse)\n`;
     md += `- **EXPORT INTEGRITY:** ${report.auditsSummary.exportIntegrityAudit} (Uendret deterministisk eksport til Markdown / TXT / JSON)\n`;
